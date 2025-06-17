@@ -56,6 +56,8 @@ double_confirm_changes = true
 enable_confirmations = false
 secure_email_change_enabled = true
 enable_reauthentication = true
+# Reducir tiempo de expiración de OTP a 10 minutos (600 segundos) para mejor seguridad
+otp_exp = 600
 
 [auth.sms]
 enable_signup = false
