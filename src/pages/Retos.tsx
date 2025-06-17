@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { syncUserPoints } from '@/utils/pointsSync';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -82,6 +83,10 @@ const Retos = () => {
 
     console.log('Loading user stats for retos page, user:', profile.id);
 
+    // Sincronizar puntos antes de cargar stats
+    console.log('Syncing points in retos page...');
+    await syncUserPoints(profile.id);
+
     // Get user points
     const { data: pointsData, error: pointsError } = await supabase
       .from('user_points')
@@ -92,9 +97,10 @@ const Retos = () => {
     if (pointsError) {
       console.error('Error fetching user points:', pointsError);
     } else {
-      console.log('User points from retos page:', pointsData);
+      console.log('User points from retos page after sync:', pointsData);
     }
 
+    // Get completed challenges
     const { data: completedData } = await supabase
       .from('user_challenge_progress')
       .select('id')
@@ -128,7 +134,7 @@ const Retos = () => {
       activeStreaks
     };
 
-    console.log('Retos page stats updated:', newStats);
+    console.log('Retos page stats updated after sync:', newStats);
     setUserStats(newStats);
     setLoading(false);
   };

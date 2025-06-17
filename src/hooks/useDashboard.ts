@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { syncUserPoints } from '@/utils/pointsSync';
 
 interface DashboardStats {
   totalPoints: number;
@@ -50,6 +51,10 @@ export const useDashboard = () => {
     console.log('Loading user stats for user:', profile.id);
 
     try {
+      // Primero sincronizar puntos de retos completados
+      console.log('Syncing challenge points...');
+      await syncUserPoints(profile.id);
+
       // Get user points with más logging
       const { data: points, error: pointsError } = await supabase
         .from('user_points')
@@ -60,12 +65,12 @@ export const useDashboard = () => {
       if (pointsError && pointsError.code !== 'PGRST116') {
         console.error('Error fetching points:', pointsError);
       } else {
-        console.log('User points fetched:', points);
+        console.log('User points fetched after sync:', points);
       }
 
-      // Si no hay datos de puntos, crear un registro inicial
+      // Si no hay datos de puntos después de la sincronización, crear un registro inicial
       if (!points) {
-        console.log('No points record found, creating initial record...');
+        console.log('No points record found after sync, creating initial record...');
         const { data: newPoints, error: createError } = await supabase
           .from('user_points')
           .insert({
@@ -118,7 +123,7 @@ export const useDashboard = () => {
         challengesCompleted: challenges?.length || 0,
       };
 
-      console.log('Dashboard stats updated:', newStats);
+      console.log('Dashboard stats updated after sync:', newStats);
       setStats(newStats);
     } catch (error) {
       console.error('Error loading user stats:', error);
