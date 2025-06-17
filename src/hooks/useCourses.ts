@@ -39,7 +39,7 @@ export const useCourses = () => {
         // Si course_modules es null o undefined, establecer como array vacío
         course_modules: course.course_modules ? 
           (Array.isArray(course.course_modules) ? 
-            course.course_modules as CourseModule[] : 
+            course.course_modules as unknown as CourseModule[] : 
             // Si es un string JSON, intentar parsearlo
             typeof course.course_modules === 'string' ? 
               JSON.parse(course.course_modules) : 
