@@ -138,6 +138,11 @@ export default function Perfil() {
   };
 
   const handleManageSubscription = async () => {
+    if (currentPlan === 'freemium') {
+      toast.error('Necesitas tener una suscripción activa para acceder al portal de facturación');
+      return;
+    }
+
     setManagementLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
@@ -156,6 +161,11 @@ export default function Perfil() {
   };
 
   const handleViewInvoices = async () => {
+    if (currentPlan === 'freemium') {
+      toast.error('Necesitas tener una suscripción activa para ver el historial de facturas');
+      return;
+    }
+
     setInvoiceLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
@@ -420,6 +430,16 @@ export default function Perfil() {
                       </p>
                     </div>
                   </div>
+
+                  {currentPlan === 'freemium' && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                      <p className="text-yellow-800 text-sm">
+                        <strong>Plan Gratuito:</strong> Para acceder a la gestión de pagos y facturas, 
+                        necesitas suscribirte a uno de nuestros planes de pago. 
+                        Ve a la pestaña "Plan" para explorar las opciones disponibles.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="space-y-4">
                     <Button 
