@@ -779,7 +779,7 @@ export type Database = {
           {
             foreignKeyName: "user_points_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -790,7 +790,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_user_points: {
+        Args: { user_id: string; points: number }
+        Returns: undefined
+      }
     }
     Enums: {
       challenge_type:

@@ -74,12 +74,16 @@ const Formacion = () => {
       console.error('Error enrolling in course:', error);
     } else {
       // Add points for starting a course
-      const { error: pointsError } = await supabase.rpc('add_user_points', {
-        user_id: profile.id,
-        points: 50
-      });
-      if (pointsError) {
-        console.error('Error adding points:', pointsError);
+      try {
+        const { error: pointsError } = await supabase.rpc('add_user_points', {
+          user_id: profile.id,
+          points: 50
+        } as any);
+        if (pointsError) {
+          console.error('Error adding points:', pointsError);
+        }
+      } catch (error) {
+        console.error('Error calling add_user_points:', error);
       }
     }
   };
