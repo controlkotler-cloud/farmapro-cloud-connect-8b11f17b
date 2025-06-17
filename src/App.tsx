@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -24,6 +23,10 @@ import Promociones from "./pages/Promociones";
 import Perfil from "./pages/Perfil";
 import CourseView from "./pages/CourseView";
 import CourseQuizView from "./pages/CourseQuizView";
+import PoliticaCookies from "./pages/PoliticaCookies";
+import PoliticaPrivacidad from "./pages/PoliticaPrivacidad";
+import AvisoLegal from "./pages/AvisoLegal";
+import ContactoSoporte from "./pages/ContactoSoporte";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +124,13 @@ const AppRoutes = () => {
           <Promociones />
         </ProtectedRoute>
       } />
+      
+      {/* Páginas legales - accesibles sin autenticación */}
+      <Route path="/politica-cookies" element={<PoliticaCookies />} />
+      <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
+      <Route path="/aviso-legal" element={<AvisoLegal />} />
+      <Route path="/contacto-soporte" element={<ContactoSoporte />} />
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
