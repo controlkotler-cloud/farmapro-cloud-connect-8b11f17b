@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle, Target, Trophy, Gift, Calendar, Lightbulb, BookOpen, TrendingUp, Shield, Zap, Brain } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle, Target, Trophy, Gift, Calendar, Lightbulb, BookOpen, TrendingUp, Shield, Zap, Brain, Download, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import CourseQuiz from '@/components/course/CourseQuiz';
@@ -19,12 +20,24 @@ import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 type Course = Database['public']['Tables']['courses']['Row'];
 type Enrollment = Database['public']['Tables']['course_enrollments']['Row'];
 
-interface CourseSection {
+interface CourseModule {
   id: string;
   title: string;
-  content: string;
+  content?: string;
   duration: number;
-  icon: any;
+  icon?: any;
+  video_url?: string | null;
+  downloadable_resources?: {
+    title: string;
+    url: string;
+    type: string;
+  }[];
+}
+
+interface DownloadableResource {
+  title: string;
+  url: string;
+  type: string;
 }
 
 const CourseView = () => {
@@ -32,6 +45,7 @@ const CourseView = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { toast } = useToast();
+  const contentRef = useRef<HTMLDivElement>(null);
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,10 +54,11 @@ const CourseView = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [quizPassed, setQuizPassed] = useState(false);
+  const [courseModules, setCourseModules] = useState<CourseModule[]>([]);
   const { canAccessCourse, refreshLimits } = useSubscriptionLimits();
 
-  // Contenido del curso DAFO con mejor formato
-  const courseSections: CourseSection[] = [
+  // Contenido del curso DAFO con mejor formato (fallback si no hay módulos en BD)
+  const defaultCourseSections: CourseModule[] = [
     {
       id: 'introduccion',
       title: 'Introducción al Análisis DAFO',
@@ -781,6 +796,13 @@ const CourseView = () => {
     }
   }, [courseId, profile?.id]);
 
+  // Scroll to top when section changes
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentSection]);
+
   const loadCourseData = async () => {
     if (!courseId || !profile?.id) return;
 
@@ -801,6 +823,17 @@ const CourseView = () => {
 
     setCourse(courseData);
 
+    // Process course modules from database or use default
+    if (courseData.course_modules && Array.isArray(courseData.course_modules)) {
+      const modulesWithIcons = courseData.course_modules.map((module: any, index: number) => ({
+        ...module,
+        icon: [BookOpen, TrendingUp, Shield, Lightbulb, AlertTriangle, Target, Zap][index] || BookOpen
+      }));
+      setCourseModules(modulesWithIcons);
+    } else {
+      setCourseModules(defaultCourseSections);
+    }
+
     // Load enrollment
     const { data: enrollmentData, error: enrollmentError } = await supabase
       .from('course_enrollments')
@@ -815,7 +848,7 @@ const CourseView = () => {
       setEnrollment(enrollmentData);
       // Calculate completed sections based on progress
       const progress = enrollmentData.progress || 0;
-      const sectionsCompleted = Math.floor((progress / 100) * courseSections.length);
+      const sectionsCompleted = Math.floor((progress / 100) * courseModules.length);
       setCompletedSections(new Set(Array.from({length: sectionsCompleted}, (_, i) => i)));
     }
 
@@ -845,7 +878,7 @@ const CourseView = () => {
           const { error: pointsError } = await supabase.rpc('add_user_points', {
             user_id: profile.id,
             points: 100
-          });
+          } as any);
           
           if (pointsError) {
             console.error('Error adding completion points:', pointsError);
@@ -868,7 +901,7 @@ const CourseView = () => {
     newCompleted.add(sectionIndex);
     setCompletedSections(newCompleted);
     
-    const newProgress = Math.round((newCompleted.size / courseSections.length) * 100);
+    const newProgress = Math.round((newCompleted.size / courseModules.length) * 100);
     updateProgress(newProgress);
 
     toast({
@@ -878,7 +911,7 @@ const CourseView = () => {
   };
 
   const nextSection = () => {
-    if (currentSection < courseSections.length - 1) {
+    if (currentSection < courseModules.length - 1) {
       setCurrentSection(currentSection + 1);
     }
   };
@@ -890,10 +923,10 @@ const CourseView = () => {
   };
 
   const handleFinishCourse = () => {
-    const allSectionsCompleted = completedSections.size === courseSections.length;
+    const allSectionsCompleted = completedSections.size === courseModules.length;
     
     if (!allSectionsCompleted) {
-      const missingSections = courseSections.length - completedSections.size;
+      const missingSections = courseModules.length - completedSections.size;
       toast({
         title: "Curso incompleto",
         description: `Debes completar todos los módulos antes de finalizar. Te faltan ${missingSections} módulos.`,
@@ -935,8 +968,19 @@ const CourseView = () => {
     });
   };
 
+  const handleDownloadResource = (resource: DownloadableResource) => {
+    // Open resource in new tab
+    window.open(resource.url, '_blank');
+    
+    toast({
+      title: "Recurso descargado",
+      description: `${resource.title} se está descargando.`,
+    });
+  };
+
   const progressPercentage = enrollment?.progress || 0;
   const isCourseCompleted = enrollment?.completed_at !== null;
+  const currentModule = courseModules[currentSection];
 
   if (loading) {
     return (
@@ -1087,7 +1131,7 @@ const CourseView = () => {
         </div>
       </div>
 
-      {/* Course Completion Status - New section */}
+      {/* Course Completion Status */}
       {isCourseCompleted && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-6">
@@ -1106,11 +1150,11 @@ const CourseView = () => {
         </Card>
       )}
 
-      {/* Course Info */}
+      {/* Course Info with Featured Image */}
       <Card className={isCourseCompleted ? 'border-green-200 bg-green-50' : ''}>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <CardTitle className="text-2xl flex items-center">
                 {course.title}
                 {isCourseCompleted && (
@@ -1124,11 +1168,13 @@ const CourseView = () => {
                 </p>
               )}
             </div>
-            <img 
-              src={course.thumbnail_url || "/placeholder.svg"} 
-              alt={course.title}
-              className="w-24 h-24 object-cover rounded-lg"
-            />
+            {course.featured_image_url && (
+              <img 
+                src={course.featured_image_url || "/placeholder.svg"} 
+                alt={course.title}
+                className="w-32 h-24 object-cover rounded-lg ml-4"
+              />
+            )}
           </div>
           <div className="flex items-center space-x-6 mt-4">
             <div className="flex items-center text-sm text-gray-600">
@@ -1137,7 +1183,7 @@ const CourseView = () => {
             </div>
             <div className="flex items-center text-sm text-gray-600">
               <Users className="h-4 w-4 mr-1" />
-              {courseSections.length} módulos
+              {courseModules.length} módulos
             </div>
           </div>
           
@@ -1161,7 +1207,7 @@ const CourseView = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             <ScrollArea className="h-[400px]">
-              {courseSections.map((section, index) => {
+              {courseModules.map((section, index) => {
                 const IconComponent = section.icon;
                 return (
                   <Button
@@ -1194,26 +1240,84 @@ const CourseView = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl flex items-center">
-                {React.createElement(courseSections[currentSection]?.icon, { className: "h-6 w-6 mr-3" })}
-                {courseSections[currentSection]?.title}
+                {React.createElement(currentModule?.icon || BookOpen, { className: "h-6 w-6 mr-3" })}
+                {currentModule?.title}
               </CardTitle>
               <Badge variant="outline">
-                {courseSections[currentSection]?.duration} minutos
+                {currentModule?.duration} minutos
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[500px] w-full rounded-md border p-6">
+            <ScrollArea className="h-[500px] w-full rounded-md border p-6" ref={contentRef}>
               <motion.div
                 key={currentSection}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
-                className="prose prose-lg max-w-none prose-headings:text-green-800 prose-h3:text-xl prose-h4:text-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:mb-2"
-                dangerouslySetInnerHTML={{ 
-                  __html: courseSections[currentSection]?.content || '' 
-                }}
-              />
+                className="space-y-6"
+              >
+                {/* Video Section */}
+                {currentModule?.video_url && (
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <div className="flex items-center mb-4">
+                      <Play className="h-5 w-5 text-blue-600 mr-2" />
+                      <h4 className="text-lg font-semibold text-gray-800">Video del módulo</h4>
+                    </div>
+                    <div className="aspect-video rounded-lg overflow-hidden">
+                      <iframe
+                        src={currentModule.video_url}
+                        title={`Video: ${currentModule.title}`}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Content Section */}
+                <div
+                  className="prose prose-lg max-w-none prose-headings:text-green-800 prose-h3:text-xl prose-h4:text-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:mb-2"
+                  dangerouslySetInnerHTML={{ 
+                    __html: currentModule?.content || 'Contenido del módulo no disponible.' 
+                  }}
+                />
+
+                {/* Downloadable Resources */}
+                {currentModule?.downloadable_resources && currentModule.downloadable_resources.length > 0 && (
+                  <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <div className="flex items-center mb-4">
+                      <Download className="h-5 w-5 text-blue-600 mr-2" />
+                      <h4 className="text-lg font-semibold text-blue-800">Recursos descargables</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {currentModule.downloadable_resources.map((resource, index) => (
+                        <div key={index} className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <span className="text-blue-600 font-semibold text-sm">{resource.type}</span>
+                            </div>
+                            <div>
+                              <h5 className="font-medium text-gray-800">{resource.title}</h5>
+                              <p className="text-sm text-gray-600">Archivo {resource.type}</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadResource(resource)}
+                            className="flex items-center space-x-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            <span>Descargar</span>
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
             </ScrollArea>
             
             {/* Navigation and Actions */}
@@ -1239,7 +1343,7 @@ const CourseView = () => {
                   </Button>
                 )}
                 
-                {currentSection === courseSections.length - 1 ? (
+                {currentSection === courseModules.length - 1 ? (
                   <Button
                     onClick={handleFinishCourse}
                     className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
@@ -1260,12 +1364,12 @@ const CourseView = () => {
             </div>
 
             {/* Warning if not all sections completed */}
-            {currentSection === courseSections.length - 1 && completedSections.size < courseSections.length && (
+            {currentSection === courseModules.length - 1 && completedSections.size < courseModules.length && (
               <Alert className="mt-4 border-orange-200 bg-orange-50">
                 <AlertTriangle className="h-4 w-4 text-orange-600" />
                 <AlertDescription className="text-orange-700">
                   Asegúrate de completar todos los módulos antes de finalizar el curso. 
-                  Te faltan {courseSections.length - completedSections.size} módulos por completar.
+                  Te faltan {courseModules.length - completedSections.size} módulos por completar.
                 </AlertDescription>
               </Alert>
             )}

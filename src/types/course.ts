@@ -10,8 +10,25 @@ export interface Course {
   category: CourseCategory;
   duration_minutes: number;
   thumbnail_url: string;
+  featured_image_url?: string;
   is_premium: boolean;
   created_at: string;
+  course_modules?: CourseModule[];
+}
+
+export interface CourseModule {
+  id: string;
+  title: string;
+  content?: string;
+  duration: number;
+  video_url?: string | null;
+  downloadable_resources?: DownloadableResource[];
+}
+
+export interface DownloadableResource {
+  title: string;
+  url: string;
+  type: string;
 }
 
 export interface CourseEnrollment {

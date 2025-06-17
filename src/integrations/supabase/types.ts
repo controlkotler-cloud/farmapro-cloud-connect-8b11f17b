@@ -88,9 +88,11 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["course_category"]
           content: string | null
+          course_modules: Json | null
           created_at: string | null
           description: string | null
           duration_minutes: number | null
+          featured_image_url: string | null
           id: string
           is_premium: boolean | null
           thumbnail_url: string | null
@@ -100,9 +102,11 @@ export type Database = {
         Insert: {
           category: Database["public"]["Enums"]["course_category"]
           content?: string | null
+          course_modules?: Json | null
           created_at?: string | null
           description?: string | null
           duration_minutes?: number | null
+          featured_image_url?: string | null
           id?: string
           is_premium?: boolean | null
           thumbnail_url?: string | null
@@ -112,9 +116,11 @@ export type Database = {
         Update: {
           category?: Database["public"]["Enums"]["course_category"]
           content?: string | null
+          course_modules?: Json | null
           created_at?: string | null
           description?: string | null
           duration_minutes?: number | null
+          featured_image_url?: string | null
           id?: string
           is_premium?: boolean | null
           thumbnail_url?: string | null
