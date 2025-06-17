@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +34,20 @@ const Promociones = () => {
     { id: 'equipos', name: 'Equipos' },
     { id: 'formacion', name: 'Formación' },
     { id: 'servicios', name: 'Servicios' },
+  ];
+
+  // Array de imágenes para promociones farmacéuticas
+  const promotionImages = [
+    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&auto=format', // farmacia moderna
+    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&auto=format', // productos farmacéuticos
+    'https://images.unsplash.com/photo-1585435557343-3b092031c777?w=400&h=300&fit=crop&auto=format', // medicina y salud
+    'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop&auto=format', // laboratorio
+    'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=400&h=300&fit=crop&auto=format', // píldoras y medicamentos
+    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop&auto=format', // equipo médico
+    'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&auto=format', // investigación médica
+    'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop&auto=format', // medicina alternativa
+    'https://images.unsplash.com/photo-1571772996211-2f02c9727629?w=400&h=300&fit=crop&auto=format', // cápsulas
+    'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=400&h=300&fit=crop&auto=format' // farmacéutico trabajando
   ];
 
   useEffect(() => {
@@ -97,6 +110,10 @@ const Promociones = () => {
     }
   };
 
+  const getPromotionImage = (index: number) => {
+    return promotionImages[index % promotionImages.length];
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -138,9 +155,13 @@ const Promociones = () => {
                   <Card className="h-full hover:shadow-lg transition-shadow">
                     <div className="relative">
                       <img 
-                        src={promotion.image_url || "/placeholder.svg"} 
+                        src={promotion.image_url || getPromotionImage(index)} 
                         alt={promotion.title}
-                        className="w-full h-48 object-cover"
+                        className="w-full h-48 object-cover rounded-t-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = getPromotionImage(index);
+                        }}
                       />
                       <div className="absolute top-2 left-2 space-y-1">
                         <Badge className="bg-gradient-to-r from-red-500 to-pink-600">
@@ -192,7 +213,7 @@ const Promociones = () => {
 
                         <Button className="w-full mt-4">
                           <ExternalLink className="h-4 w-4 mr-2" />
-                          Ver Oferta
+                          Solicitar
                         </Button>
                       </div>
                     </CardContent>
