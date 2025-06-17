@@ -42,7 +42,7 @@ const Comunidad = () => {
   const [threads, setThreads] = useState<ForumThread[]>([]);
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [newThreadTitle, setNewThreadTitle] = useState('');
   const [newThreadContent, setNewThreadContent] = useState('');
   const [showNewThreadDialog, setShowNewThreadDialog] = useState(false);

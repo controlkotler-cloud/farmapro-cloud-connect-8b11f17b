@@ -8,14 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Download, FileText, Calculator, BookOpen, Lock, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { Database } from '@/integrations/supabase/types';
+
+type ResourceType = Database['public']['Enums']['resource_type'];
+type ResourceFormat = Database['public']['Enums']['resource_format'];
+type ResourceCategory = Database['public']['Enums']['resource_category'];
 
 interface Resource {
   id: string;
   title: string;
   description: string;
-  type: string;
-  format: string;
-  category: string;
+  type: ResourceType;
+  format: ResourceFormat;
+  category: ResourceCategory;
   file_url: string;
   download_count: number;
   is_premium: boolean;
@@ -26,14 +31,14 @@ const Recursos = () => {
   const { profile } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState('all');
+  const [selectedType, setSelectedType] = useState<ResourceType | 'all'>('all');
 
   const resourceTypes = [
-    { id: 'all', name: 'Todos', icon: FileText },
-    { id: 'calculadora', name: 'Calculadoras', icon: Calculator },
-    { id: 'plantilla', name: 'Plantillas', icon: FileText },
-    { id: 'guia', name: 'Guías', icon: BookOpen },
-    { id: 'protocolo', name: 'Protocolos', icon: FileText },
+    { id: 'all' as const, name: 'Todos', icon: FileText },
+    { id: 'calculadora' as const, name: 'Calculadoras', icon: Calculator },
+    { id: 'plantilla' as const, name: 'Plantillas', icon: FileText },
+    { id: 'guia' as const, name: 'Guías', icon: BookOpen },
+    { id: 'protocolo' as const, name: 'Protocolos', icon: FileText },
   ];
 
   useEffect(() => {
@@ -100,9 +105,9 @@ const Recursos = () => {
     switch (format.toLowerCase()) {
       case 'pdf':
         return <FileText className="h-5 w-5 text-red-600" />;
-      case 'excel':
+      case 'xls':
         return <Calculator className="h-5 w-5 text-green-600" />;
-      case 'word':
+      case 'docs':
         return <FileText className="h-5 w-5 text-blue-600" />;
       default:
         return <FileText className="h-5 w-5 text-gray-600" />;
@@ -116,7 +121,7 @@ const Recursos = () => {
         <p className="text-gray-600">Herramientas, plantillas y guías para optimizar tu trabajo diario</p>
       </div>
 
-      <Tabs value={selectedType} onValueChange={setSelectedType}>
+      <Tabs value={selectedType} onValueChange={(value) => setSelectedType(value as ResourceType | 'all')}>
         <TabsList className="grid w-full grid-cols-5">
           {resourceTypes.map((type) => (
             <TabsTrigger key={type.id} value={type.id} className="flex items-center space-x-2">

@@ -8,12 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, Users, Star, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { Database } from '@/integrations/supabase/types';
+
+type CourseCategory = Database['public']['Enums']['course_category'];
 
 interface Course {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category: CourseCategory;
   duration_minutes: number;
   thumbnail_url: string;
   is_premium: boolean;
@@ -24,15 +27,15 @@ const Formacion = () => {
   const { profile } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<CourseCategory | 'all'>('all');
 
   const categories = [
-    { id: 'all', name: 'Todos los Cursos' },
-    { id: 'gestion', name: 'Gestión Farmacéutica' },
-    { id: 'clinica', name: 'Farmacia Clínica' },
-    { id: 'marketing', name: 'Marketing y Ventas' },
-    { id: 'regulatorio', name: 'Aspectos Regulatorios' },
-    { id: 'digital', name: 'Transformación Digital' },
+    { id: 'all' as const, name: 'Todos los Cursos' },
+    { id: 'gestion' as const, name: 'Gestión Farmacéutica' },
+    { id: 'marketing' as const, name: 'Marketing y Ventas' },
+    { id: 'liderazgo' as const, name: 'Liderazgo' },
+    { id: 'atencion_cliente' as const, name: 'Atención al Cliente' },
+    { id: 'tecnologia' as const, name: 'Tecnología' },
   ];
 
   useEffect(() => {
@@ -90,7 +93,7 @@ const Formacion = () => {
         <p className="text-gray-600">Desarrolla tus competencias profesionales con nuestros cursos especializados</p>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+      <Tabs value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as CourseCategory | 'all')}>
         <TabsList className="grid w-full grid-cols-6">
           {categories.map((category) => (
             <TabsTrigger key={category.id} value={category.id} className="text-xs">
