@@ -88,12 +88,34 @@ export const useDashboard = () => {
         }
       }
 
-      // Get courses completed
-      const { data: courses } = await supabase
-        .from('course_enrollments')
-        .select('id')
+      // Get progress for course_completed challenges to count total completions
+      const { data: courseProgress } = await supabase
+        .from('user_challenge_progress')
+        .select('current_count')
         .eq('user_id', profile.id)
-        .not('completed_at', 'is', null);
+        .eq('challenge_id', (
+          await supabase
+            .from('challenges')
+            .select('id')
+            .eq('type', 'course_completed')
+            .single()
+        ).data?.id || '');
+
+      // Use the challenge progress count if available, otherwise fall back to enrollment count
+      let coursesCompleted = 0;
+      if (courseProgress && courseProgress.length > 0) {
+        coursesCompleted = courseProgress[0].current_count;
+        console.log('Using challenge progress for courses completed:', coursesCompleted);
+      } else {
+        // Fallback to counting enrollments
+        const { data: courses } = await supabase
+          .from('course_enrollments')
+          .select('id')
+          .eq('user_id', profile.id)
+          .not('completed_at', 'is', null);
+        coursesCompleted = courses?.length || 0;
+        console.log('Using enrollment count for courses completed:', coursesCompleted);
+      }
 
       // Get resources downloaded
       const { data: resources } = await supabase
@@ -117,7 +139,7 @@ export const useDashboard = () => {
       const newStats = {
         totalPoints: points?.total_points || 0,
         level: points?.level || 1,
-        coursesCompleted: courses?.length || 0,
+        coursesCompleted,
         resourcesDownloaded: resources?.length || 0,
         forumPosts: posts?.length || 0,
         challengesCompleted: challenges?.length || 0,
