@@ -1,3 +1,4 @@
+
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,8 @@ import {
   Calendar,
   Gift,
   Star,
-  CheckCircle
+  CheckCircle,
+  Copyright
 } from 'lucide-react';
 
 const features = [
@@ -105,6 +107,8 @@ const plans = [
 ];
 
 const Index = () => {
+  const currentYear = new Date().getFullYear();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
       {/* Header */}
@@ -309,15 +313,64 @@ const Index = () => {
             <div>
               <h3 className="font-semibold mb-4">Legal</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>Términos de Uso</li>
-                <li>Política de Privacidad</li>
-                <li>Contacto</li>
+                <li>
+                  <Link to="/politica-cookies" className="hover:text-white transition-colors">
+                    Política de Cookies
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/politica-privacidad" className="hover:text-white transition-colors">
+                    Política de Privacidad
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/aviso-legal" className="hover:text-white transition-colors">
+                    Aviso Legal
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contacto-soporte" className="hover:text-white transition-colors">
+                    Contacto y Soporte
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 farmapro. Todos los derechos reservados.</p>
+          <div className="border-t border-gray-800 mt-8 pt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+              <div className="flex items-center gap-2">
+                <Copyright className="h-4 w-4" />
+                <span>{currentYear} farmapro</span>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-4 text-xs">
+                <Link 
+                  to="/politica-cookies" 
+                  className="hover:text-white transition-colors"
+                >
+                  Política de Cookies
+                </Link>
+                <Link 
+                  to="/politica-privacidad" 
+                  className="hover:text-white transition-colors"
+                >
+                  Política de Privacidad
+                </Link>
+                <Link 
+                  to="/aviso-legal" 
+                  className="hover:text-white transition-colors"
+                >
+                  Aviso Legal
+                </Link>
+                <Link 
+                  to="/contacto-soporte" 
+                  className="hover:text-white transition-colors"
+                >
+                  Contacto y Soporte
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
