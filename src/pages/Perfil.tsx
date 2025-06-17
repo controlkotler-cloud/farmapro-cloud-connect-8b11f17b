@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -10,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Crown, Sparkles, GraduationCap, Briefcase, User, CreditCard, Bell, Shield } from 'lucide-react';
+import { Crown, Sparkles, GraduationCap, Briefcase, User, CreditCard, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
+import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
 
 const planConfig = {
   freemium: {
@@ -101,17 +104,11 @@ export default function Perfil() {
     }
   };
 
-  const handleUpgradePlan = () => {
-    navigate('/subscription?tab=plans');
-  };
-
   const handleSaveNotificationSettings = () => {
     saveSettings(settings);
   };
 
   const currentPlan = profile?.subscription_role || 'freemium';
-  const config = planConfig[currentPlan as keyof typeof planConfig];
-  const PlanIcon = config.icon;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -212,67 +209,10 @@ export default function Perfil() {
           </TabsContent>
 
           <TabsContent value="plan" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Plan Actual</CardTitle>
-                <CardDescription>
-                  Información sobre tu plan de suscripción y beneficios
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className={`${config.bgColor} rounded-lg p-6 border`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${config.color} flex items-center justify-center`}>
-                        <PlanIcon className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Plan {config.name}</h3>
-                        <p className="text-sm text-gray-600">Tu plan actual</p>
-                      </div>
-                    </div>
-                    <Badge className={`${config.bgColor} ${config.textColor}`}>
-                      {config.name}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-3 text-sm text-gray-700">
-                    {currentPlan === 'freemium' && (
-                      <>
-                        <p>• Acceso limitado a cursos básicos</p>
-                        <p>• Participación en comunidad</p>
-                        <p>• Recursos gratuitos</p>
-                      </>
-                    )}
-                    {currentPlan === 'estudiante' && (
-                      <>
-                        <p>• Acceso completo a cursos para estudiantes</p>
-                        <p>• Descuentos especiales</p>
-                        <p>• Verificación de estudiante</p>
-                      </>
-                    )}
-                    {currentPlan === 'profesional' && (
-                      <>
-                        <p>• Acceso completo a todos los cursos</p>
-                        <p>• Recursos profesionales</p>
-                        <p>• Soporte prioritario</p>
-                      </>
-                    )}
-                    {currentPlan === 'premium' && (
-                      <>
-                        <p>• Acceso VIP a todo el contenido</p>
-                        <p>• Consultoría personalizada</p>
-                        <p>• Recursos exclusivos</p>
-                      </>
-                    )}
-                  </div>
-
-                  <Button onClick={handleUpgradePlan} className="w-full mt-4">
-                    {currentPlan === 'freemium' ? 'Actualizar Plan' : 'Cambiar Plan'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-8">
+              <SubscriptionStatus />
+              <SubscriptionPlans />
+            </div>
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-6">
