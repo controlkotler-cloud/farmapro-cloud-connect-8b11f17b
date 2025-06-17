@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Crown, Sparkles, GraduationCap, Briefcase, User, CreditCard, Bell, CheckCircle, Settings, RefreshCw } from 'lucide-react';
+import { Crown, Sparkles, GraduationCap, Briefcase, User, CreditCard, Bell, CheckCircle, Settings, RefreshCw, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
@@ -80,6 +80,7 @@ export default function Perfil() {
   const [loading, setLoading] = useState(false);
   const [managementLoading, setManagementLoading] = useState(false);
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -151,6 +152,24 @@ export default function Perfil() {
       toast.error('No se pudo abrir el portal de gestión');
     } finally {
       setManagementLoading(false);
+    }
+  };
+
+  const handleViewInvoices = async () => {
+    setInvoiceLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+
+      if (error) throw error;
+
+      window.open(data.url, '_blank');
+      
+      toast.success('Abriendo historial de facturas');
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast.error('No se pudo abrir el historial de facturas');
+    } finally {
+      setInvoiceLoading(false);
     }
   };
 
@@ -349,10 +368,10 @@ export default function Perfil() {
               </CardContent>
             </Card>
 
-            {/* Planes disponibles */}
+            {/* Actualizar suscripción */}
             <Card>
               <CardHeader>
-                <CardTitle>Cambiar Plan</CardTitle>
+                <CardTitle>Actualizar Suscripción</CardTitle>
                 <CardDescription>
                   Explora otros planes y actualiza tu suscripción
                 </CardDescription>
@@ -405,22 +424,28 @@ export default function Perfil() {
                   <div className="space-y-4">
                     <Button 
                       onClick={handleManageSubscription}
-                      disabled={managementLoading || currentPlan === 'freemium'}
+                      disabled={managementLoading}
                       className="flex items-center gap-2 w-full"
                     >
                       <Settings className="h-4 w-4" />
                       {managementLoading ? 'Abriendo...' : 'Gestionar Método de Pago'}
                     </Button>
                     
-                    <Button variant="outline" className="w-full" disabled>
-                      Ver Historial de Facturas
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={handleViewInvoices}
+                      disabled={invoiceLoading}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      {invoiceLoading ? 'Abriendo...' : 'Ver Historial de Facturas'}
                     </Button>
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-800">
-                      <strong>Gestión de pagos:</strong> Usa el botón "Gestionar Método de Pago" para cambiar 
-                      tu tarjeta de crédito, descargar facturas o cancelar tu suscripción a través del portal seguro de Stripe.
+                      <strong>Gestión de pagos:</strong> Ambos botones te llevarán al portal seguro de Stripe donde podrás 
+                      gestionar tu método de pago, ver y descargar facturas, y administrar tu suscripción.
                     </p>
                   </div>
                 </div>
