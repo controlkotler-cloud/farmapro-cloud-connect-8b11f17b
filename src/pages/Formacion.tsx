@@ -62,6 +62,20 @@ const Formacion = () => {
   const enrollInCourse = async (courseId: string) => {
     if (!profile?.id) return;
 
+    // Check if already enrolled
+    const { data: existingEnrollment } = await supabase
+      .from('course_enrollments')
+      .select('id')
+      .eq('user_id', profile.id)
+      .eq('course_id', courseId)
+      .maybeSingle();
+
+    if (existingEnrollment) {
+      // Already enrolled, navigate to course
+      window.location.href = `/curso/${courseId}`;
+      return;
+    }
+
     const { error } = await supabase
       .from('course_enrollments')
       .insert([{
@@ -85,6 +99,9 @@ const Formacion = () => {
       } catch (error) {
         console.error('Error calling add_user_points:', error);
       }
+      
+      // Navigate to course
+      window.location.href = `/curso/${courseId}`;
     }
   };
 
