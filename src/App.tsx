@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -31,6 +30,7 @@ import ContactoSoporte from "./pages/ContactoSoporte";
 import Servicios from "./pages/Servicios";
 import FarmaproImpulso from "./pages/FarmaproImpulso";
 import FaqsContacto from "./pages/FaqsContacto";
+import Blog from "./pages/Blog";
 
 const queryClient = new QueryClient();
 
@@ -133,6 +133,7 @@ const AppRoutes = () => {
       <Route path="/servicios" element={<Servicios />} />
       <Route path="/farmapro-impulso" element={<FarmaproImpulso />} />
       <Route path="/faqs-contacto" element={<FaqsContacto />} />
+      <Route path="/blog" element={<Blog />} />
       <Route path="/politica-cookies" element={<PoliticaCookies />} />
       <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
       <Route path="/aviso-legal" element={<AvisoLegal />} />
