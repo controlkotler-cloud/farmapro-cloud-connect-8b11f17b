@@ -7,7 +7,7 @@ import { useCookieConsent } from '@/hooks/useCookieConsent';
 export const CookieIcon = () => {
   const { openSettings, hasConsent } = useCookieConsent();
 
-  // Solo mostrar el icono si ya se ha dado consentimiento
+  // Solo mostrar el icono si ya se ha dado consentimiento (al menos una vez)
   if (!hasConsent()) return null;
 
   return (
