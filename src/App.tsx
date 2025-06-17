@@ -27,6 +27,7 @@ import PoliticaCookies from "./pages/PoliticaCookies";
 import PoliticaPrivacidad from "./pages/PoliticaPrivacidad";
 import AvisoLegal from "./pages/AvisoLegal";
 import ContactoSoporte from "./pages/ContactoSoporte";
+import Servicios from "./pages/Servicios";
 
 const queryClient = new QueryClient();
 
@@ -125,7 +126,8 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      {/* Páginas legales - accesibles sin autenticación */}
+      {/* Páginas públicas */}
+      <Route path="/servicios" element={<Servicios />} />
       <Route path="/politica-cookies" element={<PoliticaCookies />} />
       <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
       <Route path="/aviso-legal" element={<AvisoLegal />} />
