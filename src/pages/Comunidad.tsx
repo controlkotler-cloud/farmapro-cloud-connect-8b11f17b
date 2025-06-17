@@ -108,10 +108,13 @@ const Comunidad = () => {
       console.error('Error creating thread:', error);
     } else {
       // Add points for creating a thread
-      await supabase.rpc('add_user_points', {
+      const { error: pointsError } = await supabase.rpc('add_user_points', {
         user_id: profile.id,
         points: 100
       });
+      if (pointsError) {
+        console.error('Error adding points:', pointsError);
+      }
 
       setNewThreadTitle('');
       setNewThreadContent('');
