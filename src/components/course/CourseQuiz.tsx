@@ -1,0 +1,276 @@
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, XCircle, RotateCcw } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+interface CourseQuizProps {
+  onComplete: (passed: boolean, score: number) => void;
+}
+
+const CourseQuiz: React.FC<CourseQuizProps> = ({ onComplete }) => {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  const quizQuestions: QuizQuestion[] = [
+    {
+      id: 'q1',
+      question: '¿Qué significa la sigla DAFO?',
+      options: [
+        'Debilidades, Amenazas, Fortalezas, Oportunidades',
+        'Datos, Análisis, Finanzas, Objetivos',
+        'Desarrollo, Actividades, Funciones, Organización',
+        'Diagnóstico, Aplicación, Funcionalidad, Operaciones'
+      ],
+      correctAnswer: 0,
+      explanation: 'DAFO significa Debilidades, Amenazas, Fortalezas y Oportunidades. Es una herramienta de análisis estratégico.'
+    },
+    {
+      id: 'q2',
+      question: '¿Cuáles son factores INTERNOS en un análisis DAFO?',
+      options: [
+        'Oportunidades y Amenazas',
+        'Fortalezas y Debilidades',
+        'Solo las Fortalezas',
+        'Competencia y mercado'
+      ],
+      correctAnswer: 1,
+      explanation: 'Las Fortalezas y Debilidades son factores internos de la farmacia que podemos controlar y mejorar.'
+    },
+    {
+      id: 'q3',
+      question: '¿Qué estrategia combina Fortalezas con Oportunidades?',
+      options: [
+        'Estrategia DA (Defensiva)',
+        'Estrategia DO (Adaptativa)',
+        'Estrategia FO (Ofensiva)',
+        'Estrategia FA (Reactiva)'
+      ],
+      correctAnswer: 2,
+      explanation: 'La estrategia FO (Fortalezas-Oportunidades) es ofensiva: usar nuestras fortalezas para aprovechar las oportunidades del mercado.'
+    },
+    {
+      id: 'q4',
+      question: '¿Cuál es un ejemplo de OPORTUNIDAD para una farmacia?',
+      options: [
+        'Personal poco cualificado',
+        'Competencia de cadenas grandes',
+        'Envejecimiento de la población',
+        'Crisis económica'
+      ],
+      correctAnswer: 2,
+      explanation: 'El envejecimiento poblacional es una oportunidad porque aumenta la demanda de servicios farmacéuticos y productos de salud.'
+    },
+    {
+      id: 'q5',
+      question: '¿Con qué frecuencia se recomienda actualizar el análisis DAFO?',
+      options: [
+        'Solo una vez al año',
+        'Cada 5 años',
+        'Periódicamente (cada 6-12 meses)',
+        'Solo cuando hay problemas'
+      ],
+      correctAnswer: 2,
+      explanation: 'El DAFO debe revisarse periódicamente (cada 6-12 meses) porque el entorno y la farmacia cambian constantemente.'
+    }
+  ];
+
+  const handleAnswerSelect = (optionIndex: number) => {
+    setSelectedOption(optionIndex);
+  };
+
+  const handleNextQuestion = () => {
+    if (selectedOption === null) return;
+
+    const newAnswers = [...selectedAnswers];
+    newAnswers[currentQuestion] = selectedOption;
+    setSelectedAnswers(newAnswers);
+    setSelectedOption(null);
+
+    if (currentQuestion < quizQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Calcular resultados
+      const correctCount = newAnswers.reduce((count, answer, index) => {
+        return answer === quizQuestions[index].correctAnswer ? count + 1 : count;
+      }, 0);
+      
+      setShowResults(true);
+      const score = Math.round((correctCount / quizQuestions.length) * 100);
+      const passed = score >= 70;
+      onComplete(passed, score);
+    }
+  };
+
+  const resetQuiz = () => {
+    setCurrentQuestion(0);
+    setSelectedAnswers([]);
+    setShowResults(false);
+    setSelectedOption(null);
+  };
+
+  const calculateScore = () => {
+    const correctCount = selectedAnswers.reduce((count, answer, index) => {
+      return answer === quizQuestions[index].correctAnswer ? count + 1 : count;
+    }, 0);
+    return Math.round((correctCount / quizQuestions.length) * 100);
+  };
+
+  if (showResults) {
+    const score = calculateScore();
+    const passed = score >= 70;
+
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">
+            {passed ? (
+              <div className="flex items-center justify-center space-x-2 text-green-600">
+                <CheckCircle className="h-8 w-8" />
+                <span>¡Felicidades! Quiz Completado</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-2 text-orange-600">
+                <XCircle className="h-8 w-8" />
+                <span>Quiz Completado - Necesitas Mejorar</span>
+              </div>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center">
+            <div className="text-4xl font-bold mb-2">
+              {score}%
+            </div>
+            <Badge variant={passed ? "default" : "destructive"} className="text-lg px-4 py-2">
+              {selectedAnswers.filter((answer, index) => answer === quizQuestions[index].correctAnswer).length} / {quizQuestions.length} correctas
+            </Badge>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Revisión de Respuestas:</h3>
+            {quizQuestions.map((question, index) => {
+              const userAnswer = selectedAnswers[index];
+              const isCorrect = userAnswer === question.correctAnswer;
+              
+              return (
+                <div key={question.id} className="border rounded-lg p-4">
+                  <div className="flex items-start space-x-2 mb-2">
+                    {isCorrect ? (
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <p className="font-medium">{question.question}</p>
+                      <p className={`text-sm ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                        Tu respuesta: {question.options[userAnswer]}
+                      </p>
+                      {!isCorrect && (
+                        <p className="text-sm text-green-600">
+                          Respuesta correcta: {question.options[question.correctAnswer]}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-600 mt-1">{question.explanation}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center space-x-4">
+            <Button onClick={resetQuiz} variant="outline" className="flex items-center space-x-2">
+              <RotateCcw className="h-4 w-4" />
+              <span>Repetir Quiz</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const progress = ((currentQuestion + 1) / quizQuestions.length) * 100;
+
+  return (
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl">Quiz de Evaluación - DAFO para tu Farmacia</CardTitle>
+          <Badge variant="outline">
+            {currentQuestion + 1} / {quizQuestions.length}
+          </Badge>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-green-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <motion.div
+          key={currentQuestion}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h3 className="text-lg font-semibold mb-4">
+            {quizQuestions[currentQuestion].question}
+          </h3>
+          
+          <div className="space-y-3">
+            {quizQuestions[currentQuestion].options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(index)}
+                className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
+                  selectedOption === index
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    selectedOption === index
+                      ? 'border-green-500 bg-green-500'
+                      : 'border-gray-300'
+                  }`}>
+                    {selectedOption === index && (
+                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                    )}
+                  </div>
+                  <span>{option}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleNextQuestion}
+            disabled={selectedOption === null}
+            className="px-6"
+          >
+            {currentQuestion < quizQuestions.length - 1 ? 'Siguiente' : 'Finalizar Quiz'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CourseQuiz;

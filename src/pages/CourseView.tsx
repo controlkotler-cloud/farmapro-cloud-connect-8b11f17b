@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,9 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
+import CourseQuiz from '@/components/course/CourseQuiz';
 import type { Database } from '@/integrations/supabase/types';
 
 type Course = Database['public']['Tables']['courses']['Row'];
@@ -26,11 +28,15 @@ const CourseView = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { toast } = useToast();
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentSection, setCurrentSection] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [quizPassed, setQuizPassed] = useState(false);
 
   // Contenido del curso DAFO
   const courseSections: CourseSection[] = [
@@ -307,6 +313,11 @@ const CourseView = () => {
     
     const newProgress = Math.round((newCompleted.size / courseSections.length) * 100);
     updateProgress(newProgress);
+
+    toast({
+      title: "Módulo completado",
+      description: "Has marcado este módulo como completado.",
+    });
   };
 
   const nextSection = () => {
@@ -318,6 +329,41 @@ const CourseView = () => {
   const previousSection = () => {
     if (currentSection > 0) {
       setCurrentSection(currentSection - 1);
+    }
+  };
+
+  const handleFinishCourse = () => {
+    const allSectionsCompleted = completedSections.size === courseSections.length;
+    
+    if (!allSectionsCompleted) {
+      const missingSections = courseSections.length - completedSections.size;
+      toast({
+        title: "Curso incompleto",
+        description: `Debes completar todos los módulos antes de finalizar. Te faltan ${missingSections} módulos.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setShowQuiz(true);
+  };
+
+  const handleQuizComplete = (passed: boolean, score: number) => {
+    setQuizCompleted(true);
+    setQuizPassed(passed);
+    
+    if (passed) {
+      updateProgress(100);
+      toast({
+        title: "¡Felicidades!",
+        description: `Has completado el curso con éxito con una puntuación del ${score}%. ¡Excelente trabajo!`,
+      });
+    } else {
+      toast({
+        title: "Quiz completado",
+        description: `Has obtenido un ${score}%. Puedes repetir el quiz o repasar el contenido para mejorar.`,
+        variant: "destructive"
+      });
     }
   };
 
@@ -340,6 +386,57 @@ const CourseView = () => {
             Volver a Formación
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (showQuiz) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            onClick={() => setShowQuiz(false)}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Volver al Curso</span>
+          </Button>
+          {course.is_premium && (
+            <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+              <Star className="h-3 w-3 mr-1" />
+              Premium
+            </Badge>
+          )}
+        </div>
+
+        <CourseQuiz onComplete={handleQuizComplete} />
+
+        {quizCompleted && quizPassed && (
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <Award className="h-16 w-16 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-green-800">¡Curso Completado!</h2>
+                <p className="text-green-700">
+                  Has completado exitosamente el curso "DAFO para tu Farmacia". 
+                  Ahora tienes las herramientas necesarias para realizar un análisis estratégico completo.
+                </p>
+                <div className="flex justify-center space-x-4">
+                  <Button onClick={() => navigate('/formacion')}>
+                    Explorar Más Cursos
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                    Ir al Dashboard
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
@@ -408,26 +505,28 @@ const CourseView = () => {
             <CardTitle className="text-lg">Módulos del Curso</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {courseSections.map((section, index) => (
-              <Button
-                key={section.id}
-                variant={currentSection === index ? "default" : "ghost"}
-                className="w-full justify-start text-left h-auto p-3"
-                onClick={() => setCurrentSection(index)}
-              >
-                <div className="flex items-center space-x-3">
-                  {completedSections.has(index) ? (
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
-                  )}
-                  <div>
-                    <div className="font-medium">{section.title}</div>
-                    <div className="text-xs text-gray-500">{section.duration} min</div>
+            <ScrollArea className="h-[400px]">
+              {courseSections.map((section, index) => (
+                <Button
+                  key={section.id}
+                  variant={currentSection === index ? "default" : "ghost"}
+                  className="w-full justify-start text-left h-auto p-3 mb-2"
+                  onClick={() => setCurrentSection(index)}
+                >
+                  <div className="flex items-center space-x-3">
+                    {completedSections.has(index) ? (
+                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm leading-tight">{section.title}</div>
+                      <div className="text-xs text-gray-500">{section.duration} min</div>
+                    </div>
                   </div>
-                </div>
-              </Button>
-            ))}
+                </Button>
+              ))}
+            </ScrollArea>
           </CardContent>
         </Card>
 
@@ -444,16 +543,18 @@ const CourseView = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <motion.div
-              key={currentSection}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ 
-                __html: courseSections[currentSection]?.content || '' 
-              }}
-            />
+            <ScrollArea className="h-[500px] w-full rounded-md border p-6">
+              <motion.div
+                key={currentSection}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className="prose prose-lg max-w-none prose-headings:text-green-800 prose-h3:text-xl prose-h4:text-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:mb-2"
+                dangerouslySetInnerHTML={{ 
+                  __html: courseSections[currentSection]?.content || '' 
+                }}
+              />
+            </ScrollArea>
             
             {/* Navigation and Actions */}
             <div className="flex items-center justify-between mt-8 pt-6 border-t">
@@ -478,16 +579,36 @@ const CourseView = () => {
                   </Button>
                 )}
                 
-                <Button
-                  onClick={nextSection}
-                  disabled={currentSection === courseSections.length - 1}
-                  className="flex items-center space-x-2"
-                >
-                  <span>Siguiente</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+                {currentSection === courseSections.length - 1 ? (
+                  <Button
+                    onClick={handleFinishCourse}
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <Award className="h-4 w-4" />
+                    <span>Finalizar Curso</span>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={nextSection}
+                    className="flex items-center space-x-2"
+                  >
+                    <span>Siguiente</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
+
+            {/* Warning if not all sections completed */}
+            {currentSection === courseSections.length - 1 && completedSections.size < courseSections.length && (
+              <Alert className="mt-4 border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-700">
+                  Asegúrate de completar todos los módulos antes de finalizar el curso. 
+                  Te faltan {courseSections.length - completedSections.size} módulos por completar.
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
       </div>
