@@ -13,6 +13,7 @@ const COOKIE_PREFERENCES_KEY = 'farmapro_cookie_preferences';
 
 export const useCookieConsent = () => {
   const [showBanner, setShowBanner] = useState(false);
+  const [forceShow, setForceShow] = useState(false);
   const [preferences, setPreferences] = useState<CookiePreferences>({
     necessary: true, // Siempre activadas
     analytics: false,
@@ -53,6 +54,7 @@ export const useCookieConsent = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(allAccepted));
     setShowBanner(false);
+    setForceShow(false);
     console.log('useCookieConsent - acceptAll completed');
   };
 
@@ -68,6 +70,7 @@ export const useCookieConsent = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(necessaryOnly));
     setShowBanner(false);
+    setForceShow(false);
     console.log('useCookieConsent - acceptNecessary completed');
   };
 
@@ -78,12 +81,20 @@ export const useCookieConsent = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(finalPreferences));
     setShowBanner(false);
+    setForceShow(false);
     console.log('useCookieConsent - savePreferences completed');
   };
 
   const openSettings = () => {
-    console.log('useCookieConsent - openSettings called');
+    console.log('useCookieConsent - openSettings called - forcing banner to show');
+    setForceShow(true);
     setShowBanner(true);
+  };
+
+  const closeBanner = () => {
+    console.log('useCookieConsent - closeBanner called');
+    setShowBanner(false);
+    setForceShow(false);
   };
 
   const hasConsent = () => {
@@ -92,20 +103,25 @@ export const useCookieConsent = () => {
     return result;
   };
 
+  // El banner debe mostrarse si no hay consentimiento O si se ha forzado a mostrar
+  const shouldShowBanner = showBanner || forceShow;
+
   console.log('useCookieConsent - Current state:', {
     showBanner,
+    forceShow,
+    shouldShowBanner,
     preferences,
     hasConsent: hasConsent()
   });
 
   return {
-    showBanner,
+    showBanner: shouldShowBanner,
     preferences,
     acceptAll,
     acceptNecessary,
     savePreferences,
     openSettings,
     hasConsent,
-    setShowBanner,
+    setShowBanner: closeBanner,
   };
 };

@@ -21,7 +21,14 @@ export const CookieBanner = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [tempPreferences, setTempPreferences] = useState<CookiePreferences>(preferences);
 
-  if (!showBanner) return null;
+  console.log('CookieBanner - showBanner:', showBanner);
+
+  if (!showBanner) {
+    console.log('CookieBanner - Not rendering because showBanner is false');
+    return null;
+  }
+
+  console.log('CookieBanner - Rendering banner');
 
   const handleSaveCustom = () => {
     savePreferences(tempPreferences);
@@ -33,6 +40,11 @@ export const CookieBanner = () => {
       ...prev,
       [key]: !prev[key]
     }));
+  };
+
+  const handleClose = () => {
+    console.log('CookieBanner - Close button clicked');
+    setShowBanner();
   };
 
   return (
@@ -50,7 +62,7 @@ export const CookieBanner = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowBanner(false)}
+              onClick={handleClose}
               className="h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />
