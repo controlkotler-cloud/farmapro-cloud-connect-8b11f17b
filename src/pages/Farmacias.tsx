@@ -204,7 +204,13 @@ const Farmacias = () => {
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-6">
             <p className="text-blue-800">
-              <strong>¿Quieres vender tu farmacia?</strong> Actualiza a un plan premium y encuentra el comprador ideal.
+              <strong>¿Tienes una farmacia y quieres venderla?</strong> Actualiza al plan premium para poder subir todas las características y encontrar el comprador ideal.{' '}
+              <Link 
+                to="/subscription?tab=plans" 
+                className="underline hover:text-blue-900 font-medium"
+              >
+                Ver planes
+              </Link>
             </p>
           </CardContent>
         </Card>
