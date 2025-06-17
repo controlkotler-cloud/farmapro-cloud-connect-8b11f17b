@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
 
 interface QuizQuestion {
   id: string;
@@ -20,6 +21,7 @@ interface CourseQuizProps {
 }
 
 const CourseQuiz: React.FC<CourseQuizProps> = ({ courseId, courseTitle, onComplete }) => {
+  const { profile } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -188,6 +190,13 @@ const CourseQuiz: React.FC<CourseQuizProps> = ({ courseId, courseTitle, onComple
       setShowResults(true);
       const score = Math.round((correctCount / quizQuestions.length) * 100);
       const passed = score >= 70;
+      
+      // Marcar quiz como completado en localStorage
+      if (profile?.id) {
+        const quizKey = `quiz_completed_${courseId}_${profile.id}`;
+        localStorage.setItem(quizKey, 'true');
+      }
+      
       onComplete(passed, score);
     }
   };
@@ -197,6 +206,12 @@ const CourseQuiz: React.FC<CourseQuizProps> = ({ courseId, courseTitle, onComple
     setSelectedAnswers([]);
     setShowResults(false);
     setSelectedOption(null);
+    
+    // Limpiar el estado de completado para permitir repetir
+    if (profile?.id) {
+      const quizKey = `quiz_completed_${courseId}_${profile.id}`;
+      localStorage.removeItem(quizKey);
+    }
   };
 
   const calculateScore = () => {

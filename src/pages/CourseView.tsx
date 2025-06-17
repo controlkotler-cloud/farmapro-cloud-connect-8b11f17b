@@ -5,7 +5,7 @@ import { useModuleProgress } from '@/hooks/useModuleProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, CheckCircle, BookOpen } from 'lucide-react';
+import { ArrowLeft, CheckCircle, BookOpen, Award } from 'lucide-react';
 import { CourseHeader } from '@/components/course/CourseHeader';
 import { ModuleCard } from '@/components/course/ModuleCard';
 import { ModuleContent } from '@/components/course/ModuleContent';
@@ -18,6 +18,7 @@ const CourseView = () => {
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [quizCompleted, setQuizCompleted] = useState(false);
   const moduleContentRef = useRef<HTMLDivElement>(null);
 
   // Hook para gestionar progreso de módulos
@@ -31,6 +32,7 @@ const CourseView = () => {
   useEffect(() => {
     if (courseId) {
       loadCourseData();
+      checkQuizCompletion();
     }
   }, [courseId]);
 
@@ -39,6 +41,15 @@ const CourseView = () => {
       moduleContentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [currentModuleIndex]);
+
+  const checkQuizCompletion = () => {
+    // Verificar si el quiz ya fue completado (simulado con localStorage por ahora)
+    if (profile?.id && courseId) {
+      const quizKey = `quiz_completed_${courseId}_${profile.id}`;
+      const completed = localStorage.getItem(quizKey) === 'true';
+      setQuizCompleted(completed);
+    }
+  };
 
   const loadCourseData = async () => {
     if (!courseId) return;
@@ -186,6 +197,7 @@ const CourseView = () => {
   const modules = course.course_modules || [];
   const currentModule = modules[currentModuleIndex];
   const moduleProgress = getCompletionPercentage(modules.length);
+  const allModulesCompleted = modules.every(m => isModuleCompleted(m.id));
 
   return (
     <div className="space-y-6">
@@ -257,7 +269,7 @@ const CourseView = () => {
           {isEnrolled && (
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
               {/* Quiz Button - available after completing all modules */}
-              {currentModuleIndex === modules.length - 1 && modules.every(m => isModuleCompleted(m.id)) && (
+              {allModulesCompleted && !quizCompleted && (
                 <Button onClick={goToQuiz} size="lg" className="bg-blue-600 hover:bg-blue-700">
                   <BookOpen className="h-5 w-5 mr-2" />
                   🎯 Evalúate
@@ -265,11 +277,22 @@ const CourseView = () => {
               )}
 
               {/* Complete Course Button - available after quiz */}
-              {!isCompleted && modules.every(m => isModuleCompleted(m.id)) && (
+              {!isCompleted && allModulesCompleted && quizCompleted && (
                 <Button onClick={markAsCompleted} size="lg" className="bg-green-600 hover:bg-green-700">
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  Completar curso
+                  ✅ Finalizar curso
                 </Button>
+              )}
+
+              {/* Course Completed Message */}
+              {isCompleted && (
+                <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
+                  <Award className="h-6 w-6 text-green-600" />
+                  <div>
+                    <p className="font-semibold text-green-800">🎉 ¡Curso completado!</p>
+                    <p className="text-sm text-green-600">Has finalizado exitosamente este curso</p>
+                  </div>
+                </div>
               )}
             </div>
           )}
