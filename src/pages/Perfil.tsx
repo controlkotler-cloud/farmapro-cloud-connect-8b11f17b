@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Crown, Sparkles, GraduationCap, Briefcase, User, CreditCard, Bell, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 
 const planConfig = {
   freemium: {
@@ -55,12 +55,8 @@ export default function Perfil() {
     pharmacy_name: '',
     position: '',
   });
-  const [notifications, setNotifications] = useState({
-    email_courses: true,
-    email_promotions: true,
-    email_community: false,
-    push_notifications: true,
-  });
+  
+  const { settings, updateSetting, saveSettings } = useNotificationSettings();
 
   useEffect(() => {
     if (profile) {
@@ -75,13 +71,6 @@ export default function Perfil() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleNotificationChange = (field: string, value: boolean) => {
-    setNotifications(prev => ({
       ...prev,
       [field]: value
     }));
@@ -114,6 +103,10 @@ export default function Perfil() {
 
   const handleUpgradePlan = () => {
     navigate('/subscription?tab=plans');
+  };
+
+  const handleSaveNotificationSettings = () => {
+    saveSettings(settings);
   };
 
   const currentPlan = profile?.subscription_role || 'freemium';
@@ -337,8 +330,8 @@ export default function Perfil() {
                     </div>
                     <Switch
                       id="email_courses"
-                      checked={notifications.email_courses}
-                      onCheckedChange={(checked) => handleNotificationChange('email_courses', checked)}
+                      checked={settings.email_courses}
+                      onCheckedChange={(checked) => updateSetting('email_courses', checked)}
                     />
                   </div>
 
@@ -349,8 +342,8 @@ export default function Perfil() {
                     </div>
                     <Switch
                       id="email_promotions"
-                      checked={notifications.email_promotions}
-                      onCheckedChange={(checked) => handleNotificationChange('email_promotions', checked)}
+                      checked={settings.email_promotions}
+                      onCheckedChange={(checked) => updateSetting('email_promotions', checked)}
                     />
                   </div>
 
@@ -361,8 +354,8 @@ export default function Perfil() {
                     </div>
                     <Switch
                       id="email_community"
-                      checked={notifications.email_community}
-                      onCheckedChange={(checked) => handleNotificationChange('email_community', checked)}
+                      checked={settings.email_community}
+                      onCheckedChange={(checked) => updateSetting('email_community', checked)}
                     />
                   </div>
 
@@ -373,13 +366,13 @@ export default function Perfil() {
                     </div>
                     <Switch
                       id="push_notifications"
-                      checked={notifications.push_notifications}
-                      onCheckedChange={(checked) => handleNotificationChange('push_notifications', checked)}
+                      checked={settings.push_notifications}
+                      onCheckedChange={(checked) => updateSetting('push_notifications', checked)}
                     />
                   </div>
                 </div>
 
-                <Button className="w-full">
+                <Button className="w-full" onClick={handleSaveNotificationSettings}>
                   Guardar Configuración
                 </Button>
               </CardContent>
