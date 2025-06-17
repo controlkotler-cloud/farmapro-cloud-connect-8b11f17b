@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -219,13 +218,13 @@ export const ModuleContent = ({
                   className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
                 >
                   <CheckCircle className="h-4 w-4" />
-                  ✅ Completar módulo
+                  Completar módulo
                 </Button>
               )}
               {isCompleted && (
                 <div className="flex items-center gap-2 text-green-600 font-medium">
                   <CheckCircle className="h-4 w-4" />
-                  ✅ Módulo completado
+                  Módulo completado
                 </div>
               )}
             </div>

@@ -260,7 +260,7 @@ const CourseView = () => {
               {currentModuleIndex === modules.length - 1 && modules.every(m => isModuleCompleted(m.id)) && (
                 <Button onClick={goToQuiz} size="lg" className="bg-blue-600 hover:bg-blue-700">
                   <BookOpen className="h-5 w-5 mr-2" />
-                  🎯 Realizar Quiz Final
+                  🎯 Evalúate
                 </Button>
               )}
 
@@ -268,7 +268,7 @@ const CourseView = () => {
               {!isCompleted && modules.every(m => isModuleCompleted(m.id)) && (
                 <Button onClick={markAsCompleted} size="lg" className="bg-green-600 hover:bg-green-700">
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  🏆 Marcar como completado
+                  Completar curso
                 </Button>
               )}
             </div>
