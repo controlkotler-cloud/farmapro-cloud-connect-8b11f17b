@@ -92,11 +92,31 @@ const Retos = () => {
       .eq('user_id', profile.id)
       .not('completed_at', 'is', null);
 
+    // Calculate active streaks based on recent activity
+    const { data: recentActivity } = await supabase
+      .from('course_enrollments')
+      .select('completed_at')
+      .eq('user_id', profile.id)
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(7);
+
+    let activeStreaks = 0;
+    if (recentActivity && recentActivity.length > 0) {
+      // Simple streak calculation - courses completed in last 7 days
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      
+      activeStreaks = recentActivity.filter(activity => 
+        new Date(activity.completed_at) >= lastWeek
+      ).length;
+    }
+
     setUserStats({
       totalPoints: pointsData?.total_points || 0,
       level: pointsData?.level || 1,
       completedChallenges: completedData?.length || 0,
-      activeStreaks: 2 // Mock data
+      activeStreaks
     });
 
     setLoading(false);

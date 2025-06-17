@@ -13,6 +13,8 @@ import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import CourseQuiz from '@/components/course/CourseQuiz';
 import type { Database } from '@/integrations/supabase/types';
+import { updateChallengeProgress } from '@/utils/challengeUtils';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 
 type Course = Database['public']['Tables']['courses']['Row'];
 type Enrollment = Database['public']['Tables']['course_enrollments']['Row'];
@@ -37,6 +39,7 @@ const CourseView = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [quizPassed, setQuizPassed] = useState(false);
+  const { canAccessCourse, refreshLimits } = useSubscriptionLimits();
 
   // Contenido del curso DAFO
   const courseSections: CourseSection[] = [
@@ -289,9 +292,10 @@ const CourseView = () => {
     } else {
       setEnrollment(prev => prev ? { ...prev, progress: newProgress } : null);
       
-      // Add points for completing course
+      // Add points and update challenges when course is completed
       if (newProgress === 100) {
         try {
+          // Add points for completing course
           const { error: pointsError } = await supabase.rpc('add_user_points', {
             user_id: profile.id,
             points: 100
@@ -299,8 +303,14 @@ const CourseView = () => {
           if (pointsError) {
             console.error('Error adding completion points:', pointsError);
           }
+
+          // Update challenge progress for course completion
+          await updateChallengeProgress(profile.id, 'course_completion', 1);
+          
+          // Refresh subscription limits
+          refreshLimits();
         } catch (error) {
-          console.error('Error calling add_user_points:', error);
+          console.error('Error updating challenges:', error);
         }
       }
     }
@@ -437,6 +447,47 @@ const CourseView = () => {
             </CardContent>
           </Card>
         )}
+      </div>
+    );
+  }
+
+  // Check if user can access this course
+  if (!loading && course && !canAccessCourse(course.is_premium)) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/formacion')}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Volver a Formación</span>
+          </Button>
+        </div>
+
+        <Card className="text-center p-8">
+          <CardContent>
+            <div className="space-y-4">
+              <AlertTriangle className="h-16 w-16 text-orange-500 mx-auto" />
+              <h2 className="text-2xl font-bold">Límite de Plan Alcanzado</h2>
+              <p className="text-gray-600">
+                {course.is_premium ? 
+                  'Este es un curso premium. Necesitas una suscripción premium para acceder.' :
+                  'Has alcanzado el límite de cursos para tu plan actual este mes.'
+                }
+              </p>
+              <div className="flex justify-center space-x-4">
+                <Button onClick={() => navigate('/subscription')}>
+                  Ver Planes
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/formacion')}>
+                  Volver a Formación
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
