@@ -11,7 +11,6 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
     console.log('Syncing challenge points...');
     await syncUserPoints(userId);
 
-    // Get user points with más logging
     const { data: points, error: pointsError } = await supabase
       .from('user_points')
       .select('total_points, level')
@@ -24,7 +23,6 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
       console.log('User points fetched after sync:', points);
     }
 
-    // Si no hay datos de puntos después de la sincronización, crear un registro inicial
     if (!points) {
       console.log('No points record found after sync, creating initial record...');
       const { data: newPoints, error: createError } = await supabase
@@ -44,7 +42,6 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
       }
     }
 
-    // Buscar el reto de cursos completados - probamos diferentes nombres posibles
     console.log('Searching for course completion challenge...');
     const { data: challenges, error: challengeError } = await supabase
       .from('challenges')
@@ -59,11 +56,9 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
 
     let coursesCompleted = 0;
     if (challenges && challenges.length > 0) {
-      // Usar el primer challenge de tipo course_completed que encontremos
-      const challenge = challenges[0];
+      const challenge = challenges.find(c => c.name === 'Estudiante Dedicado') || challenges[0];
       console.log('Using challenge:', challenge);
       
-      // Get progress for course_completed challenge to count total completions
       const { data: courseProgress } = await supabase
         .from('user_challenge_progress')
         .select('current_count')
@@ -76,7 +71,6 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
         console.log('Using challenge progress for courses completed:', coursesCompleted);
       } else {
         console.log('No challenge progress found, checking enrollments...');
-        // Fallback: contar enrollments completados
         const { data: enrollments } = await supabase
           .from('course_enrollments')
           .select('id')
@@ -88,7 +82,6 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
       }
     } else {
       console.log('No course_completed challenges found, using enrollment count');
-      // Si no hay challenges, usar enrollments
       const { data: enrollments } = await supabase
         .from('course_enrollments')
         .select('id')
@@ -99,19 +92,16 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
       console.log('Using enrollment count:', coursesCompleted);
     }
 
-    // Get resources downloaded
     const { data: resources } = await supabase
       .from('resource_downloads')
       .select('id')
       .eq('user_id', userId);
 
-    // Get forum posts
     const { data: posts } = await supabase
       .from('forum_threads')
       .select('id')
       .eq('author_id', userId);
 
-    // Get challenges completed
     const { data: challengesData } = await supabase
       .from('user_challenge_progress')
       .select('id')
@@ -135,11 +125,116 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
   }
 };
 
-export const loadRecentActivity = async (): Promise<ActivityItem[]> => {
-  // This would load recent user activity
-  return [
-    { type: 'course', title: 'Completaste "DAFO para tu Farmacia"', date: '2 horas ago', points: 100 },
-    { type: 'resource', title: 'Descargaste "Protocolo de Atención al Cliente"', date: '1 día ago', points: 50 },
-    { type: 'forum', title: 'Creaste un nuevo hilo en Gestión', date: '3 días ago', points: 100 },
-  ];
+export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]> => {
+  console.log('Loading recent activity for user:', userId);
+  
+  try {
+    const activities: ActivityItem[] = [];
+
+    // Obtener cursos completados recientes
+    const { data: recentCourses } = await supabase
+      .from('course_enrollments')
+      .select(`
+        completed_at,
+        courses (title)
+      `)
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(5);
+
+    if (recentCourses) {
+      recentCourses.forEach(enrollment => {
+        if (enrollment.courses && enrollment.completed_at) {
+          activities.push({
+            type: 'course',
+            title: `Completaste "${enrollment.courses.title}"`,
+            date: new Date(enrollment.completed_at).toLocaleDateString('es-ES'),
+            points: 100
+          });
+        }
+      });
+    }
+
+    // Obtener descargas recientes de recursos
+    const { data: recentDownloads } = await supabase
+      .from('resource_downloads')
+      .select(`
+        downloaded_at,
+        resources (title)
+      `)
+      .eq('user_id', userId)
+      .order('downloaded_at', { ascending: false })
+      .limit(5);
+
+    if (recentDownloads) {
+      recentDownloads.forEach(download => {
+        if (download.resources && download.downloaded_at) {
+          activities.push({
+            type: 'resource',
+            title: `Descargaste "${download.resources.title}"`,
+            date: new Date(download.downloaded_at).toLocaleDateString('es-ES'),
+            points: 50
+          });
+        }
+      });
+    }
+
+    // Obtener posts recientes en el foro
+    const { data: recentPosts } = await supabase
+      .from('forum_threads')
+      .select('title, created_at')
+      .eq('author_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (recentPosts) {
+      recentPosts.forEach(post => {
+        activities.push({
+          type: 'forum',
+          title: `Creaste el hilo "${post.title}"`,
+          date: new Date(post.created_at).toLocaleDateString('es-ES'),
+          points: 100
+        });
+      });
+    }
+
+    // Obtener retos completados recientes
+    const { data: recentChallenges } = await supabase
+      .from('user_challenge_progress')
+      .select(`
+        completed_at,
+        points_earned,
+        challenges (name)
+      `)
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(5);
+
+    if (recentChallenges) {
+      recentChallenges.forEach(challenge => {
+        if (challenge.challenges && challenge.completed_at) {
+          activities.push({
+            type: 'challenge',
+            title: `Completaste el reto "${challenge.challenges.name}"`,
+            date: new Date(challenge.completed_at).toLocaleDateString('es-ES'),
+            points: challenge.points_earned || 0
+          });
+        }
+      });
+    }
+
+    // Ordenar todas las actividades por fecha más reciente y limitar a las 10 más recientes
+    const sortedActivities = activities
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 10);
+
+    console.log('Loaded recent activities:', sortedActivities);
+    return sortedActivities;
+    
+  } catch (error) {
+    console.error('Error loading recent activity:', error);
+    return [];
+  }
 };

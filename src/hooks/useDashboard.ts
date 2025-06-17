@@ -23,7 +23,6 @@ export const useDashboard = () => {
     }
   }, [profile]);
 
-  // Función para recargar stats manualmente (útil después de completar retos)
   const reloadStats = async () => {
     if (profile?.id) {
       await loadDashboardData();
@@ -36,7 +35,7 @@ export const useDashboard = () => {
     try {
       const [statsData, activityData] = await Promise.all([
         loadUserStats(profile.id),
-        loadRecentActivity()
+        loadRecentActivity(profile.id)
       ]);
 
       setStats(statsData);
