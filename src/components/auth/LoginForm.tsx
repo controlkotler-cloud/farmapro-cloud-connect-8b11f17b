@@ -104,7 +104,7 @@ export const LoginForm = () => {
               
               {/* Logotipo */}
               <div className="flex justify-center">
-                <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro logotipo" className="h-8" />
+                <img src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" alt="farmapro logotipo" className="h-8" />
               </div>
             </div>
             

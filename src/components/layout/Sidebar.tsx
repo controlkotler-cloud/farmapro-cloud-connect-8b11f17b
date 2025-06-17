@@ -1,84 +1,65 @@
 
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { NavLink } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
+  Home, 
   GraduationCap, 
   FileText, 
   Users, 
   Trophy, 
   Briefcase, 
-  Building2,
-  Calendar,
-  Gift,
+  Building, 
+  Calendar, 
+  Tag,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Settings,
+  CreditCard
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+  { icon: Home, label: 'Dashboard', path: '/dashboard' },
   { icon: GraduationCap, label: 'Formación', path: '/formacion' },
   { icon: FileText, label: 'Recursos', path: '/recursos' },
   { icon: Users, label: 'Comunidad', path: '/comunidad' },
   { icon: Trophy, label: 'Retos', path: '/retos' },
-  { icon: Briefcase, label: 'Bolsa de Empleo', path: '/empleo' },
-  { icon: Building2, label: 'Farmacias en Venta', path: '/farmacias' },
+  { icon: Briefcase, label: 'Empleo', path: '/empleo' },
+  { icon: Building, label: 'Farmacias', path: '/farmacias' },
   { icon: Calendar, label: 'Eventos', path: '/eventos' },
-  { icon: Gift, label: 'Promociones', path: '/promociones' },
+  { icon: Tag, label: 'Promociones', path: '/promociones' },
+];
+
+const settingsItems = [
+  { icon: CreditCard, label: 'Suscripción', path: '/subscription' },
+  { icon: Settings, label: 'Configuración', path: '/settings' },
 ];
 
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
-  const { profile } = useAuth();
-
-  const getPlanColor = (plan: string) => {
-    switch (plan) {
-      case 'premium': return 'bg-gradient-to-r from-yellow-400 to-orange-500';
-      case 'profesional': return 'bg-gradient-to-r from-green-500 to-green-600';
-      case 'estudiante': return 'bg-gradient-to-r from-green-400 to-green-500';
-      default: return 'bg-gradient-to-r from-gray-400 to-gray-600';
-    }
-  };
-
-  const getPlanLabel = (plan: string) => {
-    switch (plan) {
-      case 'premium': return 'Premium';
-      case 'profesional': return 'Profesional';
-      case 'estudiante': return 'Estudiante';
-      default: return 'Freemium';
-    }
-  };
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ width: collapsed ? 80 : 280 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white h-screen shadow-xl border-r border-gray-200 flex flex-col"
-    >
+    <div className={cn(
+      "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
+      collapsed ? "w-16" : "w-64"
+    )}>
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center space-x-3"
-            >
-              <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro" className="w-8 h-8" />
-              <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro" className="h-6" />
-            </motion.div>
+            <img 
+              src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" 
+              alt="farmapro" 
+              className="h-8"
+            />
           )}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 h-8 w-8"
+            className="h-8 w-8 p-0"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
@@ -86,60 +67,51 @@ export const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link key={item.path} to={item.path}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`
-                  flex items-center space-x-3 p-3 rounded-lg transition-all duration-200
-                  ${isActive 
-                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg' 
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }
-                `}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="font-medium"
-                  >
-                    {item.label}
-                  </motion.span>
-                )}
-              </motion.div>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 p-4 space-y-1">
+        {menuItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "hover:bg-green-50 hover:text-green-700",
+                isActive
+                  ? "bg-green-100 text-green-700"
+                  : "text-gray-700 hover:text-gray-900"
+              )
+            }
+          >
+            <item.icon className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="ml-3">{item.label}</span>}
+          </NavLink>
+        ))}
       </nav>
 
-      {/* Plan Banner */}
+      {/* Settings */}
       <div className="p-4 border-t border-gray-200">
-        <Link to="/subscription">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className={`p-3 rounded-lg text-white text-center cursor-pointer transition-all ${getPlanColor(profile?.subscription_role || 'freemium')}`}
-          >
-            {!collapsed ? (
-              <div>
-                <p className="text-sm font-medium">Plan Actual</p>
-                <p className="text-lg font-bold">{getPlanLabel(profile?.subscription_role || 'freemium')}</p>
-                <p className="text-xs opacity-90 mt-1">Click para gestionar</p>
-              </div>
-            ) : (
-              <div className="text-xs font-bold">
-                {getPlanLabel(profile?.subscription_role || 'freemium').charAt(0)}
-              </div>
-            )}
-          </motion.div>
-        </Link>
+        <Separator className="mb-4" />
+        <div className="space-y-1">
+          {settingsItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "hover:bg-green-50 hover:text-green-700",
+                  isActive
+                    ? "bg-green-100 text-green-700"
+                    : "text-gray-700 hover:text-gray-900"
+                )
+              }
+            >
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span className="ml-3">{item.label}</span>}
+            </NavLink>
+          ))}
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
