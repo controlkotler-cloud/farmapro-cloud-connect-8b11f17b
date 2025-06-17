@@ -10,7 +10,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Dashboard } from "@/pages/Dashboard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import { Subscription } from "@/components/subscription/Subscription";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
