@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,6 +72,7 @@ const Retos = () => {
     if (error) {
       console.error('Error loading user progress:', error);
     } else {
+      console.log('User progress loaded:', data);
       setUserProgress(data || []);
     }
   };
@@ -80,11 +80,19 @@ const Retos = () => {
   const loadUserStats = async () => {
     if (!profile?.id) return;
 
-    const { data: pointsData } = await supabase
+    console.log('Loading user stats for retos page, user:', profile.id);
+
+    const { data: pointsData, error: pointsError } = await supabase
       .from('user_points')
       .select('total_points, level')
       .eq('user_id', profile.id)
       .single();
+
+    if (pointsError) {
+      console.error('Error fetching user points:', pointsError);
+    } else {
+      console.log('User points from retos page:', pointsData);
+    }
 
     const { data: completedData } = await supabase
       .from('user_challenge_progress')
@@ -112,13 +120,15 @@ const Retos = () => {
       ).length;
     }
 
-    setUserStats({
+    const newStats = {
       totalPoints: pointsData?.total_points || 0,
       level: pointsData?.level || 1,
       completedChallenges: completedData?.length || 0,
       activeStreaks
-    });
+    };
 
+    console.log('Retos page stats updated:', newStats);
+    setUserStats(newStats);
     setLoading(false);
   };
 
@@ -128,7 +138,9 @@ const Retos = () => {
 
   const isCompleted = (challengeId: string) => {
     const progress = getProgressForChallenge(challengeId);
-    return progress?.completed_at !== null;
+    const completed = progress?.completed_at !== null;
+    console.log('Challenge completion check:', { challengeId, progress, completed });
+    return completed;
   };
 
   const getProgressPercentage = (challenge: Challenge) => {
@@ -185,7 +197,7 @@ const Retos = () => {
         <p className="text-gray-600">Completa desafíos y gana puntos para subir de nivel</p>
       </div>
 
-      {/* User Stats */}
+      {/* User Stats - 4 colored cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
           <CardContent className="p-6">

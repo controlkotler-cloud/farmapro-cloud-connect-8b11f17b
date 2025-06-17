@@ -20,19 +20,29 @@ export const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
-    loadUserStats();
-    loadRecentActivity();
-  }, []);
+    if (profile?.id) {
+      loadUserStats();
+      loadRecentActivity();
+    }
+  }, [profile]);
 
   const loadUserStats = async () => {
     if (!profile?.id) return;
 
+    console.log('Loading user stats for user:', profile.id);
+
     // Get user points
-    const { data: points } = await supabase
+    const { data: points, error: pointsError } = await supabase
       .from('user_points')
       .select('total_points, level')
       .eq('user_id', profile.id)
       .single();
+
+    if (pointsError) {
+      console.error('Error fetching points:', pointsError);
+    } else {
+      console.log('User points fetched:', points);
+    }
 
     // Get courses completed
     const { data: courses } = await supabase
@@ -60,14 +70,17 @@ export const Dashboard = () => {
       .eq('user_id', profile.id)
       .not('completed_at', 'is', null);
 
-    setStats({
+    const newStats = {
       totalPoints: points?.total_points || 0,
       level: points?.level || 1,
       coursesCompleted: courses?.length || 0,
       resourcesDownloaded: resources?.length || 0,
       forumPosts: posts?.length || 0,
       challengesCompleted: challenges?.length || 0,
-    });
+    };
+
+    console.log('Dashboard stats updated:', newStats);
+    setStats(newStats);
   };
 
   const loadRecentActivity = async () => {
@@ -80,9 +93,13 @@ export const Dashboard = () => {
   };
 
   const getNextLevelProgress = () => {
-    const pointsForNextLevel = stats.level * 1000;
-    const currentLevelPoints = stats.totalPoints % 1000;
-    return (currentLevelPoints / pointsForNextLevel) * 100;
+    const pointsForNextLevel = (stats.level + 1) * 1000;
+    const pointsForCurrentLevel = stats.level * 1000;
+    const currentLevelPoints = stats.totalPoints - pointsForCurrentLevel;
+    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel;
+    
+    if (pointsNeededForLevel <= 0) return 100;
+    return Math.min((currentLevelPoints / pointsNeededForLevel) * 100, 100);
   };
 
   return (

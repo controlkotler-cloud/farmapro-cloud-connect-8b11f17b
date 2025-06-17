@@ -26,6 +26,8 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
     }
 
     for (const challenge of challenges) {
+      console.log('Processing challenge:', challenge);
+      
       // Check if user already has progress for this challenge
       const { data: existingProgress, error: progressError } = await supabase
         .from('user_challenge_progress')
@@ -45,6 +47,13 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
         const isCompleted = newCount >= challenge.target_count;
         const wasAlreadyCompleted = existingProgress.completed_at !== null;
         
+        console.log('Updating existing progress:', { 
+          newCount, 
+          isCompleted, 
+          wasAlreadyCompleted,
+          targetCount: challenge.target_count 
+        });
+        
         const { error: updateError } = await supabase
           .from('user_challenge_progress')
           .update({
@@ -58,21 +67,18 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
           console.error('Error updating challenge progress:', updateError);
         } else if (isCompleted && !wasAlreadyCompleted) {
           // Award points for completing the challenge
-          console.log('Awarding points for completed challenge:', challenge.points_reward);
-          const { error: pointsError } = await supabase.rpc('add_user_points', {
-            user_id: userId,
-            points: challenge.points_reward
-          });
-          
-          if (pointsError) {
-            console.error('Error adding points:', pointsError);
-          } else {
-            console.log('Points added successfully');
-          }
+          console.log('Challenge completed! Awarding points:', challenge.points_reward);
+          await addUserPoints(userId, challenge.points_reward);
         }
       } else {
         // Create new progress record
         const isCompleted = incrementBy >= challenge.target_count;
+        
+        console.log('Creating new progress record:', { 
+          incrementBy, 
+          isCompleted,
+          targetCount: challenge.target_count 
+        });
         
         const { error: insertError } = await supabase
           .from('user_challenge_progress')
@@ -88,21 +94,61 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
           console.error('Error creating challenge progress:', insertError);
         } else if (isCompleted) {
           // Award points for completing the challenge
-          console.log('Awarding points for new completed challenge:', challenge.points_reward);
-          const { error: pointsError } = await supabase.rpc('add_user_points', {
-            user_id: userId,
-            points: challenge.points_reward
-          });
-          
-          if (pointsError) {
-            console.error('Error adding points:', pointsError);
-          } else {
-            console.log('Points added successfully');
-          }
+          console.log('New challenge completed! Awarding points:', challenge.points_reward);
+          await addUserPoints(userId, challenge.points_reward);
         }
       }
     }
   } catch (error) {
     console.error('Error updating challenge progress:', error);
+  }
+};
+
+// Nueva función para añadir puntos que actualiza tanto total_points como level
+const addUserPoints = async (userId: string, points: number) => {
+  try {
+    console.log('Adding user points:', { userId, points });
+    
+    // Primero obtener los puntos actuales
+    const { data: currentPoints, error: fetchError } = await supabase
+      .from('user_points')
+      .select('total_points')
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error fetching current points:', fetchError);
+      return;
+    }
+
+    const newTotalPoints = (currentPoints?.total_points || 0) + points;
+    const newLevel = Math.floor(newTotalPoints / 1000) + 1;
+
+    console.log('Calculating new points and level:', { 
+      currentTotal: currentPoints?.total_points || 0, 
+      pointsToAdd: points,
+      newTotalPoints, 
+      newLevel 
+    });
+
+    // Upsert los puntos del usuario
+    const { error: upsertError } = await supabase
+      .from('user_points')
+      .upsert({
+        user_id: userId,
+        total_points: newTotalPoints,
+        level: newLevel,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (upsertError) {
+      console.error('Error upserting user points:', upsertError);
+    } else {
+      console.log('User points updated successfully:', { newTotalPoints, newLevel });
+    }
+  } catch (error) {
+    console.error('Error in addUserPoints:', error);
   }
 };
