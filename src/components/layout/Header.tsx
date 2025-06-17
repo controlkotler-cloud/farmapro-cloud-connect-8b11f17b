@@ -12,10 +12,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export const Header = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { notifications, loading, markAsRead, getTargetUrl } = useNotifications();
 
   const handleSignOut = async () => {
     await signOut();
@@ -23,6 +25,20 @@ export const Header = () => {
 
   const handleProfileClick = () => {
     navigate('/perfil');
+  };
+
+  const handleNotificationClick = async (notification: any) => {
+    // Marcar como leída
+    await markAsRead(notification.id);
+    
+    // Navegar al destino
+    const targetUrl = getTargetUrl(notification);
+    navigate(targetUrl);
+  };
+
+  const getNotificationIcon = (type: string) => {
+    // Podríamos usar diferentes iconos según el tipo
+    return '🔔';
   };
 
   return (
@@ -43,9 +59,11 @@ export const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-5 w-5" />
-                <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  3
-                </Badge>
+                {notifications.length > 0 && (
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                    {notifications.length}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-80" align="end">
@@ -53,19 +71,54 @@ export const Header = () => {
                 <h3 className="font-semibold">Notificaciones</h3>
               </div>
               <div className="max-h-64 overflow-y-auto">
-                <DropdownMenuItem className="p-3 flex flex-col items-start">
-                  <p className="font-medium text-sm">¡Nuevo reto completado!</p>
-                  <p className="text-xs text-gray-500">Has ganado 100 puntos por completar tu primer curso</p>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 flex flex-col items-start">
-                  <p className="font-medium text-sm">Nueva respuesta en el foro</p>
-                  <p className="text-xs text-gray-500">Alguien ha respondido a tu hilo sobre marketing farmacéutico</p>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 flex flex-col items-start">
-                  <p className="font-medium text-sm">Recurso disponible</p>
-                  <p className="text-xs text-gray-500">Nueva calculadora de rentabilidad disponible</p>
-                </DropdownMenuItem>
+                {loading ? (
+                  <div className="p-3 text-center text-gray-500">
+                    Cargando notificaciones...
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="p-3 text-center text-gray-500">
+                    No tienes notificaciones nuevas
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <DropdownMenuItem 
+                      key={notification.id}
+                      className="p-3 flex flex-col items-start cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      <div className="flex items-start justify-between w-full">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{notification.title}</p>
+                          <p className="text-xs text-gray-500 mt-1">{notification.description}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(notification.created_at).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        <span className="text-lg ml-2">
+                          {getNotificationIcon(notification.type)}
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                )}
               </div>
+              {notifications.length > 0 && (
+                <div className="p-2 border-t">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-xs"
+                    onClick={() => navigate('/notificaciones')}
+                  >
+                    Ver todas las notificaciones
+                  </Button>
+                </div>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 
