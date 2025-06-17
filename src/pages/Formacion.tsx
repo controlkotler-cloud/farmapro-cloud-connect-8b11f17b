@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,10 +87,6 @@ const Formacion = () => {
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value as SelectedCategoryType);
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -97,7 +94,7 @@ const Formacion = () => {
         <p className="text-gray-600">Desarrolla tus competencias profesionales con nuestros cursos especializados</p>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={handleCategoryChange}>
+      <Tabs value={selectedCategory} onValueChange={(value: string) => setSelectedCategory(value as SelectedCategoryType)}>
         <TabsList className="grid w-full grid-cols-6">
           {categories.map((category) => (
             <TabsTrigger key={category.id} value={category.id} className="text-xs">
