@@ -109,13 +109,13 @@ export const useRetosData = () => {
 
     console.log('Forum stats:', { threadCount, replyCount, totalLikes });
 
-    // Actualizar progreso de retos de foro
+    // Actualizar progreso de retos de foro usando los tipos correctos
     if (threadCount && threadCount > 0) {
-      await updateChallengeProgress(profile.id, 'forum_participation', threadCount);
+      await updateChallengeProgress(profile.id, 'forum_post', threadCount);
     }
 
     if (replyCount && replyCount > 0) {
-      await updateChallengeProgress(profile.id, 'forum_participation', replyCount);
+      await updateChallengeProgress(profile.id, 'forum_reply', replyCount);
     }
 
     // Recargar progreso después de sincronizar

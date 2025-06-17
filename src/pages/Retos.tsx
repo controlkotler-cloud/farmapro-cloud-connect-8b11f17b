@@ -19,10 +19,10 @@ const Retos = () => {
 
   // Categorizar retos por tipo
   const challengesByType = {
-    forum_participation: challenges.filter(c => c.type === 'forum_participation'),
-    course_completed: challenges.filter(c => c.type === 'course_completed'),
-    resource_download: challenges.filter(c => c.type === 'resource_download'),
-    other: challenges.filter(c => !['forum_participation', 'course_completed', 'resource_download'].includes(c.type))
+    forum: challenges.filter(c => c.type === 'forum_post' || c.type === 'forum_reply'),
+    course: challenges.filter(c => c.type === 'course_completed' || c.type === 'course_started'),
+    resource: challenges.filter(c => c.type === 'resource_downloaded'),
+    other: challenges.filter(c => !['forum_post', 'forum_reply', 'course_completed', 'course_started', 'resource_downloaded'].includes(c.type))
   };
 
   const CategorySection = ({ 
@@ -110,7 +110,7 @@ const Retos = () => {
               title="Retos de Comunidad"
               icon={MessageSquare}
               emoji="💬"
-              challenges={challengesByType.forum_participation}
+              challenges={challengesByType.forum}
               color="bg-purple-100 text-purple-600"
             />
 
@@ -119,7 +119,7 @@ const Retos = () => {
               title="Retos de Formación"
               icon={BookOpen}
               emoji="📚"
-              challenges={challengesByType.course_completed}
+              challenges={challengesByType.course}
               color="bg-blue-100 text-blue-600"
             />
 
@@ -128,7 +128,7 @@ const Retos = () => {
               title="Retos de Recursos"
               icon={Gift}
               emoji="📁"
-              challenges={challengesByType.resource_download}
+              challenges={challengesByType.resource}
               color="bg-green-100 text-green-600"
             />
 

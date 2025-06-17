@@ -39,10 +39,12 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
   const getChallengeIcon = (type: string) => {
     switch (type) {
       case 'course_completed':
+      case 'course_started':
         return <BookOpen className="h-6 w-6" />;
-      case 'forum_participation':
+      case 'forum_post':
+      case 'forum_reply':
         return <MessageSquare className="h-6 w-6" />;
-      case 'resource_download':
+      case 'resource_downloaded':
         return <Gift className="h-6 w-6" />;
       case 'community_engagement':
         return <Users className="h-6 w-6" />;
@@ -54,10 +56,12 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
   const getChallengeTypeLabel = (type: string) => {
     switch (type) {
       case 'course_completed':
+      case 'course_started':
         return 'Formación';
-      case 'forum_participation':
+      case 'forum_post':
+      case 'forum_reply':
         return 'Comunidad';
-      case 'resource_download':
+      case 'resource_downloaded':
         return 'Recursos';
       case 'community_engagement':
         return 'Participación';
@@ -69,10 +73,12 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
   const getChallengeEmoji = (type: string) => {
     switch (type) {
       case 'course_completed':
+      case 'course_started':
         return '📚';
-      case 'forum_participation':
+      case 'forum_post':
+      case 'forum_reply':
         return '💬';
-      case 'resource_download':
+      case 'resource_downloaded':
         return '📁';
       case 'community_engagement':
         return '👥';
@@ -87,20 +93,15 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
     
     const remaining = challenge.target_count - (progress?.current_count || 0);
     switch (challenge.type) {
-      case 'forum_participation':
-        if (challenge.name.includes('Participación Activa')) {
-          return `Te faltan ${remaining} participaciones en el foro`;
-        }
-        if (challenge.name.includes('Experto Colaborador')) {
-          return `Te faltan ${remaining} hilos por crear`;
-        }
-        if (challenge.name.includes('Mentor Comunitario')) {
-          return `Te faltan ${remaining} likes por recibir`;
-        }
-        return `Te faltan ${remaining} participaciones`;
+      case 'forum_post':
+        return `Te faltan ${remaining} hilos por crear`;
+      case 'forum_reply':
+        return `Te faltan ${remaining} respuestas por escribir`;
       case 'course_completed':
         return `Te faltan ${remaining} cursos por completar`;
-      case 'resource_download':
+      case 'course_started':
+        return `Te faltan ${remaining} cursos por iniciar`;
+      case 'resource_downloaded':
         return `Te faltan ${remaining} recursos por descargar`;
       default:
         return `Progreso: ${Math.round(progressPercentage)}% completado`;
