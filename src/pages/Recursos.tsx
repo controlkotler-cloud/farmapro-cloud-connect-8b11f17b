@@ -116,6 +116,10 @@ const Recursos = () => {
     }
   };
 
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value as SelectedResourceType);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -123,7 +127,7 @@ const Recursos = () => {
         <p className="text-gray-600">Herramientas, plantillas y guías para optimizar tu trabajo diario</p>
       </div>
 
-      <Tabs value={selectedType} onValueChange={setSelectedType}>
+      <Tabs value={selectedType} onValueChange={handleTypeChange}>
         <TabsList className="grid w-full grid-cols-5">
           {resourceTypes.map((type) => (
             <TabsTrigger key={type.id} value={type.id} className="flex items-center space-x-2">
@@ -214,4 +218,3 @@ const Recursos = () => {
 };
 
 export default Recursos;
-

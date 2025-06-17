@@ -138,6 +138,10 @@ const Comunidad = () => {
     return `Hace ${Math.floor(diffInHours / 24)} días`;
   };
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value as SelectedCategoryType);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -176,7 +180,7 @@ const Comunidad = () => {
         </Dialog>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+      <Tabs value={selectedCategory} onValueChange={handleCategoryChange}>
         <TabsList className="grid w-full grid-cols-auto">
           <TabsTrigger value="all">Todos</TabsTrigger>
           {categories.map((category) => (
@@ -257,4 +261,3 @@ const Comunidad = () => {
 };
 
 export default Comunidad;
-
