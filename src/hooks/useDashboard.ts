@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,15 +88,25 @@ export const useDashboard = () => {
         }
       }
 
-      // Get the "Estudiante Dedicado" challenge to get the correct course completion count
-      const { data: challenge } = await supabase
+      // Buscar el reto de cursos completados - probamos diferentes nombres posibles
+      console.log('Searching for course completion challenge...');
+      const { data: challenges, error: challengeError } = await supabase
         .from('challenges')
-        .select('id')
-        .eq('type', 'course_completed')
-        .single();
+        .select('id, name, type')
+        .eq('type', 'course_completed');
+
+      if (challengeError) {
+        console.error('Error fetching challenges:', challengeError);
+      } else {
+        console.log('Found challenges:', challenges);
+      }
 
       let coursesCompleted = 0;
-      if (challenge) {
+      if (challenges && challenges.length > 0) {
+        // Usar el primer challenge de tipo course_completed que encontremos
+        const challenge = challenges[0];
+        console.log('Using challenge:', challenge);
+        
         // Get progress for course_completed challenge to count total completions
         const { data: courseProgress } = await supabase
           .from('user_challenge_progress')
@@ -110,10 +119,28 @@ export const useDashboard = () => {
           coursesCompleted = courseProgress.current_count;
           console.log('Using challenge progress for courses completed:', coursesCompleted);
         } else {
-          console.log('No challenge progress found, using 0 for courses completed');
+          console.log('No challenge progress found, checking enrollments...');
+          // Fallback: contar enrollments completados
+          const { data: enrollments } = await supabase
+            .from('course_enrollments')
+            .select('id')
+            .eq('user_id', profile.id)
+            .not('completed_at', 'is', null);
+          
+          coursesCompleted = enrollments?.length || 0;
+          console.log('Using enrollment count as fallback:', coursesCompleted);
         }
       } else {
-        console.log('Challenge "Estudiante Dedicado" not found');
+        console.log('No course_completed challenges found, using enrollment count');
+        // Si no hay challenges, usar enrollments
+        const { data: enrollments } = await supabase
+          .from('course_enrollments')
+          .select('id')
+          .eq('user_id', profile.id)
+          .not('completed_at', 'is', null);
+        
+        coursesCompleted = enrollments?.length || 0;
+        console.log('Using enrollment count:', coursesCompleted);
       }
 
       // Get resources downloaded
@@ -129,7 +156,7 @@ export const useDashboard = () => {
         .eq('author_id', profile.id);
 
       // Get challenges completed
-      const { data: challenges } = await supabase
+      const { data: challengesData } = await supabase
         .from('user_challenge_progress')
         .select('id')
         .eq('user_id', profile.id)
@@ -141,7 +168,7 @@ export const useDashboard = () => {
         coursesCompleted,
         resourcesDownloaded: resources?.length || 0,
         forumPosts: posts?.length || 0,
-        challengesCompleted: challenges?.length || 0,
+        challengesCompleted: challengesData?.length || 0,
       };
 
       console.log('Dashboard stats updated after sync:', newStats);
