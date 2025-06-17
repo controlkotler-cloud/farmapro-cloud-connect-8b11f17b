@@ -93,16 +93,26 @@ export const LoginForm = () => {
       >
         <Card className="w-full max-w-md shadow-2xl">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                FP
+            <div className="mx-auto mb-6 space-y-3">
+              {/* Imagotipo */}
+              <div className="flex justify-center">
+                <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro imagotipo" className="w-16 h-16" />
+              </div>
+              
+              {/* Texto Portal */}
+              <h1 className="text-xl font-bold text-gray-800">Portal</h1>
+              
+              {/* Logotipo */}
+              <div className="flex justify-center">
+                <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro logotipo" className="h-8" />
               </div>
             </div>
+            
             <CardTitle className="text-2xl font-bold text-gray-900">
-              {isRegistering ? 'Registro' : 'Portal FarmaPro'}
+              {isRegistering ? 'Registro' : 'Accede a tu cuenta'}
             </CardTitle>
             <CardDescription>
-              {isRegistering ? 'Crea tu cuenta profesional' : 'Accede a tu cuenta profesional'}
+              {isRegistering ? 'Crea tu cuenta profesional' : 'Inicia sesión en tu cuenta profesional'}
             </CardDescription>
           </CardHeader>
           <CardContent>
