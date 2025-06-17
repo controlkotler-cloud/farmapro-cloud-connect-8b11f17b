@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Footer } from '@/components/home/Footer';
+import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/subscription/HeroSection';
 import { BenefitsSection } from '@/components/subscription/BenefitsSection';
 import { PortalPreviewSection } from '@/components/subscription/PortalPreviewSection';
@@ -25,7 +25,7 @@ const Subscription = () => {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PublicLayout>
       <HeroSection />
       <BenefitsSection />
       <PortalPreviewSection />
@@ -36,8 +36,7 @@ const Subscription = () => {
       <MainCTASection />
       <AdditionalFeaturesSection />
       <OnboardingSection />
-      <Footer />
-    </div>
+    </PublicLayout>
   );
 };
 
