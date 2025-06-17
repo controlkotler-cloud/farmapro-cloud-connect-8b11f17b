@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +13,6 @@ import type { Database } from '@/integrations/supabase/types';
 type ResourceType = Database['public']['Enums']['resource_type'];
 type ResourceFormat = Database['public']['Enums']['resource_format'];
 type ResourceCategory = Database['public']['Enums']['resource_category'];
-type SelectedResourceType = ResourceType | 'all';
 
 interface Resource {
   id: string;
@@ -33,9 +31,9 @@ const Recursos = () => {
   const { profile } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState<SelectedResourceType>('all');
+  const [selectedType, setSelectedType] = useState<string>('all');
 
-  const resourceTypes: Array<{ id: SelectedResourceType; name: string; icon: typeof FileText }> = [
+  const resourceTypes: Array<{ id: string; name: string; icon: typeof FileText }> = [
     { id: 'all', name: 'Todos', icon: FileText },
     { id: 'calculadora', name: 'Calculadoras', icon: Calculator },
     { id: 'plantilla', name: 'Plantillas', icon: FileText },
@@ -116,10 +114,6 @@ const Recursos = () => {
     }
   };
 
-  const handleTypeChange = (value: string) => {
-    setSelectedType(value as SelectedResourceType);
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -127,7 +121,7 @@ const Recursos = () => {
         <p className="text-gray-600">Herramientas, plantillas y guías para optimizar tu trabajo diario</p>
       </div>
 
-      <Tabs value={selectedType} onValueChange={handleTypeChange}>
+      <Tabs value={selectedType} onValueChange={setSelectedType}>
         <TabsList className="grid w-full grid-cols-5">
           {resourceTypes.map((type) => (
             <TabsTrigger key={type.id} value={type.id} className="flex items-center space-x-2">

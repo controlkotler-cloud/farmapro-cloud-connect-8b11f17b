@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,14 +37,12 @@ interface ForumCategory {
   is_premium: boolean;
 }
 
-type SelectedCategoryType = string;
-
 const Comunidad = () => {
   const { profile } = useAuth();
   const [threads, setThreads] = useState<ForumThread[]>([]);
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryType>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [newThreadTitle, setNewThreadTitle] = useState('');
   const [newThreadContent, setNewThreadContent] = useState('');
   const [showNewThreadDialog, setShowNewThreadDialog] = useState(false);
@@ -138,10 +135,6 @@ const Comunidad = () => {
     return `Hace ${Math.floor(diffInHours / 24)} días`;
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value as SelectedCategoryType);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -180,7 +173,7 @@ const Comunidad = () => {
         </Dialog>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={handleCategoryChange}>
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid w-full grid-cols-auto">
           <TabsTrigger value="all">Todos</TabsTrigger>
           {categories.map((category) => (
