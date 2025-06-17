@@ -1,4 +1,5 @@
 
+
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -48,11 +49,19 @@ export const Sidebar = () => {
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          {!collapsed && (
+          {!collapsed ? (
+            <div className="flex items-center justify-center w-full">
+              <img 
+                src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" 
+                alt="farmapro" 
+                className="h-10 w-10"
+              />
+            </div>
+          ) : (
             <img 
-              src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" 
+              src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" 
               alt="farmapro" 
-              className="h-8"
+              className="h-8 w-8 mx-auto"
             />
           )}
           <Button
@@ -115,3 +124,4 @@ export const Sidebar = () => {
     </div>
   );
 };
+
