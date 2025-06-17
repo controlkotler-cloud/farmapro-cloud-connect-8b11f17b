@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +10,7 @@ import { motion } from 'framer-motion';
 import type { Database } from '@/integrations/supabase/types';
 
 type CourseCategory = Database['public']['Enums']['course_category'];
+type SelectedCategoryType = CourseCategory | 'all';
 
 interface Course {
   id: string;
@@ -27,9 +27,9 @@ const Formacion = () => {
   const { profile } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<CourseCategory | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryType>('all');
 
-  const categories: Array<{ id: CourseCategory | 'all'; name: string }> = [
+  const categories: Array<{ id: SelectedCategoryType; name: string }> = [
     { id: 'all', name: 'Todos los Cursos' },
     { id: 'gestion', name: 'Gestión Farmacéutica' },
     { id: 'marketing', name: 'Marketing y Ventas' },
@@ -86,6 +86,10 @@ const Formacion = () => {
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value as SelectedCategoryType);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -93,7 +97,7 @@ const Formacion = () => {
         <p className="text-gray-600">Desarrolla tus competencias profesionales con nuestros cursos especializados</p>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as CourseCategory | 'all')}>
+      <Tabs value={selectedCategory} onValueChange={handleCategoryChange}>
         <TabsList className="grid w-full grid-cols-6">
           {categories.map((category) => (
             <TabsTrigger key={category.id} value={category.id} className="text-xs">
