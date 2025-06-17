@@ -9,6 +9,8 @@ interface UpcomingChallengesProps {
 }
 
 export const UpcomingChallenges = ({ coursesCompleted, resourcesDownloaded }: UpcomingChallengesProps) => {
+  console.log('UpcomingChallenges received coursesCompleted:', coursesCompleted);
+  
   const challenges = [
     {
       title: "Estudiante Dedicado",

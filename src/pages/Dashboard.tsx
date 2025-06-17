@@ -10,6 +10,8 @@ export const Dashboard = () => {
   const { profile } = useAuth();
   const { stats, recentActivity, getNextLevelProgress, getPointsToNextLevel } = useDashboard();
 
+  console.log('Dashboard stats:', stats);
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
