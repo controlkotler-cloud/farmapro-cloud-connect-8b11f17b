@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -128,13 +127,13 @@ export const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <BookOpen className="h-8 w-8 text-blue-600" />
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white h-32">
+            <CardContent className="p-6 h-full">
+              <div className="flex items-center h-full">
+                <BookOpen className="h-8 w-8 text-white" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Cursos Completados</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.coursesCompleted}</p>
+                  <p className="text-sm font-medium text-blue-100">Cursos Completados</p>
+                  <p className="text-2xl font-bold text-white">{stats.coursesCompleted}</p>
                 </div>
               </div>
             </CardContent>
@@ -146,13 +145,13 @@ export const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Download className="h-8 w-8 text-green-600" />
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white h-32">
+            <CardContent className="p-6 h-full">
+              <div className="flex items-center h-full">
+                <Download className="h-8 w-8 text-white" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Recursos Descargados</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.resourcesDownloaded}</p>
+                  <p className="text-sm font-medium text-green-100">Recursos Descargados</p>
+                  <p className="text-2xl font-bold text-white">{stats.resourcesDownloaded}</p>
                 </div>
               </div>
             </CardContent>
@@ -164,13 +163,13 @@ export const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <MessageSquare className="h-8 w-8 text-purple-600" />
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white h-32">
+            <CardContent className="p-6 h-full">
+              <div className="flex items-center h-full">
+                <MessageSquare className="h-8 w-8 text-white" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Posts en Foro</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.forumPosts}</p>
+                  <p className="text-sm font-medium text-purple-100">Posts en Foro</p>
+                  <p className="text-2xl font-bold text-white">{stats.forumPosts}</p>
                 </div>
               </div>
             </CardContent>
@@ -182,13 +181,13 @@ export const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Target className="h-8 w-8 text-orange-600" />
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white h-32">
+            <CardContent className="p-6 h-full">
+              <div className="flex items-center h-full">
+                <Target className="h-8 w-8 text-white" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Retos Completados</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.challengesCompleted}</p>
+                  <p className="text-sm font-medium text-orange-100">Retos Completados</p>
+                  <p className="text-2xl font-bold text-white">{stats.challengesCompleted}</p>
                 </div>
               </div>
             </CardContent>
