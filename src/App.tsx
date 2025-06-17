@@ -1,4 +1,5 @@
 
+
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,6 +13,14 @@ import { Dashboard } from "@/pages/Dashboard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Subscription from "./pages/Subscription";
+import Formacion from "./pages/Formacion";
+import Recursos from "./pages/Recursos";
+import Comunidad from "./pages/Comunidad";
+import Retos from "./pages/Retos";
+import Empleo from "./pages/Empleo";
+import Farmacias from "./pages/Farmacias";
+import Eventos from "./pages/Eventos";
+import Promociones from "./pages/Promociones";
 
 const queryClient = new QueryClient();
 
@@ -56,42 +65,42 @@ const AppRoutes = () => {
       } />
       <Route path="/formacion" element={
         <ProtectedRoute>
-          <div>Formación - Coming Soon</div>
+          <Formacion />
         </ProtectedRoute>
       } />
       <Route path="/recursos" element={
         <ProtectedRoute>
-          <div>Recursos - Coming Soon</div>
+          <Recursos />
         </ProtectedRoute>
       } />
       <Route path="/comunidad" element={
         <ProtectedRoute>
-          <div>Comunidad - Coming Soon</div>
+          <Comunidad />
         </ProtectedRoute>
       } />
       <Route path="/retos" element={
         <ProtectedRoute>
-          <div>Retos - Coming Soon</div>
+          <Retos />
         </ProtectedRoute>
       } />
       <Route path="/empleo" element={
         <ProtectedRoute>
-          <div>Bolsa de Empleo - Coming Soon</div>
+          <Empleo />
         </ProtectedRoute>
       } />
       <Route path="/farmacias" element={
         <ProtectedRoute>
-          <div>Farmacias en Venta - Coming Soon</div>
+          <Farmacias />
         </ProtectedRoute>
       } />
       <Route path="/eventos" element={
         <ProtectedRoute>
-          <div>Eventos - Coming Soon</div>
+          <Eventos />
         </ProtectedRoute>
       } />
       <Route path="/promociones" element={
         <ProtectedRoute>
-          <div>Promociones - Coming Soon</div>
+          <Promociones />
         </ProtectedRoute>
       } />
       <Route path="*" element={<NotFound />} />
@@ -114,3 +123,4 @@ const App = () => (
 );
 
 export default App;
+
