@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Gift, Calendar, Building2, ExternalLink, Clock, Tag, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { AccessRestriction } from '@/components/subscription/AccessRestriction';
-import { useAccessControl } from '@/hooks/useAccessControl';
 
 interface Promotion {
   id: string;
@@ -27,7 +26,6 @@ const Promociones = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('all');
-  const { restrictions } = useAccessControl();
 
   // Array de imágenes para promociones farmacéuticas
   const promotionImages = [
@@ -117,221 +115,132 @@ const Promociones = () => {
     return promotionImages[index % promotionImages.length];
   };
 
-  const isPremiumPromotion = (promotion: Promotion) => {
-    // Considera promociones premium aquellas de laboratorios o equipos
-    return promotion.company_type === 'laboratorio' || promotion.company_type === 'equipos';
-  };
-
   return (
-    <AccessRestriction
-      requiredPlan="profesional"
-      featureName="Promociones Premium"
-      className={!restrictions.canAccessPremiumPromotions ? "min-h-[600px]" : ""}
-    >
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Promociones Exclusivas</h1>
-          <p className="text-gray-600">Descuentos y ofertas especiales para farmacias</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Promociones Exclusivas</h1>
+        <p className="text-gray-600">Descuentos y ofertas especiales para farmacias</p>
+      </div>
 
-        <Tabs value={selectedType} onValueChange={setSelectedType}>
-          <TabsList className="grid w-full grid-cols-6">
-            {companyTypes.map((type) => (
-              <TabsTrigger key={type.id} value={type.id} className="text-xs">
-                {type.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <Tabs value={selectedType} onValueChange={setSelectedType}>
+        <TabsList className="grid w-full grid-cols-6">
+          {companyTypes.map((type) => (
+            <TabsTrigger key={type.id} value={type.id} className="text-xs">
+              {type.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-          <TabsContent value={selectedType} className="mt-6">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <div className="h-48 bg-gray-200"></div>
-                    <CardContent className="p-6">
-                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded"></div>
+        <TabsContent value={selectedType} className="mt-6">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {promotions.map((promotion, index) => (
+                <motion.div
+                  key={promotion.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className="h-full hover:shadow-lg transition-shadow">
+                    <div className="relative">
+                      <img 
+                        src={promotion.image_url || getPromotionImage(index)} 
+                        alt={promotion.title}
+                        className="w-full h-48 object-cover rounded-t-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = getPromotionImage(index);
+                        }}
+                      />
+                      <div className="absolute top-2 left-2 space-y-1">
+                        <Badge className="bg-gradient-to-r from-red-500 to-pink-600">
+                          <Gift className="h-3 w-3 mr-1" />
+                          Oferta
+                        </Badge>
+                        {isExpiringSoon(promotion.valid_until) && (
+                          <Badge className="bg-orange-600">
+                            <Clock className="h-3 w-3 mr-1" />
+                            ¡Últimos días!
+                          </Badge>
+                        )}
+                      </div>
+                      <Badge className={`absolute top-2 right-2 ${getCompanyTypeColor(promotion.company_type)}`}>
+                        {promotion.company_type}
+                      </Badge>
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{promotion.title}</CardTitle>
+                      <div className="flex items-center text-gray-600">
+                        <Building2 className="h-4 w-4 mr-1" />
+                        {promotion.company_name}
+                      </div>
+                      <CardDescription>{promotion.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-3">
+                        {promotion.discount_details && (
+                          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center mb-1">
+                              <Tag className="h-4 w-4 mr-2 text-green-600" />
+                              <span className="font-medium text-green-800">Oferta:</span>
+                            </div>
+                            <p className="text-sm text-green-700">{promotion.discount_details}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Válido hasta: {formatDate(promotion.valid_until)}
+                        </div>
+
+                        {promotion.terms_conditions && (
+                          <details className="text-xs text-gray-600">
+                            <summary className="cursor-pointer font-medium">Términos y condiciones</summary>
+                            <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
+                          </details>
+                        )}
+
+                        <Button className="w-full mt-4">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Solicitar
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {promotions.map((promotion, index) => {
-                  const isRestricted = isPremiumPromotion(promotion) && !restrictions.canAccessPremiumPromotions;
-                  
-                  return (
-                    <motion.div
-                      key={promotion.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                    >
-                      {isRestricted ? (
-                        <AccessRestriction
-                          requiredPlan="profesional"
-                          featureName={`Promoción: ${promotion.title}`}
-                        >
-                          <Card className="h-full hover:shadow-lg transition-shadow">
-                            <div className="relative">
-                              <img 
-                                src={promotion.image_url || getPromotionImage(index)} 
-                                alt={promotion.title}
-                                className="w-full h-48 object-cover rounded-t-lg"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = getPromotionImage(index);
-                                }}
-                              />
-                              <div className="absolute top-2 left-2 space-y-1">
-                                <Badge className="bg-gradient-to-r from-red-500 to-pink-600">
-                                  <Gift className="h-3 w-3 mr-1" />
-                                  Oferta
-                                </Badge>
-                                {isExpiringSoon(promotion.valid_until) && (
-                                  <Badge className="bg-orange-600">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    ¡Últimos días!
-                                  </Badge>
-                                )}
-                              </div>
-                              <Badge className={`absolute top-2 right-2 ${getCompanyTypeColor(promotion.company_type)}`}>
-                                {promotion.company_type}
-                              </Badge>
-                            </div>
-                            <CardHeader>
-                              <CardTitle className="text-lg">{promotion.title}</CardTitle>
-                              <div className="flex items-center text-gray-600">
-                                <Building2 className="h-4 w-4 mr-1" />
-                                {promotion.company_name}
-                              </div>
-                              <CardDescription>{promotion.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                              <div className="space-y-3">
-                                {promotion.discount_details && (
-                                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                                    <div className="flex items-center mb-1">
-                                      <Tag className="h-4 w-4 mr-2 text-green-600" />
-                                      <span className="font-medium text-green-800">Oferta:</span>
-                                    </div>
-                                    <p className="text-sm text-green-700">{promotion.discount_details}</p>
-                                  </div>
-                                )}
-                                
-                                <div className="flex items-center text-sm text-gray-600">
-                                  <Calendar className="h-4 w-4 mr-2" />
-                                  Válido hasta: {formatDate(promotion.valid_until)}
-                                </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
-                                {promotion.terms_conditions && (
-                                  <details className="text-xs text-gray-600">
-                                    <summary className="cursor-pointer font-medium">Términos y condiciones</summary>
-                                    <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
-                                  </details>
-                                )}
-
-                                <Button className="w-full mt-4">
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  Solicitar
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </AccessRestriction>
-                      ) : (
-                        <Card className="h-full hover:shadow-lg transition-shadow">
-                          <div className="relative">
-                            <img 
-                              src={promotion.image_url || getPromotionImage(index)} 
-                              alt={promotion.title}
-                              className="w-full h-48 object-cover rounded-t-lg"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = getPromotionImage(index);
-                              }}
-                            />
-                            <div className="absolute top-2 left-2 space-y-1">
-                              <Badge className="bg-gradient-to-r from-red-500 to-pink-600">
-                                <Gift className="h-3 w-3 mr-1" />
-                                Oferta
-                              </Badge>
-                              {isExpiringSoon(promotion.valid_until) && (
-                                <Badge className="bg-orange-600">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  ¡Últimos días!
-                                </Badge>
-                              )}
-                            </div>
-                            <Badge className={`absolute top-2 right-2 ${getCompanyTypeColor(promotion.company_type)}`}>
-                              {promotion.company_type}
-                            </Badge>
-                          </div>
-                          <CardHeader>
-                            <CardTitle className="text-lg">{promotion.title}</CardTitle>
-                            <div className="flex items-center text-gray-600">
-                              <Building2 className="h-4 w-4 mr-1" />
-                              {promotion.company_name}
-                            </div>
-                            <CardDescription>{promotion.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent className="pt-0">
-                            <div className="space-y-3">
-                              {promotion.discount_details && (
-                                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                                  <div className="flex items-center mb-1">
-                                    <Tag className="h-4 w-4 mr-2 text-green-600" />
-                                    <span className="font-medium text-green-800">Oferta:</span>
-                                  </div>
-                                  <p className="text-sm text-green-700">{promotion.discount_details}</p>
-                                </div>
-                              )}
-                              
-                              <div className="flex items-center text-sm text-gray-600">
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Válido hasta: {formatDate(promotion.valid_until)}
-                              </div>
-
-                              {promotion.terms_conditions && (
-                                <details className="text-xs text-gray-600">
-                                  <summary className="cursor-pointer font-medium">Términos y condiciones</summary>
-                                  <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
-                                </details>
-                              )}
-
-                              <Button className="w-full mt-4">
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Solicitar
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {promotions.length === 0 && !loading && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Gift className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No hay promociones disponibles</h3>
-              <p className="text-gray-600">
-                {selectedType === 'all' 
-                  ? 'No hay promociones activas en este momento.'
-                  : `No hay promociones de tipo "${companyTypes.find(t => t.id === selectedType)?.name}" disponibles.`
-                }
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </AccessRestriction>
+      {promotions.length === 0 && !loading && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Gift className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay promociones disponibles</h3>
+            <p className="text-gray-600">
+              {selectedType === 'all' 
+                ? 'No hay promociones activas en este momento.'
+                : `No hay promociones de tipo "${companyTypes.find(t => t.id === selectedType)?.name}" disponibles.`
+              }
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
