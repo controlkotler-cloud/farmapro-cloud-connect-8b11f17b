@@ -1,7 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
-export const updateChallengeProgress = async (userId: string, challengeType: string, incrementBy: number = 1) => {
+type ChallengeType = Database['public']['Enums']['challenge_type'];
+
+export const updateChallengeProgress = async (userId: string, challengeType: ChallengeType, incrementBy: number = 1) => {
   try {
     // Get active challenges of this type
     const { data: challenges, error: challengesError } = await supabase
