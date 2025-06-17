@@ -99,7 +99,7 @@ export const Dashboard = () => {
               ¡Bienvenido de nuevo, {profile?.full_name}!
             </CardTitle>
             <CardDescription className="text-white/90 text-base">
-              Continúa tu desarrollo profesional en el sector farmacéutico
+              Continúa el desarrollo de tu perfil.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -168,7 +168,7 @@ export const Dashboard = () => {
               <div className="flex items-center h-full">
                 <MessageSquare className="h-8 w-8 text-white" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-purple-100">Posts en Foro</p>
+                  <p className="text-sm font-medium text-purple-100">Posts en Foros</p>
                   <p className="text-2xl font-bold text-white">{stats.forumPosts}</p>
                 </div>
               </div>
@@ -255,21 +255,21 @@ export const Dashboard = () => {
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
                     <p className="font-medium">Coleccionista</p>
-                    <p className="text-sm text-gray-600">Descarga 10 recursos</p>
+                    <p className="text-sm text-gray-600">Descarga 5 recursos</p>
                   </div>
                   <div className="text-right">
                     <Badge className="mb-1">300 pts</Badge>
-                    <p className="text-xs text-gray-500">{stats.resourcesDownloaded}/10</p>
+                    <p className="text-xs text-gray-500">{stats.resourcesDownloaded}/5</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
                     <p className="font-medium">Experto Colaborador</p>
-                    <p className="text-sm text-gray-600">Realiza 50 respuestas en el foro</p>
+                    <p className="text-sm text-gray-600">Realiza 10 respuestas en el foro</p>
                   </div>
                   <div className="text-right">
                     <Badge className="mb-1">1000 pts</Badge>
-                    <p className="text-xs text-gray-500">0/50</p>
+                    <p className="text-xs text-gray-500">0/10</p>
                   </div>
                 </div>
               </div>
