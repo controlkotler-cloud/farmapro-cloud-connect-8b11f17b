@@ -35,6 +35,7 @@ export interface CourseEnrollment {
   course_id: string;
   completed_at: string | null;
   started_at: string | null;
+  progress?: number | null;
 }
 
 export interface CategoryItem {
