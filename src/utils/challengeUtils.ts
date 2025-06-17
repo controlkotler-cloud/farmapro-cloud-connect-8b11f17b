@@ -104,7 +104,7 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
   }
 };
 
-// Función para añadir puntos que actualiza tanto total_points como level
+// Función mejorada para añadir puntos que actualiza tanto total_points como level
 const addUserPoints = async (userId: string, points: number) => {
   try {
     console.log('Adding user points:', { userId, points });
@@ -123,6 +123,7 @@ const addUserPoints = async (userId: string, points: number) => {
 
     const currentTotalPoints = currentData?.total_points || 0;
     const newTotalPoints = currentTotalPoints + points;
+    // Calcular el nivel basado en los puntos totales (cada 1000 puntos = 1 nivel)
     const newLevel = Math.floor(newTotalPoints / 1000) + 1;
 
     console.log('Calculating new points and level:', { 
@@ -132,7 +133,7 @@ const addUserPoints = async (userId: string, points: number) => {
       newLevel 
     });
 
-    // Hacer upsert de los puntos del usuario
+    // Hacer upsert de los puntos del usuario con mejor manejo de conflictos
     const { data: upsertData, error: upsertError } = await supabase
       .from('user_points')
       .upsert({
@@ -141,15 +142,45 @@ const addUserPoints = async (userId: string, points: number) => {
         level: newLevel,
         updated_at: new Date().toISOString()
       }, {
-        onConflict: 'user_id'
+        onConflict: 'user_id',
+        ignoreDuplicates: false
       })
-      .select()
-      .single();
+      .select();
 
     if (upsertError) {
       console.error('Error upserting user points:', upsertError);
+      
+      // Intentar una actualización directa si el upsert falla
+      console.log('Trying direct update instead...');
+      const { error: updateError } = await supabase
+        .from('user_points')
+        .update({
+          total_points: newTotalPoints,
+          level: newLevel,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+        
+      if (updateError) {
+        console.error('Error updating user points:', updateError);
+      } else {
+        console.log('User points updated successfully via direct update');
+      }
     } else {
       console.log('User points updated successfully:', upsertData);
+    }
+
+    // Verificar que los puntos se guardaron correctamente
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('user_points')
+      .select('total_points, level')
+      .eq('user_id', userId)
+      .single();
+
+    if (verifyError) {
+      console.error('Error verifying points update:', verifyError);
+    } else {
+      console.log('Verified user points after update:', verifyData);
     }
   } catch (error) {
     console.error('Error in addUserPoints:', error);

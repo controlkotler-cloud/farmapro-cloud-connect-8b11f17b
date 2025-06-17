@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,13 +37,20 @@ export const useDashboard = () => {
     }
   }, [profile]);
 
+  // Función para recargar stats manualmente (útil después de completar retos)
+  const reloadStats = async () => {
+    if (profile?.id) {
+      await loadUserStats();
+    }
+  };
+
   const loadUserStats = async () => {
     if (!profile?.id) return;
 
     console.log('Loading user stats for user:', profile.id);
 
     try {
-      // Get user points
+      // Get user points with más logging
       const { data: points, error: pointsError } = await supabase
         .from('user_points')
         .select('total_points, level')
@@ -55,6 +61,26 @@ export const useDashboard = () => {
         console.error('Error fetching points:', pointsError);
       } else {
         console.log('User points fetched:', points);
+      }
+
+      // Si no hay datos de puntos, crear un registro inicial
+      if (!points) {
+        console.log('No points record found, creating initial record...');
+        const { data: newPoints, error: createError } = await supabase
+          .from('user_points')
+          .insert({
+            user_id: profile.id,
+            total_points: 0,
+            level: 1
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating initial points record:', createError);
+        } else {
+          console.log('Initial points record created:', newPoints);
+        }
       }
 
       // Get courses completed
@@ -143,5 +169,6 @@ export const useDashboard = () => {
     recentActivity,
     getNextLevelProgress,
     getPointsToNextLevel,
+    reloadStats, // Exportar función para recargar
   };
 };
