@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import type { Course, CourseEnrollment, CourseCategory } from '@/types/course';
+import type { Course, CourseEnrollment, CourseCategory, CourseModule, DownloadableResource } from '@/types/course';
 
 export const useCourses = () => {
   const { profile } = useAuth();
@@ -32,8 +32,21 @@ export const useCourses = () => {
     const { data, error } = await query;
     if (error) {
       console.error('Error loading courses:', error);
-    } else {
-      setCourses(data || []);
+    } else if (data) {
+      // Transformar los datos recibidos para convertir course_modules de Json a CourseModule[]
+      const transformedCourses: Course[] = data.map(course => ({
+        ...course,
+        // Si course_modules es null o undefined, establecer como array vacío
+        course_modules: course.course_modules ? 
+          (Array.isArray(course.course_modules) ? 
+            course.course_modules as CourseModule[] : 
+            // Si es un string JSON, intentar parsearlo
+            typeof course.course_modules === 'string' ? 
+              JSON.parse(course.course_modules) : 
+              []
+          ) : []
+      }));
+      setCourses(transformedCourses);
     }
     setLoading(false);
   };
