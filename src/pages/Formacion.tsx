@@ -47,7 +47,7 @@ const Formacion = () => {
     let query = supabase.from('courses').select('*').order('created_at', { ascending: false });
     
     if (selectedCategory !== 'all') {
-      query = query.eq('category', selectedCategory);
+      query = query.eq('category', selectedCategory as CourseCategory);
     }
 
     const { data, error } = await query;
@@ -86,6 +86,10 @@ const Formacion = () => {
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -93,7 +97,7 @@ const Formacion = () => {
         <p className="text-gray-600">Desarrolla tus competencias profesionales con nuestros cursos especializados</p>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+      <Tabs value={selectedCategory} onValueChange={handleCategoryChange}>
         <TabsList className="grid w-full grid-cols-6">
           {categories.map((category) => (
             <TabsTrigger key={category.id} value={category.id} className="text-xs">

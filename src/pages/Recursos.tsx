@@ -50,7 +50,7 @@ const Recursos = () => {
     let query = supabase.from('resources').select('*').order('created_at', { ascending: false });
     
     if (selectedType !== 'all') {
-      query = query.eq('type', selectedType);
+      query = query.eq('type', selectedType as ResourceType);
     }
 
     const { data, error } = await query;
@@ -101,6 +101,10 @@ const Recursos = () => {
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
+  };
+
   const getFormatIcon = (format: string) => {
     switch (format.toLowerCase()) {
       case 'pdf':
@@ -121,7 +125,7 @@ const Recursos = () => {
         <p className="text-gray-600">Herramientas, plantillas y guías para optimizar tu trabajo diario</p>
       </div>
 
-      <Tabs value={selectedType} onValueChange={setSelectedType}>
+      <Tabs value={selectedType} onValueChange={handleTypeChange}>
         <TabsList className="grid w-full grid-cols-5">
           {resourceTypes.map((type) => (
             <TabsTrigger key={type.id} value={type.id} className="flex items-center space-x-2">

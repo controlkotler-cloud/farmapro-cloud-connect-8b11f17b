@@ -125,6 +125,10 @@ const Comunidad = () => {
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -173,7 +177,7 @@ const Comunidad = () => {
         </Dialog>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+      <Tabs value={selectedCategory} onValueChange={handleCategoryChange}>
         <TabsList className="grid w-full grid-cols-auto">
           <TabsTrigger value="all">Todos</TabsTrigger>
           {categories.map((category) => (
