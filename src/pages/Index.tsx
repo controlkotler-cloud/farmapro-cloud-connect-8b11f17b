@@ -107,19 +107,17 @@ const plans = [
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
-                FP
-              </div>
-              <span className="text-2xl font-bold text-gray-900">Portal FarmaPro</span>
+            <div className="flex items-center space-x-3">
+              <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro" className="w-10 h-10" />
+              <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro" className="h-8" />
             </div>
             <Link to="/login">
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+              <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
                 Iniciar Sesión
               </Button>
             </Link>
@@ -137,7 +135,7 @@ const Index = () => {
           >
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               El portal de desarrollo profesional para 
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"> farmacéuticos</span>
+              <span className="bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent"> farmacéuticos</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Únete a la comunidad líder de profesionales farmacéuticos. Accede a formación especializada, 
@@ -145,7 +143,7 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/login">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg px-8 py-3">
+                <Button size="lg" className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-lg px-8 py-3">
                   Comenzar Prueba Gratuita
                 </Button>
               </Link>
@@ -179,7 +177,7 @@ const Index = () => {
               >
                 <Card className="h-full hover:shadow-lg transition-shadow duration-200">
                   <CardHeader>
-                    <feature.icon className="h-12 w-12 text-blue-600 mb-4" />
+                    <feature.icon className="h-12 w-12 text-green-600 mb-4" />
                     <CardTitle>{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -214,9 +212,9 @@ const Index = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <Card className={`h-full relative ${plan.popular ? 'ring-2 ring-blue-600' : ''}`}>
+                <Card className={`h-full relative ${plan.popular ? 'ring-2 ring-green-600' : ''}`}>
                   {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-600">
                       Más Popular
                     </Badge>
                   )}
@@ -238,7 +236,7 @@ const Index = () => {
                     </ul>
                     <Link to="/login" className="block mt-6">
                       <Button 
-                        className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                        className={`w-full ${plan.popular ? 'bg-green-600 hover:bg-green-700' : ''}`}
                         variant={plan.popular ? 'default' : 'outline'}
                       >
                         Comenzar {plan.name === 'Freemium' ? 'Gratis' : 'Ahora'}
@@ -253,7 +251,7 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-700">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-green-500 to-green-600">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -263,11 +261,11 @@ const Index = () => {
             <h2 className="text-4xl font-bold text-white mb-6">
               ¿Listo para llevar tu carrera farmacéutica al siguiente nivel?
             </h2>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-xl text-green-100 mb-8">
               Únete a miles de profesionales que ya están transformando su práctica farmacéutica
             </p>
             <Link to="/login">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3">
+              <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 text-lg px-8 py-3">
                 Comienza tu prueba gratuita de 7 días
               </Button>
             </Link>
@@ -280,11 +278,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                  FP
-                </div>
-                <span className="text-xl font-bold">Portal FarmaPro</span>
+              <div className="flex items-center space-x-3 mb-4">
+                <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro" className="w-8 h-8" />
+                <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro" className="h-6" />
               </div>
               <p className="text-gray-400">
                 La plataforma líder para el desarrollo profesional farmacéutico
@@ -322,7 +318,7 @@ const Index = () => {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Portal FarmaPro. Todos los derechos reservados.</p>
+            <p>&copy; 2024 farmapro. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

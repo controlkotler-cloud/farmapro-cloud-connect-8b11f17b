@@ -38,8 +38,8 @@ export const Sidebar = () => {
   const getPlanColor = (plan: string) => {
     switch (plan) {
       case 'premium': return 'bg-gradient-to-r from-yellow-400 to-orange-500';
-      case 'profesional': return 'bg-gradient-to-r from-blue-500 to-purple-600';
-      case 'estudiante': return 'bg-gradient-to-r from-green-400 to-blue-500';
+      case 'profesional': return 'bg-gradient-to-r from-green-500 to-green-600';
+      case 'estudiante': return 'bg-gradient-to-r from-green-400 to-green-500';
       default: return 'bg-gradient-to-r from-gray-400 to-gray-600';
     }
   };
@@ -68,12 +68,10 @@ export const Sidebar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-3"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                FP
-              </div>
-              <span className="font-bold text-gray-900">FarmaPro</span>
+              <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro" className="w-8 h-8" />
+              <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro" className="h-6" />
             </motion.div>
           )}
           <Button
@@ -99,7 +97,7 @@ export const Sidebar = () => {
                 className={`
                   flex items-center space-x-3 p-3 rounded-lg transition-all duration-200
                   ${isActive 
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg' 
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg' 
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }
                 `}
