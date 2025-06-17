@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, Star, CheckCircle, Gift } from 'lucide-react';
+import { Trophy, Target, Star, CheckCircle, Gift, MessageSquare, Users, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Challenge {
@@ -39,11 +39,13 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
   const getChallengeIcon = (type: string) => {
     switch (type) {
       case 'course_completed':
-        return <Target className="h-6 w-6" />;
+        return <BookOpen className="h-6 w-6" />;
       case 'forum_participation':
-        return <Star className="h-6 w-6" />;
+        return <MessageSquare className="h-6 w-6" />;
       case 'resource_download':
         return <Gift className="h-6 w-6" />;
+      case 'community_engagement':
+        return <Users className="h-6 w-6" />;
       default:
         return <Trophy className="h-6 w-6" />;
     }
@@ -52,13 +54,56 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
   const getChallengeTypeLabel = (type: string) => {
     switch (type) {
       case 'course_completed':
-        return 'Cursos';
+        return 'Formación';
       case 'forum_participation':
-        return 'Participación';
+        return 'Comunidad';
       case 'resource_download':
         return 'Recursos';
+      case 'community_engagement':
+        return 'Participación';
       default:
         return 'General';
+    }
+  };
+
+  const getChallengeEmoji = (type: string) => {
+    switch (type) {
+      case 'course_completed':
+        return '📚';
+      case 'forum_participation':
+        return '💬';
+      case 'resource_download':
+        return '📁';
+      case 'community_engagement':
+        return '👥';
+      default:
+        return '🏆';
+    }
+  };
+
+  const getProgressMessage = () => {
+    if (completed) return '¡Reto completado! 🎉';
+    if (!hasProgress) return 'Comienza este reto participando en las actividades relacionadas';
+    
+    const remaining = challenge.target_count - (progress?.current_count || 0);
+    switch (challenge.type) {
+      case 'forum_participation':
+        if (challenge.name.includes('Participación Activa')) {
+          return `Te faltan ${remaining} participaciones en el foro`;
+        }
+        if (challenge.name.includes('Experto Colaborador')) {
+          return `Te faltan ${remaining} hilos por crear`;
+        }
+        if (challenge.name.includes('Mentor Comunitario')) {
+          return `Te faltan ${remaining} likes por recibir`;
+        }
+        return `Te faltan ${remaining} participaciones`;
+      case 'course_completed':
+        return `Te faltan ${remaining} cursos por completar`;
+      case 'resource_download':
+        return `Te faltan ${remaining} recursos por descargar`;
+      default:
+        return `Progreso: ${Math.round(progressPercentage)}% completado`;
     }
   };
 
@@ -80,7 +125,10 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
               {getChallengeIcon(challenge.type)}
             </div>
             <div>
-              <CardTitle className="text-lg">{challenge.name}</CardTitle>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <span>{getChallengeEmoji(challenge.type)}</span>
+                <span>{challenge.name}</span>
+              </CardTitle>
               <div className="flex items-center space-x-2 mt-1">
                 <Badge variant="outline">{getChallengeTypeLabel(challenge.type)}</Badge>
                 <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
@@ -107,10 +155,7 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
               </Button>
             ) : (
               <div className="text-sm text-gray-600">
-                {hasProgress ? 
-                  `¡Vas por buen camino! ${Math.round(progressPercentage)}% completado` :
-                  'Comienza este reto completando las actividades relacionadas'
-                }
+                {getProgressMessage()}
               </div>
             )}
           </div>

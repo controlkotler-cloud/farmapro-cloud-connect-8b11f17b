@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { syncUserPoints } from '@/utils/pointsSync';
+import { updateChallengeProgress } from '@/utils/challengeUtils';
 
 interface Challenge {
   id: string;
@@ -47,6 +48,7 @@ export const useRetosData = () => {
       loadChallenges();
       loadUserProgress();
       loadUserStats();
+      syncForumProgress(); // Sincronizar progreso del foro
     }
   }, [profile]);
 
@@ -78,6 +80,46 @@ export const useRetosData = () => {
       console.log('User progress loaded:', data);
       setUserProgress(data || []);
     }
+  };
+
+  const syncForumProgress = async () => {
+    if (!profile?.id) return;
+
+    console.log('Syncing forum progress for user:', profile.id);
+
+    // Contar hilos creados por el usuario
+    const { count: threadCount } = await supabase
+      .from('forum_threads')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', profile.id);
+
+    // Contar respuestas del usuario
+    const { count: replyCount } = await supabase
+      .from('forum_replies')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', profile.id);
+
+    // Contar likes recibidos en respuestas
+    const { data: likesData } = await supabase
+      .from('forum_replies')
+      .select('likes_count')
+      .eq('author_id', profile.id);
+
+    const totalLikes = likesData?.reduce((sum, reply) => sum + (reply.likes_count || 0), 0) || 0;
+
+    console.log('Forum stats:', { threadCount, replyCount, totalLikes });
+
+    // Actualizar progreso de retos de foro
+    if (threadCount && threadCount > 0) {
+      await updateChallengeProgress(profile.id, 'forum_participation', threadCount);
+    }
+
+    if (replyCount && replyCount > 0) {
+      await updateChallengeProgress(profile.id, 'forum_participation', replyCount);
+    }
+
+    // Recargar progreso después de sincronizar
+    await loadUserProgress();
   };
 
   const loadUserStats = async () => {
@@ -182,6 +224,7 @@ export const useRetosData = () => {
     loading,
     getProgressForChallenge,
     getNextLevelProgress,
-    getPointsToNextLevel
+    getPointsToNextLevel,
+    syncForumProgress
   };
 };
