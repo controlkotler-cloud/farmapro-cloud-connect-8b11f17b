@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -73,11 +74,6 @@ const AppRoutes = () => {
           <Perfil />
         </ProtectedRoute>
       } />
-      <Route path="/subscription" element={
-        <ProtectedRoute>
-          <Subscription />
-        </ProtectedRoute>
-      } />
       <Route path="/formacion" element={
         <ProtectedRoute>
           <Formacion />
@@ -130,6 +126,7 @@ const AppRoutes = () => {
       } />
       
       {/* Páginas públicas */}
+      <Route path="/subscription" element={<Subscription />} />
       <Route path="/servicios" element={<Servicios />} />
       <Route path="/farmapro-impulso" element={<FarmaproImpulso />} />
       <Route path="/faqs-contacto" element={<FaqsContacto />} />
