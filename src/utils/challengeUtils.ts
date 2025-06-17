@@ -104,35 +104,36 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
   }
 };
 
-// Nueva función para añadir puntos que actualiza tanto total_points como level
+// Función para añadir puntos que actualiza tanto total_points como level
 const addUserPoints = async (userId: string, points: number) => {
   try {
     console.log('Adding user points:', { userId, points });
     
-    // Primero obtener los puntos actuales
-    const { data: currentPoints, error: fetchError } = await supabase
+    // Primero obtener los puntos actuales del usuario
+    const { data: currentData, error: fetchError } = await supabase
       .from('user_points')
-      .select('total_points')
+      .select('total_points, level')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
       console.error('Error fetching current points:', fetchError);
       return;
     }
 
-    const newTotalPoints = (currentPoints?.total_points || 0) + points;
+    const currentTotalPoints = currentData?.total_points || 0;
+    const newTotalPoints = currentTotalPoints + points;
     const newLevel = Math.floor(newTotalPoints / 1000) + 1;
 
     console.log('Calculating new points and level:', { 
-      currentTotal: currentPoints?.total_points || 0, 
+      currentTotalPoints, 
       pointsToAdd: points,
       newTotalPoints, 
       newLevel 
     });
 
-    // Upsert los puntos del usuario
-    const { error: upsertError } = await supabase
+    // Hacer upsert de los puntos del usuario
+    const { data: upsertData, error: upsertError } = await supabase
       .from('user_points')
       .upsert({
         user_id: userId,
@@ -141,12 +142,14 @@ const addUserPoints = async (userId: string, points: number) => {
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id'
-      });
+      })
+      .select()
+      .single();
 
     if (upsertError) {
       console.error('Error upserting user points:', upsertError);
     } else {
-      console.log('User points updated successfully:', { newTotalPoints, newLevel });
+      console.log('User points updated successfully:', upsertData);
     }
   } catch (error) {
     console.error('Error in addUserPoints:', error);

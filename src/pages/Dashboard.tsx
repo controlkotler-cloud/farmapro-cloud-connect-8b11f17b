@@ -31,56 +31,60 @@ export const Dashboard = () => {
 
     console.log('Loading user stats for user:', profile.id);
 
-    // Get user points
-    const { data: points, error: pointsError } = await supabase
-      .from('user_points')
-      .select('total_points, level')
-      .eq('user_id', profile.id)
-      .single();
+    try {
+      // Get user points - usar maybeSingle en lugar de single
+      const { data: points, error: pointsError } = await supabase
+        .from('user_points')
+        .select('total_points, level')
+        .eq('user_id', profile.id)
+        .maybeSingle();
 
-    if (pointsError) {
-      console.error('Error fetching points:', pointsError);
-    } else {
-      console.log('User points fetched:', points);
+      if (pointsError && pointsError.code !== 'PGRST116') {
+        console.error('Error fetching points:', pointsError);
+      } else {
+        console.log('User points fetched:', points);
+      }
+
+      // Get courses completed
+      const { data: courses } = await supabase
+        .from('course_enrollments')
+        .select('id')
+        .eq('user_id', profile.id)
+        .not('completed_at', 'is', null);
+
+      // Get resources downloaded
+      const { data: resources } = await supabase
+        .from('resource_downloads')
+        .select('id')
+        .eq('user_id', profile.id);
+
+      // Get forum posts
+      const { data: posts } = await supabase
+        .from('forum_threads')
+        .select('id')
+        .eq('author_id', profile.id);
+
+      // Get challenges completed
+      const { data: challenges } = await supabase
+        .from('user_challenge_progress')
+        .select('id')
+        .eq('user_id', profile.id)
+        .not('completed_at', 'is', null);
+
+      const newStats = {
+        totalPoints: points?.total_points || 0,
+        level: points?.level || 1,
+        coursesCompleted: courses?.length || 0,
+        resourcesDownloaded: resources?.length || 0,
+        forumPosts: posts?.length || 0,
+        challengesCompleted: challenges?.length || 0,
+      };
+
+      console.log('Dashboard stats updated:', newStats);
+      setStats(newStats);
+    } catch (error) {
+      console.error('Error loading user stats:', error);
     }
-
-    // Get courses completed
-    const { data: courses } = await supabase
-      .from('course_enrollments')
-      .select('id')
-      .eq('user_id', profile.id)
-      .not('completed_at', 'is', null);
-
-    // Get resources downloaded
-    const { data: resources } = await supabase
-      .from('resource_downloads')
-      .select('id')
-      .eq('user_id', profile.id);
-
-    // Get forum posts
-    const { data: posts } = await supabase
-      .from('forum_threads')
-      .select('id')
-      .eq('author_id', profile.id);
-
-    // Get challenges completed
-    const { data: challenges } = await supabase
-      .from('user_challenge_progress')
-      .select('id')
-      .eq('user_id', profile.id)
-      .not('completed_at', 'is', null);
-
-    const newStats = {
-      totalPoints: points?.total_points || 0,
-      level: points?.level || 1,
-      coursesCompleted: courses?.length || 0,
-      resourcesDownloaded: resources?.length || 0,
-      forumPosts: posts?.length || 0,
-      challengesCompleted: challenges?.length || 0,
-    };
-
-    console.log('Dashboard stats updated:', newStats);
-    setStats(newStats);
   };
 
   const loadRecentActivity = async () => {
@@ -93,13 +97,18 @@ export const Dashboard = () => {
   };
 
   const getNextLevelProgress = () => {
-    const pointsForNextLevel = (stats.level + 1) * 1000;
-    const pointsForCurrentLevel = stats.level * 1000;
-    const currentLevelPoints = stats.totalPoints - pointsForCurrentLevel;
-    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel;
+    const pointsForCurrentLevel = (stats.level - 1) * 1000; // Puntos necesarios para el nivel actual
+    const pointsForNextLevel = stats.level * 1000; // Puntos necesarios para el siguiente nivel
+    const currentLevelPoints = stats.totalPoints - pointsForCurrentLevel; // Puntos ganados en el nivel actual
+    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel; // Total de puntos necesarios para pasar al siguiente nivel
     
     if (pointsNeededForLevel <= 0) return 100;
     return Math.min((currentLevelPoints / pointsNeededForLevel) * 100, 100);
+  };
+
+  const getPointsToNextLevel = () => {
+    const pointsForNextLevel = stats.level * 1000;
+    return Math.max(0, pointsForNextLevel - stats.totalPoints);
   };
 
   return (
@@ -128,7 +137,7 @@ export const Dashboard = () => {
               <div className="flex-1 max-w-md">
                 <div className="flex justify-between text-sm mb-1 text-white">
                   <span>{stats.totalPoints} puntos</span>
-                  <span>Siguiente nivel: {(stats.level + 1) * 1000}</span>
+                  <span>Siguiente nivel: {stats.level * 1000} (faltan {getPointsToNextLevel()})</span>
                 </div>
                 <Progress value={getNextLevelProgress()} className="h-2 bg-white/20" />
               </div>
