@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -94,12 +93,12 @@ export const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))/90] text-white">
+        <Card className="bg-gradient-to-r from-green-600 to-green-700 text-white border-0">
           <CardHeader>
-            <CardTitle className="text-2xl text-white">
+            <CardTitle className="text-2xl text-white font-bold">
               ¡Bienvenido de nuevo, {profile?.full_name}!
             </CardTitle>
-            <CardDescription className="text-white/90">
+            <CardDescription className="text-white/90 text-base">
               Continúa tu desarrollo profesional en el sector farmacéutico
             </CardDescription>
           </CardHeader>
