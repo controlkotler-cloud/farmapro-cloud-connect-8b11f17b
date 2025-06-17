@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -114,7 +113,7 @@ const Index = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
               <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro" className="w-10 h-10" />
-              <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro" className="h-8" />
+              <img src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" alt="farmapro" className="h-8" />
             </div>
             <Link to="/login">
               <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
@@ -280,7 +279,7 @@ const Index = () => {
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro" className="w-8 h-8" />
-                <img src="/lovable-uploads/984857f8-bf1d-4c44-947b-487d144f6aae.png" alt="farmapro" className="h-6" />
+                <img src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" alt="farmapro" className="h-6" />
               </div>
               <p className="text-gray-400">
                 La plataforma líder para el desarrollo profesional farmacéutico
