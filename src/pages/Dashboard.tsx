@@ -94,12 +94,12 @@ export const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <Card className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))/90] text-white">
           <CardHeader>
             <CardTitle className="text-2xl">
               ¡Bienvenido de nuevo, {profile?.full_name}!
             </CardTitle>
-            <CardDescription className="text-blue-100">
+            <CardDescription className="text-primary-foreground/90">
               Continúa tu desarrollo profesional en el sector farmacéutico
             </CardDescription>
           </CardHeader>
