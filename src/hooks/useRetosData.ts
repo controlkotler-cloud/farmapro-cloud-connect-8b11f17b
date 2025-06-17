@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,6 +61,7 @@ export const useRetosData = () => {
     if (error) {
       console.error('Error loading challenges:', error);
     } else {
+      console.log('Challenges loaded:', data);
       setChallenges(data || []);
     }
   };
@@ -78,6 +78,15 @@ export const useRetosData = () => {
       console.error('Error loading user progress:', error);
     } else {
       console.log('User progress loaded:', data);
+      // Verificar que los datos tienen los campos correctos
+      data?.forEach(progress => {
+        console.log('Progress item:', {
+          challengeId: progress.challenge_id,
+          currentCount: progress.current_count,
+          completedAt: progress.completed_at,
+          pointsEarned: progress.points_earned
+        });
+      });
       setUserProgress(data || []);
     }
   };
@@ -99,15 +108,7 @@ export const useRetosData = () => {
       .select('*', { count: 'exact', head: true })
       .eq('author_id', profile.id);
 
-    // Contar likes recibidos en respuestas
-    const { data: likesData } = await supabase
-      .from('forum_replies')
-      .select('likes_count')
-      .eq('author_id', profile.id);
-
-    const totalLikes = likesData?.reduce((sum, reply) => sum + (reply.likes_count || 0), 0) || 0;
-
-    console.log('Forum stats:', { threadCount, replyCount, totalLikes });
+    console.log('Forum stats:', { threadCount, replyCount });
 
     // Actualizar progreso de retos de foro usando los tipos correctos
     if (threadCount && threadCount > 0) {
@@ -144,12 +145,14 @@ export const useRetosData = () => {
       console.log('User points from retos page after sync:', pointsData);
     }
 
-    // Get completed challenges
+    // Get completed challenges - SOLO contar los que tienen completed_at no nulo
     const { data: completedData } = await supabase
       .from('user_challenge_progress')
-      .select('id')
+      .select('id, completed_at')
       .eq('user_id', profile.id)
       .not('completed_at', 'is', null);
+
+    console.log('Actually completed challenges:', completedData);
 
     // Calculate active streaks based on recent activity
     const { data: recentActivity } = await supabase
@@ -184,7 +187,9 @@ export const useRetosData = () => {
   };
 
   const getProgressForChallenge = (challengeId: string) => {
-    return userProgress.find(p => p.challenge_id === challengeId);
+    const progress = userProgress.find(p => p.challenge_id === challengeId);
+    console.log('Getting progress for challenge:', challengeId, progress);
+    return progress;
   };
 
   const getNextLevelProgress = () => {

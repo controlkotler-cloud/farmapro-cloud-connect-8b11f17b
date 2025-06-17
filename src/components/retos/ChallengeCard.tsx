@@ -32,9 +32,20 @@ interface ChallengeCardProps {
 }
 
 export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps) => {
-  const completed = progress?.completed_at !== null;
-  const progressPercentage = progress ? Math.min((progress.current_count / challenge.target_count) * 100, 100) : 0;
-  const hasProgress = progress && progress.current_count > 0;
+  // Un reto está completado SOLO si tiene un completed_at no nulo
+  const completed = progress?.completed_at !== null && progress?.completed_at !== undefined;
+  const currentCount = progress?.current_count || 0;
+  const progressPercentage = Math.min((currentCount / challenge.target_count) * 100, 100);
+  const hasProgress = currentCount > 0;
+
+  console.log('Challenge progress debug:', {
+    challengeName: challenge.name,
+    currentCount,
+    targetCount: challenge.target_count,
+    completedAt: progress?.completed_at,
+    completed,
+    progressPercentage
+  });
 
   const getChallengeIcon = (type: string) => {
     switch (type) {
@@ -91,7 +102,7 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
     if (completed) return '¡Reto completado! 🎉';
     if (!hasProgress) return 'Comienza este reto participando en las actividades relacionadas';
     
-    const remaining = challenge.target_count - (progress?.current_count || 0);
+    const remaining = challenge.target_count - currentCount;
     switch (challenge.type) {
       case 'forum_post':
         return `Te faltan ${remaining} hilos por crear`;
@@ -145,7 +156,7 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
             <div className="flex items-center justify-between text-sm">
               <span>Progreso:</span>
               <span className="font-medium">
-                {progress?.current_count || 0} / {challenge.target_count}
+                {currentCount} / {challenge.target_count}
               </span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
