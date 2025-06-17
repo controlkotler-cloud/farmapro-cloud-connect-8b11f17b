@@ -120,7 +120,7 @@ const Farmacias = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Farmacias en Venta</h1>
-          <p className="text-gray-600">Marketplace de farmacias para compra y venta</p>
+          <p className="text-gray-600">Espacio para encontrar tu farmacia ideal</p>
         </div>
         {canCreateListing() && (
           <Dialog open={showNewListingDialog} onOpenChange={setShowNewListingDialog}>
@@ -190,7 +190,7 @@ const Farmacias = () => {
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-6">
             <p className="text-blue-800">
-              <strong>¿Quieres vender tu farmacia?</strong> Actualiza a un plan premium para publicar anuncios y llegar a más compradores potenciales.
+              <strong>¿Quieres vender tu farmacia?</strong> Actualiza a un plan premium y encuentra el comprador ideal.
             </p>
           </CardContent>
         </Card>
