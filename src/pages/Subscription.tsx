@@ -1,10 +1,22 @@
 
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
 import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Subscription = () => {
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState('status');
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'plans') {
+      setActiveTab('plans');
+    }
+  }, [searchParams]);
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -13,7 +25,7 @@ const Subscription = () => {
           <p className="text-gray-600">Gestiona tu plan y explora nuestras opciones de suscripción</p>
         </div>
 
-        <Tabs defaultValue="status" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="status">Mi Suscripción</TabsTrigger>
             <TabsTrigger value="plans">Cambiar Plan</TabsTrigger>

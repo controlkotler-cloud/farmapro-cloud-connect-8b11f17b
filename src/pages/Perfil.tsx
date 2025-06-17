@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ const planConfig = {
 
 export default function Perfil() {
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -108,6 +110,10 @@ export default function Perfil() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpgradePlan = () => {
+    navigate('/subscription?tab=plans');
   };
 
   const currentPlan = profile?.subscription_role || 'freemium';
@@ -268,11 +274,9 @@ export default function Perfil() {
                     )}
                   </div>
 
-                  {currentPlan === 'freemium' && (
-                    <Button className="w-full mt-4">
-                      Actualizar Plan
-                    </Button>
-                  )}
+                  <Button onClick={handleUpgradePlan} className="w-full mt-4">
+                    {currentPlan === 'freemium' ? 'Actualizar Plan' : 'Cambiar Plan'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
