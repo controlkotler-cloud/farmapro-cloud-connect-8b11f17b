@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,12 +33,12 @@ const Recursos = () => {
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<ResourceType | 'all'>('all');
 
-  const resourceTypes = [
-    { id: 'all' as const, name: 'Todos', icon: FileText },
-    { id: 'calculadora' as const, name: 'Calculadoras', icon: Calculator },
-    { id: 'plantilla' as const, name: 'Plantillas', icon: FileText },
-    { id: 'guia' as const, name: 'Guías', icon: BookOpen },
-    { id: 'protocolo' as const, name: 'Protocolos', icon: FileText },
+  const resourceTypes: Array<{ id: ResourceType | 'all'; name: string; icon: typeof FileText }> = [
+    { id: 'all', name: 'Todos', icon: FileText },
+    { id: 'calculadora', name: 'Calculadoras', icon: Calculator },
+    { id: 'plantilla', name: 'Plantillas', icon: FileText },
+    { id: 'guia', name: 'Guías', icon: BookOpen },
+    { id: 'protocolo', name: 'Protocolos', icon: FileText },
   ];
 
   useEffect(() => {

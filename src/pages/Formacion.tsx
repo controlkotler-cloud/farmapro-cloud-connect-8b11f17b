@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,13 +29,13 @@ const Formacion = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<CourseCategory | 'all'>('all');
 
-  const categories = [
-    { id: 'all' as const, name: 'Todos los Cursos' },
-    { id: 'gestion' as const, name: 'Gestión Farmacéutica' },
-    { id: 'marketing' as const, name: 'Marketing y Ventas' },
-    { id: 'liderazgo' as const, name: 'Liderazgo' },
-    { id: 'atencion_cliente' as const, name: 'Atención al Cliente' },
-    { id: 'tecnologia' as const, name: 'Tecnología' },
+  const categories: Array<{ id: CourseCategory | 'all'; name: string }> = [
+    { id: 'all', name: 'Todos los Cursos' },
+    { id: 'gestion', name: 'Gestión Farmacéutica' },
+    { id: 'marketing', name: 'Marketing y Ventas' },
+    { id: 'liderazgo', name: 'Liderazgo' },
+    { id: 'atencion_cliente', name: 'Atención al Cliente' },
+    { id: 'tecnologia', name: 'Tecnología' },
   ];
 
   useEffect(() => {
