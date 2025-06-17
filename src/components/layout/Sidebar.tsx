@@ -12,12 +12,9 @@ import {
   Calendar, 
   Tag,
   ChevronLeft,
-  ChevronRight,
-  Settings,
-  CreditCard
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 const menuItems = [
@@ -32,11 +29,6 @@ const menuItems = [
   { icon: Tag, label: 'Promociones', path: '/promociones' },
 ];
 
-const settingsItems = [
-  { icon: CreditCard, label: 'Suscripción', path: '/subscription' },
-  { icon: Settings, label: 'Configuración', path: '/settings' },
-];
-
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -48,7 +40,7 @@ export const Sidebar = () => {
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          {!collapsed ? (
+          {!collapsed && (
             <div className="flex items-center justify-center w-full">
               <img 
                 src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" 
@@ -56,12 +48,6 @@ export const Sidebar = () => {
                 className="h-10 w-10"
               />
             </div>
-          ) : (
-            <img 
-              src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" 
-              alt="farmapro" 
-              className="h-8 w-8 mx-auto"
-            />
           )}
           <Button
             variant="ghost"
@@ -72,6 +58,15 @@ export const Sidebar = () => {
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
         </div>
+        {collapsed && (
+          <div className="flex items-center justify-center mt-2">
+            <img 
+              src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" 
+              alt="farmapro" 
+              className="h-8 w-8"
+            />
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -95,31 +90,6 @@ export const Sidebar = () => {
           </NavLink>
         ))}
       </nav>
-
-      {/* Settings */}
-      <div className="p-4 border-t border-gray-200">
-        <Separator className="mb-4" />
-        <div className="space-y-1">
-          {settingsItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  "hover:bg-green-50 hover:text-green-700",
-                  isActive
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-700 hover:text-gray-900"
-                )
-              }
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span className="ml-3">{item.label}</span>}
-            </NavLink>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
