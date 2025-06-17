@@ -163,7 +163,19 @@ export const SubscriptionPlans = () => {
   };
 
   const getStudentValidationStatus = () => {
-    return profile?.student_verification_status || 'pending';
+    return profile?.student_verification_status || null;
+  };
+
+  const handleStudentPlanAction = () => {
+    const validationStatus = getStudentValidationStatus();
+    
+    if (validationStatus === 'approved') {
+      // If already approved, proceed with checkout
+      handleSubscribe('estudiante');
+    } else {
+      // If not approved or no validation, show validation modal
+      setShowStudentValidation(true);
+    }
   };
 
   return (
@@ -181,7 +193,9 @@ export const SubscriptionPlans = () => {
         {plans.map((plan, index) => {
           const Icon = plan.icon;
           const isCurrentPlan = getCurrentPlan() === plan.id;
-          const isStudentPending = plan.id === 'estudiante' && getStudentValidationStatus() === 'pending';
+          const validationStatus = getStudentValidationStatus();
+          const isStudentPending = plan.id === 'estudiante' && validationStatus === 'pending';
+          const isStudentApproved = plan.id === 'estudiante' && validationStatus === 'approved';
           
           return (
             <motion.div
@@ -207,6 +221,11 @@ export const SubscriptionPlans = () => {
                 {isStudentPending && (
                   <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-600">
                     Validación Pendiente
+                  </Badge>
+                )}
+                {isStudentApproved && !isCurrentPlan && (
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-600">
+                    Validación Aprobada
                   </Badge>
                 )}
                 
@@ -237,8 +256,8 @@ export const SubscriptionPlans = () => {
                         plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''
                       } ${isCurrentPlan ? 'bg-green-600 hover:bg-green-700' : ''}`}
                       variant={plan.popular || isCurrentPlan ? 'default' : 'outline'}
-                      disabled={plan.disabled || isCurrentPlan || loading === plan.id || isStudentPending}
-                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={plan.disabled || isCurrentPlan || loading === plan.id}
+                      onClick={() => plan.id === 'estudiante' ? handleStudentPlanAction() : handleSubscribe(plan.id)}
                     >
                       {loading === plan.id ? (
                         'Procesando...'
@@ -246,8 +265,8 @@ export const SubscriptionPlans = () => {
                         'Plan Actual'
                       ) : plan.disabled ? (
                         'Tu Plan Actual'
-                      ) : isStudentPending ? (
-                        'Validación Pendiente'
+                      ) : plan.id === 'estudiante' && isStudentPending ? (
+                        'Subir Nueva Matrícula'
                       ) : (
                         `Elegir ${plan.name}`
                       )}
