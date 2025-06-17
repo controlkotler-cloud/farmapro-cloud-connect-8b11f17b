@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle, Target, Trophy, Gift } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import CourseQuiz from '@/components/course/CourseQuiz';
@@ -295,11 +295,12 @@ const CourseView = () => {
       // Add points and update challenges when course is completed
       if (newProgress === 100) {
         try {
-          // Add points for completing course
+          // Add points for completing course using raw SQL to avoid the ambiguous column error
           const { error: pointsError } = await supabase.rpc('add_user_points', {
             user_id: profile.id,
             points: 100
-          } as any);
+          });
+          
           if (pointsError) {
             console.error('Error adding completion points:', pointsError);
           }
@@ -378,6 +379,7 @@ const CourseView = () => {
   };
 
   const progressPercentage = enrollment?.progress || 0;
+  const isCourseCompleted = enrollment?.completed_at !== null;
 
   if (loading) {
     return (
@@ -413,12 +415,20 @@ const CourseView = () => {
             <ArrowLeft className="h-4 w-4" />
             <span>Volver al Curso</span>
           </Button>
-          {course.is_premium && (
-            <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-              <Star className="h-3 w-3 mr-1" />
-              Premium
-            </Badge>
-          )}
+          <div className="flex items-center space-x-2">
+            {isCourseCompleted && (
+              <Badge className="bg-green-600">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Completado
+              </Badge>
+            )}
+            {course.is_premium && (
+              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                <Star className="h-3 w-3 mr-1" />
+                Premium
+              </Badge>
+            )}
+          </div>
         </div>
 
         <CourseQuiz onComplete={handleQuizComplete} />
@@ -504,21 +514,39 @@ const CourseView = () => {
           <ArrowLeft className="h-4 w-4" />
           <span>Volver a Formación</span>
         </Button>
-        {course.is_premium && (
-          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-            <Star className="h-3 w-3 mr-1" />
-            Premium
-          </Badge>
-        )}
+        <div className="flex items-center space-x-2">
+          {isCourseCompleted && (
+            <Badge className="bg-green-600">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Completado
+            </Badge>
+          )}
+          {course.is_premium && (
+            <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+              <Star className="h-3 w-3 mr-1" />
+              Premium
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Course Info */}
-      <Card>
+      <Card className={isCourseCompleted ? 'border-green-200 bg-green-50' : ''}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl">{course.title}</CardTitle>
+              <CardTitle className="text-2xl flex items-center">
+                {course.title}
+                {isCourseCompleted && (
+                  <CheckCircle className="h-6 w-6 text-green-600 ml-2" />
+                )}
+              </CardTitle>
               <CardDescription className="text-lg mt-2">{course.description}</CardDescription>
+              {isCourseCompleted && (
+                <p className="text-sm text-green-700 mt-2 font-medium">
+                  ✅ Has completado este curso exitosamente. Puedes volver a revisarlo cuando quieras.
+                </p>
+              )}
             </div>
             <img 
               src={course.thumbnail_url || "/placeholder.svg"} 

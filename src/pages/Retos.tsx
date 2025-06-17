@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, Star, CheckCircle, Clock, Gift } from 'lucide-react';
+import { Trophy, Target, Star, CheckCircle, Clock, Gift, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Challenge {
@@ -139,7 +139,7 @@ const Retos = () => {
 
   const getChallengeIcon = (type: string) => {
     switch (type) {
-      case 'course_completion':
+      case 'course_completed':
         return <Target className="h-6 w-6" />;
       case 'forum_participation':
         return <Star className="h-6 w-6" />;
@@ -152,7 +152,7 @@ const Retos = () => {
 
   const getChallengeTypeLabel = (type: string) => {
     switch (type) {
-      case 'course_completion':
+      case 'course_completed':
         return 'Cursos';
       case 'forum_participation':
         return 'Participación';
@@ -163,6 +163,19 @@ const Retos = () => {
     }
   };
 
+  const getNextLevelProgress = () => {
+    const pointsForNextLevel = userStats.level * 1000;
+    const currentLevelPoints = userStats.totalPoints % 1000;
+    const progressPercentage = (currentLevelPoints / pointsForNextLevel) * 100;
+    return Math.min(progressPercentage, 100);
+  };
+
+  const getPointsToNextLevel = () => {
+    const pointsForNextLevel = userStats.level * 1000;
+    const currentLevelPoints = userStats.totalPoints % 1000;
+    return pointsForNextLevel - currentLevelPoints;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -170,8 +183,8 @@ const Retos = () => {
         <p className="text-gray-600">Completa desafíos y gana puntos para subir de nivel</p>
       </div>
 
-      {/* User Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* User Stats - Updated with level info */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -216,6 +229,26 @@ const Retos = () => {
                 <p className="text-sm font-medium text-gray-600">Rachas Activas</p>
                 <p className="text-2xl font-bold text-gray-900">{userStats.activeStreaks}</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Level Progress Card */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center mb-3">
+              <TrendingUp className="h-8 w-8 text-indigo-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Progreso de Nivel</p>
+                <p className="text-lg font-bold text-gray-900">Nivel {userStats.level}</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-gray-600">
+                <span>{userStats.totalPoints % 1000} pts</span>
+                <span>{getPointsToNextLevel()} pts restantes</span>
+              </div>
+              <Progress value={getNextLevelProgress()} className="h-2" />
             </div>
           </CardContent>
         </Card>

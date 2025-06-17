@@ -9,7 +9,7 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
     // Get active challenges of this type
     const { data: challenges, error: challengesError } = await supabase
       .from('challenges')
-      .select('id, target_count')
+      .select('id, target_count, points_reward')
       .eq('type', challengeType)
       .eq('is_active', true);
 
@@ -46,7 +46,7 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
           .update({
             current_count: newCount,
             completed_at: isCompleted && !existingProgress.completed_at ? new Date().toISOString() : existingProgress.completed_at,
-            points_earned: isCompleted && !existingProgress.completed_at ? existingProgress.points_earned : existingProgress.points_earned
+            points_earned: isCompleted && !existingProgress.completed_at ? challenge.points_reward : existingProgress.points_earned
           })
           .eq('id', existingProgress.id);
 
@@ -54,24 +54,10 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
           console.error('Error updating challenge progress:', updateError);
         } else if (isCompleted && !existingProgress.completed_at) {
           // Award points for completing the challenge
-          const { data: challengeData } = await supabase
-            .from('challenges')
-            .select('points_reward')
-            .eq('id', challenge.id)
-            .single();
-
-          if (challengeData) {
-            await supabase.rpc('add_user_points', {
-              user_id: userId,
-              points: challengeData.points_reward
-            } as any);
-
-            // Update the points_earned in the progress record
-            await supabase
-              .from('user_challenge_progress')
-              .update({ points_earned: challengeData.points_reward })
-              .eq('id', existingProgress.id);
-          }
+          await supabase.rpc('add_user_points', {
+            user_id: userId,
+            points: challenge.points_reward
+          });
         }
       } else {
         // Create new progress record
@@ -84,40 +70,17 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
             challenge_id: challenge.id,
             current_count: incrementBy,
             completed_at: isCompleted ? new Date().toISOString() : null,
-            points_earned: 0
+            points_earned: isCompleted ? challenge.points_reward : 0
           });
 
         if (insertError) {
           console.error('Error creating challenge progress:', insertError);
         } else if (isCompleted) {
           // Award points for completing the challenge
-          const { data: challengeData } = await supabase
-            .from('challenges')
-            .select('points_reward')
-            .eq('id', challenge.id)
-            .single();
-
-          if (challengeData) {
-            await supabase.rpc('add_user_points', {
-              user_id: userId,
-              points: challengeData.points_reward
-            } as any);
-
-            // Update the points_earned in the progress record
-            const { data: progressRecord } = await supabase
-              .from('user_challenge_progress')
-              .select('id')
-              .eq('user_id', userId)
-              .eq('challenge_id', challenge.id)
-              .single();
-
-            if (progressRecord) {
-              await supabase
-                .from('user_challenge_progress')
-                .update({ points_earned: challengeData.points_reward })
-                .eq('id', progressRecord.id);
-            }
-          }
+          await supabase.rpc('add_user_points', {
+            user_id: userId,
+            points: challenge.points_reward
+          });
         }
       }
     }
