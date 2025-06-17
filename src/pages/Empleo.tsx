@@ -102,6 +102,10 @@ const Empleo = () => {
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
+  const isPremium = () => {
+    return profile?.subscription_role === 'premium';
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -179,11 +183,30 @@ const Empleo = () => {
         )}
       </div>
 
+      {isPremium() && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-green-800">
+                <strong>Publica tu oferta de empleo</strong> con el botón "+" para encontrar a tu equipo farmacéutico ideal.
+              </p>
+              <Button 
+                onClick={() => setShowNewJobDialog(true)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Oferta
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {!canPostJobs() && (
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-6">
             <p className="text-blue-800">
-              <strong>¿Eres empleador?</strong> Actualiza a un plan premium para publicar ofertas de trabajo y conectar con profesionales farmacéuticos.
+              <strong>¿Eres titular de una farmacia y necesitas personal?</strong> Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo.
             </p>
           </CardContent>
         </Card>
