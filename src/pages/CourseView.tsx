@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle, Target, Trophy, Gift, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle, Target, Trophy, Gift, Calendar, Lightbulb, BookOpen, TrendingUp, Shield, Zap, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import CourseQuiz from '@/components/course/CourseQuiz';
@@ -24,6 +24,7 @@ interface CourseSection {
   title: string;
   content: string;
   duration: number;
+  icon: any;
 }
 
 const CourseView = () => {
@@ -41,189 +42,734 @@ const CourseView = () => {
   const [quizPassed, setQuizPassed] = useState(false);
   const { canAccessCourse, refreshLimits } = useSubscriptionLimits();
 
-  // Contenido del curso DAFO
+  // Contenido del curso DAFO con mejor formato
   const courseSections: CourseSection[] = [
     {
       id: 'introduccion',
       title: 'Introducción al Análisis DAFO',
+      icon: BookOpen,
       content: `
-        <h3>¿Qué es el Análisis DAFO?</h3>
-        <p>El análisis DAFO (Debilidades, Amenazas, Fortalezas y Oportunidades) es una herramienta estratégica fundamental para evaluar la situación actual de tu farmacia y planificar su futuro.</p>
-        
-        <h4>Beneficios del DAFO para tu farmacia:</h4>
-        <ul>
-          <li>Identificar ventajas competitivas</li>
-          <li>Detectar áreas de mejora</li>
-          <li>Anticipar amenazas del mercado</li>
-          <li>Descubrir nuevas oportunidades de negocio</li>
-        </ul>
-        
-        <p>Al finalizar este módulo comprenderás los fundamentos del análisis DAFO y su aplicación específica en el sector farmacéutico.</p>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-l-4 border-blue-500">
+            <h3 class="text-2xl font-bold text-blue-800 mb-4 flex items-center">
+              <span class="mr-3">🎯</span> ¿Qué es el Análisis DAFO?
+            </h3>
+            <p class="text-gray-700 text-lg leading-relaxed">
+              El análisis DAFO (Debilidades, Amenazas, Fortalezas y Oportunidades) es una <strong>herramienta estratégica fundamental</strong> para evaluar la situación actual de tu farmacia y planificar su futuro.
+            </p>
+          </div>
+          
+          <div class="bg-green-50 p-6 rounded-lg">
+            <h4 class="text-xl font-semibold text-green-800 mb-4 flex items-center">
+              <span class="mr-3">✨</span> Beneficios del DAFO para tu farmacia:
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">1</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-green-800">Identificar ventajas competitivas</h5>
+                  <p class="text-green-700 text-sm">Descubre qué te hace único en el mercado</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">2</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-green-800">Detectar áreas de mejora</h5>
+                  <p class="text-green-700 text-sm">Identifica puntos débiles para fortalecer</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">3</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-green-800">Anticipar amenazas del mercado</h5>
+                  <p class="text-green-700 text-sm">Prepárate para los desafíos futuros</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">4</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-green-800">Descubrir nuevas oportunidades</h5>
+                  <p class="text-green-700 text-sm">Encuentra nichos de crecimiento</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg border border-yellow-200">
+            <p class="text-gray-800 text-lg leading-relaxed">
+              <strong>Al finalizar este módulo</strong> comprenderás los fundamentos del análisis DAFO y su aplicación específica en el sector farmacéutico. ¡Empezamos! 🚀
+            </p>
+          </div>
+        </div>
       `,
       duration: 15
     },
     {
       id: 'fortalezas',
       title: 'Identificando Fortalezas',
+      icon: TrendingUp,
       content: `
-        <h3>Fortalezas de tu Farmacia</h3>
-        <p>Las fortalezas son los recursos internos y capacidades que te dan ventaja competitiva. En el ámbito farmacéutico, pueden incluir:</p>
-        
-        <h4>Ejemplos de fortalezas comunes:</h4>
-        <ul>
-          <li><strong>Ubicación estratégica:</strong> Farmacia en zona de alta afluencia</li>
-          <li><strong>Equipo especializado:</strong> Farmacéuticos con formación específica</li>
-          <li><strong>Servicios diferenciados:</strong> Atención farmacéutica personalizada</li>
-          <li><strong>Tecnología avanzada:</strong> Sistemas de gestión modernos</li>
-          <li><strong>Relación con clientes:</strong> Base de clientes fidelizada</li>
-        </ul>
-        
-        <h4>Ejercicio práctico:</h4>
-        <p>Reflexiona sobre tu farmacia y anota al menos 5 fortalezas específicas que la distinguen de la competencia.</p>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-lg border-l-4 border-emerald-500">
+            <h3 class="text-2xl font-bold text-emerald-800 mb-4 flex items-center">
+              <span class="mr-3">💪</span> Fortalezas de tu Farmacia
+            </h3>
+            <p class="text-gray-700 text-lg leading-relaxed">
+              Las fortalezas son los <strong>recursos internos y capacidades</strong> que te dan ventaja competitiva. En el ámbito farmacéutico, pueden incluir:
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-emerald-100">
+              <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <span class="text-white">📍</span>
+                </div>
+                <h4 class="font-semibold text-emerald-800">Ubicación estratégica</h4>
+              </div>
+              <p class="text-gray-600">Farmacia en zona de alta afluencia</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-emerald-100">
+              <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <span class="text-white">👥</span>
+                </div>
+                <h4 class="font-semibold text-emerald-800">Equipo especializado</h4>
+              </div>
+              <p class="text-gray-600">Farmacéuticos con formación específica</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-emerald-100">
+              <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <span class="text-white">🎯</span>
+                </div>
+                <h4 class="font-semibold text-emerald-800">Servicios diferenciados</h4>
+              </div>
+              <p class="text-gray-600">Atención farmacéutica personalizada</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-emerald-100">
+              <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <span class="text-white">💻</span>
+                </div>
+                <h4 class="font-semibold text-emerald-800">Tecnología avanzada</h4>
+              </div>
+              <p class="text-gray-600">Sistemas de gestión modernos</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-emerald-100">
+              <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <span class="text-white">❤️</span>
+                </div>
+                <h4 class="font-semibold text-emerald-800">Relación con clientes</h4>
+              </div>
+              <p class="text-gray-600">Base de clientes fidelizada</p>
+            </div>
+          </div>
+          
+          <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h4 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+              <span class="mr-3">📝</span> Ejercicio práctico:
+            </h4>
+            <p class="text-blue-700 leading-relaxed">
+              Reflexiona sobre tu farmacia y anota <strong>al menos 5 fortalezas específicas</strong> que la distinguen de la competencia. Piensa en qué aspectos tus clientes te eligen por encima de otras opciones.
+            </p>
+          </div>
+        </div>
       `,
       duration: 20
     },
     {
       id: 'debilidades',
       title: 'Analizando Debilidades',
+      icon: Shield,
       content: `
-        <h3>Debilidades Internas</h3>
-        <p>Las debilidades son limitaciones internas que pueden impedir el crecimiento. Identificarlas es el primer paso para superarlas.</p>
-        
-        <h4>Áreas comunes de debilidad:</h4>
-        <ul>
-          <li><strong>Recursos limitados:</strong> Falta de capital para inversiones</li>
-          <li><strong>Formación del equipo:</strong> Necesidades de capacitación</li>
-          <li><strong>Tecnología obsoleta:</strong> Sistemas anticuados</li>
-          <li><strong>Gestión de inventario:</strong> Problemas de stock</li>
-          <li><strong>Marketing limitado:</strong> Poca presencia digital</li>
-        </ul>
-        
-        <h4>Importante:</h4>
-        <p>Ser honesto sobre las debilidades no es negativo, es estratégico. Solo reconociendo las limitaciones podemos crear planes para superarlas.</p>
-        
-        <h4>Ejercicio:</h4>
-        <p>Identifica 3-5 debilidades principales de tu farmacia y piensa en posibles soluciones para cada una.</p>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-lg border-l-4 border-orange-500">
+            <h3 class="text-2xl font-bold text-orange-800 mb-4 flex items-center">
+              <span class="mr-3">⚠️</span> Debilidades Internas
+            </h3>
+            <p class="text-gray-700 text-lg leading-relaxed">
+              Las debilidades son <strong>limitaciones internas</strong> que pueden impedir el crecimiento. Identificarlas es el primer paso para superarlas.
+            </p>
+          </div>
+          
+          <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-white">💡</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-yellow-800 mb-2">Importante:</h4>
+                <p class="text-yellow-700 leading-relaxed">
+                  Ser honesto sobre las debilidades <strong>no es negativo, es estratégico</strong>. Solo reconociendo las limitaciones podemos crear planes para superarlas.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <h4 class="text-xl font-semibold text-gray-800 mb-4">Áreas comunes de debilidad:</h4>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-300">
+              <div class="flex items-center mb-3">
+                <span class="text-2xl mr-3">💰</span>
+                <h5 class="font-semibold text-red-800">Recursos limitados</h5>
+              </div>
+              <p class="text-gray-600">Falta de capital para inversiones necesarias</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-300">
+              <div class="flex items-center mb-3">
+                <span class="text-2xl mr-3">📚</span>
+                <h5 class="font-semibold text-red-800">Formación del equipo</h5>
+              </div>
+              <p class="text-gray-600">Necesidades de capacitación en nuevas áreas</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-300">
+              <div class="flex items-center mb-3">
+                <span class="text-2xl mr-3">🖥️</span>
+                <h5 class="font-semibold text-red-800">Tecnología obsoleta</h5>
+              </div>
+              <p class="text-gray-600">Sistemas anticuados que limitan la eficiencia</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-300">
+              <div class="flex items-center mb-3">
+                <span class="text-2xl mr-3">📦</span>
+                <h5 class="font-semibold text-red-800">Gestión de inventario</h5>
+              </div>
+              <p class="text-gray-600">Problemas de stock y rotación de productos</p>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-300">
+              <div class="flex items-center mb-3">
+                <span class="text-2xl mr-3">📱</span>
+                <h5 class="font-semibold text-red-800">Marketing limitado</h5>
+              </div>
+              <p class="text-gray-600">Poca presencia digital y estrategias de comunicación</p>
+            </div>
+          </div>
+          
+          <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+            <h4 class="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+              <span class="mr-3">🎯</span> Ejercicio:
+            </h4>
+            <p class="text-purple-700 leading-relaxed">
+              Identifica <strong>3-5 debilidades principales</strong> de tu farmacia y piensa en posibles soluciones para cada una. Recuerda: reconocer debilidades es el primer paso hacia la mejora.
+            </p>
+          </div>
+        </div>
       `,
       duration: 25
     },
     {
       id: 'oportunidades',
       title: 'Detectando Oportunidades',
+      icon: Lightbulb,
       content: `
-        <h3>Oportunidades del Entorno</h3>
-        <p>Las oportunidades son factores externos favorables que puedes aprovechar para crecer y mejorar tu posición competitiva.</p>
-        
-        <h4>Oportunidades actuales en el sector:</h4>
-        <ul>
-          <li><strong>Envejecimiento poblacional:</strong> Mayor demanda de servicios farmacéuticos</li>
-          <li><strong>Digitalización:</strong> Nuevos canales de venta y comunicación</li>
-          <li><strong>Servicios profesionales:</strong> SPD, vacunación, tests diagnósticos</li>
-          <li><strong>Colaboraciones:</strong> Alianzas con centros médicos</li>
-          <li><strong>Especialización:</strong> Nichos como dermofarmacia o nutrición</li>
-        </ul>
-        
-        <h4>Cómo identificar oportunidades:</h4>
-        <ol>
-          <li>Analiza cambios demográficos en tu zona</li>
-          <li>Observa tendencias de salud y bienestar</li>
-          <li>Evalúa nuevas regulaciones favorables</li>
-          <li>Estudia la competencia y sus carencias</li>
-        </ol>
-        
-        <h4>Ejercicio:</h4>
-        <p>Lista 5 oportunidades específicas para tu farmacia considerando tu entorno local y las tendencias del sector.</p>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-cyan-50 to-blue-50 p-6 rounded-lg border-l-4 border-cyan-500">
+            <h3 class="text-2xl font-bold text-cyan-800 mb-4 flex items-center">
+              <span class="mr-3">🚀</span> Oportunidades del Entorno
+            </h3>
+            <p class="text-gray-700 text-lg leading-relaxed">
+              Las oportunidades son <strong>factores externos favorables</strong> que puedes aprovechar para crecer y mejorar tu posición competitiva.
+            </p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-green-100 to-emerald-100 p-6 rounded-lg">
+            <h4 class="text-xl font-semibold text-green-800 mb-4 flex items-center">
+              <span class="mr-3">🌟</span> Oportunidades actuales en el sector:
+            </h4>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2">
+                  <span class="text-2xl mr-3">👴</span>
+                  <h5 class="font-semibold text-green-800">Envejecimiento poblacional</h5>
+                </div>
+                <p class="text-gray-600 text-sm">Mayor demanda de servicios farmacéuticos especializados</p>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2">
+                  <span class="text-2xl mr-3">📱</span>
+                  <h5 class="font-semibold text-green-800">Digitalización</h5>
+                </div>
+                <p class="text-gray-600 text-sm">Nuevos canales de venta y comunicación con pacientes</p>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2">
+                  <span class="text-2xl mr-3">💉</span>
+                  <h5 class="font-semibold text-green-800">Servicios profesionales</h5>
+                </div>
+                <p class="text-gray-600 text-sm">SPD, vacunación, tests diagnósticos</p>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2">
+                  <span class="text-2xl mr-3">🤝</span>
+                  <h5 class="font-semibold text-green-800">Colaboraciones</h5>
+                </div>
+                <p class="text-gray-600 text-sm">Alianzas estratégicas con centros médicos</p>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2">
+                  <span class="text-2xl mr-3">🎯</span>
+                  <h5 class="font-semibold text-green-800">Especialización</h5>
+                </div>
+                <p class="text-gray-600 text-sm">Nichos como dermofarmacia o nutrición deportiva</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-blue-50 p-6 rounded-lg">
+            <h4 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+              <span class="mr-3">🔍</span> Cómo identificar oportunidades:
+            </h4>
+            
+            <div class="space-y-3">
+              <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <span class="text-white text-sm font-bold">1</span>
+                </div>
+                <p class="text-blue-700">Analiza cambios demográficos en tu zona</p>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <span class="text-white text-sm font-bold">2</span>
+                </div>
+                <p class="text-blue-700">Observa tendencias de salud y bienestar</p>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <span class="text-white text-sm font-bold">3</span>
+                </div>
+                <p class="text-blue-700">Evalúa nuevas regulaciones favorables</p>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <span class="text-white text-sm font-bold">4</span>
+                </div>
+                <p class="text-blue-700">Estudia la competencia y sus carencias</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+            <h4 class="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
+              <span class="mr-3">💡</span> Ejercicio:
+            </h4>
+            <p class="text-indigo-700 leading-relaxed">
+              Lista <strong>5 oportunidades específicas</strong> para tu farmacia considerando tu entorno local y las tendencias del sector. Piensa en qué necesidades no están siendo cubiertas en tu área.
+            </p>
+          </div>
+        </div>
       `,
       duration: 30
     },
     {
       id: 'amenazas',
       title: 'Evaluando Amenazas',
+      icon: AlertTriangle,
       content: `
-        <h3>Amenazas Externas</h3>
-        <p>Las amenazas son factores externos que pueden afectar negativamente a tu farmacia. Identificarlas te permite prepararte y mitigar riesgos.</p>
-        
-        <h4>Amenazas comunes del sector:</h4>
-        <ul>
-          <li><strong>Competencia online:</strong> Farmacias virtuales y marketplaces</li>
-          <li><strong>Grandes cadenas:</strong> Expansión de cadenas farmacéuticas</li>
-          <li><strong>Cambios regulatorios:</strong> Nuevas normativas restrictivas</li>
-          <li><strong>Crisis económicas:</strong> Reducción del gasto en salud</li>
-          <li><strong>Cambios demográficos:</strong> Despoblación rural</li>
-        </ul>
-        
-        <h4>Estrategias de mitigación:</h4>
-        <ul>
-          <li>Diversificar servicios y productos</li>
-          <li>Fortalecer la relación con clientes</li>
-          <li>Mantenerse actualizado en regulaciones</li>
-          <li>Crear alianzas estratégicas</li>
-          <li>Innovar constantemente</li>
-        </ul>
-        
-        <h4>Ejercicio:</h4>
-        <p>Identifica las 3 amenazas más relevantes para tu farmacia y desarrolla un plan básico para cada una.</p>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-red-50 to-pink-50 p-6 rounded-lg border-l-4 border-red-500">
+            <h3 class="text-2xl font-bold text-red-800 mb-4 flex items-center">
+              <span class="mr-3">⚡</span> Amenazas Externas
+            </h3>
+            <p class="text-gray-700 text-lg leading-relaxed">
+              Las amenazas son <strong>factores externos</strong> que pueden afectar negativamente a tu farmacia. Identificarlas te permite prepararte y mitigar riesgos.
+            </p>
+          </div>
+          
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h4 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <span class="mr-3">🚨</span> Amenazas comunes del sector:
+            </h4>
+            
+            <div class="space-y-4">
+              <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-400">
+                <div class="flex items-center mb-3">
+                  <span class="text-2xl mr-3">🛒</span>
+                  <h5 class="font-semibold text-red-800">Competencia online</h5>
+                </div>
+                <p class="text-gray-600">Farmacias virtuales y marketplaces que compiten en precio</p>
+              </div>
+              
+              <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-400">
+                <div class="flex items-center mb-3">
+                  <span class="text-2xl mr-3">🏢</span>
+                  <h5 class="font-semibold text-red-800">Grandes cadenas</h5>
+                </div>
+                <p class="text-gray-600">Expansión de cadenas farmacéuticas con mayor poder de compra</p>
+              </div>
+              
+              <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-400">
+                <div class="flex items-center mb-3">
+                  <span class="text-2xl mr-3">📋</span>
+                  <h5 class="font-semibold text-red-800">Cambios regulatorios</h5>
+                </div>
+                <p class="text-gray-600">Nuevas normativas que pueden ser restrictivas</p>
+              </div>
+              
+              <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-400">
+                <div class="flex items-center mb-3">
+                  <span class="text-2xl mr-3">📉</span>
+                  <h5 class="font-semibold text-red-800">Crisis económicas</h5>
+                </div>
+                <p class="text-gray-600">Reducción del gasto en salud y productos no esenciales</p>
+              </div>
+              
+              <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-400">
+                <div class="flex items-center mb-3">
+                  <span class="text-2xl mr-3">🏘️</span>
+                  <h5 class="font-semibold text-red-800">Cambios demográficos</h5>
+                </div>
+                <p class="text-gray-600">Despoblación rural o cambios en la estructura de edad</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+            <h4 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
+              <span class="mr-3">🛡️</span> Estrategias de mitigación:
+            </h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white">🔄</span>
+                </div>
+                <div>
+                  <h5 class="font-medium text-green-800">Diversificar servicios</h5>
+                  <p class="text-green-700 text-sm">Amplía tu oferta de productos y servicios</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white">❤️</span>
+                </div>
+                <div>
+                  <h5 class="font-medium text-green-800">Fortalecer relaciones</h5>
+                  <p class="text-green-700 text-sm">Crea vínculos más fuertes con tus clientes</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white">📚</span>
+                </div>
+                <div>
+                  <h5 class="font-medium text-green-800">Mantenerse actualizado</h5>
+                  <p class="text-green-700 text-sm">Sigue las regulaciones y tendencias</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white">🤝</span>
+                </div>
+                <div>
+                  <h5 class="font-medium text-green-800">Crear alianzas</h5>
+                  <p class="text-green-700 text-sm">Desarrolla partnerships estratégicos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-orange-50 p-6 rounded-lg border border-orange-200">
+            <h4 class="text-lg font-semibold text-orange-800 mb-3 flex items-center">
+              <span class="mr-3">📋</span> Ejercicio:
+            </h4>
+            <p class="text-orange-700 leading-relaxed">
+              Identifica las <strong>3 amenazas más relevantes</strong> para tu farmacia y desarrolla un plan básico para cada una. Recuerda: estar preparado es la mejor defensa.
+            </p>
+          </div>
+        </div>
       `,
       duration: 25
     },
     {
       id: 'matriz',
       title: 'Creando tu Matriz DAFO',
+      icon: Target,
       content: `
-        <h3>Construyendo la Matriz DAFO</h3>
-        <p>Una vez identificados todos los elementos, es hora de crear tu matriz DAFO y desarrollar estrategias basadas en ella.</p>
-        
-        <h4>Estructura de la matriz:</h4>
-        <div style="border: 1px solid #ccc; margin: 20px 0;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="border: 1px solid #ccc; padding: 10px; background: #e8f5e8;"><strong>FORTALEZAS</strong><br/>- Ubicación privilegiada<br/>- Equipo cualificado<br/>- Clientes fieles</td>
-              <td style="border: 1px solid #ccc; padding: 10px; background: #fff5e6;"><strong>DEBILIDADES</strong><br/>- Tecnología obsoleta<br/>- Poco marketing<br/>- Stock limitado</td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #ccc; padding: 10px; background: #e6f3ff;"><strong>OPORTUNIDADES</strong><br/>- Envejecimiento población<br/>- Nuevos servicios SPD<br/>- Digitalización</td>
-              <td style="border: 1px solid #ccc; padding: 10px; background: #ffe6e6;"><strong>AMENAZAS</strong><br/>- Competencia online<br/>- Grandes cadenas<br/>- Crisis económica</td>
-            </tr>
-          </table>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border-l-4 border-purple-500">
+            <h3 class="text-2xl font-bold text-purple-800 mb-4 flex items-center">
+              <span class="mr-3">📊</span> Construyendo la Matriz DAFO
+            </h3>
+            <p class="text-gray-700 text-lg leading-relaxed">
+              Una vez identificados todos los elementos, es hora de crear tu matriz DAFO y desarrollar <strong>estrategias basadas en ella</strong>.
+            </p>
+          </div>
+          
+          <div class="bg-white p-6 rounded-lg shadow-lg border">
+            <h4 class="text-xl font-semibold text-gray-800 mb-4 text-center">Estructura de la matriz DAFO</h4>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                <h5 class="font-bold text-green-800 mb-3 flex items-center">
+                  <span class="mr-2">💪</span> FORTALEZAS
+                </h5>
+                <ul class="text-sm text-green-700 space-y-1">
+                  <li>• Ubicación privilegiada</li>
+                  <li>• Equipo cualificado</li>
+                  <li>• Clientes fieles</li>
+                  <li>• Tecnología moderna</li>
+                </ul>
+              </div>
+              
+              <div class="bg-orange-50 p-4 rounded-lg border-2 border-orange-200">
+                <h5 class="font-bold text-orange-800 mb-3 flex items-center">
+                  <span class="mr-2">⚠️</span> DEBILIDADES
+                </h5>
+                <ul class="text-sm text-orange-700 space-y-1">
+                  <li>• Tecnología obsoleta</li>
+                  <li>• Poco marketing</li>
+                  <li>• Stock limitado</li>
+                  <li>• Recursos escasos</li>
+                </ul>
+              </div>
+              
+              <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                <h5 class="font-bold text-blue-800 mb-3 flex items-center">
+                  <span class="mr-2">🚀</span> OPORTUNIDADES
+                </h5>
+                <ul class="text-sm text-blue-700 space-y-1">
+                  <li>• Envejecimiento población</li>
+                  <li>• Nuevos servicios SPD</li>
+                  <li>• Digitalización</li>
+                  <li>• Colaboraciones médicas</li>
+                </ul>
+              </div>
+              
+              <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+                <h5 class="font-bold text-red-800 mb-3 flex items-center">
+                  <span class="mr-2">⚡</span> AMENAZAS
+                </h5>
+                <ul class="text-sm text-red-700 space-y-1">
+                  <li>• Competencia online</li>
+                  <li>• Grandes cadenas</li>
+                  <li>• Crisis económica</li>
+                  <li>• Cambios regulatorios</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg">
+            <h4 class="text-xl font-semibold text-indigo-800 mb-4 flex items-center">
+              <span class="mr-3">🎯</span> Estrategias derivadas:
+            </h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h5 class="font-semibold text-green-800 mb-2 flex items-center">
+                  <span class="mr-2">💪🚀</span> FO (Fortalezas + Oportunidades)
+                </h5>
+                <p class="text-sm text-gray-600">Usar fortalezas para aprovechar oportunidades</p>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h5 class="font-semibold text-blue-800 mb-2 flex items-center">
+                  <span class="mr-2">💪⚡</span> FA (Fortalezas + Amenazas)
+                </h5>
+                <p class="text-sm text-gray-600">Usar fortalezas para defenderse de amenazas</p>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h5 class="font-semibold text-orange-800 mb-2 flex items-center">
+                  <span class="mr-2">⚠️🚀</span> DO (Debilidades + Oportunidades)
+                </h5>
+                <p class="text-sm text-gray-600">Superar debilidades aprovechando oportunidades</p>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h5 class="font-semibold text-red-800 mb-2 flex items-center">
+                  <span class="mr-2">⚠️⚡</span> DA (Debilidades + Amenazas)
+                </h5>
+                <p class="text-sm text-gray-600">Plan de contingencia para minimizar riesgos</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+            <h4 class="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
+              <span class="mr-3">✏️</span> Tu turno:
+            </h4>
+            <p class="text-yellow-700 leading-relaxed">
+              Ahora es momento de crear tu propia matriz DAFO. Toma los elementos que has identificado en los módulos anteriores y organízalos en esta estructura. ¡Este será tu mapa estratégico!
+            </p>
+          </div>
         </div>
-        
-        <h4>Estrategias derivadas:</h4>
-        <ul>
-          <li><strong>FO (Fortalezas + Oportunidades):</strong> Usar fortalezas para aprovechar oportunidades</li>
-          <li><strong>FA (Fortalezas + Amenazas):</strong> Usar fortalezas para defenderse de amenazas</li>
-          <li><strong>DO (Debilidades + Oportunidades):</strong> Superar debilidades aprovechando oportunidades</li>
-          <li><strong>DA (Debilidades + Amenazas):</strong> Plan de contingencia para minimizar riesgos</li>
-        </ul>
       `,
       duration: 35
     },
     {
       id: 'implementacion',
       title: 'Plan de Implementación',
+      icon: Zap,
       content: `
-        <h3>De la Teoría a la Práctica</h3>
-        <p>El análisis DAFO solo es útil si se traduce en acciones concretas. Aquí aprenderás a crear un plan de implementación efectivo.</p>
-        
-        <h4>Pasos para implementar tu DAFO:</h4>
-        <ol>
-          <li><strong>Priorizar:</strong> Ordena los elementos por importancia e impacto</li>
-          <li><strong>Temporizar:</strong> Establece plazos realistas (corto, medio, largo plazo)</li>
-          <li><strong>Asignar recursos:</strong> Define presupuesto y responsables</li>
-          <li><strong>Crear métricas:</strong> Establece KPIs para medir el progreso</li>
-          <li><strong>Revisar periódicamente:</strong> El DAFO debe actualizarse</li>
-        </ol>
-        
-        <h4>Ejemplo de plan de acción:</h4>
-        <ul>
-          <li><strong>Corto plazo (1-3 meses):</strong> Implementar WhatsApp Business, mejorar escaparate</li>
-          <li><strong>Medio plazo (3-12 meses):</strong> Lanzar servicios SPD, crear página web</li>
-          <li><strong>Largo plazo (1-3 años):</strong> Expandir servicios, posible segunda ubicación</li>
-        </ul>
-        
-        <h4>Herramientas de seguimiento:</h4>
-        <p>Utiliza herramientas como Excel, Trello o software específico para hacer seguimiento de tu plan y ajustarlo según evolucionen las circunstancias.</p>
-        
-        <p><strong>¡Felicidades!</strong> Has completado el curso de Análisis DAFO para tu farmacia. Ahora tienes las herramientas necesarias para realizar un análisis estratégico completo y crear un plan de acción efectivo.</p>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-teal-50 to-cyan-50 p-6 rounded-lg border-l-4 border-teal-500">
+            <h3 class="text-2xl font-bold text-teal-800 mb-4 flex items-center">
+              <span class="mr-3">⚡</span> De la Teoría a la Práctica
+            </h3>
+            <p class="text-gray-700 text-lg leading-relaxed">
+              El análisis DAFO solo es útil si se traduce en <strong>acciones concretas</strong>. Aquí aprenderás a crear un plan de implementación efectivo.
+            </p>
+          </div>
+          
+          <div class="bg-blue-50 p-6 rounded-lg">
+            <h4 class="text-xl font-semibold text-blue-800 mb-4 flex items-center">
+              <span class="mr-3">📋</span> Pasos para implementar tu DAFO:
+            </h4>
+            
+            <div class="space-y-4">
+              <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">1</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-blue-800">Priorizar</h5>
+                  <p class="text-blue-700">Ordena los elementos por importancia e impacto potencial</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">2</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-blue-800">Temporizar</h5>
+                  <p class="text-blue-700">Establece plazos realistas (corto, medio, largo plazo)</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">3</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-blue-808">Asignar recursos</h5>
+                  <p class="text-blue-700">Define presupuesto y responsables para cada acción</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">4</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-blue-800">Crear métricas</h5>
+                  <p class="text-blue-700">Establece KPIs para medir el progreso</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold">5</span>
+                </div>
+                <div>
+                  <h5 class="font-semibold text-blue-800">Revisar periódicamente</h5>
+                  <p class="text-blue-700">El DAFO debe actualizarse con regularidad</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+            <h4 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
+              <span class="mr-3">📅</span> Ejemplo de plan de acción:
+            </h4>
+            
+            <div class="space-y-4">
+              <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-400">
+                <h5 class="font-semibold text-green-800 flex items-center mb-2">
+                  <span class="mr-2">🚀</span> Corto plazo (1-3 meses)
+                </h5>
+                <ul class="text-green-700 text-sm space-y-1">
+                  <li>• Implementar WhatsApp Business para atención al cliente</li>
+                  <li>• Mejorar escaparate y señalización exterior</li>
+                  <li>• Crear perfiles en redes sociales básicas</li>
+                </ul>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-400">
+                <h5 class="font-semibold text-yellow-800 flex items-center mb-2">
+                  <span class="mr-2">📈</span> Medio plazo (3-12 meses)
+                </h5>
+                <ul class="text-yellow-700 text-sm space-y-1">
+                  <li>• Lanzar servicios SPD (Seguimiento Farmacoterapéutico)</li>
+                  <li>• Crear página web profesional</li>
+                  <li>• Implementar sistema de gestión más avanzado</li>
+                </ul>
+              </div>
+              
+              <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-400">
+                <h5 class="font-semibold text-purple-800 flex items-center mb-2">
+                  <span class="mr-2">🎯</span> Largo plazo (1-3 años)
+                </h5>
+                <ul class="text-purple-700 text-sm space-y-1">
+                  <li>• Expandir servicios especializados (nutrición, dermofarmacia)</li>
+                  <li>• Evaluar posible segunda ubicación</li>
+                  <li>• Desarrollar programa de fidelización avanzado</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <span class="mr-3">🛠️</span> Herramientas de seguimiento:
+            </h4>
+            <p class="text-gray-700 leading-relaxed">
+              Utiliza herramientas como <strong>Excel, Trello o software específico</strong> para hacer seguimiento de tu plan y ajustarlo según evolucionen las circunstancias. La clave está en la consistencia del seguimiento.
+            </p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-gold-50 to-yellow-50 p-8 rounded-lg border-2 border-yellow-300 text-center">
+            <div class="flex justify-center mb-4">
+              <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center">
+                <span class="text-white text-2xl">🏆</span>
+              </div>
+            </div>
+            <h4 class="text-2xl font-bold text-yellow-800 mb-3">¡Felicidades!</h4>
+            <p class="text-yellow-700 leading-relaxed text-lg">
+              Has completado el curso de <strong>Análisis DAFO para tu farmacia</strong>. Ahora tienes las herramientas necesarias para realizar un análisis estratégico completo y crear un plan de acción efectivo.
+            </p>
+            <div class="mt-4 p-4 bg-yellow-100 rounded-lg">
+              <p class="text-yellow-800 font-medium">
+                🎯 <strong>Próximo paso:</strong> Completa el quiz final para certificar tus conocimientos
+              </p>
+            </div>
+          </div>
+        </div>
       `,
       duration: 30
     }
@@ -615,26 +1161,30 @@ const CourseView = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             <ScrollArea className="h-[400px]">
-              {courseSections.map((section, index) => (
-                <Button
-                  key={section.id}
-                  variant={currentSection === index ? "default" : "ghost"}
-                  className="w-full justify-start text-left h-auto p-3 mb-2"
-                  onClick={() => setCurrentSection(index)}
-                >
-                  <div className="flex items-center space-x-3">
-                    {completedSections.has(index) ? (
-                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium text-sm leading-tight">{section.title}</div>
-                      <div className="text-xs text-gray-500">{section.duration} min</div>
+              {courseSections.map((section, index) => {
+                const IconComponent = section.icon;
+                return (
+                  <Button
+                    key={section.id}
+                    variant={currentSection === index ? "default" : "ghost"}
+                    className="w-full justify-start text-left h-auto p-3 mb-2"
+                    onClick={() => setCurrentSection(index)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      {completedSections.has(index) ? (
+                        <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                      )}
+                      <IconComponent className="h-4 w-4 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-sm leading-tight">{section.title}</div>
+                        <div className="text-xs text-gray-500">{section.duration} min</div>
+                      </div>
                     </div>
-                  </div>
-                </Button>
-              ))}
+                  </Button>
+                );
+              })}
             </ScrollArea>
           </CardContent>
         </Card>
@@ -643,7 +1193,8 @@ const CourseView = () => {
         <Card className="lg:col-span-3">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">
+              <CardTitle className="text-xl flex items-center">
+                {React.createElement(courseSections[currentSection]?.icon, { className: "h-6 w-6 mr-3" })}
                 {courseSections[currentSection]?.title}
               </CardTitle>
               <Badge variant="outline">
