@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Clock, Users, ExternalLink, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { AccessRestriction } from '@/components/subscription/AccessRestriction';
+import { useAccessControl } from '@/hooks/useAccessControl';
 
 interface Event {
   id: string;
@@ -25,15 +27,7 @@ const Eventos = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('all');
-
-  const eventTypes = [
-    { id: 'all', name: 'Todos los Eventos' },
-    { id: 'webinar', name: 'Webinars' },
-    { id: 'conferencia', name: 'Conferencias' },
-    { id: 'workshop', name: 'Talleres' },
-    { id: 'feria', name: 'Ferias' },
-    { id: 'curso', name: 'Cursos Presenciales' },
-  ];
+  const { restrictions } = useAccessControl();
 
   // Array de imágenes para eventos farmacéuticos
   const eventImages = [
@@ -121,131 +115,219 @@ const Eventos = () => {
     return eventImages[index % eventImages.length];
   };
 
+  const isPremiumEvent = (event: Event) => {
+    // Considera eventos premium aquellos de tipo conferencia o feria
+    return event.event_type === 'conferencia' || event.event_type === 'feria';
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Eventos</h1>
-        <p className="text-gray-600">Mantente actualizado con webinars, conferencias y ferias del sector</p>
-      </div>
+    <AccessRestriction
+      requiredPlan="estudiante"
+      featureName="Eventos Premium"
+      className={!restrictions.canAccessPremiumEvents ? "min-h-[600px]" : ""}
+    >
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Eventos</h1>
+          <p className="text-gray-600">Mantente actualizado con webinars, conferencias y ferias del sector</p>
+        </div>
 
-      <Tabs value={selectedType} onValueChange={setSelectedType}>
-        <TabsList className="grid w-full grid-cols-6">
-          {eventTypes.map((type) => (
-            <TabsTrigger key={type.id} value={type.id} className="text-xs">
-              {type.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <Tabs value={selectedType} onValueChange={setSelectedType}>
+          <TabsList className="grid w-full grid-cols-6">
+            {eventTypes.map((type) => (
+              <TabsTrigger key={type.id} value={type.id} className="text-xs">
+                {type.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <TabsContent value={selectedType} className="mt-6">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map((event, index) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <Card className="h-full hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      <img 
-                        src={event.image_url || getEventImage(index)} 
-                        alt={event.title}
-                        className="w-full h-48 object-cover rounded-t-lg"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = getEventImage(index);
-                        }}
-                      />
-                      <div className="absolute top-2 left-2 space-y-1">
-                        {event.is_featured && (
-                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-                            <Star className="h-3 w-3 mr-1" />
-                            Destacado
-                          </Badge>
-                        )}
-                        {isToday(event.start_date) && (
-                          <Badge className="bg-red-600">
-                            Hoy
-                          </Badge>
-                        )}
-                      </div>
-                      <Badge className={`absolute top-2 right-2 ${getEventTypeColor(event.event_type)}`}>
-                        {event.event_type}
-                      </Badge>
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg">{event.title}</CardTitle>
-                      <CardDescription>{event.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          {formatDate(event.start_date)}
-                          {event.end_date !== event.start_date && (
-                            <span> - {formatDate(event.end_date)}</span>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Clock className="h-4 w-4 mr-2" />
-                          {formatTime(event.start_date)}
-                        </div>
-
-                        {event.location && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <MapPin className="h-4 w-4 mr-2" />
-                            {event.location}
-                          </div>
-                        )}
-
-                        <Button 
-                          className="w-full mt-4"
-                          onClick={() => window.open(event.registration_url, '_blank')}
-                          disabled={!event.registration_url}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          {isUpcoming(event.start_date) ? 'Registrarse' : 'Ver Evento'}
-                        </Button>
-                      </div>
+          <TabsContent value={selectedType} className="mt-6">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <div className="h-48 bg-gray-200"></div>
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
                     </CardContent>
                   </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {events.map((event, index) => {
+                  const isRestricted = isPremiumEvent(event) && !restrictions.canAccessPremiumEvents;
+                  
+                  return (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    >
+                      {isRestricted ? (
+                        <AccessRestriction
+                          requiredPlan="estudiante"
+                          featureName={`Evento: ${event.title}`}
+                        >
+                          <Card className="h-full hover:shadow-lg transition-shadow">
+                            <div className="relative">
+                              <img 
+                                src={event.image_url || getEventImage(index)} 
+                                alt={event.title}
+                                className="w-full h-48 object-cover rounded-t-lg"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = getEventImage(index);
+                                }}
+                              />
+                              <div className="absolute top-2 left-2 space-y-1">
+                                {event.is_featured && (
+                                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                                    <Star className="h-3 w-3 mr-1" />
+                                    Destacado
+                                  </Badge>
+                                )}
+                                {isToday(event.start_date) && (
+                                  <Badge className="bg-red-600">
+                                    Hoy
+                                  </Badge>
+                                )}
+                              </div>
+                              <Badge className={`absolute top-2 right-2 ${getEventTypeColor(event.event_type)}`}>
+                                {event.event_type}
+                              </Badge>
+                            </div>
+                            <CardHeader>
+                              <CardTitle className="text-lg">{event.title}</CardTitle>
+                              <CardDescription>{event.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="space-y-3">
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <Calendar className="h-4 w-4 mr-2" />
+                                  {formatDate(event.start_date)}
+                                  {event.end_date !== event.start_date && (
+                                    <span> - {formatDate(event.end_date)}</span>
+                                  )}
+                                </div>
+                                
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <Clock className="h-4 w-4 mr-2" />
+                                  {formatTime(event.start_date)}
+                                </div>
 
-      {events.length === 0 && !loading && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay eventos disponibles</h3>
-            <p className="text-gray-600">
-              {selectedType === 'all' 
-                ? 'No hay eventos programados en este momento.'
-                : `No hay eventos de tipo "${eventTypes.find(t => t.id === selectedType)?.name}" programados.`
-              }
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+                                {event.location && (
+                                  <div className="flex items-center text-sm text-gray-600">
+                                    <MapPin className="h-4 w-4 mr-2" />
+                                    {event.location}
+                                  </div>
+                                )}
+
+                                <Button 
+                                  className="w-full mt-4"
+                                  onClick={() => window.open(event.registration_url, '_blank')}
+                                  disabled={!event.registration_url}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  {isUpcoming(event.start_date) ? 'Registrarse' : 'Ver Evento'}
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </AccessRestriction>
+                      ) : (
+                        <Card className="h-full hover:shadow-lg transition-shadow">
+                          <div className="relative">
+                            <img 
+                              src={event.image_url || getEventImage(index)} 
+                              alt={event.title}
+                              className="w-full h-48 object-cover rounded-t-lg"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getEventImage(index);
+                              }}
+                            />
+                            <div className="absolute top-2 left-2 space-y-1">
+                              {event.is_featured && (
+                                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                                  <Star className="h-3 w-3 mr-1" />
+                                  Destacado
+                                </Badge>
+                              )}
+                              {isToday(event.start_date) && (
+                                <Badge className="bg-red-600">
+                                  Hoy
+                                </Badge>
+                              )}
+                            </div>
+                            <Badge className={`absolute top-2 right-2 ${getEventTypeColor(event.event_type)}`}>
+                              {event.event_type}
+                            </Badge>
+                          </div>
+                          <CardHeader>
+                            <CardTitle className="text-lg">{event.title}</CardTitle>
+                            <CardDescription>{event.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <div className="space-y-3">
+                              <div className="flex items-center text-sm text-gray-600">
+                                <Calendar className="h-4 w-4 mr-2" />
+                                {formatDate(event.start_date)}
+                                {event.end_date !== event.start_date && (
+                                  <span> - {formatDate(event.end_date)}</span>
+                                )}
+                              </div>
+                              
+                              <div className="flex items-center text-sm text-gray-600">
+                                <Clock className="h-4 w-4 mr-2" />
+                                {formatTime(event.start_date)}
+                              </div>
+
+                              {event.location && (
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <MapPin className="h-4 w-4 mr-2" />
+                                  {event.location}
+                                </div>
+                              )}
+
+                              <Button 
+                                className="w-full mt-4"
+                                onClick={() => window.open(event.registration_url, '_blank')}
+                                disabled={!event.registration_url}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                {isUpcoming(event.start_date) ? 'Registrarse' : 'Ver Evento'}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {events.length === 0 && !loading && (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No hay eventos disponibles</h3>
+              <p className="text-gray-600">
+                {selectedType === 'all' 
+                  ? 'No hay eventos programados en este momento.'
+                  : `No hay eventos de tipo "${eventTypes.find(t => t.id === selectedType)?.name}" programados.`
+                }
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </AccessRestriction>
   );
 };
 
