@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +33,20 @@ const Eventos = () => {
     { id: 'workshop', name: 'Talleres' },
     { id: 'feria', name: 'Ferias' },
     { id: 'curso', name: 'Cursos Presenciales' },
+  ];
+
+  // Array de imágenes para eventos farmacéuticos
+  const eventImages = [
+    'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=400&h=300&fit=crop&auto=format', // grupo de personas con pantallas
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop&auto=format', // personas con laptops
+    'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=400&h=300&fit=crop&auto=format', // hombre trabajando
+    'https://images.unsplash.com/photo-1473091534298-04dcbce3278c?w=400&h=300&fit=crop&auto=format', // stylus y tablet
+    'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop&auto=format', // MacBook con código
+    'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=300&fit=crop&auto=format', // mujer con laptop
+    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=400&h=300&fit=crop&auto=format', // laptop gris
+    'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop&auto=format', // persona usando MacBook Pro
+    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop&auto=format', // mujer con laptop blanco
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop&auto=format' // laptop en mesa de cristal
   ];
 
   useEffect(() => {
@@ -104,6 +117,10 @@ const Eventos = () => {
     }
   };
 
+  const getEventImage = (index: number) => {
+    return eventImages[index % eventImages.length];
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -145,9 +162,13 @@ const Eventos = () => {
                   <Card className="h-full hover:shadow-lg transition-shadow">
                     <div className="relative">
                       <img 
-                        src={event.image_url || "/placeholder.svg"} 
+                        src={event.image_url || getEventImage(index)} 
                         alt={event.title}
-                        className="w-full h-48 object-cover"
+                        className="w-full h-48 object-cover rounded-t-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = getEventImage(index);
+                        }}
                       />
                       <div className="absolute top-2 left-2 space-y-1">
                         {event.is_featured && (
