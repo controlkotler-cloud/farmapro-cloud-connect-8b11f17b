@@ -7,12 +7,13 @@ import { useToast } from '@/hooks/use-toast';
 export interface Notification {
   id: string;
   title: string;
-  description: string;
+  message: string;
   type: 'course' | 'forum' | 'resource' | 'challenge' | 'general';
   target_url?: string;
   target_id?: string;
-  read: boolean;
+  is_read: boolean;
   created_at: string;
+  user_id: string;
 }
 
 export const useNotifications = () => {
@@ -30,7 +31,7 @@ export const useNotifications = () => {
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
-        .eq('read', false)
+        .eq('is_read', false)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -48,7 +49,7 @@ export const useNotifications = () => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ read: true, read_at: new Date().toISOString() })
+        .update({ is_read: true })
         .eq('id', notificationId);
 
       if (error) throw error;
@@ -111,7 +112,7 @@ export const useNotifications = () => {
           // Mostrar toast para nueva notificación
           toast({
             title: newNotification.title,
-            description: newNotification.description,
+            description: newNotification.message,
           });
         }
       )

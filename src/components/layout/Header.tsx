@@ -89,7 +89,7 @@ export const Header = () => {
                       <div className="flex items-start justify-between w-full">
                         <div className="flex-1">
                           <p className="font-medium text-sm">{notification.title}</p>
-                          <p className="text-xs text-gray-500 mt-1">{notification.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
                           <p className="text-xs text-gray-400 mt-1">
                             {new Date(notification.created_at).toLocaleDateString('es-ES', {
                               day: 'numeric',
