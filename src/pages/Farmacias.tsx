@@ -115,6 +115,20 @@ const Farmacias = () => {
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
+  // Placeholder images for pharmacy listings
+  const pharmacyImages = [
+    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1585435557343-3b092031d03d?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop'
+  ];
+
+  const getPharmacyImage = (index: number) => {
+    return pharmacyImages[index % pharmacyImages.length];
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -219,7 +233,19 @@ const Farmacias = () => {
             >
               <Card className="h-full hover:shadow-lg transition-shadow">
                 <div className="relative">
-                  <div className="h-48 bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
+                  <img
+                    src={getPharmacyImage(index)}
+                    alt={listing.title}
+                    className="h-48 w-full object-cover rounded-t-lg"
+                    onError={(e) => {
+                      // Fallback to gradient background if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div className="h-48 bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center rounded-t-lg" style={{ display: 'none' }}>
                     <Building2 className="h-16 w-16 text-blue-600" />
                   </div>
                   <Badge className="absolute top-2 right-2 bg-green-600">
@@ -265,7 +291,7 @@ const Farmacias = () => {
                       onClick={() => window.location.href = `mailto:${listing.contact_email}?subject=Interés en ${listing.title}`}
                     >
                       <Mail className="h-4 w-4 mr-2" />
-                      Contactar Vendedor
+                      Contactar
                     </Button>
                   </div>
                 </CardContent>
