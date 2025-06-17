@@ -26,56 +26,65 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
     e.preventDefault();
     setLoading(true);
 
-    if (isRegistering) {
-      // Registro
-      if (!fullName.trim()) {
-        toast({
-          title: "Error",
-          description: "El nombre completo es requerido",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
+    try {
+      if (isRegistering) {
+        // Registro
+        if (!fullName.trim()) {
+          toast({
+            title: "Error",
+            description: "El nombre completo es requerido",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
 
-      const { error } = await signUp(email, password, fullName, pharmacyName, position);
+        const { error } = await signUp(email, password, fullName, pharmacyName, position);
 
-      if (error) {
-        toast({
-          title: "Error de registro",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (error) {
+          toast({
+            title: "Error de registro",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "¡Registro exitoso!",
+            description: "Tu cuenta ha sido creada correctamente. Puedes iniciar sesión ahora.",
+          });
+          // Cambiar a modo login después del registro exitoso
+          onToggleMode();
+          setFullName('');
+          setPharmacyName('');
+          setPosition('');
+        }
       } else {
-        toast({
-          title: "¡Registro exitoso!",
-          description: "Tu cuenta ha sido creada correctamente. Puedes iniciar sesión ahora.",
-        });
-        // Cambiar a modo login después del registro exitoso
-        onToggleMode();
-        setFullName('');
-        setPharmacyName('');
-        setPosition('');
-      }
-    } else {
-      // Login
-      const { error } = await signIn(email, password);
+        // Login
+        const { error } = await signIn(email, password);
 
-      if (error) {
-        toast({
-          title: "Error de inicio de sesión",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "¡Bienvenido!",
-          description: "Has iniciado sesión correctamente",
-        });
+        if (error) {
+          toast({
+            title: "Error de inicio de sesión",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "¡Bienvenido!",
+            description: "Has iniciado sesión correctamente",
+          });
+        }
       }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error inesperado",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const clearFields = () => {

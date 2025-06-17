@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,43 +20,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await loadProfile(session.user.id);
-        // Check subscription status on login
-        await checkSubscriptionStatus();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (mounted) {
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await loadProfile(session.user.id);
+            // Check subscription status on login
+            await checkSubscriptionStatus();
+          }
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     };
 
     getSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await loadProfile(session.user.id);
-        // Check subscription status on auth state change
-        await checkSubscriptionStatus();
-      } else {
-        setProfile(null);
+      if (mounted) {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          setTimeout(() => {
+            loadProfile(session.user.id);
+            checkSubscriptionStatus();
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    setProfile(data);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      setProfile(data);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
   };
 
   const checkSubscriptionStatus = async () => {
@@ -71,27 +93,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { error };
+    }
   };
 
   const signUp = async (email: string, password: string, fullName: string, pharmacyName?: string, position?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          pharmacy_name: pharmacyName,
-          position: position,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            pharmacy_name: pharmacyName,
+            position: position,
+          },
         },
-      },
-    });
-    return { error };
+      });
+      return { error };
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return { error };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   return (
