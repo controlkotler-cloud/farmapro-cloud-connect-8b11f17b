@@ -141,7 +141,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
       .eq('user_id', userId)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
-      .limit(5);
+      .limit(3);
 
     if (recentCourses) {
       recentCourses.forEach(enrollment => {
@@ -165,7 +165,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
       `)
       .eq('user_id', userId)
       .order('downloaded_at', { ascending: false })
-      .limit(5);
+      .limit(3);
 
     if (recentDownloads) {
       recentDownloads.forEach(download => {
@@ -186,7 +186,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
       .select('title, created_at')
       .eq('author_id', userId)
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(3);
 
     if (recentPosts) {
       recentPosts.forEach(post => {
@@ -210,7 +210,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
       .eq('user_id', userId)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
-      .limit(5);
+      .limit(3);
 
     if (recentChallenges) {
       recentChallenges.forEach(challenge => {
@@ -225,10 +225,10 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
       });
     }
 
-    // Ordenar todas las actividades por fecha más reciente y limitar a las 10 más recientes
+    // Ordenar todas las actividades por fecha más reciente y limitar a las 3 más recientes
     const sortedActivities = activities
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 10);
+      .slice(0, 3);
 
     console.log('Loaded recent activities:', sortedActivities);
     return sortedActivities;
