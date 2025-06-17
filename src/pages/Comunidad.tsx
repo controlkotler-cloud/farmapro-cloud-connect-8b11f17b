@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -175,7 +176,7 @@ const Comunidad = () => {
         </Dialog>
       </div>
 
-      <Tabs value={selectedCategory} onValueChange={(value: string) => setSelectedCategory(value)}>
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid w-full grid-cols-auto">
           <TabsTrigger value="all">Todos</TabsTrigger>
           {categories.map((category) => (
@@ -256,3 +257,4 @@ const Comunidad = () => {
 };
 
 export default Comunidad;
+
