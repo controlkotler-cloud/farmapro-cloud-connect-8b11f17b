@@ -1,5 +1,4 @@
 
-
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,6 +20,7 @@ import Empleo from "./pages/Empleo";
 import Farmacias from "./pages/Farmacias";
 import Eventos from "./pages/Eventos";
 import Promociones from "./pages/Promociones";
+import Perfil from "./pages/Perfil";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +56,11 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/perfil" element={
+        <ProtectedRoute>
+          <Perfil />
         </ProtectedRoute>
       } />
       <Route path="/subscription" element={
@@ -123,4 +128,3 @@ const App = () => (
 );
 
 export default App;
-
