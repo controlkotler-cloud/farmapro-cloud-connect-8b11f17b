@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Users, Star, Lock } from 'lucide-react';
+import { Clock, Users, Star, Lock, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -23,9 +23,16 @@ interface Course {
   created_at: string;
 }
 
+interface CourseEnrollment {
+  course_id: string;
+  completed_at: string | null;
+  started_at: string | null;
+}
+
 const Formacion = () => {
   const { profile } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -41,6 +48,12 @@ const Formacion = () => {
   useEffect(() => {
     loadCourses();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    if (profile?.id) {
+      loadEnrollments();
+    }
+  }, [profile]);
 
   const loadCourses = async () => {
     setLoading(true);
@@ -59,16 +72,47 @@ const Formacion = () => {
     setLoading(false);
   };
 
+  const loadEnrollments = async () => {
+    if (!profile?.id) return;
+
+    const { data, error } = await supabase
+      .from('course_enrollments')
+      .select('course_id, completed_at, started_at')
+      .eq('user_id', profile.id);
+
+    if (error) {
+      console.error('Error loading enrollments:', error);
+    } else {
+      setEnrollments(data || []);
+    }
+  };
+
+  const getCourseEnrollment = (courseId: string) => {
+    return enrollments.find(enrollment => enrollment.course_id === courseId);
+  };
+
+  const isEnrolled = (courseId: string) => {
+    return enrollments.some(enrollment => enrollment.course_id === courseId);
+  };
+
+  const isCompleted = (courseId: string) => {
+    const enrollment = getCourseEnrollment(courseId);
+    return enrollment && enrollment.completed_at !== null;
+  };
+
+  const getCompletedDate = (courseId: string) => {
+    const enrollment = getCourseEnrollment(courseId);
+    if (enrollment && enrollment.completed_at) {
+      return new Date(enrollment.completed_at).toLocaleDateString('es-ES');
+    }
+    return null;
+  };
+
   const enrollInCourse = async (courseId: string) => {
     if (!profile?.id) return;
 
     // Check if already enrolled
-    const { data: existingEnrollment } = await supabase
-      .from('course_enrollments')
-      .select('id')
-      .eq('user_id', profile.id)
-      .eq('course_id', courseId)
-      .maybeSingle();
+    const existingEnrollment = getCourseEnrollment(courseId);
 
     if (existingEnrollment) {
       // Already enrolled, navigate to course
@@ -99,6 +143,9 @@ const Formacion = () => {
       } catch (error) {
         console.error('Error calling add_user_points:', error);
       }
+      
+      // Reload enrollments to update the UI
+      await loadEnrollments();
       
       // Navigate to course
       window.location.href = `/curso/${courseId}`;
@@ -165,10 +212,21 @@ const Formacion = () => {
                           Premium
                         </Badge>
                       )}
+                      {isCompleted(course.id) && (
+                        <Badge className="absolute top-2 left-2 bg-green-500">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Completado
+                        </Badge>
+                      )}
                     </div>
                     <CardHeader>
                       <CardTitle className="text-lg">{course.title}</CardTitle>
                       <CardDescription>{course.description}</CardDescription>
+                      {isCompleted(course.id) && (
+                        <div className="text-sm text-green-600 font-medium">
+                          Completado el {getCompletedDate(course.id)}
+                        </div>
+                      )}
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="flex items-center justify-between mb-4">
@@ -182,12 +240,17 @@ const Formacion = () => {
                         className="w-full"
                         onClick={() => enrollInCourse(course.id)}
                         disabled={!canAccessCourse(course)}
+                        variant={isCompleted(course.id) ? "secondary" : "default"}
                       >
                         {!canAccessCourse(course) ? (
                           <>
                             <Lock className="h-4 w-4 mr-2" />
                             Requiere Premium
                           </>
+                        ) : isCompleted(course.id) ? (
+                          'Ver Curso'
+                        ) : isEnrolled(course.id) ? (
+                          'Continuar Curso'
                         ) : (
                           'Comenzar Curso'
                         )}
