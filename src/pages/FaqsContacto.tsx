@@ -36,6 +36,13 @@ const FaqsContacto = () => {
     }
   ];
 
+  const handleSwitchToContactTab = () => {
+    const contactTab = document.querySelector('[value="contacto"]') as HTMLElement;
+    if (contactTab) {
+      contactTab.click();
+    }
+  };
+
   return (
     <PublicLayout>
       {/* Hero Section */}
@@ -92,7 +99,7 @@ const FaqsContacto = () => {
               <div className="text-center pt-8">
                 <p className="text-gray-600 mb-4">¿No encuentras lo que buscas?</p>
                 <Button 
-                  onClick={() => document.querySelector('[value="contacto"]')?.click()}
+                  onClick={handleSwitchToContactTab}
                   className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
                 >
                   Contactar Soporte
