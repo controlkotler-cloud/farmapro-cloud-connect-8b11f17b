@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { MapPin, Clock, DollarSign, Building2, Mail, Calendar, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 interface JobListing {
   id: string;
@@ -206,7 +206,13 @@ const Empleo = () => {
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-6">
             <p className="text-blue-800">
-              <strong>¿Eres titular de una farmacia y necesitas personal?</strong> Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo.
+              <strong>¿Eres titular de una farmacia y necesitas personal?</strong> Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo.{' '}
+              <Link 
+                to="/subscription?tab=plans" 
+                className="underline hover:text-blue-900 font-medium"
+              >
+                Ver planes
+              </Link>
             </p>
           </CardContent>
         </Card>
