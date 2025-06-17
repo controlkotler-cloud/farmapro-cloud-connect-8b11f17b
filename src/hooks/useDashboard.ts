@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,33 +89,31 @@ export const useDashboard = () => {
         }
       }
 
-      // Get progress for course_completed challenges to count total completions
-      const { data: courseProgress } = await supabase
-        .from('user_challenge_progress')
-        .select('current_count')
-        .eq('user_id', profile.id)
-        .eq('challenge_id', (
-          await supabase
-            .from('challenges')
-            .select('id')
-            .eq('type', 'course_completed')
-            .single()
-        ).data?.id || '');
+      // Get the "Estudiante Dedicado" challenge to get the correct course completion count
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('id')
+        .eq('type', 'course_completed')
+        .single();
 
-      // Use the challenge progress count if available, otherwise fall back to enrollment count
       let coursesCompleted = 0;
-      if (courseProgress && courseProgress.length > 0) {
-        coursesCompleted = courseProgress[0].current_count;
-        console.log('Using challenge progress for courses completed:', coursesCompleted);
-      } else {
-        // Fallback to counting enrollments
-        const { data: courses } = await supabase
-          .from('course_enrollments')
-          .select('id')
+      if (challenge) {
+        // Get progress for course_completed challenge to count total completions
+        const { data: courseProgress } = await supabase
+          .from('user_challenge_progress')
+          .select('current_count')
           .eq('user_id', profile.id)
-          .not('completed_at', 'is', null);
-        coursesCompleted = courses?.length || 0;
-        console.log('Using enrollment count for courses completed:', coursesCompleted);
+          .eq('challenge_id', challenge.id)
+          .maybeSingle();
+
+        if (courseProgress) {
+          coursesCompleted = courseProgress.current_count;
+          console.log('Using challenge progress for courses completed:', coursesCompleted);
+        } else {
+          console.log('No challenge progress found, using 0 for courses completed');
+        }
+      } else {
+        console.log('Challenge "Estudiante Dedicado" not found');
       }
 
       // Get resources downloaded
