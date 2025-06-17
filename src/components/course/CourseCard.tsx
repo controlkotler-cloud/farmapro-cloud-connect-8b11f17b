@@ -2,8 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Star, Lock, CheckCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Clock, Award, BookOpen, Users, Play } from 'lucide-react';
 import type { Course, CourseEnrollment } from '@/types/course';
 
 interface CourseCardProps {
@@ -15,94 +14,113 @@ interface CourseCardProps {
 }
 
 export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnroll }: CourseCardProps) => {
-  const getCourseEnrollment = (courseId: string) => {
-    return enrollments.find(enrollment => enrollment.course_id === courseId);
-  };
+  const isEnrolled = enrollments.some(enrollment => enrollment.course_id === course.id);
+  const isCompleted = enrollments.some(enrollment => 
+    enrollment.course_id === course.id && enrollment.completed_at !== null
+  );
+  const canAccess = canAccessCourse(course);
+  
+  const totalModules = course.course_modules?.length || 0;
+  const totalDuration = course.course_modules?.reduce((sum, module) => sum + module.duration, 0) || course.duration_minutes;
 
-  const isEnrolled = (courseId: string) => {
-    return enrollments.some(enrollment => enrollment.course_id === courseId);
-  };
-
-  const isCompleted = (courseId: string) => {
-    const enrollment = getCourseEnrollment(courseId);
-    return enrollment && enrollment.completed_at !== null;
-  };
-
-  const getCompletedDate = (courseId: string) => {
-    const enrollment = getCourseEnrollment(courseId);
-    if (enrollment && enrollment.completed_at) {
-      return new Date(enrollment.completed_at).toLocaleDateString('es-ES');
+  const handleClick = () => {
+    if (isEnrolled) {
+      window.location.href = `/curso/${course.id}`;
+    } else if (canAccess) {
+      onEnroll(course.id);
     }
-    return null;
   };
-
-  // Usar featured_image_url si está disponible, sino usar thumbnail_url
-  const imageUrl = course.featured_image_url || course.thumbnail_url || "/placeholder.svg";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-    >
-      <Card className="h-full hover:shadow-lg transition-shadow">
-        <div className="relative">
-          <img 
-            src={imageUrl} 
-            alt={course.title}
-            className="w-full h-48 object-cover rounded-t-lg"
-          />
-          {course.is_premium && (
-            <Badge className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500">
-              <Star className="h-3 w-3 mr-1" />
-              Premium
-            </Badge>
+    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
+      {/* Imagen del curso */}
+      <div className="aspect-video overflow-hidden rounded-t-lg">
+        <img 
+          src={course.featured_image_url || course.thumbnail_url} 
+          alt={course.title}
+          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+        />
+      </div>
+
+      <CardHeader className="flex-grow">
+        <div className="flex items-start justify-between mb-2">
+          <CardTitle className="text-xl line-clamp-2">{course.title}</CardTitle>
+          <div className="flex flex-col space-y-1 ml-2">
+            {course.is_premium && (
+              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-xs">
+                <Award className="h-3 w-3 mr-1" />
+                Premium
+              </Badge>
+            )}
+            {isCompleted && (
+              <Badge className="bg-green-500 text-xs">
+                <Award className="h-3 w-3 mr-1" />
+                Completado
+              </Badge>
+            )}
+          </div>
+        </div>
+        
+        <CardDescription className="line-clamp-3 text-sm leading-relaxed">
+          {course.description}
+        </CardDescription>
+
+        {/* Estadísticas del curso */}
+        <div className="flex items-center space-x-4 text-xs text-gray-600 mt-3">
+          <div className="flex items-center">
+            <Clock className="h-3 w-3 mr-1" />
+            {Math.floor(totalDuration / 60)}h {totalDuration % 60}m
+          </div>
+          <div className="flex items-center">
+            <BookOpen className="h-3 w-3 mr-1" />
+            {totalModules} módulos
+          </div>
+          <div className="flex items-center">
+            <Users className="h-3 w-3 mr-1" />
+            {course.is_premium ? 'Avanzado' : 'Intermedio'}
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="pt-0">
+        <div className="space-y-2">
+          {/* Mostrar algunos módulos destacados */}
+          {course.course_modules && course.course_modules.length > 0 && (
+            <div className="text-xs text-gray-600 mb-3">
+              <p className="font-medium mb-1">Incluye:</p>
+              <ul className="space-y-1">
+                {course.course_modules.slice(0, 2).map((module, i) => (
+                  <li key={module.id} className="flex items-center">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full mr-2" />
+                    {module.title}
+                  </li>
+                ))}
+                {course.course_modules.length > 2 && (
+                  <li className="text-gray-500 italic">
+                    + {course.course_modules.length - 2} módulos más
+                  </li>
+                )}
+              </ul>
+            </div>
           )}
-          {isCompleted(course.id) && (
-            <Badge className="absolute top-2 left-2 bg-green-500">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Completado
-            </Badge>
+
+          {/* Botón de acción */}
+          {!canAccess ? (
+            <Button disabled className="w-full" variant="outline">
+              Requiere suscripción Premium
+            </Button>
+          ) : isEnrolled ? (
+            <Button onClick={handleClick} className="w-full">
+              <Play className="h-4 w-4 mr-2" />
+              {isCompleted ? 'Revisar Curso' : 'Continuar Curso'}
+            </Button>
+          ) : (
+            <Button onClick={handleClick} className="w-full" variant="outline">
+              Comenzar Curso
+            </Button>
           )}
         </div>
-        <CardHeader>
-          <CardTitle className="text-lg">{course.title}</CardTitle>
-          <CardDescription>{course.description}</CardDescription>
-          {isCompleted(course.id) && (
-            <div className="text-sm text-green-600 font-medium">
-              Completado el {getCompletedDate(course.id)}
-            </div>
-          )}
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <Clock className="h-4 w-4 mr-1" />
-              {Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}m
-            </div>
-            <Badge variant="outline">{course.category}</Badge>
-          </div>
-          <Button 
-            className="w-full"
-            onClick={() => onEnroll(course.id)}
-            disabled={!canAccessCourse(course)}
-            variant={isCompleted(course.id) ? "secondary" : "default"}
-          >
-            {!canAccessCourse(course) ? (
-              <>
-                <Lock className="h-4 w-4 mr-2" />
-                Requiere Premium
-              </>
-            ) : isCompleted(course.id) ? (
-              'Ver Curso'
-            ) : isEnrolled(course.id) ? (
-              'Continuar Curso'
-            ) : (
-              'Comenzar Curso'
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
+      </CardContent>
+    </Card>
   );
 };
