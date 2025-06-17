@@ -25,12 +25,12 @@ interface PharmacyCardProps {
 }
 
 const pharmacyImages = [
-  'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1585435557343-3b092031d03d?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop'
+  'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1585435557343-3b092031d03d?w=400&h=300&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&auto=format'
 ];
 
 const formatPrice = (price: number) => {
@@ -71,14 +71,24 @@ export const PharmacyCard = ({ listing, index }: PharmacyCardProps) => {
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
-              const fallback = target.nextElementSibling as HTMLElement;
-              if (fallback) fallback.style.display = 'flex';
+              const fallback = target.parentElement?.querySelector('.fallback-bg') as HTMLElement;
+              if (fallback) {
+                fallback.style.display = 'flex';
+              }
+            }}
+            onLoad={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'block';
+              const fallback = target.parentElement?.querySelector('.fallback-bg') as HTMLElement;
+              if (fallback) {
+                fallback.style.display = 'none';
+              }
             }}
           />
-          <div className="h-48 bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center rounded-t-lg" style={{ display: 'none' }}>
+          <div className="fallback-bg h-48 bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center rounded-t-lg absolute inset-0">
             <Building2 className="h-16 w-16 text-blue-600" />
           </div>
-          <Badge className="absolute top-2 right-2 bg-green-600">
+          <Badge className="absolute top-2 right-2 bg-green-600 z-10">
             En Venta
           </Badge>
         </div>
