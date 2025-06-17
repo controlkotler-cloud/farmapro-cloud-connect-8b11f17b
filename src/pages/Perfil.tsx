@@ -294,7 +294,7 @@ export default function Perfil() {
                       <SelectContent>
                         <SelectItem value="farmaceutico">Farmacéutico/a</SelectItem>
                         <SelectItem value="auxiliar">Auxiliar de Farmacia</SelectItem>
-                        <SelectItem value="propietario">Propietario/a</SelectItem>
+                        <SelectItem value="titular">Titular</SelectItem>
                         <SelectItem value="gerente">Gerente</SelectItem>
                         <SelectItem value="estudiante">Estudiante</SelectItem>
                         <SelectItem value="otro">Otro</SelectItem>

@@ -101,7 +101,7 @@ const Promociones = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Promociones Exclusivas</h1>
-        <p className="text-gray-600">Descuentos y ofertas especiales para profesionales farmacéuticos</p>
+        <p className="text-gray-600">Descuentos y ofertas especiales para farmacias</p>
       </div>
 
       <Tabs value={selectedType} onValueChange={setSelectedType}>

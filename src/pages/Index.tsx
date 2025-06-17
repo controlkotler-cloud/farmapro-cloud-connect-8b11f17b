@@ -30,7 +30,7 @@ const features = [
   {
     icon: Users,
     title: 'Comunidad Activa',
-    description: 'Conecta con otros profesionales farmacéuticos y comparte experiencias.',
+    description: 'Conecta con otros profesionales como tú y comparte experiencias.',
   },
   {
     icon: Trophy,
@@ -45,7 +45,7 @@ const features = [
   {
     icon: Building2,
     title: 'Farmacias en Venta',
-    description: 'Marketplace exclusivo para comprar o vender farmacias.',
+    description: 'Marketplace exclusivo para comprar farmacias o poner la tuya a la venta.',
   },
 ];
 
