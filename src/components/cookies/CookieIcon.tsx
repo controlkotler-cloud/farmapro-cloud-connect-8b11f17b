@@ -17,12 +17,16 @@ export const CookieIcon = () => {
           <Button
             onClick={openSettings}
             size="sm"
-            className="fixed bottom-4 right-4 z-40 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+            className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 touch-manipulation select-none"
+            style={{ 
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation'
+            }}
           >
             <Cookie className="h-5 w-5" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="left">
+        <TooltipContent side="left" className="hidden md:block">
           <p>Configurar cookies</p>
         </TooltipContent>
       </Tooltip>
