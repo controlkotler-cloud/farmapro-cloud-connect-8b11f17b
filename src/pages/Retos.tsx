@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -178,18 +177,35 @@ const Retos = () => {
   };
 
   const getNextLevelProgress = () => {
-    const pointsForCurrentLevel = (userStats.level - 1) * 1000;
-    const pointsForNextLevel = userStats.level * 1000;
-    const currentLevelPoints = userStats.totalPoints - pointsForCurrentLevel;
-    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel;
+    if (userStats.totalPoints === 0) return 0;
     
-    if (pointsNeededForLevel <= 0) return 100;
-    return Math.min((currentLevelPoints / pointsNeededForLevel) * 100, 100);
+    // Each level requires 1000 points
+    const pointsInCurrentLevel = userStats.totalPoints % 1000;
+    const progressPercentage = (pointsInCurrentLevel / 1000) * 100;
+    
+    console.log('Retos progress calculation:', {
+      totalPoints: userStats.totalPoints,
+      level: userStats.level,
+      pointsInCurrentLevel,
+      progressPercentage
+    });
+    
+    return progressPercentage;
   };
 
   const getPointsToNextLevel = () => {
-    const pointsForNextLevel = userStats.level * 1000;
-    return Math.max(0, pointsForNextLevel - userStats.totalPoints);
+    if (userStats.totalPoints === 0) return 1000;
+    
+    const pointsInCurrentLevel = userStats.totalPoints % 1000;
+    const pointsNeeded = 1000 - pointsInCurrentLevel;
+    
+    console.log('Retos points to next level:', {
+      totalPoints: userStats.totalPoints,
+      pointsInCurrentLevel,
+      pointsNeeded
+    });
+    
+    return pointsNeeded;
   };
 
   return (

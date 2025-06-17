@@ -109,18 +109,35 @@ export const useDashboard = () => {
   };
 
   const getNextLevelProgress = () => {
-    const pointsForCurrentLevel = (stats.level - 1) * 1000;
-    const pointsForNextLevel = stats.level * 1000;
-    const currentLevelPoints = stats.totalPoints - pointsForCurrentLevel;
-    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel;
+    if (stats.totalPoints === 0) return 0;
     
-    if (pointsNeededForLevel <= 0) return 100;
-    return Math.min((currentLevelPoints / pointsNeededForLevel) * 100, 100);
+    // Each level requires 1000 points
+    const pointsInCurrentLevel = stats.totalPoints % 1000;
+    const progressPercentage = (pointsInCurrentLevel / 1000) * 100;
+    
+    console.log('Progress calculation:', {
+      totalPoints: stats.totalPoints,
+      level: stats.level,
+      pointsInCurrentLevel,
+      progressPercentage
+    });
+    
+    return progressPercentage;
   };
 
   const getPointsToNextLevel = () => {
-    const pointsForNextLevel = stats.level * 1000;
-    return Math.max(0, pointsForNextLevel - stats.totalPoints);
+    if (stats.totalPoints === 0) return 1000;
+    
+    const pointsInCurrentLevel = stats.totalPoints % 1000;
+    const pointsNeeded = 1000 - pointsInCurrentLevel;
+    
+    console.log('Points to next level:', {
+      totalPoints: stats.totalPoints,
+      pointsInCurrentLevel,
+      pointsNeeded
+    });
+    
+    return pointsNeeded;
   };
 
   return {
