@@ -399,6 +399,8 @@ export type Database = {
           id: string
           is_read: boolean | null
           message: string
+          target_id: string | null
+          target_url: string | null
           title: string
           type: string
           user_id: string | null
@@ -408,6 +410,8 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message: string
+          target_id?: string | null
+          target_url?: string | null
           title: string
           type: string
           user_id?: string | null
@@ -417,6 +421,8 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string
+          target_id?: string | null
+          target_url?: string | null
           title?: string
           type?: string
           user_id?: string | null
@@ -752,6 +758,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_notification_settings: {
+        Row: {
+          created_at: string
+          email_community: boolean
+          email_courses: boolean
+          email_promotions: boolean
+          id: string
+          push_notifications: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_community?: boolean
+          email_courses?: boolean
+          email_promotions?: boolean
+          id?: string
+          push_notifications?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_community?: boolean
+          email_courses?: boolean
+          email_promotions?: boolean
+          id?: string
+          push_notifications?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_points: {
         Row: {

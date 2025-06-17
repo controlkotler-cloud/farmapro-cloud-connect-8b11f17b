@@ -36,7 +36,16 @@ export const useNotifications = () => {
         .limit(10);
 
       if (error) throw error;
-      setNotifications(data || []);
+      
+      // Transformar los datos para asegurar que el tipo sea válido
+      const transformedData: Notification[] = (data || []).map(notification => ({
+        ...notification,
+        type: ['course', 'forum', 'resource', 'challenge', 'general'].includes(notification.type) 
+          ? notification.type as 'course' | 'forum' | 'resource' | 'challenge' | 'general'
+          : 'general'
+      }));
+      
+      setNotifications(transformedData);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -106,13 +115,20 @@ export const useNotifications = () => {
           filter: `user_id=eq.${user?.id}`,
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
+          const newNotification = payload.new as any;
+          const transformedNotification: Notification = {
+            ...newNotification,
+            type: ['course', 'forum', 'resource', 'challenge', 'general'].includes(newNotification.type) 
+              ? newNotification.type as 'course' | 'forum' | 'resource' | 'challenge' | 'general'
+              : 'general'
+          };
+          
+          setNotifications(prev => [transformedNotification, ...prev]);
           
           // Mostrar toast para nueva notificación
           toast({
-            title: newNotification.title,
-            description: newNotification.message,
+            title: transformedNotification.title,
+            description: transformedNotification.message,
           });
         }
       )

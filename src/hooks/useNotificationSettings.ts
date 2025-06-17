@@ -30,10 +30,11 @@ export const useNotificationSettings = () => {
         .from('user_notification_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-        throw error;
+        console.error('Error fetching notification settings:', error);
+        return;
       }
 
       if (data) {
@@ -66,7 +67,11 @@ export const useNotificationSettings = () => {
           push_notifications: newSettings.push_notifications,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving notification settings:', error);
+        toast.error('Error al guardar la configuración de notificaciones');
+        return;
+      }
 
       setSettings(newSettings);
       toast.success('Configuración de notificaciones guardada correctamente');
