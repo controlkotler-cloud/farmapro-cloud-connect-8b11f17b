@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,15 @@ interface Event {
   is_featured: boolean;
   created_at: string;
 }
+
+const eventTypes = [
+  { id: 'all', name: 'Todos' },
+  { id: 'webinar', name: 'Webinars' },
+  { id: 'conferencia', name: 'Conferencias' },
+  { id: 'workshop', name: 'Workshops' },
+  { id: 'feria', name: 'Ferias' },
+  { id: 'curso', name: 'Cursos' }
+];
 
 const Eventos = () => {
   const [events, setEvents] = useState<Event[]>([]);
