@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,11 +83,12 @@ const Retos = () => {
 
     console.log('Loading user stats for retos page, user:', profile.id);
 
+    // Get user points
     const { data: pointsData, error: pointsError } = await supabase
       .from('user_points')
       .select('total_points, level')
       .eq('user_id', profile.id)
-      .single();
+      .maybeSingle();
 
     if (pointsError) {
       console.error('Error fetching user points:', pointsError);
@@ -176,17 +178,17 @@ const Retos = () => {
   };
 
   const getNextLevelProgress = () => {
-    const pointsForCurrentLevel = userStats.level * 1000;
-    const pointsForPreviousLevel = (userStats.level - 1) * 1000;
-    const currentLevelPoints = userStats.totalPoints - pointsForPreviousLevel;
-    const pointsNeededForLevel = pointsForCurrentLevel - pointsForPreviousLevel;
+    const pointsForCurrentLevel = (userStats.level - 1) * 1000;
+    const pointsForNextLevel = userStats.level * 1000;
+    const currentLevelPoints = userStats.totalPoints - pointsForCurrentLevel;
+    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel;
     
     if (pointsNeededForLevel <= 0) return 100;
     return Math.min((currentLevelPoints / pointsNeededForLevel) * 100, 100);
   };
 
   const getPointsToNextLevel = () => {
-    const pointsForNextLevel = (userStats.level + 1) * 1000;
+    const pointsForNextLevel = userStats.level * 1000;
     return Math.max(0, pointsForNextLevel - userStats.totalPoints);
   };
 
@@ -282,7 +284,7 @@ const Retos = () => {
             <Progress value={getNextLevelProgress()} className="h-3" />
             <div className="flex justify-between text-xs text-indigo-600">
               <span>{userStats.totalPoints} pts actuales</span>
-              <span>{(userStats.level + 1) * 1000} pts objetivo</span>
+              <span>{userStats.level * 1000} pts objetivo</span>
             </div>
           </div>
         </CardContent>

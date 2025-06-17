@@ -32,7 +32,7 @@ export const Dashboard = () => {
     console.log('Loading user stats for user:', profile.id);
 
     try {
-      // Get user points - usar maybeSingle en lugar de single
+      // Get user points
       const { data: points, error: pointsError } = await supabase
         .from('user_points')
         .select('total_points, level')
@@ -97,10 +97,10 @@ export const Dashboard = () => {
   };
 
   const getNextLevelProgress = () => {
-    const pointsForCurrentLevel = (stats.level - 1) * 1000; // Puntos necesarios para el nivel actual
-    const pointsForNextLevel = stats.level * 1000; // Puntos necesarios para el siguiente nivel
-    const currentLevelPoints = stats.totalPoints - pointsForCurrentLevel; // Puntos ganados en el nivel actual
-    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel; // Total de puntos necesarios para pasar al siguiente nivel
+    const pointsForCurrentLevel = (stats.level - 1) * 1000;
+    const pointsForNextLevel = stats.level * 1000;
+    const currentLevelPoints = stats.totalPoints - pointsForCurrentLevel;
+    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel;
     
     if (pointsNeededForLevel <= 0) return 100;
     return Math.min((currentLevelPoints / pointsNeededForLevel) * 100, 100);
