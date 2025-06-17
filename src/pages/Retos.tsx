@@ -179,33 +179,30 @@ const Retos = () => {
   const getNextLevelProgress = () => {
     if (userStats.totalPoints === 0) return 0;
     
-    // Each level requires 1000 points
-    const pointsInCurrentLevel = userStats.totalPoints % 1000;
-    const progressPercentage = (pointsInCurrentLevel / 1000) * 100;
+    // Si tienes 100 puntos, deberías tener 10% de progreso hacia el nivel 2
+    const progressPercentage = (userStats.totalPoints / 1000) * 100;
     
     console.log('Retos progress calculation:', {
       totalPoints: userStats.totalPoints,
       level: userStats.level,
-      pointsInCurrentLevel,
-      progressPercentage
+      progressPercentage: Math.min(progressPercentage, 100)
     });
     
-    return progressPercentage;
+    return Math.min(progressPercentage, 100);
   };
 
   const getPointsToNextLevel = () => {
     if (userStats.totalPoints === 0) return 1000;
     
-    const pointsInCurrentLevel = userStats.totalPoints % 1000;
-    const pointsNeeded = 1000 - pointsInCurrentLevel;
+    // Si tienes 100 puntos, te faltan 900 para el nivel 2
+    const pointsNeeded = 1000 - userStats.totalPoints;
     
     console.log('Retos points to next level:', {
       totalPoints: userStats.totalPoints,
-      pointsInCurrentLevel,
-      pointsNeeded
+      pointsNeeded: Math.max(pointsNeeded, 0)
     });
     
-    return pointsNeeded;
+    return Math.max(pointsNeeded, 0);
   };
 
   return (
