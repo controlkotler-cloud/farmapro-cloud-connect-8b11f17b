@@ -1,11 +1,10 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, BookOpen } from 'lucide-react';
 import { CourseHeader } from '@/components/course/CourseHeader';
 import { ModuleCard } from '@/components/course/ModuleCard';
 import { ModuleContent } from '@/components/course/ModuleContent';
@@ -124,6 +123,10 @@ const CourseView = () => {
     }
   };
 
+  const goToQuiz = () => {
+    window.location.href = `/curso/${courseId}/quiz`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -194,13 +197,24 @@ const CourseView = () => {
             </div>
           )}
 
-          {/* Complete Course Button */}
-          {isEnrolled && !isCompleted && currentModuleIndex === modules.length - 1 && (
-            <div className="mt-6 text-center">
-              <Button onClick={markAsCompleted} size="lg" className="bg-green-600 hover:bg-green-700">
-                <CheckCircle className="h-5 w-5 mr-2" />
-                Marcar curso como completado
-              </Button>
+          {/* Action Buttons */}
+          {isEnrolled && (
+            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+              {/* Quiz Button - available after completing all modules */}
+              {currentModuleIndex === modules.length - 1 && (
+                <Button onClick={goToQuiz} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Realizar Quiz Final
+                </Button>
+              )}
+
+              {/* Complete Course Button - available after quiz */}
+              {!isCompleted && currentModuleIndex === modules.length - 1 && (
+                <Button onClick={markAsCompleted} size="lg" className="bg-green-600 hover:bg-green-700">
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Marcar como completado
+                </Button>
+              )}
             </div>
           )}
         </div>

@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,6 +22,7 @@ import Eventos from "./pages/Eventos";
 import Promociones from "./pages/Promociones";
 import Perfil from "./pages/Perfil";
 import CourseView from "./pages/CourseView";
+import CourseQuizView from "./pages/CourseQuizView";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,11 @@ const AppRoutes = () => {
       <Route path="/curso/:courseId" element={
         <ProtectedRoute>
           <CourseView />
+        </ProtectedRoute>
+      } />
+      <Route path="/curso/:courseId/quiz" element={
+        <ProtectedRoute>
+          <CourseQuizView />
         </ProtectedRoute>
       } />
       <Route path="/recursos" element={
