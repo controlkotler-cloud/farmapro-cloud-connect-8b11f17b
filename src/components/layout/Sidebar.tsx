@@ -123,21 +123,24 @@ export const Sidebar = () => {
 
       {/* Plan Banner */}
       <div className="p-4 border-t border-gray-200">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className={`p-3 rounded-lg text-white text-center ${getPlanColor(profile?.subscription_role || 'freemium')}`}
-        >
-          {!collapsed ? (
-            <div>
-              <p className="text-sm font-medium">Plan Actual</p>
-              <p className="text-lg font-bold">{getPlanLabel(profile?.subscription_role || 'freemium')}</p>
-            </div>
-          ) : (
-            <div className="text-xs font-bold">
-              {getPlanLabel(profile?.subscription_role || 'freemium').charAt(0)}
-            </div>
-          )}
-        </motion.div>
+        <Link to="/subscription">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className={`p-3 rounded-lg text-white text-center cursor-pointer transition-all ${getPlanColor(profile?.subscription_role || 'freemium')}`}
+          >
+            {!collapsed ? (
+              <div>
+                <p className="text-sm font-medium">Plan Actual</p>
+                <p className="text-lg font-bold">{getPlanLabel(profile?.subscription_role || 'freemium')}</p>
+                <p className="text-xs opacity-90 mt-1">Click para gestionar</p>
+              </div>
+            ) : (
+              <div className="text-xs font-bold">
+                {getPlanLabel(profile?.subscription_role || 'freemium').charAt(0)}
+              </div>
+            )}
+          </motion.div>
+        </Link>
       </div>
     </motion.div>
   );

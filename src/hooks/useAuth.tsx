@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +25,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         await loadProfile(session.user.id);
+        // Check subscription status on login
+        await checkSubscriptionStatus();
       }
       setLoading(false);
     };
@@ -37,6 +38,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         await loadProfile(session.user.id);
+        // Check subscription status on auth state change
+        await checkSubscriptionStatus();
       } else {
         setProfile(null);
       }
@@ -53,6 +56,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .eq('id', userId)
       .single();
     setProfile(data);
+  };
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      await supabase.functions.invoke('check-subscription');
+      // Reload profile after checking subscription
+      if (user) {
+        await loadProfile(user.id);
+      }
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+    }
   };
 
   const signIn = async (email: string, password: string) => {

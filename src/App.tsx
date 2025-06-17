@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +10,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Dashboard } from "@/pages/Dashboard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { Subscription } from "@/components/subscription/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +46,11 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/subscription" element={
+        <ProtectedRoute>
+          <Subscription />
         </ProtectedRoute>
       } />
       <Route path="/formacion" element={
