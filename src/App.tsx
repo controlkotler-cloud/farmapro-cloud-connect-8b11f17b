@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Dashboard } from "@/pages/Dashboard";
+import { CookieManager } from "@/components/cookies/CookieManager";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Subscription from "./pages/Subscription";
@@ -131,6 +132,7 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <AppRoutes />
+          <CookieManager />
           <Toaster />
           <Sonner />
         </BrowserRouter>
