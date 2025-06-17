@@ -133,17 +133,17 @@ const Index = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              El portal de desarrollo profesional para 
+              El portal para la farmacia
               <span className="bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent"> farmacéuticos</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Únete a la comunidad líder de profesionales farmacéuticos. Accede a formación especializada, 
-              recursos exclusivos y conecta con otros expertos del sector.
+              Únete a la comunidad líder para farmacias. Accede a formación especializada, 
+              recursos exclusivos y conecta con otros usuarios como tú.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/login">
                 <Button size="lg" className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-lg px-8 py-3">
-                  Comenzar Prueba Gratuita
+                  Empieza tu prueba gratuita
                 </Button>
               </Link>
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
@@ -159,10 +159,10 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Todo lo que necesitas para destacar en tu carrera farmacéutica
+              Todo lo que necesitas para mejorar dia a dia.
             </h2>
             <p className="text-xl text-gray-600">
-              Herramientas diseñadas específicamente para profesionales del sector farmacéutico
+              Herramientas diseñadas específicamente para profesionales como tú
             </p>
           </div>
           
@@ -199,7 +199,7 @@ const Index = () => {
               Elige el plan que mejor se adapte a ti
             </h2>
             <p className="text-xl text-gray-600">
-              Desde estudiantes hasta titulares de farmacia, tenemos el plan perfecto para cada profesional
+              Desde estudiantes hasta titulares de farmacia, tenemos el plan perfecto para cada uno.
             </p>
           </div>
 
@@ -258,10 +258,10 @@ const Index = () => {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-4xl font-bold text-white mb-6">
-              ¿Listo para llevar tu carrera farmacéutica al siguiente nivel?
+              ¿Listo para entrar en un ecosistema único en el sector?
             </h2>
             <p className="text-xl text-green-100 mb-8">
-              Únete a miles de profesionales que ya están transformando su práctica farmacéutica
+              Únete a miles de profesionales que ya están transformando su día a día.
             </p>
             <Link to="/login">
               <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 text-lg px-8 py-3">
@@ -282,7 +282,7 @@ const Index = () => {
                 <img src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" alt="farmapro" className="h-6" />
               </div>
               <p className="text-gray-400">
-                La plataforma líder para el desarrollo profesional farmacéutico
+                La plataforma líder para el desarrollo de toda la farmacia.
               </p>
             </div>
             
