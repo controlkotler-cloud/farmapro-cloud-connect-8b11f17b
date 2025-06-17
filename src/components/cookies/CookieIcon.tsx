@@ -7,15 +7,28 @@ import { useCookieConsent } from '@/hooks/useCookieConsent';
 export const CookieIcon = () => {
   const { openSettings, hasConsent } = useCookieConsent();
 
+  console.log('CookieIcon - hasConsent result:', hasConsent());
+  console.log('CookieIcon - localStorage cookie consent:', localStorage.getItem('farmapro_cookie_consent'));
+
   // Solo mostrar el icono si ya se ha dado consentimiento (al menos una vez)
-  if (!hasConsent()) return null;
+  if (!hasConsent()) {
+    console.log('CookieIcon - Not showing icon because no consent given yet');
+    return null;
+  }
+
+  console.log('CookieIcon - Rendering cookie icon');
+
+  const handleClick = () => {
+    console.log('CookieIcon - Button clicked, calling openSettings');
+    openSettings();
+  };
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            onClick={openSettings}
+            onClick={handleClick}
             size="sm"
             className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 touch-manipulation select-none"
             style={{ 

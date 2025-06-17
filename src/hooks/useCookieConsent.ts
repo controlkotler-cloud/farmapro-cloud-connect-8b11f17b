@@ -21,19 +21,28 @@ export const useCookieConsent = () => {
   });
 
   useEffect(() => {
+    console.log('useCookieConsent - useEffect running');
     const hasConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
     const savedPreferences = localStorage.getItem(COOKIE_PREFERENCES_KEY);
     
+    console.log('useCookieConsent - hasConsent from localStorage:', hasConsent);
+    console.log('useCookieConsent - savedPreferences:', savedPreferences);
+    
     if (!hasConsent) {
+      console.log('useCookieConsent - No consent found, showing banner');
       setShowBanner(true);
+    } else {
+      console.log('useCookieConsent - Consent found, not showing banner');
     }
     
     if (savedPreferences) {
+      console.log('useCookieConsent - Loading saved preferences');
       setPreferences(JSON.parse(savedPreferences));
     }
   }, []);
 
   const acceptAll = () => {
+    console.log('useCookieConsent - acceptAll called');
     const allAccepted: CookiePreferences = {
       necessary: true,
       analytics: true,
@@ -44,9 +53,11 @@ export const useCookieConsent = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(allAccepted));
     setShowBanner(false);
+    console.log('useCookieConsent - acceptAll completed');
   };
 
   const acceptNecessary = () => {
+    console.log('useCookieConsent - acceptNecessary called');
     const necessaryOnly: CookiePreferences = {
       necessary: true,
       analytics: false,
@@ -57,23 +68,35 @@ export const useCookieConsent = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(necessaryOnly));
     setShowBanner(false);
+    console.log('useCookieConsent - acceptNecessary completed');
   };
 
   const savePreferences = (newPreferences: CookiePreferences) => {
+    console.log('useCookieConsent - savePreferences called with:', newPreferences);
     const finalPreferences = { ...newPreferences, necessary: true };
     setPreferences(finalPreferences);
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(finalPreferences));
     setShowBanner(false);
+    console.log('useCookieConsent - savePreferences completed');
   };
 
   const openSettings = () => {
+    console.log('useCookieConsent - openSettings called');
     setShowBanner(true);
   };
 
   const hasConsent = () => {
-    return localStorage.getItem(COOKIE_CONSENT_KEY) === 'true';
+    const result = localStorage.getItem(COOKIE_CONSENT_KEY) === 'true';
+    console.log('useCookieConsent - hasConsent check result:', result);
+    return result;
   };
+
+  console.log('useCookieConsent - Current state:', {
+    showBanner,
+    preferences,
+    hasConsent: hasConsent()
+  });
 
   return {
     showBanner,
