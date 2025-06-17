@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useModuleProgress } from '@/hooks/useModuleProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +19,14 @@ const CourseView = () => {
   const [loading, setLoading] = useState(true);
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const moduleContentRef = useRef<HTMLDivElement>(null);
+
+  // Hook para gestionar progreso de módulos
+  const {
+    isModuleCompleted,
+    markModuleAsCompleted,
+    getCompletionPercentage,
+    loading: progressLoading
+  } = useModuleProgress(courseId || '');
 
   useEffect(() => {
     if (courseId) {
@@ -85,6 +94,39 @@ const CourseView = () => {
     }
   };
 
+  const handleCompleteModule = async (moduleId: string) => {
+    await markModuleAsCompleted(moduleId);
+    
+    // Actualizar progreso del curso si es necesario
+    if (course && enrollment) {
+      const totalModules = course.course_modules?.length || 0;
+      const newProgress = getCompletionPercentage(totalModules);
+      
+      try {
+        await supabase
+          .from('course_enrollments')
+          .update({ progress: newProgress })
+          .eq('course_id', courseId)
+          .eq('user_id', profile?.id);
+      } catch (error) {
+        console.error('Error updating course progress:', error);
+      }
+    }
+  };
+
+  const handlePreviousModule = () => {
+    if (currentModuleIndex > 0) {
+      setCurrentModuleIndex(currentModuleIndex - 1);
+    }
+  };
+
+  const handleNextModule = () => {
+    const modules = course?.course_modules || [];
+    if (currentModuleIndex < modules.length - 1) {
+      setCurrentModuleIndex(currentModuleIndex + 1);
+    }
+  };
+
   const markAsCompleted = async () => {
     if (!profile?.id || !courseId) return;
 
@@ -127,7 +169,7 @@ const CourseView = () => {
     window.location.href = `/curso/${courseId}/quiz`;
   };
 
-  if (loading) {
+  if (loading || progressLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">Cargando curso...</div>
@@ -141,9 +183,9 @@ const CourseView = () => {
 
   const isEnrolled = !!enrollment;
   const isCompleted = enrollment?.completed_at !== null;
-  const progress = enrollment?.progress || 0;
   const modules = course.course_modules || [];
   const currentModule = modules[currentModuleIndex];
+  const moduleProgress = getCompletionPercentage(modules.length);
 
   return (
     <div className="space-y-6">
@@ -160,14 +202,17 @@ const CourseView = () => {
       {/* Course Header */}
       <CourseHeader course={course} isEnrolled={isEnrolled} isCompleted={isCompleted} />
 
-      {/* Progress Bar */}
+      {/* Progress Bar with module progress */}
       {isEnrolled && (
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Progreso del curso</span>
-            <span className="text-sm text-gray-600">{progress}%</span>
+            <span className="text-sm text-gray-600">{moduleProgress}%</span>
           </div>
-          <Progress value={progress} className="w-full" />
+          <Progress value={moduleProgress} className="w-full" />
+          <div className="mt-2 text-xs text-gray-500">
+            Módulos completados: {Array.from(new Set(modules.map(m => m.id).filter(id => isModuleCompleted(id)))).length} de {modules.length}
+          </div>
         </div>
       )}
 
@@ -175,13 +220,14 @@ const CourseView = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Modules Sidebar */}
         <div className="lg:col-span-1 space-y-4">
-          <h3 className="text-lg font-semibold">Módulos del curso</h3>
+          <h3 className="text-lg font-semibold">📚 Módulos del curso</h3>
           {modules.map((module, index) => (
             <ModuleCard
               key={module.id}
               module={module}
               index={index}
               isActive={index === currentModuleIndex}
+              isCompleted={isModuleCompleted(module.id)}
               onClick={() => setCurrentModuleIndex(index)}
             />
           ))}
@@ -190,7 +236,17 @@ const CourseView = () => {
         {/* Module Content */}
         <div className="lg:col-span-2" ref={moduleContentRef}>
           {currentModule ? (
-            <ModuleContent module={currentModule} moduleIndex={currentModuleIndex} />
+            <ModuleContent 
+              module={currentModule} 
+              moduleIndex={currentModuleIndex}
+              totalModules={modules.length}
+              isCompleted={isModuleCompleted(currentModule.id)}
+              onPrevious={handlePreviousModule}
+              onNext={handleNextModule}
+              onComplete={() => handleCompleteModule(currentModule.id)}
+              canGoNext={currentModuleIndex < modules.length - 1}
+              canGoPrevious={currentModuleIndex > 0}
+            />
           ) : (
             <div className="bg-white p-8 rounded-lg shadow text-center">
               <p className="text-gray-600">No hay módulos disponibles para este curso.</p>
@@ -201,18 +257,18 @@ const CourseView = () => {
           {isEnrolled && (
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
               {/* Quiz Button - available after completing all modules */}
-              {currentModuleIndex === modules.length - 1 && (
+              {currentModuleIndex === modules.length - 1 && modules.every(m => isModuleCompleted(m.id)) && (
                 <Button onClick={goToQuiz} size="lg" className="bg-blue-600 hover:bg-blue-700">
                   <BookOpen className="h-5 w-5 mr-2" />
-                  Realizar Quiz Final
+                  🎯 Realizar Quiz Final
                 </Button>
               )}
 
               {/* Complete Course Button - available after quiz */}
-              {!isCompleted && currentModuleIndex === modules.length - 1 && (
+              {!isCompleted && modules.every(m => isModuleCompleted(m.id)) && (
                 <Button onClick={markAsCompleted} size="lg" className="bg-green-600 hover:bg-green-700">
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  Marcar como completado
+                  🏆 Marcar como completado
                 </Button>
               )}
             </div>
