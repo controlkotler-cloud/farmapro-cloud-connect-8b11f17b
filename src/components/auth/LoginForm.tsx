@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -74,6 +75,34 @@ export const LoginForm = () => {
     setLoading(false);
   };
 
+  const handlePasswordReset = async () => {
+    if (!email) {
+      toast({
+        title: "Email requerido",
+        description: "Por favor, introduce tu email para restablecer la contraseña",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Email enviado",
+        description: "Revisa tu email para restablecer tu contraseña",
+      });
+    }
+  };
+
   const toggleMode = () => {
     setIsRegistering(!isRegistering);
     // Limpiar campos al cambiar de modo
@@ -111,9 +140,11 @@ export const LoginForm = () => {
             <CardTitle className="text-2xl font-bold text-gray-900">
               {isRegistering ? 'Registro' : 'Accede a tu cuenta'}
             </CardTitle>
-            <CardDescription>
-              {isRegistering ? 'Crea tu cuenta profesional' : 'Inicia sesión en tu cuenta profesional'}
-            </CardDescription>
+            {isRegistering && (
+              <CardDescription>
+                Crea tu cuenta profesional
+              </CardDescription>
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -193,6 +224,18 @@ export const LoginForm = () => {
                 }
               </Button>
             </form>
+            
+            {!isRegistering && (
+              <div className="mt-4 text-center">
+                <Button
+                  variant="link"
+                  onClick={handlePasswordReset}
+                  className="text-gray-600 hover:text-gray-700 p-0 h-auto text-sm"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </div>
+            )}
             
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
