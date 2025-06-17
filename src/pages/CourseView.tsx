@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle, Target, Trophy, Gift } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Star, Award, AlertTriangle, Target, Trophy, Gift, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import CourseQuiz from '@/components/course/CourseQuiz';
@@ -378,6 +378,17 @@ const CourseView = () => {
     }
   };
 
+  const formatCompletionDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const progressPercentage = enrollment?.progress || 0;
   const isCourseCompleted = enrollment?.completed_at !== null;
 
@@ -529,6 +540,25 @@ const CourseView = () => {
           )}
         </div>
       </div>
+
+      {/* Course Completion Status - New section */}
+      {isCourseCompleted && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-center space-x-4">
+              <Award className="h-8 w-8 text-green-600" />
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-green-800">¡Curso Completado!</h3>
+                <div className="flex items-center justify-center space-x-2 text-sm text-green-700 mt-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>Completado el {formatCompletionDate(enrollment?.completed_at || '')}</span>
+                </div>
+                <p className="text-sm text-green-600 mt-1">Puedes volver a revisar el contenido cuando quieras</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Course Info */}
       <Card className={isCourseCompleted ? 'border-green-200 bg-green-50' : ''}>

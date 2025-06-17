@@ -164,16 +164,18 @@ const Retos = () => {
   };
 
   const getNextLevelProgress = () => {
-    const pointsForNextLevel = userStats.level * 1000;
-    const currentLevelPoints = userStats.totalPoints % 1000;
-    const progressPercentage = (currentLevelPoints / pointsForNextLevel) * 100;
-    return Math.min(progressPercentage, 100);
+    const pointsForCurrentLevel = userStats.level * 1000;
+    const pointsForPreviousLevel = (userStats.level - 1) * 1000;
+    const currentLevelPoints = userStats.totalPoints - pointsForPreviousLevel;
+    const pointsNeededForLevel = pointsForCurrentLevel - pointsForPreviousLevel;
+    
+    if (pointsNeededForLevel <= 0) return 100;
+    return Math.min((currentLevelPoints / pointsNeededForLevel) * 100, 100);
   };
 
   const getPointsToNextLevel = () => {
-    const pointsForNextLevel = userStats.level * 1000;
-    const currentLevelPoints = userStats.totalPoints % 1000;
-    return pointsForNextLevel - currentLevelPoints;
+    const pointsForNextLevel = (userStats.level + 1) * 1000;
+    return Math.max(0, pointsForNextLevel - userStats.totalPoints);
   };
 
   return (
@@ -183,76 +185,96 @@ const Retos = () => {
         <p className="text-gray-600">Completa desafíos y gana puntos para subir de nivel</p>
       </div>
 
-      {/* User Stats - Updated with level info */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <Card>
+      {/* User Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Trophy className="h-8 w-8 text-yellow-600" />
+              <div className="p-3 bg-yellow-100 rounded-lg">
+                <Trophy className="h-8 w-8 text-yellow-600" />
+              </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Puntos Totales</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.totalPoints}</p>
+                <p className="text-sm font-medium text-yellow-700">Puntos Totales</p>
+                <p className="text-2xl font-bold text-yellow-900">{userStats.totalPoints}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Star className="h-8 w-8 text-blue-600" />
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Star className="h-8 w-8 text-blue-600" />
+              </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Nivel Actual</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.level}</p>
+                <p className="text-sm font-medium text-blue-700">Nivel Actual</p>
+                <p className="text-2xl font-bold text-blue-900">{userStats.level}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="p-3 bg-green-100 rounded-lg">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Retos Completados</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.completedChallenges}</p>
+                <p className="text-sm font-medium text-green-700">Retos Completados</p>
+                <p className="text-2xl font-bold text-green-900">{userStats.completedChallenges}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Clock className="h-8 w-8 text-purple-600" />
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Clock className="h-8 w-8 text-purple-600" />
+              </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Rachas Activas</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.activeStreaks}</p>
+                <p className="text-sm font-medium text-purple-700">Rachas Activas</p>
+                <p className="text-2xl font-bold text-purple-900">{userStats.activeStreaks}</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Level Progress Card */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center mb-3">
-              <TrendingUp className="h-8 w-8 text-indigo-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Progreso de Nivel</p>
-                <p className="text-lg font-bold text-gray-900">Nivel {userStats.level}</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>{userStats.totalPoints % 1000} pts</span>
-                <span>{getPointsToNextLevel()} pts restantes</span>
-              </div>
-              <Progress value={getNextLevelProgress()} className="h-2" />
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Level Progress Card - Full width */}
+      <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <div className="p-3 bg-indigo-100 rounded-lg mr-4">
+                <TrendingUp className="h-8 w-8 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-indigo-900">Progreso de Nivel</h3>
+                <p className="text-indigo-700">Nivel {userStats.level}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-indigo-600">Faltan {getPointsToNextLevel()} puntos</p>
+              <p className="text-lg font-bold text-indigo-900">para Nivel {userStats.level + 1}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-indigo-700">
+              <span>Nivel {userStats.level}</span>
+              <span>Nivel {userStats.level + 1}</span>
+            </div>
+            <Progress value={getNextLevelProgress()} className="h-3" />
+            <div className="flex justify-between text-xs text-indigo-600">
+              <span>{userStats.totalPoints} pts actuales</span>
+              <span>{(userStats.level + 1) * 1000} pts objetivo</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Challenges */}
       <div className="space-y-4">
@@ -275,6 +297,7 @@ const Retos = () => {
               const progress = getProgressForChallenge(challenge.id);
               const completed = isCompleted(challenge.id);
               const progressPercentage = getProgressPercentage(challenge);
+              const hasProgress = progress && progress.current_count > 0;
 
               return (
                 <motion.div
@@ -322,7 +345,7 @@ const Retos = () => {
                           </Button>
                         ) : (
                           <div className="text-sm text-gray-600">
-                            {progressPercentage > 0 ? 
+                            {hasProgress ? 
                               `¡Vas por buen camino! ${Math.round(progressPercentage)}% completado` :
                               'Comienza este reto completando las actividades relacionadas'
                             }
