@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -95,10 +96,10 @@ export const Dashboard = () => {
       >
         <Card className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))/90] text-white">
           <CardHeader>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-2xl text-white">
               ¡Bienvenido de nuevo, {profile?.full_name}!
             </CardTitle>
-            <CardDescription className="text-primary-foreground/90">
+            <CardDescription className="text-white/90">
               Continúa tu desarrollo profesional en el sector farmacéutico
             </CardDescription>
           </CardHeader>
@@ -106,14 +107,14 @@ export const Dashboard = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Trophy className="h-6 w-6 text-yellow-300" />
-                <span className="text-xl font-bold">Nivel {stats.level}</span>
+                <span className="text-xl font-bold text-white">Nivel {stats.level}</span>
               </div>
               <div className="flex-1 max-w-md">
-                <div className="flex justify-between text-sm mb-1">
+                <div className="flex justify-between text-sm mb-1 text-white">
                   <span>{stats.totalPoints} puntos</span>
                   <span>Siguiente nivel: {(stats.level + 1) * 1000}</span>
                 </div>
-                <Progress value={getNextLevelProgress()} className="h-2" />
+                <Progress value={getNextLevelProgress()} className="h-2 bg-white/20" />
               </div>
             </div>
           </CardContent>
