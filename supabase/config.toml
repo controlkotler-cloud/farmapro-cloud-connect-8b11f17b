@@ -49,10 +49,8 @@ jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 refresh_token_reuse_interval = 10
 enable_manual_linking = false
-# Habilitar protección contra contraseñas comprometidas
 enable_signup = true
 enable_anonymous_sign_ins = false
-# Protección contra contraseñas filtradas usando HaveIBeenPwned
 password_min_length = 6
 enable_leaked_password_protection = true
 
@@ -62,8 +60,7 @@ double_confirm_changes = true
 enable_confirmations = false
 secure_email_change_enabled = true
 enable_reauthentication = true
-# Reducir tiempo de expiración de OTP a 10 minutos (600 segundos) para mejor seguridad
-otp_exp = 600
+otp_exp = 3600
 
 [auth.sms]
 enable_signup = false
