@@ -11,7 +11,7 @@ interface UpcomingChallengesProps {
 export const UpcomingChallenges = ({ coursesCompleted, resourcesDownloaded }: UpcomingChallengesProps) => {
   console.log('UpcomingChallenges received coursesCompleted:', coursesCompleted);
   
-  const challenges = [
+  const allChallenges = [
     {
       title: "Estudiante Dedicado",
       description: "Completa 5 cursos",
@@ -35,6 +35,11 @@ export const UpcomingChallenges = ({ coursesCompleted, resourcesDownloaded }: Up
     }
   ];
 
+  // Filtrar solo los retos que no están completados y limitar a 3
+  const challenges = allChallenges
+    .filter(challenge => challenge.progress < challenge.target)
+    .slice(0, 3);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -48,18 +53,24 @@ export const UpcomingChallenges = ({ coursesCompleted, resourcesDownloaded }: Up
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {challenges.map((challenge, index) => (
-              <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                <div>
-                  <p className="font-medium">{challenge.title}</p>
-                  <p className="text-sm text-gray-600">{challenge.description}</p>
-                </div>
-                <div className="text-right">
-                  <Badge className="mb-1">{challenge.points} pts</Badge>
-                  <p className="text-xs text-gray-500">{challenge.progress}/{challenge.target}</p>
-                </div>
+            {challenges.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>¡Felicidades! Has completado todos los retos disponibles.</p>
               </div>
-            ))}
+            ) : (
+              challenges.map((challenge, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div>
+                    <p className="font-medium">{challenge.title}</p>
+                    <p className="text-sm text-gray-600">{challenge.description}</p>
+                  </div>
+                  <div className="text-right">
+                    <Badge className="mb-1">{challenge.points} pts</Badge>
+                    <p className="text-xs text-gray-500">{challenge.progress}/{challenge.target}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
