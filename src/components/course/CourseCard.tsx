@@ -36,6 +36,9 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
     return null;
   };
 
+  // Usar featured_image_url si está disponible, sino usar thumbnail_url
+  const imageUrl = course.featured_image_url || course.thumbnail_url || "/placeholder.svg";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -45,7 +48,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
       <Card className="h-full hover:shadow-lg transition-shadow">
         <div className="relative">
           <img 
-            src={course.thumbnail_url || "/placeholder.svg"} 
+            src={imageUrl} 
             alt={course.title}
             className="w-full h-48 object-cover rounded-t-lg"
           />
