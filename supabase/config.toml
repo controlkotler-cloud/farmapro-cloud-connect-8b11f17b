@@ -49,6 +49,12 @@ jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 refresh_token_reuse_interval = 10
 enable_manual_linking = false
+# Habilitar protección contra contraseñas comprometidas
+enable_signup = true
+enable_anonymous_sign_ins = false
+# Protección contra contraseñas filtradas usando HaveIBeenPwned
+password_min_length = 6
+enable_leaked_password_protection = true
 
 [auth.email]
 enable_signup = true
