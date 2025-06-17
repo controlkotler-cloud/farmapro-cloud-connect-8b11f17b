@@ -305,7 +305,7 @@ const CourseView = () => {
           }
 
           // Update challenge progress for course completion
-          await updateChallengeProgress(profile.id, 'course_completion', 1);
+          await updateChallengeProgress(profile.id, 'course_completed', 1);
           
           // Refresh subscription limits
           refreshLimits();
