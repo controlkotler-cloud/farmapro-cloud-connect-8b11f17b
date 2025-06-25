@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +31,7 @@ interface JobListing {
 }
 
 const AdminEmpleo = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const { toast } = useToast();
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +132,15 @@ const AdminEmpleo = () => {
   const onSubmit = async (values: any) => {
     if (!validateForm()) return;
 
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "Debes estar autenticado para crear ofertas",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setSubmitting(true);
       console.log('Saving job listing:', values);
@@ -169,7 +177,7 @@ const AdminEmpleo = () => {
           .from('job_listings')
           .insert([{
             ...jobData,
-            employer_id: '00000000-0000-0000-0000-000000000000' // Admin placeholder
+            employer_id: user.id // Usar el ID real del usuario autenticado
           }]);
         
         if (error) {
