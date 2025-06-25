@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, User, Mail, Calendar, Settings } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
@@ -28,6 +29,7 @@ const AdminUsuarios = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const { toast } = useToast();
 
   useEffect(() => {
     loadUsers();
@@ -42,6 +44,11 @@ const AdminUsuarios = () => {
 
     if (error) {
       console.error('Error loading users:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los usuarios",
+        variant: "destructive",
+      });
     } else {
       setUsers(data || []);
     }
@@ -56,8 +63,24 @@ const AdminUsuarios = () => {
 
     if (error) {
       console.error('Error updating user role:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el rol del usuario",
+        variant: "destructive",
+      });
     } else {
-      loadUsers(); // Reload users after update
+      toast({
+        title: "Éxito",
+        description: "Rol de usuario actualizado correctamente",
+      });
+      // Actualizar el usuario específico en el estado
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId 
+            ? { ...user, subscription_role: newRole }
+            : user
+        )
+      );
     }
   };
 

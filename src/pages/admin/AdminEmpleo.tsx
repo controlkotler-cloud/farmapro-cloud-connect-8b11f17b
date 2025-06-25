@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, MapPin, Calendar, Edit, Trash, Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobListing {
   id: string;
@@ -21,6 +22,7 @@ interface JobListing {
 const AdminEmpleo = () => {
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadJobs();
@@ -35,6 +37,11 @@ const AdminEmpleo = () => {
 
     if (error) {
       console.error('Error loading jobs:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las ofertas de empleo",
+        variant: "destructive",
+      });
     } else {
       setJobs(data || []);
     }
@@ -49,8 +56,24 @@ const AdminEmpleo = () => {
 
     if (error) {
       console.error('Error updating job status:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el estado de la oferta",
+        variant: "destructive",
+      });
     } else {
-      loadJobs();
+      toast({
+        title: "Éxito",
+        description: `Oferta ${!currentStatus ? 'activada' : 'desactivada'} correctamente`,
+      });
+      // Actualizar el trabajo específico en el estado
+      setJobs(prevJobs => 
+        prevJobs.map(job => 
+          job.id === jobId 
+            ? { ...job, is_active: !currentStatus }
+            : job
+        )
+      );
     }
   };
 
@@ -63,8 +86,18 @@ const AdminEmpleo = () => {
 
       if (error) {
         console.error('Error deleting job:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar la oferta",
+          variant: "destructive",
+        });
       } else {
-        loadJobs();
+        toast({
+          title: "Éxito",
+          description: "Oferta eliminada correctamente",
+        });
+        // Remover el trabajo del estado
+        setJobs(prevJobs => prevJobs.filter(job => job.id !== jobId));
       }
     }
   };
