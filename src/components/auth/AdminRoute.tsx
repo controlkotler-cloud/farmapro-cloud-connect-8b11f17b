@@ -34,13 +34,13 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redirect to dashboard if not admin
+  // Show access denied if not admin (but don't redirect to avoid losing context)
   if (profile?.subscription_role !== 'admin') {
-    console.log('AdminRoute - User is not admin, redirecting to dashboard');
+    console.log('AdminRoute - User is not admin, showing access denied');
     console.log('Current role:', profile?.subscription_role);
     
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             <strong className="font-bold">Acceso Denegado</strong>
@@ -50,18 +50,20 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
             Usuario: {user.email}<br/>
             Rol actual: {profile?.subscription_role || 'sin rol'}
           </p>
-          <button 
-            onClick={reloadProfile}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-          >
-            Recargar Perfil
-          </button>
-          <button 
-            onClick={() => window.location.href = '/dashboard'}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Ir al Dashboard
-          </button>
+          <div className="space-x-2">
+            <button 
+              onClick={reloadProfile}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Recargar Perfil
+            </button>
+            <button 
+              onClick={() => window.location.href = '/dashboard'}
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Ir al Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );

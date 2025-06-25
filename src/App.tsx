@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -52,6 +53,26 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   return <DashboardLayout>{children}</DashboardLayout>;
+};
+
+const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+    </div>;
+  }
+
+  if (!user) {
+    return <LoginForm />;
+  }
+
+  return (
+    <AdminRoute>
+      <DashboardLayout>{children}</DashboardLayout>
+    </AdminRoute>
+  );
 };
 
 const AppRoutes = () => {
@@ -128,21 +149,21 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      {/* Admin Routes - Only for admin users */}
+      {/* Admin Routes - Using the same DashboardLayout */}
       <Route path="/admin" element={
-        <AdminRoute>
+        <AdminProtectedRoute>
           <AdminDashboard />
-        </AdminRoute>
+        </AdminProtectedRoute>
       } />
       <Route path="/admin/cursos" element={
-        <AdminRoute>
+        <AdminProtectedRoute>
           <AdminCursos />
-        </AdminRoute>
+        </AdminProtectedRoute>
       } />
       <Route path="/admin/recursos" element={
-        <AdminRoute>
+        <AdminProtectedRoute>
           <AdminRecursos />
-        </AdminRoute>
+        </AdminProtectedRoute>
       } />
       
       {/* Páginas públicas */}
