@@ -2,7 +2,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, MessageSquare, Trophy, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface CommunityHeaderProps {
   userLevel: number;
@@ -11,64 +10,50 @@ interface CommunityHeaderProps {
 
 export const CommunityHeader = ({ userLevel, userPoints }: CommunityHeaderProps) => {
   return (
-    <div className="relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}></div>
-      </div>
-
-      <div className="relative px-6 py-16">
+    <div className="mb-8">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-100 rounded-lg p-8">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <div className="flex items-center justify-center mb-6">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 mr-4">
-                <Users className="h-12 w-12 text-white" />
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-blue-100 rounded-full p-3 mr-3">
+                <Users className="h-8 w-8 text-blue-600" />
               </div>
-              <h1 className="text-5xl font-bold text-white">
-                Comunidad <span className="text-yellow-300">farmapro</span>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Comunidad farmapro
               </h1>
             </div>
             
-            <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Conecta con miles de profesionales farmacéuticos, comparte experiencias y aprende juntos. 
-              Tu lugar para crecer profesionalmente.
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Conecta con profesionales farmacéuticos, comparte experiencias y aprende juntos
             </p>
 
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Card className="bg-white/20 backdrop-blur-sm border-white/30">
-                <CardContent className="p-4 flex items-center space-x-3">
-                  <Trophy className="h-6 w-6 text-yellow-300" />
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Card className="bg-white/80 border-gray-200">
+                <CardContent className="p-3 flex items-center space-x-2">
+                  <Trophy className="h-5 w-5 text-blue-600" />
                   <div className="text-left">
-                    <p className="text-white font-semibold">Nivel {userLevel}</p>
-                    <p className="text-blue-100 text-sm">Tu progreso</p>
+                    <p className="text-gray-900 font-medium text-sm">Nivel {userLevel}</p>
+                    <p className="text-gray-500 text-xs">Tu progreso</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/20 backdrop-blur-sm border-white/30">
-                <CardContent className="p-4 flex items-center space-x-3">
-                  <Sparkles className="h-6 w-6 text-yellow-300" />
+              <Card className="bg-white/80 border-gray-200">
+                <CardContent className="p-3 flex items-center space-x-2">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
                   <div className="text-left">
-                    <p className="text-white font-semibold">{userPoints} puntos</p>
-                    <p className="text-blue-100 text-sm">Experiencia acumulada</p>
+                    <p className="text-gray-900 font-medium text-sm">{userPoints} puntos</p>
+                    <p className="text-gray-500 text-xs">Experiencia</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Badge variant="secondary" className="bg-yellow-400 text-yellow-900 px-4 py-2 text-base font-semibold">
-                <MessageSquare className="h-4 w-4 mr-2" />
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 px-3 py-1">
+                <MessageSquare className="h-3 w-3 mr-1" />
                 Miembro Activo
               </Badge>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

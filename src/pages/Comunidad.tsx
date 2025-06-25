@@ -74,29 +74,27 @@ const Comunidad = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="space-y-8">
-        {/* Hero Header */}
-        <CommunityHeader 
-          userLevel={profile?.level || 1}
-          userPoints={profile?.total_points || 0}
-        />
+    <div className="space-y-6">
+      {/* Header Section */}
+      <CommunityHeader 
+        userLevel={profile?.level || 1}
+        userPoints={profile?.total_points || 0}
+      />
 
-        {/* Stats Section */}
-        <CommunityStats 
-          totalThreads={forumStats.totalThreads}
-          totalReplies={forumStats.totalReplies}
-          userForumPosts={forumStats.userForumPosts}
-          userLevel={profile?.level || 1}
-          userPoints={profile?.total_points || 0}
-        />
+      {/* Stats Section */}
+      <CommunityStats 
+        totalThreads={forumStats.totalThreads}
+        totalReplies={forumStats.totalReplies}
+        userForumPosts={forumStats.userForumPosts}
+        userLevel={profile?.level || 1}
+        userPoints={profile?.total_points || 0}
+      />
 
-        {/* Main Content */}
-        <CommunityContent 
-          onThreadClick={handleThreadClick}
-          onDataChange={loadForumStats}
-        />
-      </div>
+      {/* Main Content */}
+      <CommunityContent 
+        onThreadClick={handleThreadClick}
+        onDataChange={loadForumStats}
+      />
     </div>
   );
 };
