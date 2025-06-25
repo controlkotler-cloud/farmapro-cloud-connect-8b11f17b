@@ -77,26 +77,48 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
     });
   };
 
+  const isValidUrl = (string: string) => {
+    if (!string.trim()) return true; // Empty URL is valid
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate image URL only if it's not empty
+    if (formData.image_url.trim() && !isValidUrl(formData.image_url)) {
+      toast({
+        title: "Error",
+        description: "La URL de la imagen no es válida",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const promotionData = {
-        title: formData.title,
-        company_name: formData.company_name,
-        company_type: formData.company_type,
-        description: formData.description,
-        discount_details: formData.discount_details || null,
+        title: formData.title.trim(),
+        company_name: formData.company_name.trim(),
+        company_type: formData.company_type.trim(),
+        description: formData.description.trim(),
+        discount_details: formData.discount_details.trim() || null,
         is_active: formData.is_active,
         valid_until: formData.valid_until ? new Date(formData.valid_until).toISOString() : null,
-        terms_conditions: formData.terms_conditions || null,
-        image_url: formData.image_url || null
+        terms_conditions: formData.terms_conditions.trim() || null,
+        image_url: formData.image_url.trim() || null
       };
 
       let error;
 
       if (editingPromotion) {
+        console.log('Updating promotion with data:', promotionData);
         // Actualizar promoción existente
         const { error: updateError } = await supabase
           .from('promotions')
@@ -104,6 +126,7 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
           .eq('id', editingPromotion.id);
         error = updateError;
       } else {
+        console.log('Creating promotion with data:', promotionData);
         // Crear nueva promoción
         const { error: insertError } = await supabase
           .from('promotions')
@@ -139,13 +162,15 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
     }
   };
 
+  const handleDialogChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen && !editingPromotion) {
+      resetForm();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      setOpen(newOpen);
-      if (!newOpen && !editingPromotion) {
-        resetForm();
-      }
-    }}>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>
         {editingPromotion ? (
           <Button size="sm" variant="outline">
@@ -247,7 +272,7 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
                 type="url"
                 value={formData.image_url}
                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://..."
+                placeholder="https://ejemplo.com/imagen.jpg (opcional)"
               />
             </div>
           </div>
