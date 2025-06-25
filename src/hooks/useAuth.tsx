@@ -47,26 +47,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const checkSubscriptionStatus = async () => {
-    try {
-      // Solo verificar suscripción si el usuario NO es admin
-      if (profile?.subscription_role === 'admin') {
-        console.log('Usuario es admin, saltando verificación de suscripción');
-        return;
-      }
-      
-      await supabase.functions.invoke('check-subscription');
-      // Reload profile after checking subscription to get updated role
-      if (user) {
-        setTimeout(() => {
-          loadProfile(user.id);
-        }, 500); // Small delay to ensure database is updated
-      }
-    } catch (error) {
-      console.error('Error checking subscription status:', error);
-    }
-  };
-
   useEffect(() => {
     let mounted = true;
 
@@ -78,6 +58,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(session?.user ?? null);
           if (session?.user) {
             await loadProfile(session.user.id);
+            // Check subscription status on login
+            await checkSubscriptionStatus();
           }
           setLoading(false);
         }
@@ -98,21 +80,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (mounted) {
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Load profile first, then check subscription only if needed
-          await loadProfile(session.user.id);
-          
-          // Only check subscription for non-admin users and on sign_in event
           setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('subscription_role')
-              .eq('id', session.user.id)
-              .single();
-              
-            if (profileData?.subscription_role !== 'admin' && event === 'SIGNED_IN') {
-              await checkSubscriptionStatus();
-            }
-          }, 1000);
+            await loadProfile(session.user.id);
+            await checkSubscriptionStatus();
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -125,6 +96,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      await supabase.functions.invoke('check-subscription');
+      // Reload profile after checking subscription to get updated role
+      if (user) {
+        setTimeout(() => {
+          loadProfile(user.id);
+        }, 500); // Small delay to ensure database is updated
+      }
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
