@@ -36,11 +36,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+type ChallengeType = 'course_started' | 'course_completed' | 'forum_post' | 'forum_reply' | 'resource_downloaded' | 'community_engagement';
+
 interface Challenge {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: ChallengeType;
   points_reward: number;
   target_count: number;
   is_active: boolean;
@@ -59,12 +61,12 @@ interface ChallengeManagementProps {
 }
 
 const challengeTypes = [
-  { value: 'course_started', label: 'Curso Iniciado', icon: BookOpen, emoji: '📚' },
-  { value: 'course_completed', label: 'Curso Completado', icon: BookOpen, emoji: '🎓' },
-  { value: 'forum_post', label: 'Post en Foro', icon: MessageSquare, emoji: '💬' },
-  { value: 'forum_reply', label: 'Respuesta en Foro', icon: MessageSquare, emoji: '💭' },
-  { value: 'resource_downloaded', label: 'Recurso Descargado', icon: Gift, emoji: '📁' },
-  { value: 'community_engagement', label: 'Participación Comunitaria', icon: Users, emoji: '👥' }
+  { value: 'course_started' as ChallengeType, label: 'Curso Iniciado', icon: BookOpen, emoji: '📚' },
+  { value: 'course_completed' as ChallengeType, label: 'Curso Completado', icon: BookOpen, emoji: '🎓' },
+  { value: 'forum_post' as ChallengeType, label: 'Post en Foro', icon: MessageSquare, emoji: '💬' },
+  { value: 'forum_reply' as ChallengeType, label: 'Respuesta en Foro', icon: MessageSquare, emoji: '💭' },
+  { value: 'resource_downloaded' as ChallengeType, label: 'Recurso Descargado', icon: Gift, emoji: '📁' },
+  { value: 'community_engagement' as ChallengeType, label: 'Participación Comunitaria', icon: Users, emoji: '👥' }
 ];
 
 export const ChallengeManagement = ({ 
@@ -80,7 +82,7 @@ export const ChallengeManagement = ({
   const [challengeForm, setChallengeForm] = useState({
     name: '',
     description: '',
-    type: '',
+    type: '' as ChallengeType | '',
     points_reward: 100,
     target_count: 1,
     is_active: true
@@ -120,9 +122,9 @@ export const ChallengeManagement = ({
 
     try {
       if (editingChallenge) {
-        await onUpdateChallenge(editingChallenge.id, challengeForm);
+        await onUpdateChallenge(editingChallenge.id, challengeForm as Partial<Challenge>);
       } else {
-        await onCreateChallenge(challengeForm);
+        await onCreateChallenge(challengeForm as Omit<Challenge, 'id' | 'created_at'>);
       }
       setChallengeForm({
         name: '',
@@ -139,7 +141,7 @@ export const ChallengeManagement = ({
     }
   };
 
-  const getChallengeTypeInfo = (type: string) => {
+  const getChallengeTypeInfo = (type: ChallengeType) => {
     return challengeTypes.find(ct => ct.value === type) || { 
       label: type, 
       icon: Trophy, 
@@ -313,7 +315,7 @@ export const ChallengeManagement = ({
               <Label htmlFor="challengeType">Tipo de Reto *</Label>
               <Select 
                 value={challengeForm.type} 
-                onValueChange={(value) => setChallengeForm({ ...challengeForm, type: value })}
+                onValueChange={(value: ChallengeType) => setChallengeForm({ ...challengeForm, type: value })}
                 disabled={creating || updating}
               >
                 <SelectTrigger>

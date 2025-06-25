@@ -25,6 +25,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+type ChallengeType = 'course_started' | 'course_completed' | 'forum_post' | 'forum_reply' | 'resource_downloaded' | 'community_engagement';
+
 interface ChallengeProgress {
   id: string;
   user_id: string;
@@ -39,7 +41,7 @@ interface ChallengeProgress {
   };
   challenges?: {
     name: string;
-    type: string;
+    type: ChallengeType;
     points_reward: number;
     target_count: number;
   };
@@ -75,7 +77,7 @@ export const UserChallengeProgress = ({
     return matchesSearch && matchesStatus;
   });
 
-  const getChallengeTypeLabel = (type: string) => {
+  const getChallengeTypeLabel = (type: ChallengeType) => {
     switch (type) {
       case 'course_completed':
         return 'Curso Completado';
@@ -94,7 +96,7 @@ export const UserChallengeProgress = ({
     }
   };
 
-  const getChallengeTypeEmoji = (type: string) => {
+  const getChallengeTypeEmoji = (type: ChallengeType) => {
     switch (type) {
       case 'course_completed':
       case 'course_started':
@@ -197,11 +199,11 @@ export const UserChallengeProgress = ({
                         <div className="mb-4">
                           <div className="flex items-center space-x-2 mb-2">
                             <span className="text-lg">
-                              {getChallengeTypeEmoji(progress.challenges?.type || '')}
+                              {getChallengeTypeEmoji(progress.challenges?.type || 'course_started')}
                             </span>
                             <h5 className="font-medium">{progress.challenges?.name}</h5>
                             <Badge variant="outline">
-                              {getChallengeTypeLabel(progress.challenges?.type || '')}
+                              {getChallengeTypeLabel(progress.challenges?.type || 'course_started')}
                             </Badge>
                             {completed && (
                               <Badge className="bg-green-100 text-green-800">

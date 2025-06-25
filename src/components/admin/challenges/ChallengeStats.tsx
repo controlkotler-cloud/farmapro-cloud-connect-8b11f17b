@@ -12,11 +12,13 @@ import {
   Star
 } from 'lucide-react';
 
+type ChallengeType = 'course_started' | 'course_completed' | 'forum_post' | 'forum_reply' | 'resource_downloaded' | 'community_engagement';
+
 interface Challenge {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: ChallengeType;
   points_reward: number;
   target_count: number;
   is_active: boolean;
@@ -37,7 +39,7 @@ interface ChallengeProgress {
   };
   challenges?: {
     name: string;
-    type: string;
+    type: ChallengeType;
     points_reward: number;
     target_count: number;
   };
@@ -87,7 +89,7 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
     .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())
     .slice(0, 5);
 
-  const getChallengeTypeLabel = (type: string) => {
+  const getChallengeTypeLabel = (type: ChallengeType) => {
     switch (type) {
       case 'course_completed':
         return 'Cursos Completados';
@@ -99,12 +101,14 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
         return 'Respuestas en Foro';
       case 'resource_downloaded':
         return 'Recursos Descargados';
+      case 'community_engagement':
+        return 'Participación Comunitaria';
       default:
         return type;
     }
   };
 
-  const getChallengeTypeEmoji = (type: string) => {
+  const getChallengeTypeEmoji = (type: ChallengeType) => {
     switch (type) {
       case 'course_completed':
       case 'course_started':
@@ -114,6 +118,8 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
         return '💬';
       case 'resource_downloaded':
         return '📁';
+      case 'community_engagement':
+        return '👥';
       default:
         return '🏆';
     }
@@ -188,8 +194,8 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
               <div key={typeStat.name} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg">{getChallengeTypeEmoji(typeStat.name)}</span>
-                    <span className="font-medium">{getChallengeTypeLabel(typeStat.name)}</span>
+                    <span className="text-lg">{getChallengeTypeEmoji(typeStat.name as ChallengeType)}</span>
+                    <span className="font-medium">{getChallengeTypeLabel(typeStat.name as ChallengeType)}</span>
                   </div>
                   <div className="text-sm text-gray-600">
                     {typeStat.completions}/{typeStat.attempts} ({Math.round(typeStat.completionRate)}%)

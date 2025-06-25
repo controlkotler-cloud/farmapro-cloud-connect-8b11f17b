@@ -8,11 +8,13 @@ import { ChallengeStats } from '@/components/admin/challenges/ChallengeStats';
 import { UserChallengeProgress } from '@/components/admin/challenges/UserChallengeProgress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+type ChallengeType = 'course_started' | 'course_completed' | 'forum_post' | 'forum_reply' | 'resource_downloaded' | 'community_engagement';
+
 interface Challenge {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: ChallengeType;
   points_reward: number;
   target_count: number;
   is_active: boolean;
@@ -33,7 +35,7 @@ interface ChallengeProgress {
   };
   challenges?: {
     name: string;
-    type: string;
+    type: ChallengeType;
     points_reward: number;
     target_count: number;
   };
