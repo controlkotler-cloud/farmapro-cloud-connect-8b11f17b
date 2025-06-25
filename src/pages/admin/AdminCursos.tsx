@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,6 +83,48 @@ const AdminCursos = () => {
     console.log('Editando curso:', editingCourse);
 
     try {
+      // DEBUG: Verificar el usuario actual y sus permisos
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('Usuario actual:', user);
+      
+      if (userError) {
+        console.error('Error obteniendo usuario:', userError);
+        throw new Error('Error de autenticación: ' + userError.message);
+      }
+
+      if (!user) {
+        console.error('No hay usuario autenticado');
+        throw new Error('Usuario no autenticado');
+      }
+
+      // DEBUG: Verificar el perfil del usuario
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      console.log('Perfil del usuario:', profile);
+      
+      if (profileError) {
+        console.error('Error obteniendo perfil:', profileError);
+        throw new Error('Error obteniendo perfil: ' + profileError.message);
+      }
+
+      // DEBUG: Verificar si es admin usando la función de base de datos
+      const { data: isAdminResult, error: adminError } = await supabase.rpc('is_admin');
+      console.log('¿Es admin?:', isAdminResult);
+      
+      if (adminError) {
+        console.error('Error verificando admin:', adminError);
+        throw new Error('Error verificando permisos de admin: ' + adminError.message);
+      }
+
+      if (!isAdminResult) {
+        console.error('Usuario no es admin');
+        throw new Error('No tienes permisos de administrador');
+      }
+
       // Procesar módulos correctamente
       let processedModules = [];
       if (formData.course_modules && Array.isArray(formData.course_modules)) {
@@ -141,7 +182,11 @@ const AdminCursos = () => {
           .single();
 
         if (error) {
-          console.error('Error al crear curso:', error);
+          console.error('Error al crear curso - Detalles completos:', error);
+          console.error('Error code:', error.code);
+          console.error('Error message:', error.message);
+          console.error('Error details:', error.details);
+          console.error('Error hint:', error.hint);
           throw error;
         }
 
