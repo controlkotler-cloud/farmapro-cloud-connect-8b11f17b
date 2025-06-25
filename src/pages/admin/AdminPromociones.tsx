@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Megaphone, Calendar, Edit, Trash, Plus } from 'lucide-react';
+import { Megaphone, Calendar, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PromotionFormDialog } from '@/components/admin/promotion/PromotionFormDialog';
 
 interface Promotion {
   id: string;
@@ -15,13 +16,16 @@ interface Promotion {
   description: string;
   discount_details: string;
   is_active: boolean;
-  valid_until: string;
+  valid_until: string | null;
+  terms_conditions: string | null;
+  image_url: string | null;
   created_at: string;
 }
 
 const AdminPromociones = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,6 +50,16 @@ const AdminPromociones = () => {
       setPromotions(data || []);
     }
     setLoading(false);
+  };
+
+  const handleEdit = (promotion: Promotion) => {
+    console.log('Editing promotion:', promotion.id);
+    setEditingPromotion(promotion);
+  };
+
+  const handlePromotionUpdated = () => {
+    setEditingPromotion(null);
+    loadPromotions();
   };
 
   const togglePromotionStatus = async (promotionId: string, currentStatus: boolean) => {
@@ -107,10 +121,10 @@ const AdminPromociones = () => {
           <h1 className="text-3xl font-bold text-gray-900">Gestión de Promociones</h1>
           <p className="text-gray-600">Gestionar ofertas y descuentos para usuarios</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Promoción
-        </Button>
+        <PromotionFormDialog 
+          editingPromotion={editingPromotion} 
+          onPromotionUpdated={handlePromotionUpdated} 
+        />
       </div>
 
       {loading ? (
@@ -128,7 +142,11 @@ const AdminPromociones = () => {
         <Card>
           <CardContent className="p-12 text-center">
             <Megaphone className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No hay promociones disponibles</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay promociones creadas</h3>
+            <p className="text-gray-600 mb-4">Aún no se han creado promociones en el sistema.</p>
+            <PromotionFormDialog 
+              onPromotionUpdated={handlePromotionUpdated} 
+            />
           </CardContent>
         </Card>
       ) : (
@@ -157,14 +175,18 @@ const AdminPromociones = () => {
                     <p className="text-sm font-medium text-gray-700">Tipo de empresa</p>
                     <p className="text-sm text-gray-600">{promotion.company_type}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Descuento</p>
-                    <p className="text-sm text-gray-600">{promotion.discount_details || 'No especificado'}</p>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Válida hasta: {promotion.valid_until ? new Date(promotion.valid_until).toLocaleDateString() : 'Sin límite'}
-                  </div>
+                  {promotion.discount_details && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Descuento</p>
+                      <p className="text-sm text-gray-600">{promotion.discount_details}</p>
+                    </div>
+                  )}
+                  {promotion.valid_until && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Válida hasta: {new Date(promotion.valid_until).toLocaleDateString()}
+                    </div>
+                  )}
                   <p className="text-sm text-gray-700 line-clamp-2">{promotion.description}</p>
                   <div className="flex space-x-2 pt-2">
                     <Button 
@@ -174,7 +196,7 @@ const AdminPromociones = () => {
                     >
                       {promotion.is_active ? 'Desactivar' : 'Activar'}
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => handleEdit(promotion)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button 
