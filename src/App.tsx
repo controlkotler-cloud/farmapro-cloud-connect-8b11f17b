@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -32,6 +31,9 @@ import Servicios from "./pages/Servicios";
 import FarmaproImpulso from "./pages/FarmaproImpulso";
 import FaqsContacto from "./pages/FaqsContacto";
 import Blog from "./pages/Blog";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminCursos from "./pages/admin/AdminCursos";
+import AdminRecursos from "./pages/admin/AdminRecursos";
 
 const queryClient = new QueryClient();
 
