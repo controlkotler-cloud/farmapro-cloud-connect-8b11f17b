@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface AuthContextType {
   user: User | null;
   profile: any | null;
+  isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string, pharmacyName?: string, position?: string) => Promise<{ error: any }>;
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (userId: string) => {
@@ -35,16 +37,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('Profile loaded:', data);
-      console.log('User role:', data?.subscription_role);
-      
-      // Verificar específicamente si es admin
-      if (data?.subscription_role === 'admin') {
-        console.log('✅ Admin user detected and confirmed');
-      }
-      
       setProfile(data);
     } catch (error) {
       console.error('Error loading profile:', error);
+    }
+  };
+
+  const checkAdminStatus = async () => {
+    try {
+      console.log('Checking admin status...');
+      const { data: isAdminResult, error } = await supabase.rpc('is_current_user_admin');
+      
+      if (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } else {
+        console.log('Admin status result:', isAdminResult);
+        setIsAdmin(!!isAdminResult);
+      }
+    } catch (error) {
+      console.error('Exception checking admin status:', error);
+      setIsAdmin(false);
     }
   };
 
@@ -52,6 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (user) {
       console.log('Reloading profile for user:', user.id);
       await loadProfile(user.id);
+      await checkAdminStatus();
     }
   };
 
@@ -68,6 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(session?.user ?? null);
           if (session?.user) {
             await loadProfile(session.user.id);
+            await checkAdminStatus();
           }
           setLoading(false);
         }
@@ -88,25 +103,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (mounted) {
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Cargar perfil inmediatamente sin setTimeout
-          console.log('Loading profile after auth change...');
           await loadProfile(session.user.id);
-          
-          // NO llamar checkSubscriptionStatus si el usuario ya es admin
-          const { data: currentProfile } = await supabase
-            .from('profiles')
-            .select('subscription_role')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (currentProfile?.subscription_role !== 'admin') {
-            console.log('Not admin, checking subscription status...');
-            await checkSubscriptionStatus();
-          } else {
-            console.log('User is admin, skipping subscription check');
-          }
+          await checkAdminStatus();
         } else {
           setProfile(null);
+          setIsAdmin(false);
         }
         setLoading(false);
       }
@@ -117,21 +118,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
-
-  const checkSubscriptionStatus = async () => {
-    try {
-      console.log('Checking subscription status...');
-      await supabase.functions.invoke('check-subscription');
-      // Reload profile after checking subscription to get updated role
-      if (user) {
-        setTimeout(() => {
-          loadProfile(user.id);
-        }, 500); // Small delay to ensure database is updated
-      }
-    } catch (error) {
-      console.error('Error checking subscription status:', error);
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -167,7 +153,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       console.log('Signing out user');
-      setProfile(null); // Clear profile immediately
+      setProfile(null);
+      setIsAdmin(false);
       await supabase.auth.signOut();
     } catch (error) {
       console.error('Sign out error:', error);
@@ -175,7 +162,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, reloadProfile }}>
+    <AuthContext.Provider value={{ user, profile, isAdmin, loading, signIn, signUp, signOut, reloadProfile }}>
       {children}
     </AuthContext.Provider>
   );
