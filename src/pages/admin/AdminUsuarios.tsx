@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, User, Mail, Calendar, Settings } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface UserProfile {
   id: string;
@@ -14,7 +17,7 @@ interface UserProfile {
   full_name: string;
   pharmacy_name: string;
   position: string;
-  subscription_role: string;
+  subscription_role: UserRole;
   subscription_status: string;
   trial_ends_at: string;
   created_at: string;
@@ -24,7 +27,7 @@ const AdminUsuarios = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
+  const [filterRole, setFilterRole] = useState<string>('all');
 
   useEffect(() => {
     loadUsers();
@@ -45,7 +48,7 @@ const AdminUsuarios = () => {
     setLoading(false);
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: UserRole) => {
     const { error } = await supabase
       .from('profiles')
       .update({ subscription_role: newRole })
@@ -68,11 +71,13 @@ const AdminUsuarios = () => {
     return matchesSearch && matchesRole;
   });
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
       case 'premium': return 'bg-blue-100 text-blue-800';
-      case 'student': return 'bg-green-100 text-green-800';
+      case 'profesional': return 'bg-purple-100 text-purple-800';
+      case 'estudiante': return 'bg-green-100 text-green-800';
+      case 'freemium':
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -102,8 +107,9 @@ const AdminUsuarios = () => {
           <SelectContent>
             <SelectItem value="all">Todos los roles</SelectItem>
             <SelectItem value="freemium">Freemium</SelectItem>
+            <SelectItem value="estudiante">Estudiante</SelectItem>
+            <SelectItem value="profesional">Profesional</SelectItem>
             <SelectItem value="premium">Premium</SelectItem>
-            <SelectItem value="student">Estudiante</SelectItem>
             <SelectItem value="admin">Administrador</SelectItem>
           </SelectContent>
         </Select>
@@ -162,15 +168,16 @@ const AdminUsuarios = () => {
                   <div className="pt-2">
                     <Select 
                       value={user.subscription_role} 
-                      onValueChange={(value) => updateUserRole(user.id, value)}
+                      onValueChange={(value: UserRole) => updateUserRole(user.id, value)}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="freemium">Freemium</SelectItem>
+                        <SelectItem value="estudiante">Estudiante</SelectItem>
+                        <SelectItem value="profesional">Profesional</SelectItem>
                         <SelectItem value="premium">Premium</SelectItem>
-                        <SelectItem value="student">Estudiante</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                       </SelectContent>
                     </Select>
