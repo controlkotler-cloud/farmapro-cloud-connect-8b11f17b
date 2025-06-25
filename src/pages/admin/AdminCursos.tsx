@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,9 @@ const AdminCursos = () => {
     duration_minutes: 0,
     is_premium: false,
     content: '',
-    thumbnail_url: ''
+    thumbnail_url: '',
+    featured_image_url: '',
+    course_modules: [] as any[]
   });
 
   const categories = [
@@ -59,7 +62,7 @@ const AdminCursos = () => {
       console.error('Error loading courses:', error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar los cursos",
+        description: "No se pudieron cargar los cursos: " + error.message,
         variant: "destructive"
       });
     } else {
@@ -75,7 +78,7 @@ const AdminCursos = () => {
     if (!formData.title || !formData.category) {
       toast({
         title: "Error",
-        description: "Por favor completa los campos obligatorios",
+        description: "Por favor completa los campos obligatorios (título y categoría)",
         variant: "destructive"
       });
       return;
@@ -85,18 +88,25 @@ const AdminCursos = () => {
     console.log('Guardando curso:', { formData, editingCourse });
 
     try {
+      const courseData = {
+        title: formData.title.trim(),
+        description: formData.description?.trim() || null,
+        category: formData.category,
+        duration_minutes: formData.duration_minutes > 0 ? formData.duration_minutes : null,
+        is_premium: formData.is_premium,
+        content: formData.content?.trim() || null,
+        thumbnail_url: formData.thumbnail_url?.trim() || null,
+        featured_image_url: formData.featured_image_url?.trim() || null,
+        course_modules: formData.course_modules.length > 0 ? formData.course_modules : []
+      };
+
       if (editingCourse) {
-        // Actualizar curso existente
+        console.log('Actualizando curso con ID:', editingCourse.id);
+        
         const { data, error } = await supabase
           .from('courses')
           .update({
-            title: formData.title,
-            description: formData.description || null,
-            category: formData.category,
-            duration_minutes: formData.duration_minutes || null,
-            is_premium: formData.is_premium,
-            content: formData.content || null,
-            thumbnail_url: formData.thumbnail_url || null,
+            ...courseData,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingCourse.id)
@@ -104,13 +114,16 @@ const AdminCursos = () => {
           .single();
 
         if (error) {
-          console.error('Error updating course:', error);
-          throw error;
+          console.error('Error detallado al actualizar:', error);
+          throw new Error(`Error al actualizar: ${error.message}`);
         }
 
-        console.log('Curso actualizado:', data);
+        if (!data) {
+          throw new Error('No se recibieron datos después de la actualización');
+        }
+
+        console.log('Curso actualizado exitosamente:', data);
         
-        // Actualizar el curso en el estado local
         setCourses(prevCourses => 
           prevCourses.map(course => 
             course.id === editingCourse.id ? data : course
@@ -119,46 +132,42 @@ const AdminCursos = () => {
         
         toast({
           title: "Éxito",
-          description: "Curso actualizado correctamente"
+          description: `Curso "${data.title}" actualizado correctamente`
         });
       } else {
-        // Crear nuevo curso
+        console.log('Creando nuevo curso...');
+        
         const { data, error } = await supabase
           .from('courses')
-          .insert([{
-            title: formData.title,
-            description: formData.description || null,
-            category: formData.category,
-            duration_minutes: formData.duration_minutes || null,
-            is_premium: formData.is_premium,
-            content: formData.content || null,
-            thumbnail_url: formData.thumbnail_url || null
-          }])
+          .insert([courseData])
           .select()
           .single();
 
         if (error) {
-          console.error('Error creating course:', error);
-          throw error;
+          console.error('Error detallado al crear:', error);
+          throw new Error(`Error al crear: ${error.message}`);
         }
 
-        console.log('Curso creado:', data);
+        if (!data) {
+          throw new Error('No se recibieron datos después de la creación');
+        }
+
+        console.log('Curso creado exitosamente:', data);
         
-        // Agregar el nuevo curso al estado local
         setCourses(prevCourses => [data, ...prevCourses]);
         
         toast({
           title: "Éxito",
-          description: "Curso creado correctamente"
+          description: `Curso "${data.title}" creado correctamente`
         });
       }
 
       resetForm();
     } catch (error) {
-      console.error('Error saving course:', error);
+      console.error('Error al guardar curso:', error);
       toast({
         title: "Error",
-        description: editingCourse ? "No se pudo actualizar el curso" : "No se pudo crear el curso",
+        description: error instanceof Error ? error.message : "Error desconocido al guardar el curso",
         variant: "destructive"
       });
     } finally {
@@ -174,7 +183,9 @@ const AdminCursos = () => {
       duration_minutes: 0,
       is_premium: false,
       content: '',
-      thumbnail_url: ''
+      thumbnail_url: '',
+      featured_image_url: '',
+      course_modules: []
     });
     setEditingCourse(null);
     setIsCreateDialogOpen(false);
@@ -189,14 +200,16 @@ const AdminCursos = () => {
       duration_minutes: course.duration_minutes || 0,
       is_premium: course.is_premium || false,
       content: course.content || '',
-      thumbnail_url: course.thumbnail_url || ''
+      thumbnail_url: course.thumbnail_url || '',
+      featured_image_url: course.featured_image_url || '',
+      course_modules: Array.isArray(course.course_modules) ? course.course_modules : []
     });
     setEditingCourse(course);
     setIsCreateDialogOpen(true);
   };
 
   const handleDelete = async (courseId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este curso?')) return;
+    if (!confirm('¿Estás seguro de que quieres eliminar este curso? Esta acción no se puede deshacer.')) return;
 
     console.log('Eliminando curso:', courseId);
 
@@ -208,12 +221,11 @@ const AdminCursos = () => {
 
       if (error) {
         console.error('Error deleting course:', error);
-        throw error;
+        throw new Error(`Error al eliminar: ${error.message}`);
       }
 
       console.log('Curso eliminado correctamente');
       
-      // Remover el curso del estado local
       setCourses(prevCourses => prevCourses.filter(course => course.id !== courseId));
       
       toast({
@@ -224,10 +236,42 @@ const AdminCursos = () => {
       console.error('Error deleting course:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar el curso",
+        description: error instanceof Error ? error.message : "Error desconocido al eliminar el curso",
         variant: "destructive"
       });
     }
+  };
+
+  const addModule = () => {
+    setFormData(prev => ({
+      ...prev,
+      course_modules: [
+        ...prev.course_modules,
+        {
+          id: `temp-${Date.now()}`,
+          title: '',
+          content: '',
+          duration: 0,
+          video_url: null
+        }
+      ]
+    }));
+  };
+
+  const updateModule = (index: number, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      course_modules: prev.course_modules.map((module, i) => 
+        i === index ? { ...module, [field]: value } : module
+      )
+    }));
+  };
+
+  const removeModule = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      course_modules: prev.course_modules.filter((_, i) => i !== index)
+    }));
   };
 
   return (
@@ -244,37 +288,28 @@ const AdminCursos = () => {
               Nuevo Curso
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingCourse ? 'Editar Curso' : 'Crear Nuevo Curso'}
               </DialogTitle>
               <DialogDescription>
-                Completa la información del curso
+                Completa la información del curso. Los campos marcados con * son obligatorios.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="title">Título *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="title">Título *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                    placeholder="Título del curso"
+                  />
+                </div>
+                
                 <div>
                   <Label htmlFor="category">Categoría *</Label>
                   <Select 
@@ -293,25 +328,62 @@ const AdminCursos = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+              </div>
+              
+              <div>
+                <Label htmlFor="description">Descripción</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                  placeholder="Descripción breve del curso"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="duration">Duración (minutos)</Label>
                   <Input
                     id="duration"
                     type="number"
+                    min="0"
                     value={formData.duration_minutes}
                     onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 0 })}
+                    placeholder="Duración total en minutos"
                   />
+                </div>
+                
+                <div className="flex items-center space-x-2 pt-6">
+                  <Switch
+                    id="premium"
+                    checked={formData.is_premium}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_premium: checked })}
+                  />
+                  <Label htmlFor="premium">Curso Premium</Label>
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="thumbnail_url">URL de la imagen</Label>
-                <Input
-                  id="thumbnail_url"
-                  value={formData.thumbnail_url}
-                  onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="thumbnail_url">URL de la imagen miniatura</Label>
+                  <Input
+                    id="thumbnail_url"
+                    value={formData.thumbnail_url}
+                    onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="featured_image_url">URL de la imagen destacada</Label>
+                  <Input
+                    id="featured_image_url"
+                    value={formData.featured_image_url}
+                    onChange={(e) => setFormData({ ...formData, featured_image_url: e.target.value })}
+                    placeholder="https://ejemplo.com/imagen-destacada.jpg"
+                  />
+                </div>
               </div>
 
               <div>
@@ -321,20 +393,79 @@ const AdminCursos = () => {
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   rows={5}
-                  placeholder="Contenido detallado del curso..."
+                  placeholder="Contenido detallado del curso, objetivos, metodología..."
                 />
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="premium"
-                  checked={formData.is_premium}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_premium: checked })}
-                />
-                <Label htmlFor="premium">Curso Premium</Label>
+              {/* Módulos del curso */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <Label>Módulos del curso</Label>
+                  <Button type="button" size="sm" onClick={addModule}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Añadir Módulo
+                  </Button>
+                </div>
+                
+                {formData.course_modules.map((module, index) => (
+                  <div key={index} className="border rounded-lg p-4 mb-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">Módulo {index + 1}</h4>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => removeModule(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <Label>Título del módulo</Label>
+                        <Input
+                          value={module.title || ''}
+                          onChange={(e) => updateModule(index, 'title', e.target.value)}
+                          placeholder="Título del módulo"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>Duración (minutos)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={module.duration || 0}
+                          onChange={(e) => updateModule(index, 'duration', parseInt(e.target.value) || 0)}
+                          placeholder="Duración en minutos"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label>URL del video</Label>
+                      <Input
+                        value={module.video_url || ''}
+                        onChange={(e) => updateModule(index, 'video_url', e.target.value)}
+                        placeholder="https://ejemplo.com/video.mp4"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Contenido del módulo</Label>
+                      <Textarea
+                        value={module.content || ''}
+                        onChange={(e) => updateModule(index, 'content', e.target.value)}
+                        rows={3}
+                        placeholder="Contenido y descripción del módulo"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2 pt-4 border-t">
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancelar
                 </Button>
@@ -347,7 +478,7 @@ const AdminCursos = () => {
         </Dialog>
       </div>
 
-      {/* Courses List */}
+      {/* Lista de cursos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
@@ -359,12 +490,25 @@ const AdminCursos = () => {
               </CardContent>
             </Card>
           ))
+        ) : courses.length === 0 ? (
+          <div className="col-span-full">
+            <Card>
+              <CardContent className="p-12 text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay cursos</h3>
+                <p className="text-gray-600 mb-4">Comienza creando tu primer curso</p>
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear Primer Curso
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         ) : (
           courses.map((course) => (
             <Card key={course.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="flex-1">
                     <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
                     <div className="flex items-center space-x-2 mt-2">
                       <Badge variant="outline">
@@ -379,13 +523,17 @@ const AdminCursos = () => {
                   </div>
                 </div>
                 <CardDescription className="line-clamp-3">
-                  {course.description}
+                  {course.description || 'Sin descripción'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                  <span>{course.duration_minutes} min</span>
+                  <span>{course.duration_minutes ? `${course.duration_minutes} min` : 'Sin duración'}</span>
                   <span>{new Date(course.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="text-xs text-gray-500 mb-4">
+                  <div>Módulos: {Array.isArray(course.course_modules) ? course.course_modules.length : 0}</div>
+                  <div>ID: {course.id}</div>
                 </div>
                 <div className="flex space-x-2">
                   <Button size="sm" variant="outline" onClick={() => handleEdit(course)}>
