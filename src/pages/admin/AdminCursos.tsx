@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ const AdminCursos = () => {
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -48,6 +48,8 @@ const AdminCursos = () => {
 
   const loadCourses = async () => {
     setLoading(true);
+    console.log('Cargando cursos...');
+    
     const { data, error } = await supabase
       .from('courses')
       .select('*')
@@ -61,6 +63,7 @@ const AdminCursos = () => {
         variant: "destructive"
       });
     } else {
+      console.log('Cursos cargados:', data);
       setCourses(data || []);
     }
     setLoading(false);
@@ -78,25 +81,71 @@ const AdminCursos = () => {
       return;
     }
 
+    setSubmitting(true);
+    console.log('Guardando curso:', { formData, editingCourse });
+
     try {
       if (editingCourse) {
-        const { error } = await supabase
+        // Actualizar curso existente
+        const { data, error } = await supabase
           .from('courses')
-          .update(formData)
-          .eq('id', editingCourse.id);
+          .update({
+            title: formData.title,
+            description: formData.description || null,
+            category: formData.category,
+            duration_minutes: formData.duration_minutes || null,
+            is_premium: formData.is_premium,
+            content: formData.content || null,
+            thumbnail_url: formData.thumbnail_url || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingCourse.id)
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating course:', error);
+          throw error;
+        }
+
+        console.log('Curso actualizado:', data);
+        
+        // Actualizar el curso en el estado local
+        setCourses(prevCourses => 
+          prevCourses.map(course => 
+            course.id === editingCourse.id ? data : course
+          )
+        );
         
         toast({
           title: "Éxito",
           description: "Curso actualizado correctamente"
         });
       } else {
-        const { error } = await supabase
+        // Crear nuevo curso
+        const { data, error } = await supabase
           .from('courses')
-          .insert([formData]);
+          .insert([{
+            title: formData.title,
+            description: formData.description || null,
+            category: formData.category,
+            duration_minutes: formData.duration_minutes || null,
+            is_premium: formData.is_premium,
+            content: formData.content || null,
+            thumbnail_url: formData.thumbnail_url || null
+          }])
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating course:', error);
+          throw error;
+        }
+
+        console.log('Curso creado:', data);
+        
+        // Agregar el nuevo curso al estado local
+        setCourses(prevCourses => [data, ...prevCourses]);
         
         toast({
           title: "Éxito",
@@ -105,14 +154,15 @@ const AdminCursos = () => {
       }
 
       resetForm();
-      loadCourses();
     } catch (error) {
       console.error('Error saving course:', error);
       toast({
         title: "Error",
-        description: "No se pudo guardar el curso",
+        description: editingCourse ? "No se pudo actualizar el curso" : "No se pudo crear el curso",
         variant: "destructive"
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -131,6 +181,7 @@ const AdminCursos = () => {
   };
 
   const handleEdit = (course: Course) => {
+    console.log('Editando curso:', course);
     setFormData({
       title: course.title,
       description: course.description || '',
@@ -147,19 +198,28 @@ const AdminCursos = () => {
   const handleDelete = async (courseId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este curso?')) return;
 
+    console.log('Eliminando curso:', courseId);
+
     try {
       const { error } = await supabase
         .from('courses')
         .delete()
         .eq('id', courseId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting course:', error);
+        throw error;
+      }
 
+      console.log('Curso eliminado correctamente');
+      
+      // Remover el curso del estado local
+      setCourses(prevCourses => prevCourses.filter(course => course.id !== courseId));
+      
       toast({
         title: "Éxito",
         description: "Curso eliminado correctamente"
       });
-      loadCourses();
     } catch (error) {
       console.error('Error deleting course:', error);
       toast({
@@ -278,8 +338,8 @@ const AdminCursos = () => {
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  {editingCourse ? 'Actualizar' : 'Crear'} Curso
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? 'Guardando...' : (editingCourse ? 'Actualizar' : 'Crear')} Curso
                 </Button>
               </div>
             </form>
