@@ -30,14 +30,14 @@ export const Sidebar = () => {
     { name: 'Promociones', icon: Tag, path: '/promociones' },
   ];
 
-  // Add admin menu items for admin users only
+  // Admin menu items - only visible to admin users
   const adminMenuItems = [
     { name: 'Panel Admin', icon: Settings, path: '/admin' },
     { name: 'Gestión Cursos', icon: BookOpen, path: '/admin/cursos' },
     { name: 'Gestión Recursos', icon: FileText, path: '/admin/recursos' },
   ];
 
-  // Check if user is admin (only 'admin' role, not 'premium')
+  // Check if user is admin
   const isAdmin = profile?.subscription_role === 'admin';
 
   return (
@@ -47,62 +47,62 @@ export const Sidebar = () => {
         <img src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" alt="farmapro" className="h-6" />
       </div>
 
-        <nav className="flex-1 space-y-1 px-2 py-4">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+      <nav className="flex-1 space-y-1 px-2 py-4">
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+                isActive
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <item.icon
+                className={`mr-3 h-5 w-5 ${
+                  isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
                 }`}
-              >
-                <item.icon
-                  className={`mr-3 h-5 w-5 ${
-                    isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
-                  }`}
-                />
-                {item.name}
-              </Link>
-            );
-          })}
-          
-          {/* Admin Section - Only for admin users */}
-          {isAdmin && (
-            <>
-              <div className="border-t border-gray-200 my-4"></div>
-              <div className="px-2 py-2">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Administración
-                </p>
-                {adminMenuItems.map((item) => {
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.path}
-                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
-                        isActive
-                          ? 'bg-red-100 text-red-600'
-                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              />
+              {item.name}
+            </Link>
+          );
+        })}
+        
+        {/* Admin Section - Only visible to admin users */}
+        {isAdmin && (
+          <>
+            <div className="border-t border-gray-200 my-4"></div>
+            <div className="px-2 py-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Administración
+              </p>
+              {adminMenuItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-red-100 text-red-600'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <item.icon
+                      className={`mr-3 h-4 w-4 ${
+                        isActive ? 'text-red-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
-                    >
-                      <item.icon
-                        className={`mr-3 h-4 w-4 ${
-                          isActive ? 'text-red-600' : 'text-gray-400 group-hover:text-gray-500'
-                        }`}
-                      />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </nav>
+                    />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </nav>
 
       <div className="p-4">
         {profile ? (
