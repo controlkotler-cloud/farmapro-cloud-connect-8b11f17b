@@ -110,11 +110,6 @@ export const Sidebar = () => {
             <p className="text-sm font-medium text-gray-900">
               Bienvenido, {profile.full_name || 'Usuario'}
             </p>
-            {profile.subscription_role === 'admin' && (
-              <p className="text-xs text-red-600 font-medium">
-                Administrador
-              </p>
-            )}
             <Link to="/perfil" className="text-sm text-blue-600 hover:underline">
               Editar Perfil
             </Link>
