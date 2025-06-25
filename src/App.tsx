@@ -43,7 +43,6 @@ import AdminPromociones from "./pages/admin/AdminPromociones";
 import AdminComunidad from "./pages/admin/AdminComunidad";
 import AdminRetos from "./pages/admin/AdminRetos";
 import AdminConfiguracion from "./pages/admin/AdminConfiguracion";
-import AdminContenido from "./pages/admin/AdminContenido";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -238,11 +237,6 @@ const AppRoutes = () => {
       <Route path="/admin/configuracion" element={
         <AdminProtectedRoute>
           <AdminConfiguracion />
-        </AdminProtectedRoute>
-      } />
-      <Route path="/admin/contenido" element={
-        <AdminProtectedRoute>
-          <AdminContenido />
         </AdminProtectedRoute>
       } />
       

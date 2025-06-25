@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, BookOpen, FileText, Users, Calendar, Briefcase, Store, Megaphone, MessageSquare, Trophy, Settings, Globe } from 'lucide-react';
+import { Plus, BookOpen, FileText, Users, Calendar, Briefcase, Store, Megaphone, MessageSquare, Trophy, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
@@ -75,13 +75,6 @@ const AdminDashboard = () => {
       icon: Settings,
       path: '/admin/configuracion',
       color: 'bg-gray-600'
-    },
-    {
-      title: 'Contenido Público',
-      description: 'Gestionar páginas públicas y contenido',
-      icon: Globe,
-      path: '/admin/contenido',
-      color: 'bg-teal-500'
     }
   ];
 
