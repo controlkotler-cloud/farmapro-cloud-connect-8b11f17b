@@ -56,28 +56,45 @@ const Promociones = () => {
   }, [selectedType]);
 
   const loadPromotions = async () => {
+    console.log('Loading promotions with selectedType:', selectedType);
     setLoading(true);
+    
     let query = supabase
       .from('promotions')
       .select('*')
       .eq('is_active', true)
-      .gte('valid_until', new Date().toISOString())
       .order('created_at', { ascending: false });
 
+    // Filtro por tipo de empresa si no es 'all'
     if (selectedType !== 'all') {
       query = query.eq('company_type', selectedType);
     }
 
     const { data, error } = await query;
+    
     if (error) {
       console.error('Error loading promotions:', error);
     } else {
-      setPromotions(data || []);
+      console.log('Loaded promotions:', data);
+      // Filtrar por fecha válida en el cliente para mejor control
+      const validPromotions = (data || []).filter(promotion => {
+        // Si no tiene fecha de expiración, está válida
+        if (!promotion.valid_until) return true;
+        
+        // Si tiene fecha de expiración, verificar que no haya expirado
+        const expiryDate = new Date(promotion.valid_until);
+        const now = new Date();
+        return expiryDate > now;
+      });
+      
+      console.log('Valid promotions after filtering:', validPromotions);
+      setPromotions(validPromotions);
     }
     setLoading(false);
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'Sin fecha límite';
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
@@ -86,14 +103,15 @@ const Promociones = () => {
   };
 
   const isExpiringSoon = (validUntil: string) => {
+    if (!validUntil) return false;
     const expiryDate = new Date(validUntil);
     const today = new Date();
     const diffInDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diffInDays <= 7;
+    return diffInDays <= 7 && diffInDays > 0;
   };
 
   const getCompanyTypeColor = (type: string) => {
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'laboratorio':
         return 'bg-blue-100 text-blue-800';
       case 'distribuidor':
@@ -169,7 +187,7 @@ const Promociones = () => {
                           <Gift className="h-3 w-3 mr-1" />
                           Oferta
                         </Badge>
-                        {isExpiringSoon(promotion.valid_until) && (
+                        {promotion.valid_until && isExpiringSoon(promotion.valid_until) && (
                           <Badge className="bg-orange-600">
                             <Clock className="h-3 w-3 mr-1" />
                             ¡Últimos días!
