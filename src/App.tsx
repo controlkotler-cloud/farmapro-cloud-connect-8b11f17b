@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -35,6 +34,15 @@ import Blog from "./pages/Blog";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCursos from "./pages/admin/AdminCursos";
 import AdminRecursos from "./pages/admin/AdminRecursos";
+import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminEventos from "./pages/admin/AdminEventos";
+import AdminEmpleo from "./pages/admin/AdminEmpleo";
+import AdminFarmacias from "./pages/admin/AdminFarmacias";
+import AdminPromociones from "./pages/admin/AdminPromociones";
+import AdminComunidad from "./pages/admin/AdminComunidad";
+import AdminRetos from "./pages/admin/AdminRetos";
+import AdminConfiguracion from "./pages/admin/AdminConfiguracion";
+import AdminContenido from "./pages/admin/AdminContenido";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -163,6 +171,51 @@ const AppRoutes = () => {
       <Route path="/admin/recursos" element={
         <AdminProtectedRoute>
           <AdminRecursos />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/usuarios" element={
+        <AdminProtectedRoute>
+          <AdminUsuarios />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/eventos" element={
+        <AdminProtectedRoute>
+          <AdminEventos />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/empleo" element={
+        <AdminProtectedRoute>
+          <AdminEmpleo />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/farmacias" element={
+        <AdminProtectedRoute>
+          <AdminFarmacias />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/promociones" element={
+        <AdminProtectedRoute>
+          <AdminPromociones />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/comunidad" element={
+        <AdminProtectedRoute>
+          <AdminComunidad />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/retos" element={
+        <AdminProtectedRoute>
+          <AdminRetos />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/configuracion" element={
+        <AdminProtectedRoute>
+          <AdminConfiguracion />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/contenido" element={
+        <AdminProtectedRoute>
+          <AdminContenido />
         </AdminProtectedRoute>
       } />
       

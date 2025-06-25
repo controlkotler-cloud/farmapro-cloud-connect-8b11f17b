@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, BookOpen, FileText, Users, Calendar, Briefcase, Store } from 'lucide-react';
+import { Plus, BookOpen, FileText, Users, Calendar, Briefcase, Store, Megaphone, MessageSquare, Trophy, Settings, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
@@ -47,6 +47,41 @@ const AdminDashboard = () => {
       icon: Store,
       path: '/admin/farmacias',
       color: 'bg-indigo-500'
+    },
+    {
+      title: 'Promociones',
+      description: 'Gestionar ofertas y descuentos',
+      icon: Megaphone,
+      path: '/admin/promociones',
+      color: 'bg-pink-500'
+    },
+    {
+      title: 'Comunidad',
+      description: 'Moderar foros y discusiones',
+      icon: MessageSquare,
+      path: '/admin/comunidad',
+      color: 'bg-cyan-500'
+    },
+    {
+      title: 'Retos y Desafíos',
+      description: 'Crear y gestionar retos para usuarios',
+      icon: Trophy,
+      path: '/admin/retos',
+      color: 'bg-yellow-500'
+    },
+    {
+      title: 'Configuración General',
+      description: 'Ajustes del portal y configuraciones',
+      icon: Settings,
+      path: '/admin/configuracion',
+      color: 'bg-gray-600'
+    },
+    {
+      title: 'Contenido Público',
+      description: 'Gestionar páginas públicas y contenido',
+      icon: Globe,
+      path: '/admin/contenido',
+      color: 'bg-teal-500'
     }
   ];
 
@@ -54,7 +89,7 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
-        <p className="text-gray-600">Gestiona el contenido y usuarios de farmapro</p>
+        <p className="text-gray-600">Gestiona todo el contenido y funcionalidades de farmapro</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
