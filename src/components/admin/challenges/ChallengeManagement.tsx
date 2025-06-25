@@ -35,8 +35,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Database } from '@/integrations/supabase/types';
 
-type ChallengeType = 'course_started' | 'course_completed' | 'forum_post' | 'forum_reply' | 'resource_downloaded' | 'community_engagement';
+type ChallengeType = Database['public']['Enums']['challenge_type'];
 
 interface Challenge {
   id: string;
@@ -52,8 +53,22 @@ interface Challenge {
 interface ChallengeManagementProps {
   challenges: Challenge[];
   loading: boolean;
-  onCreateChallenge: (data: Omit<Challenge, 'id' | 'created_at'>) => Promise<void>;
-  onUpdateChallenge: (id: string, data: Partial<Challenge>) => Promise<void>;
+  onCreateChallenge: (data: {
+    name: string;
+    description?: string;
+    type: ChallengeType;
+    points_reward: number;
+    target_count: number;
+    is_active: boolean;
+  }) => Promise<void>;
+  onUpdateChallenge: (id: string, data: {
+    name?: string;
+    description?: string;
+    type?: ChallengeType;
+    points_reward?: number;
+    target_count?: number;
+    is_active?: boolean;
+  }) => Promise<void>;
   onDeleteChallenge: (id: string) => Promise<void>;
   creating: boolean;
   updating: boolean;
@@ -122,9 +137,23 @@ export const ChallengeManagement = ({
 
     try {
       if (editingChallenge) {
-        await onUpdateChallenge(editingChallenge.id, challengeForm as Partial<Challenge>);
+        await onUpdateChallenge(editingChallenge.id, {
+          name: challengeForm.name,
+          description: challengeForm.description,
+          type: challengeForm.type as ChallengeType,
+          points_reward: challengeForm.points_reward,
+          target_count: challengeForm.target_count,
+          is_active: challengeForm.is_active
+        });
       } else {
-        await onCreateChallenge(challengeForm as Omit<Challenge, 'id' | 'created_at'>);
+        await onCreateChallenge({
+          name: challengeForm.name,
+          description: challengeForm.description,
+          type: challengeForm.type as ChallengeType,
+          points_reward: challengeForm.points_reward,
+          target_count: challengeForm.target_count,
+          is_active: challengeForm.is_active
+        });
       }
       setChallengeForm({
         name: '',

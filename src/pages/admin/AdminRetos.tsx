@@ -7,8 +7,9 @@ import { ChallengeManagement } from '@/components/admin/challenges/ChallengeMana
 import { ChallengeStats } from '@/components/admin/challenges/ChallengeStats';
 import { UserChallengeProgress } from '@/components/admin/challenges/UserChallengeProgress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Database } from '@/integrations/supabase/types';
 
-type ChallengeType = 'course_started' | 'course_completed' | 'forum_post' | 'forum_reply' | 'resource_downloaded' | 'community_engagement';
+type ChallengeType = Database['public']['Enums']['challenge_type'];
 
 interface Challenge {
   id: string;
@@ -114,7 +115,14 @@ const AdminRetos = () => {
 
   // Create challenge mutation
   const createChallengeMutation = useMutation({
-    mutationFn: async (challengeData: Omit<Challenge, 'id' | 'created_at'>) => {
+    mutationFn: async (challengeData: {
+      name: string;
+      description?: string;
+      type: ChallengeType;
+      points_reward: number;
+      target_count: number;
+      is_active: boolean;
+    }) => {
       console.log('Creating challenge:', challengeData);
       const { data, error } = await supabase
         .from('challenges')
@@ -148,7 +156,15 @@ const AdminRetos = () => {
 
   // Update challenge mutation
   const updateChallengeMutation = useMutation({
-    mutationFn: async ({ id, ...challengeData }: Partial<Challenge> & { id: string }) => {
+    mutationFn: async ({ id, ...challengeData }: { 
+      id: string;
+      name?: string;
+      description?: string;
+      type?: ChallengeType;
+      points_reward?: number;
+      target_count?: number;
+      is_active?: boolean;
+    }) => {
       console.log('Updating challenge:', id, challengeData);
       const { data, error } = await supabase
         .from('challenges')
@@ -265,11 +281,25 @@ const AdminRetos = () => {
     }
   });
 
-  const handleCreateChallenge = async (challengeData: Omit<Challenge, 'id' | 'created_at'>) => {
+  const handleCreateChallenge = async (challengeData: {
+    name: string;
+    description?: string;
+    type: ChallengeType;
+    points_reward: number;
+    target_count: number;
+    is_active: boolean;
+  }) => {
     await createChallengeMutation.mutateAsync(challengeData);
   };
 
-  const handleUpdateChallenge = async (id: string, challengeData: Partial<Challenge>) => {
+  const handleUpdateChallenge = async (id: string, challengeData: {
+    name?: string;
+    description?: string;
+    type?: ChallengeType;
+    points_reward?: number;
+    target_count?: number;
+    is_active?: boolean;
+  }) => {
     await updateChallengeMutation.mutateAsync({ id, ...challengeData });
   };
 

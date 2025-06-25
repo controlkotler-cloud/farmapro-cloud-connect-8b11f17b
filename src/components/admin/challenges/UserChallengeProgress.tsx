@@ -24,8 +24,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Database } from '@/integrations/supabase/types';
 
-type ChallengeType = 'course_started' | 'course_completed' | 'forum_post' | 'forum_reply' | 'resource_downloaded' | 'community_engagement';
+type ChallengeType = Database['public']['Enums']['challenge_type'];
 
 interface ChallengeProgress {
   id: string;
