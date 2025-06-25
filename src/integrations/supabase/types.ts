@@ -870,7 +870,7 @@ export type Database = {
         | "manual"
         | "herramienta"
       subscription_status: "active" | "canceled" | "expired" | "trialing"
-      user_role: "freemium" | "estudiante" | "profesional" | "premium"
+      user_role: "freemium" | "estudiante" | "profesional" | "premium" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1019,7 +1019,7 @@ export const Constants = {
         "herramienta",
       ],
       subscription_status: ["active", "canceled", "expired", "trialing"],
-      user_role: ["freemium", "estudiante", "profesional", "premium"],
+      user_role: ["freemium", "estudiante", "profesional", "premium", "admin"],
     },
   },
 } as const

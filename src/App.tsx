@@ -34,6 +34,7 @@ import Blog from "./pages/Blog";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCursos from "./pages/admin/AdminCursos";
 import AdminRecursos from "./pages/admin/AdminRecursos";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -127,21 +128,21 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      {/* Admin Routes */}
+      {/* Admin Routes - Only for admin users */}
       <Route path="/admin" element={
-        <ProtectedRoute>
+        <AdminRoute>
           <AdminDashboard />
-        </ProtectedRoute>
+        </AdminRoute>
       } />
       <Route path="/admin/cursos" element={
-        <ProtectedRoute>
+        <AdminRoute>
           <AdminCursos />
-        </ProtectedRoute>
+        </AdminRoute>
       } />
       <Route path="/admin/recursos" element={
-        <ProtectedRoute>
+        <AdminRoute>
           <AdminRecursos />
-        </ProtectedRoute>
+        </AdminRoute>
       } />
       
       {/* Páginas públicas */}

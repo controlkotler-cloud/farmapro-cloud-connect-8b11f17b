@@ -1,3 +1,4 @@
+
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -29,15 +30,15 @@ export const Sidebar = () => {
     { name: 'Promociones', icon: Tag, path: '/promociones' },
   ];
 
-  // Add admin menu items for admin users
+  // Add admin menu items for admin users only
   const adminMenuItems = [
     { name: 'Panel Admin', icon: Settings, path: '/admin' },
     { name: 'Gestión Cursos', icon: BookOpen, path: '/admin/cursos' },
     { name: 'Gestión Recursos', icon: FileText, path: '/admin/recursos' },
   ];
 
-  // Check if user is admin (you can modify this logic based on your user roles)
-  const isAdmin = profile?.subscription_role === 'premium'; // Temporary check
+  // Check if user is admin (only 'admin' role, not 'premium')
+  const isAdmin = profile?.subscription_role === 'admin';
 
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200">
@@ -69,7 +70,7 @@ export const Sidebar = () => {
             );
           })}
           
-          {/* Admin Section */}
+          {/* Admin Section - Only for admin users */}
           {isAdmin && (
             <>
               <div className="border-t border-gray-200 my-4"></div>
@@ -109,6 +110,11 @@ export const Sidebar = () => {
             <p className="text-sm font-medium text-gray-900">
               Bienvenido, {profile.full_name || 'Usuario'}
             </p>
+            {profile.subscription_role === 'admin' && (
+              <p className="text-xs text-red-600 font-medium">
+                Administrador
+              </p>
+            )}
             <Link to="/perfil" className="text-sm text-blue-600 hover:underline">
               Editar Perfil
             </Link>
