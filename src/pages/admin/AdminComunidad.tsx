@@ -18,10 +18,10 @@ import {
   Pin, 
   PinOff,
   Eye,
-  AlertTriangle,
   Users,
   Hash,
-  MessageCircle
+  MessageCircle,
+  Activity
 } from 'lucide-react';
 import {
   Dialog,
@@ -49,6 +49,9 @@ interface ForumCategory {
   description: string;
   is_premium: boolean;
   created_at: string;
+  _count?: {
+    threads: number;
+  };
 }
 
 interface ForumThread {
@@ -97,6 +100,7 @@ const AdminComunidad = () => {
   });
   const [editingCategory, setEditingCategory] = useState<ForumCategory | null>(null);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [submittingCategory, setSubmittingCategory] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -104,25 +108,53 @@ const AdminComunidad = () => {
 
   const loadData = async () => {
     setLoading(true);
-    await Promise.all([
-      loadCategories(),
-      loadThreads(),
-      loadStats()
-    ]);
-    setLoading(false);
+    try {
+      await Promise.all([
+        loadCategories(),
+        loadThreads(),
+        loadStats()
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Error al cargar los datos');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadCategories = async () => {
-    const { data, error } = await supabase
-      .from('forum_categories')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      // First get categories
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('forum_categories')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error loading categories:', error);
+      if (categoriesError) {
+        console.error('Error loading categories:', categoriesError);
+        toast.error('Error al cargar categorías');
+        return;
+      }
+
+      // Then get thread counts for each category
+      const categoriesWithCounts = await Promise.all(
+        (categoriesData || []).map(async (category) => {
+          const { count } = await supabase
+            .from('forum_threads')
+            .select('*', { count: 'exact', head: true })
+            .eq('category_id', category.id);
+
+          return {
+            ...category,
+            _count: { threads: count || 0 }
+          };
+        })
+      );
+
+      setCategories(categoriesWithCounts);
+    } catch (error) {
+      console.error('Error loading categories with counts:', error);
       toast.error('Error al cargar categorías');
-    } else {
-      setCategories(data || []);
     }
   };
 
@@ -198,83 +230,150 @@ const AdminComunidad = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from('forum_categories')
-      .insert([categoryForm]);
+    setSubmittingCategory(true);
+    try {
+      const { error } = await supabase
+        .from('forum_categories')
+        .insert([{
+          name: categoryForm.name.trim(),
+          description: categoryForm.description.trim() || null,
+          is_premium: categoryForm.is_premium
+        }]);
 
-    if (error) {
-      console.error('Error creating category:', error);
-      toast.error('Error al crear categoría');
-    } else {
-      toast.success('Categoría creada exitosamente');
-      setCategoryForm({ name: '', description: '', is_premium: false });
-      setShowCategoryDialog(false);
-      loadCategories();
+      if (error) {
+        console.error('Error creating category:', error);
+        toast.error('Error al crear categoría: ' + error.message);
+      } else {
+        toast.success('Categoría creada exitosamente');
+        setCategoryForm({ name: '', description: '', is_premium: false });
+        setShowCategoryDialog(false);
+        loadCategories();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Error inesperado al crear categoría');
+    } finally {
+      setSubmittingCategory(false);
     }
   };
 
   const handleUpdateCategory = async () => {
-    if (!editingCategory || !categoryForm.name.trim()) return;
+    if (!editingCategory || !categoryForm.name.trim()) {
+      toast.error('El nombre de la categoría es requerido');
+      return;
+    }
 
-    const { error } = await supabase
-      .from('forum_categories')
-      .update(categoryForm)
-      .eq('id', editingCategory.id);
+    setSubmittingCategory(true);
+    try {
+      const { error } = await supabase
+        .from('forum_categories')
+        .update({
+          name: categoryForm.name.trim(),
+          description: categoryForm.description.trim() || null,
+          is_premium: categoryForm.is_premium
+        })
+        .eq('id', editingCategory.id);
 
-    if (error) {
-      console.error('Error updating category:', error);
-      toast.error('Error al actualizar categoría');
-    } else {
-      toast.success('Categoría actualizada exitosamente');
-      setEditingCategory(null);
-      setCategoryForm({ name: '', description: '', is_premium: false });
-      setShowCategoryDialog(false);
-      loadCategories();
+      if (error) {
+        console.error('Error updating category:', error);
+        toast.error('Error al actualizar categoría: ' + error.message);
+      } else {
+        toast.success('Categoría actualizada exitosamente');
+        setEditingCategory(null);
+        setCategoryForm({ name: '', description: '', is_premium: false });
+        setShowCategoryDialog(false);
+        loadCategories();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Error inesperado al actualizar categoría');
+    } finally {
+      setSubmittingCategory(false);
     }
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
-    const { error } = await supabase
-      .from('forum_categories')
-      .delete()
-      .eq('id', categoryId);
+    try {
+      // Check if category has threads
+      const { count } = await supabase
+        .from('forum_threads')
+        .select('*', { count: 'exact', head: true })
+        .eq('category_id', categoryId);
 
-    if (error) {
-      console.error('Error deleting category:', error);
-      toast.error('Error al eliminar categoría');
-    } else {
-      toast.success('Categoría eliminada exitosamente');
-      loadCategories();
+      if (count && count > 0) {
+        toast.error(`No se puede eliminar la categoría porque tiene ${count} hilo(s) asociado(s)`);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('forum_categories')
+        .delete()
+        .eq('id', categoryId);
+
+      if (error) {
+        console.error('Error deleting category:', error);
+        toast.error('Error al eliminar categoría: ' + error.message);
+      } else {
+        toast.success('Categoría eliminada exitosamente');
+        loadCategories();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Error inesperado al eliminar categoría');
     }
   };
 
   const handleTogglePin = async (threadId: string, isPinned: boolean) => {
-    const { error } = await supabase
-      .from('forum_threads')
-      .update({ is_pinned: !isPinned })
-      .eq('id', threadId);
+    try {
+      const { error } = await supabase
+        .from('forum_threads')
+        .update({ is_pinned: !isPinned })
+        .eq('id', threadId);
 
-    if (error) {
-      console.error('Error toggling pin:', error);
-      toast.error('Error al cambiar estado del hilo');
-    } else {
-      toast.success(isPinned ? 'Hilo despinneado' : 'Hilo pinneado');
-      loadThreads();
+      if (error) {
+        console.error('Error toggling pin:', error);
+        toast.error('Error al cambiar estado del hilo: ' + error.message);
+      } else {
+        toast.success(isPinned ? 'Hilo despinneado' : 'Hilo pinneado');
+        loadThreads();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Error inesperado al cambiar estado del hilo');
     }
   };
 
   const handleDeleteThread = async (threadId: string) => {
-    const { error } = await supabase
-      .from('forum_threads')
-      .delete()
-      .eq('id', threadId);
+    try {
+      // First delete all replies
+      const { error: repliesError } = await supabase
+        .from('forum_replies')
+        .delete()
+        .eq('thread_id', threadId);
 
-    if (error) {
-      console.error('Error deleting thread:', error);
-      toast.error('Error al eliminar hilo');
-    } else {
-      toast.success('Hilo eliminado exitosamente');
-      loadThreads();
+      if (repliesError) {
+        console.error('Error deleting replies:', repliesError);
+        toast.error('Error al eliminar respuestas del hilo');
+        return;
+      }
+
+      // Then delete the thread
+      const { error: threadError } = await supabase
+        .from('forum_threads')
+        .delete()
+        .eq('id', threadId);
+
+      if (threadError) {
+        console.error('Error deleting thread:', threadError);
+        toast.error('Error al eliminar hilo: ' + threadError.message);
+      } else {
+        toast.success('Hilo eliminado exitosamente');
+        loadThreads();
+        loadStats(); // Refresh stats after deletion
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Error inesperado al eliminar hilo');
     }
   };
 
@@ -291,6 +390,10 @@ const AdminComunidad = () => {
       setCategoryForm({ name: '', description: '', is_premium: false });
     }
     setShowCategoryDialog(true);
+  };
+
+  const viewThread = (threadId: string) => {
+    window.open(`/comunidad?thread=${threadId}`, '_blank');
   };
 
   if (loading) {
@@ -327,6 +430,7 @@ const AdminComunidad = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalThreads}</div>
+                <p className="text-xs text-muted-foreground">Hilos de discusión</p>
               </CardContent>
             </Card>
 
@@ -337,6 +441,7 @@ const AdminComunidad = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalReplies}</div>
+                <p className="text-xs text-muted-foreground">Respuestas en hilos</p>
               </CardContent>
             </Card>
 
@@ -347,6 +452,7 @@ const AdminComunidad = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalCategories}</div>
+                <p className="text-xs text-muted-foreground">Categorías activas</p>
               </CardContent>
             </Card>
 
@@ -364,19 +470,28 @@ const AdminComunidad = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Actividad Reciente</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Hilos Recientes
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {threads.slice(0, 5).map((thread) => (
-                  <div key={thread.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={thread.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                     <div className="flex-1">
-                      <h4 className="font-medium">{thread.title}</h4>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-medium text-gray-900">{thread.title}</h4>
+                      <p className="text-sm text-gray-600 mt-1">
                         Por {thread.profiles?.full_name || 'Usuario desconocido'} en {thread.forum_categories?.name}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(thread.created_at).toLocaleDateString('es-ES')}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(thread.created_at).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -389,9 +504,19 @@ const AdminComunidad = () => {
                       <Badge variant="outline">
                         {thread.replies_count} respuestas
                       </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => viewThread(thread.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
+                {threads.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">No hay hilos recientes</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -415,17 +540,24 @@ const AdminComunidad = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h4 className="font-medium">{category.name}</h4>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h4 className="font-medium text-gray-900">{category.name}</h4>
                         {category.is_premium && (
-                          <Badge variant="secondary">Premium</Badge>
+                          <Badge variant="default" className="bg-yellow-100 text-yellow-800">Premium</Badge>
                         )}
+                        <Badge variant="outline">
+                          {category._count?.threads || 0} hilos
+                        </Badge>
                       </div>
                       {category.description && (
-                        <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                        <p className="text-sm text-gray-600 mb-2">{category.description}</p>
                       )}
-                      <p className="text-xs text-gray-500 mt-2">
-                        Creada el {new Date(category.created_at).toLocaleDateString('es-ES')}
+                      <p className="text-xs text-gray-500">
+                        Creada el {new Date(category.created_at).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -447,6 +579,11 @@ const AdminComunidad = () => {
                             <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
                             <AlertDialogDescription>
                               Esta acción no se puede deshacer. Se eliminará la categoría "{category.name}".
+                              {category._count && category._count.threads > 0 && (
+                                <span className="block mt-2 text-red-600 font-medium">
+                                  ⚠️ Esta categoría tiene {category._count.threads} hilo(s) asociado(s).
+                                </span>
+                              )}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -465,6 +602,19 @@ const AdminComunidad = () => {
                 </CardContent>
               </Card>
             ))}
+            {categories.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Hash className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No hay categorías</h3>
+                  <p className="text-gray-600 mb-4">Crea la primera categoría para organizar los hilos del foro</p>
+                  <Button onClick={() => openCategoryDialog()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crear Primera Categoría
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -481,7 +631,7 @@ const AdminComunidad = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="font-medium">{thread.title}</h4>
+                        <h4 className="font-medium text-gray-900">{thread.title}</h4>
                         {thread.is_pinned && (
                           <Badge variant="secondary">
                             <Pin className="h-3 w-3 mr-1" />
@@ -490,7 +640,7 @@ const AdminComunidad = () => {
                         )}
                       </div>
                       
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                         {thread.content}
                       </p>
                       
@@ -510,6 +660,7 @@ const AdminComunidad = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleTogglePin(thread.id, thread.is_pinned)}
+                        title={thread.is_pinned ? 'Despinnear hilo' : 'Pinnear hilo'}
                       >
                         {thread.is_pinned ? (
                           <PinOff className="h-4 w-4" />
@@ -521,14 +672,15 @@ const AdminComunidad = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(`/comunidad?thread=${thread.id}`, '_blank')}
+                        onClick={() => viewThread(thread.id)}
+                        title="Ver hilo"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" title="Eliminar hilo">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
@@ -536,7 +688,7 @@ const AdminComunidad = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>¿Eliminar hilo?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta acción no se puede deshacer. Se eliminará el hilo "{thread.title}" y todas sus respuestas.
+                              Esta acción no se puede deshacer. Se eliminará el hilo "{thread.title}" y todas sus {thread.replies_count} respuestas.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -555,31 +707,41 @@ const AdminComunidad = () => {
                 </CardContent>
               </Card>
             ))}
+            {threads.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No hay hilos</h3>
+                  <p className="text-gray-600">Los hilos aparecerán aquí cuando los usuarios comiencen a crear discusiones</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
       </Tabs>
 
       {/* Category Dialog */}
       <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
               {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="categoryName">Nombre</Label>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="categoryName">Nombre *</Label>
               <Input
                 id="categoryName"
                 value={categoryForm.name}
                 onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
                 placeholder="Nombre de la categoría"
+                disabled={submittingCategory}
               />
             </div>
             
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="categoryDescription">Descripción</Label>
               <Textarea
                 id="categoryDescription"
@@ -587,6 +749,7 @@ const AdminComunidad = () => {
                 onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
                 placeholder="Descripción de la categoría (opcional)"
                 rows={3}
+                disabled={submittingCategory}
               />
             </div>
             
@@ -595,22 +758,25 @@ const AdminComunidad = () => {
                 id="isPremium"
                 checked={categoryForm.is_premium}
                 onCheckedChange={(checked) => setCategoryForm({ ...categoryForm, is_premium: checked })}
+                disabled={submittingCategory}
               />
               <Label htmlFor="isPremium">Categoría Premium</Label>
             </div>
           </div>
           
-          <div className="flex justify-end space-x-2 mt-6">
+          <div className="flex justify-end space-x-2">
             <Button
               variant="outline"
               onClick={() => setShowCategoryDialog(false)}
+              disabled={submittingCategory}
             >
               Cancelar
             </Button>
             <Button
               onClick={editingCategory ? handleUpdateCategory : handleCreateCategory}
+              disabled={submittingCategory || !categoryForm.name.trim()}
             >
-              {editingCategory ? 'Actualizar' : 'Crear'}
+              {submittingCategory ? 'Guardando...' : (editingCategory ? 'Actualizar' : 'Crear')}
             </Button>
           </div>
         </DialogContent>
