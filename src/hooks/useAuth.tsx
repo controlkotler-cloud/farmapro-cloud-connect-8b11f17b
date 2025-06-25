@@ -10,6 +10,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string, pharmacyName?: string, position?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  reloadProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +19,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const loadProfile = async (userId: string) => {
+    try {
+      console.log('Loading profile for user:', userId);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
+      
+      console.log('Profile loaded:', data);
+      setProfile(data);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
+  const reloadProfile = async () => {
+    if (user) {
+      await loadProfile(user.id);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -47,12 +75,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
       if (mounted) {
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => {
-            loadProfile(session.user.id);
-            checkSubscriptionStatus();
+          setTimeout(async () => {
+            await loadProfile(session.user.id);
+            await checkSubscriptionStatus();
           }, 0);
         } else {
           setProfile(null);
@@ -67,25 +97,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const loadProfile = async (userId: string) => {
-    try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      setProfile(data);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    }
-  };
-
   const checkSubscriptionStatus = async () => {
     try {
       await supabase.functions.invoke('check-subscription');
-      // Reload profile after checking subscription
+      // Reload profile after checking subscription to get updated role
       if (user) {
-        await loadProfile(user.id);
+        setTimeout(() => {
+          loadProfile(user.id);
+        }, 500); // Small delay to ensure database is updated
       }
     } catch (error) {
       console.error('Error checking subscription status:', error);
@@ -131,7 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, reloadProfile }}>
       {children}
     </AuthContext.Provider>
   );
