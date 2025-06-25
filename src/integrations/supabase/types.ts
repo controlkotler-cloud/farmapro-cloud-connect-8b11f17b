@@ -839,6 +839,10 @@ export type Database = {
         Args: { user_id: string; points: number }
         Returns: undefined
       }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_user_admin: {
         Args: { user_id: string }
         Returns: boolean
