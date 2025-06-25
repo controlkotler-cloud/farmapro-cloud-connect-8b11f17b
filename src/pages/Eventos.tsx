@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Clock, Users, ExternalLink, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 interface Event {
   id: string;
@@ -32,6 +33,7 @@ const eventTypes = [
 ];
 
 const Eventos = () => {
+  const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('all');
@@ -55,25 +57,45 @@ const Eventos = () => {
   }, [selectedType]);
 
   const loadEvents = async () => {
-    setLoading(true);
-    let query = supabase
-      .from('events')
-      .select('*')
-      .gte('end_date', new Date().toISOString())
-      .order('is_featured', { ascending: false })
-      .order('start_date', { ascending: true });
+    try {
+      setLoading(true);
+      console.log('Loading events from database...');
+      
+      let query = supabase
+        .from('events')
+        .select('*')
+        .gte('end_date', new Date().toISOString())
+        .order('is_featured', { ascending: false })
+        .order('start_date', { ascending: true });
 
-    if (selectedType !== 'all') {
-      query = query.eq('event_type', selectedType);
-    }
+      if (selectedType !== 'all') {
+        query = query.eq('event_type', selectedType);
+      }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error loading events:', error);
-    } else {
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error loading events:', error);
+        toast({
+          title: "Error",
+          description: `Error al cargar eventos: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Events loaded:', data?.length || 0);
       setEvents(data || []);
+    } catch (error: any) {
+      console.error('Exception loading events:', error);
+      toast({
+        title: "Error",
+        description: "Error inesperado al cargar eventos",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -151,6 +173,19 @@ const Eventos = () => {
                 </Card>
               ))}
             </div>
+          ) : events.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay eventos disponibles</h3>
+                <p className="text-gray-600">
+                  {selectedType === 'all' 
+                    ? 'No hay eventos programados en este momento.'
+                    : `No hay eventos de tipo "${eventTypes.find(t => t.id === selectedType)?.name}" programados.`
+                  }
+                </p>
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {events.map((event, index) => (
@@ -189,8 +224,8 @@ const Eventos = () => {
                       </Badge>
                     </div>
                     <CardHeader>
-                      <CardTitle className="text-lg">{event.title}</CardTitle>
-                      <CardDescription>{event.description}</CardDescription>
+                      <CardTitle className="text-lg line-clamp-2">{event.title}</CardTitle>
+                      <CardDescription className="line-clamp-3">{event.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="space-y-3">
@@ -231,21 +266,6 @@ const Eventos = () => {
           )}
         </TabsContent>
       </Tabs>
-
-      {events.length === 0 && !loading && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay eventos disponibles</h3>
-            <p className="text-gray-600">
-              {selectedType === 'all' 
-                ? 'No hay eventos programados en este momento.'
-                : `No hay eventos de tipo "${eventTypes.find(t => t.id === selectedType)?.name}" programados.`
-              }
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

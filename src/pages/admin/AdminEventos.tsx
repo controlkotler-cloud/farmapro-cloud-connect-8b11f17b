@@ -8,8 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Calendar, MapPin, Plus, Edit, Trash, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Event {
   id: string;
@@ -26,10 +30,13 @@ interface Event {
 }
 
 const AdminEventos = () => {
+  const { isAdmin } = useAuth();
+  const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -46,52 +53,151 @@ const AdminEventos = () => {
   });
 
   useEffect(() => {
-    loadEvents();
-  }, []);
+    if (isAdmin) {
+      loadEvents();
+    }
+  }, [isAdmin]);
 
   const loadEvents = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('start_date', { ascending: false });
+    try {
+      setLoading(true);
+      console.log('Loading events from database...');
+      
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('start_date', { ascending: false });
 
-    if (error) {
-      console.error('Error loading events:', error);
-    } else {
+      if (error) {
+        console.error('Error loading events:', error);
+        toast({
+          title: "Error",
+          description: `Error al cargar eventos: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Events loaded:', data?.length || 0);
       setEvents(data || []);
+    } catch (error: any) {
+      console.error('Exception loading events:', error);
+      toast({
+        title: "Error",
+        description: "Error inesperado al cargar eventos",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const validateForm = () => {
+    if (!form.getValues('title').trim()) {
+      toast({
+        title: "Error",
+        description: "El título es obligatorio",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!form.getValues('description').trim()) {
+      toast({
+        title: "Error", 
+        description: "La descripción es obligatoria",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!form.getValues('event_type').trim()) {
+      toast({
+        title: "Error",
+        description: "El tipo de evento es obligatorio",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!form.getValues('start_date')) {
+      toast({
+        title: "Error",
+        description: "La fecha de inicio es obligatoria",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
   };
 
   const onSubmit = async (values: any) => {
+    if (!validateForm()) return;
+
     try {
+      setSubmitting(true);
+      console.log('Saving event:', values);
+
+      const eventData = {
+        title: values.title.trim(),
+        description: values.description.trim(),
+        event_type: values.event_type.trim(),
+        location: values.location?.trim() || null,
+        start_date: values.start_date,
+        end_date: values.end_date || values.start_date,
+        image_url: values.image_url?.trim() || null,
+        registration_url: values.registration_url?.trim() || null,
+        is_featured: values.is_featured || false
+      };
+
       if (editingEvent) {
         const { error } = await supabase
           .from('events')
-          .update(values)
+          .update(eventData)
           .eq('id', editingEvent.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating event:', error);
+          throw error;
+        }
+
+        toast({
+          title: "Éxito",
+          description: "Evento actualizado correctamente"
+        });
       } else {
         const { error } = await supabase
           .from('events')
-          .insert([values]);
+          .insert([eventData]);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating event:', error);
+          throw error;
+        }
+
+        toast({
+          title: "Éxito", 
+          description: "Evento creado correctamente"
+        });
       }
       
-      setIsDialogOpen(false);
-      setEditingEvent(null);
-      form.reset();
-      loadEvents();
-    } catch (error) {
+      resetForm();
+      await loadEvents();
+    } catch (error: any) {
       console.error('Error saving event:', error);
+      toast({
+        title: "Error",
+        description: `No se pudo guardar el evento: ${error.message || 'Error desconocido'}`,
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const deleteEvent = async (eventId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar este evento?')) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este evento?')) return;
+
+    try {
+      console.log('Deleting event:', eventId);
+      
       const { error } = await supabase
         .from('events')
         .delete()
@@ -99,19 +205,32 @@ const AdminEventos = () => {
 
       if (error) {
         console.error('Error deleting event:', error);
-      } else {
-        loadEvents();
+        throw error;
       }
+
+      toast({
+        title: "Éxito",
+        description: "Evento eliminado correctamente"
+      });
+      await loadEvents();
+    } catch (error: any) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Error",
+        description: `No se pudo eliminar el evento: ${error.message || 'Error desconocido'}`,
+        variant: "destructive"
+      });
     }
   };
 
   const openEditDialog = (event: Event) => {
+    console.log('Editing event:', event.id);
     setEditingEvent(event);
     form.reset({
       title: event.title,
       description: event.description,
       event_type: event.event_type,
-      location: event.location,
+      location: event.location || '',
       start_date: event.start_date?.slice(0, 16) || '',
       end_date: event.end_date?.slice(0, 16) || '',
       image_url: event.image_url || '',
@@ -121,11 +240,37 @@ const AdminEventos = () => {
     setIsDialogOpen(true);
   };
 
-  const openCreateDialog = () => {
+  const resetForm = () => {
+    form.reset({
+      title: '',
+      description: '',
+      event_type: '',
+      location: '',
+      start_date: '',
+      end_date: '',
+      image_url: '',
+      registration_url: '',
+      is_featured: false
+    });
     setEditingEvent(null);
-    form.reset();
+    setIsDialogOpen(false);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
     setIsDialogOpen(true);
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h2>
+          <p className="text-gray-600">No tienes permisos para acceder a esta página.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -141,7 +286,7 @@ const AdminEventos = () => {
               Nuevo Evento
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingEvent ? 'Editar Evento' : 'Crear Nuevo Evento'}
@@ -157,7 +302,7 @@ const AdminEventos = () => {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Título</FormLabel>
+                      <FormLabel>Título *</FormLabel>
                       <FormControl>
                         <Input placeholder="Título del evento" {...field} />
                       </FormControl>
@@ -170,9 +315,9 @@ const AdminEventos = () => {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descripción</FormLabel>
+                      <FormLabel>Descripción *</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Descripción del evento" {...field} />
+                        <Textarea placeholder="Descripción del evento" rows={3} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -184,7 +329,7 @@ const AdminEventos = () => {
                     name="event_type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tipo de Evento</FormLabel>
+                        <FormLabel>Tipo de Evento *</FormLabel>
                         <FormControl>
                           <Input placeholder="Webinar, Conferencia, etc." {...field} />
                         </FormControl>
@@ -212,7 +357,7 @@ const AdminEventos = () => {
                     name="start_date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Fecha de Inicio</FormLabel>
+                        <FormLabel>Fecha de Inicio *</FormLabel>
                         <FormControl>
                           <Input type="datetime-local" {...field} />
                         </FormControl>
@@ -260,12 +405,20 @@ const AdminEventos = () => {
                     </FormItem>
                   )}
                 />
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="featured"
+                    checked={form.watch('is_featured')}
+                    onCheckedChange={(checked) => form.setValue('is_featured', checked)}
+                  />
+                  <Label htmlFor="featured">Evento Destacado</Label>
+                </div>
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button type="button" variant="outline" onClick={resetForm}>
                     Cancelar
                   </Button>
-                  <Button type="submit">
-                    {editingEvent ? 'Actualizar' : 'Crear'}
+                  <Button type="submit" disabled={submitting}>
+                    {submitting ? 'Guardando...' : (editingEvent ? 'Actualizar' : 'Crear')} Evento
                   </Button>
                 </div>
               </form>
@@ -276,17 +429,22 @@ const AdminEventos = () => {
 
       {/* Events Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3">Cargando eventos...</span>
         </div>
+      ) : events.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay eventos creados</h3>
+            <p className="text-gray-600 mb-4">Aún no se han creado eventos en el sistema.</p>
+            <Button onClick={openCreateDialog}>
+              <Plus className="h-4 w-4 mr-2" />
+              Crear primer evento
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
@@ -300,42 +458,36 @@ const AdminEventos = () => {
                     <Button size="sm" variant="outline" onClick={() => openEditDialog(event)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => deleteEvent(event.id)}>
+                    <Button size="sm" variant="destructive" onClick={() => deleteEvent(event.id)}>
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-                <CardTitle className="text-lg">{event.title}</CardTitle>
-                <CardDescription>{event.description}</CardDescription>
+                <CardTitle className="text-lg line-clamp-2">{event.title}</CardTitle>
+                <CardDescription className="line-clamp-3">{event.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm text-gray-600">
                     <Calendar className="h-4 w-4 mr-2" />
-                    {new Date(event.start_date).toLocaleDateString()}
+                    {new Date(event.start_date).toLocaleDateString('es-ES')}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {event.location}
-                  </div>
+                  {event.location && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {event.location}
+                    </div>
+                  )}
+                  {event.is_featured && (
+                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                      Destacado
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      )}
-
-      {events.length === 0 && !loading && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No hay eventos creados aún</p>
-            <Button className="mt-4" onClick={openCreateDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              Crear primer evento
-            </Button>
-          </CardContent>
-        </Card>
       )}
     </div>
   );
