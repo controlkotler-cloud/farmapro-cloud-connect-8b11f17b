@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -50,14 +51,22 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
+  console.log('ProtectedRoute - user:', user?.email, 'loading:', loading);
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-    </div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <LoginForm />;
+    console.log('ProtectedRoute - No user, redirecting to login');
+    return <Navigate to="/login" replace />;
   }
 
   return <DashboardLayout>{children}</DashboardLayout>;
@@ -66,14 +75,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
+  console.log('AdminProtectedRoute - user:', user?.email, 'loading:', loading);
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-    </div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando permisos...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <LoginForm />;
+    console.log('AdminProtectedRoute - No user, redirecting to login');
+    return <Navigate to="/login" replace />;
   }
 
   return (
@@ -86,16 +103,26 @@ const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   const { user, loading } = useAuth();
 
+  console.log('AppRoutes - user:', user?.email, 'loading:', loading);
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-    </div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Iniciando aplicación...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Index />} />
-      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginForm />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
+      <Route 
+        path="/login" 
+        element={user ? <Navigate to="/dashboard" replace /> : <LoginForm />} 
+      />
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -157,7 +184,7 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      {/* Admin Routes - Using the same DashboardLayout */}
+      {/* Admin Routes */}
       <Route path="/admin" element={
         <AdminProtectedRoute>
           <AdminDashboard />

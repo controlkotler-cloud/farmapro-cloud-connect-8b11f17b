@@ -72,29 +72,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
-    const getSession = async () => {
+    const initializeAuth = async () => {
       try {
-        console.log('Getting initial session...');
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initializing auth...');
+        
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        console.log('Initial session:', session?.user?.email);
+        
         if (mounted) {
-          console.log('Initial session:', session?.user?.email);
           setUser(session?.user ?? null);
+          
           if (session?.user) {
             await loadProfile(session.user.id);
             await checkAdminStatus();
           }
+          
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('Error initializing auth:', error);
         if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    getSession();
+    // Initialize auth
+    initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -102,14 +116,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (mounted) {
         setUser(session?.user ?? null);
+        
         if (session?.user) {
-          await loadProfile(session.user.id);
-          await checkAdminStatus();
+          // Use setTimeout to avoid potential callback loops
+          setTimeout(async () => {
+            if (mounted) {
+              await loadProfile(session.user.id);
+              await checkAdminStatus();
+            }
+          }, 0);
         } else {
           setProfile(null);
           setIsAdmin(false);
         }
-        setLoading(false);
       }
     });
 
