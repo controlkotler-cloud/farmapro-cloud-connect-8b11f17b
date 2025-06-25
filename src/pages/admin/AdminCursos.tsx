@@ -84,6 +84,12 @@ const AdminCursos = () => {
     console.log('Editando curso:', editingCourse);
 
     try {
+      // Procesar módulos correctamente
+      let processedModules = [];
+      if (formData.course_modules && Array.isArray(formData.course_modules)) {
+        processedModules = formData.course_modules.filter(module => module.title && module.title.trim());
+      }
+
       const courseData = {
         title: formData.title.trim(),
         description: formData.description?.trim() || null,
@@ -93,10 +99,10 @@ const AdminCursos = () => {
         content: formData.content?.trim() || null,
         thumbnail_url: formData.thumbnail_url?.trim() || null,
         featured_image_url: formData.featured_image_url?.trim() || null,
-        course_modules: formData.course_modules && formData.course_modules.length > 0 ? formData.course_modules : []
+        course_modules: processedModules
       };
 
-      console.log('Datos a enviar a Supabase:', courseData);
+      console.log('Datos procesados a enviar a Supabase:', courseData);
 
       if (editingCourse) {
         console.log('Actualizando curso con ID:', editingCourse.id);
@@ -198,7 +204,7 @@ const AdminCursos = () => {
       }
     }
     
-    console.log('Módulos procesados:', modules);
+    console.log('Módulos procesados para edición:', modules);
     
     setFormData({
       title: course.title || '',
