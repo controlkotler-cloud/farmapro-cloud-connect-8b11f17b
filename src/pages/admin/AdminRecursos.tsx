@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 type Resource = Database['public']['Tables']['resources']['Row'];
+type ResourceInsert = Database['public']['Tables']['resources']['Insert'];
 type ResourceCategory = Database['public']['Enums']['resource_category'];
 type ResourceType = Database['public']['Enums']['resource_type'];
 type ResourceFormat = Database['public']['Enums']['resource_format'];
@@ -39,30 +40,30 @@ const AdminRecursos = () => {
   });
 
   const categories = [
-    { value: 'atencion', label: 'Atención al Cliente' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'gestion', label: 'Gestión' },
-    { value: 'liderazgo', label: 'Liderazgo' },
-    { value: 'finanzas', label: 'Finanzas' },
-    { value: 'digital', label: 'Digital' }
+    { value: 'atencion' as ResourceCategory, label: 'Atención al Cliente' },
+    { value: 'marketing' as ResourceCategory, label: 'Marketing' },
+    { value: 'gestion' as ResourceCategory, label: 'Gestión' },
+    { value: 'liderazgo' as ResourceCategory, label: 'Liderazgo' },
+    { value: 'finanzas' as ResourceCategory, label: 'Finanzas' },
+    { value: 'digital' as ResourceCategory, label: 'Digital' }
   ];
 
   const types = [
-    { value: 'protocolo', label: 'Protocolo' },
-    { value: 'calculadora', label: 'Calculadora' },
-    { value: 'plantilla', label: 'Plantilla' },
-    { value: 'guia', label: 'Guía' },
-    { value: 'checklist', label: 'Checklist' },
-    { value: 'manual', label: 'Manual' },
-    { value: 'herramienta', label: 'Herramienta' }
+    { value: 'protocolo' as ResourceType, label: 'Protocolo' },
+    { value: 'calculadora' as ResourceType, label: 'Calculadora' },
+    { value: 'plantilla' as ResourceType, label: 'Plantilla' },
+    { value: 'guia' as ResourceType, label: 'Guía' },
+    { value: 'checklist' as ResourceType, label: 'Checklist' },
+    { value: 'manual' as ResourceType, label: 'Manual' },
+    { value: 'herramienta' as ResourceType, label: 'Herramienta' }
   ];
 
   const formats = [
-    { value: 'pdf', label: 'PDF' },
-    { value: 'docs', label: 'Word' },
-    { value: 'xls', label: 'Excel' },
-    { value: 'url', label: 'Enlace Web' },
-    { value: 'video', label: 'Video' }
+    { value: 'pdf' as ResourceFormat, label: 'PDF' },
+    { value: 'docs' as ResourceFormat, label: 'Word' },
+    { value: 'xls' as ResourceFormat, label: 'Excel' },
+    { value: 'url' as ResourceFormat, label: 'Enlace Web' },
+    { value: 'video' as ResourceFormat, label: 'Video' }
   ];
 
   useEffect(() => {
@@ -72,7 +73,7 @@ const AdminRecursos = () => {
   const loadResources = async () => {
     try {
       setLoading(true);
-      console.log('Cargando recursos...');
+      console.log('Loading resources...');
       
       const { data, error } = await supabase
         .from('resources')
@@ -83,13 +84,14 @@ const AdminRecursos = () => {
         console.error('Error loading resources:', error);
         toast({
           title: "Error",
-          description: "No se pudieron cargar los recursos",
+          description: `Error al cargar recursos: ${error.message}`,
           variant: "destructive"
         });
-      } else {
-        console.log('Recursos cargados:', data?.length);
-        setResources(data || []);
+        return;
       }
+
+      console.log('Resources loaded:', data?.length || 0);
+      setResources(data || []);
     } catch (error) {
       console.error('Exception loading resources:', error);
       toast({
@@ -102,29 +104,72 @@ const AdminRecursos = () => {
     }
   };
 
+  const validateForm = () => {
+    if (!formData.title.trim()) {
+      toast({
+        title: "Error",
+        description: "El título es obligatorio",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!formData.category) {
+      toast({
+        title: "Error",
+        description: "La categoría es obligatoria",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!formData.type) {
+      toast({
+        title: "Error",
+        description: "El tipo es obligatorio",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!formData.format) {
+      toast({
+        title: "Error",
+        description: "El formato es obligatorio",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.category || !formData.type || !formData.format) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setSubmitting(true);
-      console.log('Guardando recurso:', formData);
+      console.log('Saving resource:', formData);
+
+      const resourceData: ResourceInsert = {
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        category: formData.category,
+        type: formData.type,
+        format: formData.format,
+        file_url: formData.file_url.trim() || null,
+        is_premium: formData.is_premium,
+        download_count: 0
+      };
 
       if (editingResource) {
         const { error } = await supabase
           .from('resources')
-          .update(formData)
+          .update(resourceData)
           .eq('id', editingResource.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating resource:', error);
+          throw error;
+        }
         
         toast({
           title: "Éxito",
@@ -133,9 +178,12 @@ const AdminRecursos = () => {
       } else {
         const { error } = await supabase
           .from('resources')
-          .insert([formData]);
+          .insert([resourceData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating resource:', error);
+          throw error;
+        }
         
         toast({
           title: "Éxito",
@@ -144,12 +192,12 @@ const AdminRecursos = () => {
       }
 
       resetForm();
-      loadResources();
-    } catch (error) {
+      await loadResources();
+    } catch (error: any) {
       console.error('Error saving resource:', error);
       toast({
         title: "Error",
-        description: "No se pudo guardar el recurso",
+        description: `No se pudo guardar el recurso: ${error.message || 'Error desconocido'}`,
         variant: "destructive"
       });
     } finally {
@@ -172,7 +220,7 @@ const AdminRecursos = () => {
   };
 
   const handleEdit = (resource: Resource) => {
-    console.log('Editando recurso:', resource.id);
+    console.log('Editing resource:', resource.id);
     setFormData({
       title: resource.title,
       description: resource.description || '',
@@ -190,25 +238,28 @@ const AdminRecursos = () => {
     if (!confirm('¿Estás seguro de que quieres eliminar este recurso?')) return;
 
     try {
-      console.log('Eliminando recurso:', resourceId);
+      console.log('Deleting resource:', resourceId);
       
       const { error } = await supabase
         .from('resources')
         .delete()
         .eq('id', resourceId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting resource:', error);
+        throw error;
+      }
 
       toast({
         title: "Éxito",
         description: "Recurso eliminado correctamente"
       });
-      loadResources();
-    } catch (error) {
+      await loadResources();
+    } catch (error: any) {
       console.error('Error deleting resource:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar el recurso",
+        description: `No se pudo eliminar el recurso: ${error.message || 'Error desconocido'}`,
         variant: "destructive"
       });
     }

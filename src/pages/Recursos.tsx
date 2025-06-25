@@ -53,7 +53,7 @@ const Recursos = () => {
   const loadResources = async () => {
     try {
       setLoading(true);
-      console.log('Cargando recursos públicos...');
+      console.log('Loading resources from database...');
       
       let query = supabase
         .from('resources')
@@ -70,14 +70,15 @@ const Recursos = () => {
         console.error('Error loading resources:', error);
         toast({
           title: "Error",
-          description: "No se pudieron cargar los recursos",
+          description: `Error al cargar recursos: ${error.message}`,
           variant: "destructive"
         });
-      } else {
-        console.log('Recursos cargados:', data?.length);
-        setResources(data || []);
+        return;
       }
-    } catch (error) {
+
+      console.log('Resources loaded:', data?.length || 0);
+      setResources(data || []);
+    } catch (error: any) {
       console.error('Exception loading resources:', error);
       toast({
         title: "Error",
@@ -166,11 +167,11 @@ const Recursos = () => {
 
       // Reload resources to update download count
       loadResources();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error downloading resource:', error);
       toast({
         title: "Error",
-        description: "No se pudo descargar el recurso",
+        description: `No se pudo descargar el recurso: ${error.message || 'Error desconocido'}`,
         variant: "destructive"
       });
     }
