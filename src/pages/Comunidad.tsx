@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ThreadView } from '@/components/forum/ThreadView';
-import { ForumStats } from '@/components/forum/ForumStats';
-import { ForumContainer } from '@/components/forum/ForumContainer';
+import { CommunityHeader } from '@/components/community/CommunityHeader';
+import { CommunityStats } from '@/components/community/CommunityStats';
+import { CommunityContent } from '@/components/community/CommunityContent';
 
 const Comunidad = () => {
   const { profile } = useAuth();
@@ -73,21 +74,29 @@ const Comunidad = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Forum Stats */}
-      <ForumStats 
-        totalThreads={forumStats.totalThreads}
-        totalReplies={forumStats.totalReplies}
-        userForumPosts={forumStats.userForumPosts}
-        userLevel={profile?.level || 1}
-        userPoints={profile?.total_points || 0}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="space-y-8">
+        {/* Hero Header */}
+        <CommunityHeader 
+          userLevel={profile?.level || 1}
+          userPoints={profile?.total_points || 0}
+        />
 
-      {/* Forum Container */}
-      <ForumContainer 
-        onThreadClick={handleThreadClick}
-        onDataChange={loadForumStats}
-      />
+        {/* Stats Section */}
+        <CommunityStats 
+          totalThreads={forumStats.totalThreads}
+          totalReplies={forumStats.totalReplies}
+          userForumPosts={forumStats.userForumPosts}
+          userLevel={profile?.level || 1}
+          userPoints={profile?.total_points || 0}
+        />
+
+        {/* Main Content */}
+        <CommunityContent 
+          onThreadClick={handleThreadClick}
+          onDataChange={loadForumStats}
+        />
+      </div>
     </div>
   );
 };
