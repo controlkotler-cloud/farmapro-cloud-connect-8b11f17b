@@ -41,23 +41,55 @@ export const useSystemSettings = () => {
     mutationFn: async ({ category, key, value }: { category: string; key: string; value: any }) => {
       console.log('Updating system setting:', { category, key, value });
       
-      const { data, error } = await supabase
+      // Check if setting exists
+      const { data: existingSetting } = await supabase
         .from('system_settings')
-        .update({ 
-          value,
-          updated_at: new Date().toISOString()
-        })
+        .select('id')
         .eq('category', category)
         .eq('key', key)
-        .select()
         .single();
 
-      if (error) {
-        console.error('Error updating system setting:', error);
-        throw error;
-      }
+      if (existingSetting) {
+        // Update existing setting
+        const { data, error } = await supabase
+          .from('system_settings')
+          .update({ 
+            value,
+            updated_at: new Date().toISOString()
+          })
+          .eq('category', category)
+          .eq('key', key)
+          .select()
+          .single();
 
-      return data;
+        if (error) {
+          console.error('Error updating system setting:', error);
+          throw error;
+        }
+
+        return data;
+      } else {
+        // Insert new setting
+        const { data, error } = await supabase
+          .from('system_settings')
+          .insert({
+            category,
+            key,
+            value,
+            description: `${category} - ${key}`,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error inserting system setting:', error);
+          throw error;
+        }
+
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['system-settings'] });
@@ -92,11 +124,16 @@ export const useSystemSettings = () => {
   const updateCategorySettings = async (category: string, newSettings: Record<string, any>) => {
     console.log('Updating category settings:', { category, newSettings });
     
-    const promises = Object.entries(newSettings).map(([key, value]) =>
-      updateSettingMutation.mutateAsync({ category, key, value })
-    );
-    
-    await Promise.all(promises);
+    try {
+      const promises = Object.entries(newSettings).map(([key, value]) =>
+        updateSettingMutation.mutateAsync({ category, key, value })
+      );
+      
+      await Promise.all(promises);
+    } catch (error) {
+      console.error('Error updating category settings:', error);
+      throw error;
+    }
   };
 
   return {

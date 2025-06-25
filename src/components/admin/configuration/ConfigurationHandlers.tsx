@@ -43,7 +43,16 @@ export const useConfigurationHandlers = () => {
   };
 
   const handleEmailTemplatesSave = async (config: any) => {
-    await updateCategorySettings('email_templates', config);
+    console.log('Saving email templates:', config);
+    
+    // Save each email template as a separate key in the email_templates category
+    await updateCategorySettings('email_templates', {
+      password_reset: config.password_reset,
+      welcome: config.welcome,
+      course_completion: config.course_completion,
+      subscription_renewal: config.subscription_renewal,
+      verification: config.verification
+    });
   };
 
   return {
