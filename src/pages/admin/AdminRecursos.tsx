@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import { Plus, Edit, Trash2, Download, FileText, Calculator, BookOpen, Link, Vid
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
+import { useAuth } from '@/hooks/useAuth';
 
 type Resource = Database['public']['Tables']['resources']['Row'];
 type ResourceInsert = Database['public']['Tables']['resources']['Insert'];
@@ -22,6 +22,7 @@ type ResourceType = Database['public']['Enums']['resource_type'];
 type ResourceFormat = Database['public']['Enums']['resource_format'];
 
 const AdminRecursos = () => {
+  const { isAdmin } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -67,8 +68,10 @@ const AdminRecursos = () => {
   ];
 
   useEffect(() => {
-    loadResources();
-  }, []);
+    if (isAdmin) {
+      loadResources();
+    }
+  }, [isAdmin]);
 
   const loadResources = async () => {
     try {
@@ -296,6 +299,17 @@ const AdminRecursos = () => {
     const formatObj = formats.find(f => f.value === format);
     return formatObj ? formatObj.label : format.toUpperCase();
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h2>
+          <p className="text-gray-600">No tienes permisos para acceder a esta página.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

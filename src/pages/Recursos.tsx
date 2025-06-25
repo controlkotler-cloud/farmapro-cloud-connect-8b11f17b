@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -282,15 +281,15 @@ const Recursos = () => {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3 flex-1">
-                          {getFormatIcon(resource.format)}
+                          {/* Format icon based on resource format */}
                           <div className="flex-1">
                             <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
                             <div className="flex items-center flex-wrap gap-2 mt-2">
                               <Badge variant="outline">
-                                {getCategoryLabel(resource.category)}
+                                {resource.category}
                               </Badge>
                               <Badge variant="secondary">
-                                {getTypeLabel(resource.type)}
+                                {resource.type}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
                                 {resource.format.toUpperCase()}
