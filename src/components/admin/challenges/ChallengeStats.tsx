@@ -102,8 +102,6 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
         return 'Respuestas en Foro';
       case 'resource_downloaded':
         return 'Recursos Descargados';
-      case 'community_engagement':
-        return 'Participación Comunitaria';
       default:
         return type;
     }
@@ -119,8 +117,6 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
         return '💬';
       case 'resource_downloaded':
         return '📁';
-      case 'community_engagement':
-        return '👥';
       default:
         return '🏆';
     }

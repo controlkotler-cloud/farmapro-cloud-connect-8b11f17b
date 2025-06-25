@@ -90,8 +90,6 @@ export const UserChallengeProgress = ({
         return 'Respuesta en Foro';
       case 'resource_downloaded':
         return 'Recurso Descargado';
-      case 'community_engagement':
-        return 'Participación Comunitaria';
       default:
         return type;
     }
@@ -107,8 +105,6 @@ export const UserChallengeProgress = ({
         return '💬';
       case 'resource_downloaded':
         return '📁';
-      case 'community_engagement':
-        return '👥';
       default:
         return '🏆';
     }

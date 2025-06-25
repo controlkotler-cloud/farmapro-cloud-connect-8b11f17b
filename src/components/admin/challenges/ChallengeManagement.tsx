@@ -80,8 +80,7 @@ const challengeTypes = [
   { value: 'course_completed' as ChallengeType, label: 'Curso Completado', icon: BookOpen, emoji: '🎓' },
   { value: 'forum_post' as ChallengeType, label: 'Post en Foro', icon: MessageSquare, emoji: '💬' },
   { value: 'forum_reply' as ChallengeType, label: 'Respuesta en Foro', icon: MessageSquare, emoji: '💭' },
-  { value: 'resource_downloaded' as ChallengeType, label: 'Recurso Descargado', icon: Gift, emoji: '📁' },
-  { value: 'community_engagement' as ChallengeType, label: 'Participación Comunitaria', icon: Users, emoji: '👥' }
+  { value: 'resource_downloaded' as ChallengeType, label: 'Recurso Descargado', icon: Gift, emoji: '📁' }
 ];
 
 export const ChallengeManagement = ({ 
