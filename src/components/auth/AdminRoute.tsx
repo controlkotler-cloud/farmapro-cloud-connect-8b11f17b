@@ -1,7 +1,8 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -9,15 +10,43 @@ interface AdminRouteProps {
 
 export const AdminRoute = ({ children }: AdminRouteProps) => {
   const { user, profile, loading, reloadProfile } = useAuth();
+  const [isVerifyingAdmin, setIsVerifyingAdmin] = useState(false);
+  const [adminVerified, setAdminVerified] = useState(false);
 
   useEffect(() => {
-    console.log('AdminRoute - User:', user?.email);
-    console.log('AdminRoute - Profile:', profile);
-    console.log('AdminRoute - Loading:', loading);
-    console.log('AdminRoute - Is Admin:', profile?.subscription_role === 'admin');
+    const verifyAdminStatus = async () => {
+      if (!user || loading) return;
+
+      setIsVerifyingAdmin(true);
+      console.log('AdminRoute - Verifying admin status...');
+      console.log('AdminRoute - User:', user?.email);
+      console.log('AdminRoute - Profile:', profile);
+      console.log('AdminRoute - Profile Role:', profile?.subscription_role);
+
+      try {
+        // Verificar usando la función de base de datos
+        const { data: isAdminResult, error } = await supabase.rpc('is_admin');
+        console.log('AdminRoute - Database is_admin result:', isAdminResult);
+        
+        if (error) {
+          console.error('AdminRoute - Error checking admin status:', error);
+          setAdminVerified(false);
+        } else {
+          setAdminVerified(!!isAdminResult);
+          console.log('AdminRoute - Admin verification result:', !!isAdminResult);
+        }
+      } catch (error) {
+        console.error('AdminRoute - Exception checking admin status:', error);
+        setAdminVerified(false);
+      }
+
+      setIsVerifyingAdmin(false);
+    };
+
+    verifyAdminStatus();
   }, [user, profile, loading]);
 
-  if (loading) {
+  if (loading || isVerifyingAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -34,10 +63,13 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Show access denied if not admin (but don't redirect to avoid losing context)
-  if (profile?.subscription_role !== 'admin') {
+  // Check both profile role and database verification
+  const isAdmin = profile?.subscription_role === 'admin' || adminVerified;
+
+  if (!isAdmin) {
     console.log('AdminRoute - User is not admin, showing access denied');
-    console.log('Current role:', profile?.subscription_role);
+    console.log('Profile role:', profile?.subscription_role);
+    console.log('Database verification:', adminVerified);
     
     return (
       <div className="flex items-center justify-center min-h-[60vh]">

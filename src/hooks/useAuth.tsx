@@ -35,6 +35,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('Profile loaded:', data);
+      console.log('User role:', data?.subscription_role);
+      
+      // Verificar específicamente si es admin
+      if (data?.subscription_role === 'admin') {
+        console.log('✅ Admin user detected and confirmed');
+      }
+      
       setProfile(data);
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -43,6 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const reloadProfile = async () => {
     if (user) {
+      console.log('Reloading profile for user:', user.id);
       await loadProfile(user.id);
     }
   };
@@ -53,13 +61,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Get initial session
     const getSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data: { session } } = await supabase.auth.getSession();
         if (mounted) {
+          console.log('Initial session:', session?.user?.email);
           setUser(session?.user ?? null);
           if (session?.user) {
             await loadProfile(session.user.id);
-            // Check subscription status on login
-            await checkSubscriptionStatus();
           }
           setLoading(false);
         }
@@ -80,10 +88,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (mounted) {
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(async () => {
-            await loadProfile(session.user.id);
+          // Cargar perfil inmediatamente sin setTimeout
+          console.log('Loading profile after auth change...');
+          await loadProfile(session.user.id);
+          
+          // NO llamar checkSubscriptionStatus si el usuario ya es admin
+          const { data: currentProfile } = await supabase
+            .from('profiles')
+            .select('subscription_role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (currentProfile?.subscription_role !== 'admin') {
+            console.log('Not admin, checking subscription status...');
             await checkSubscriptionStatus();
-          }, 0);
+          } else {
+            console.log('User is admin, skipping subscription check');
+          }
         } else {
           setProfile(null);
         }
@@ -99,6 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkSubscriptionStatus = async () => {
     try {
+      console.log('Checking subscription status...');
       await supabase.functions.invoke('check-subscription');
       // Reload profile after checking subscription to get updated role
       if (user) {
@@ -113,6 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Signing in user:', email);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     } catch (error) {
@@ -143,6 +166,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      console.log('Signing out user');
+      setProfile(null); // Clear profile immediately
       await supabase.auth.signOut();
     } catch (error) {
       console.error('Sign out error:', error);
