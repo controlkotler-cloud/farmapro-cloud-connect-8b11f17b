@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import CourseFormDialog from '@/components/admin/courses/CourseFormDialog';
@@ -93,33 +92,28 @@ const AdminCursos = () => {
         content: formData.content?.trim() || null,
         thumbnail_url: formData.thumbnail_url?.trim() || null,
         featured_image_url: formData.featured_image_url?.trim() || null,
-        course_modules: formData.course_modules.length > 0 ? formData.course_modules : []
+        course_modules: formData.course_modules || []
       };
 
       if (editingCourse) {
         console.log('Actualizando curso con ID:', editingCourse.id);
+        console.log('Datos a actualizar:', courseData);
         
         const { data, error } = await supabase
           .from('courses')
-          .update({
-            ...courseData,
-            updated_at: new Date().toISOString()
-          })
+          .update(courseData)
           .eq('id', editingCourse.id)
           .select()
           .single();
 
         if (error) {
-          console.error('Error detallado al actualizar:', error);
-          throw new Error(`Error al actualizar: ${error.message}`);
-        }
-
-        if (!data) {
-          throw new Error('No se recibieron datos después de la actualización');
+          console.error('Error al actualizar curso:', error);
+          throw error;
         }
 
         console.log('Curso actualizado exitosamente:', data);
         
+        // Actualizar el estado local inmediatamente
         setCourses(prevCourses => 
           prevCourses.map(course => 
             course.id === editingCourse.id ? data : course
@@ -140,16 +134,13 @@ const AdminCursos = () => {
           .single();
 
         if (error) {
-          console.error('Error detallado al crear:', error);
-          throw new Error(`Error al crear: ${error.message}`);
-        }
-
-        if (!data) {
-          throw new Error('No se recibieron datos después de la creación');
+          console.error('Error al crear curso:', error);
+          throw error;
         }
 
         console.log('Curso creado exitosamente:', data);
         
+        // Agregar el nuevo curso al estado local
         setCourses(prevCourses => [data, ...prevCourses]);
         
         toast({
@@ -159,11 +150,11 @@ const AdminCursos = () => {
       }
 
       resetForm();
-    } catch (error) {
-      console.error('Error al guardar curso:', error);
+    } catch (error: any) {
+      console.error('Error completo:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Error desconocido al guardar el curso",
+        description: `Error al ${editingCourse ? 'actualizar' : 'crear'} el curso: ${error.message || 'Error desconocido'}`,
         variant: "destructive"
       });
     } finally {
@@ -189,16 +180,35 @@ const AdminCursos = () => {
 
   const handleEdit = (course: Course) => {
     console.log('Editando curso:', course);
+    console.log('Módulos del curso:', course.course_modules);
+    
+    // Procesar course_modules correctamente
+    let modules = [];
+    if (course.course_modules) {
+      if (Array.isArray(course.course_modules)) {
+        modules = course.course_modules;
+      } else if (typeof course.course_modules === 'string') {
+        try {
+          modules = JSON.parse(course.course_modules);
+        } catch (e) {
+          console.error('Error parsing course_modules:', e);
+          modules = [];
+        }
+      } else if (typeof course.course_modules === 'object') {
+        modules = [course.course_modules];
+      }
+    }
+    
     setFormData({
-      title: course.title,
+      title: course.title || '',
       description: course.description || '',
-      category: course.category,
+      category: course.category || '',
       duration_minutes: course.duration_minutes || 0,
       is_premium: course.is_premium || false,
       content: course.content || '',
       thumbnail_url: course.thumbnail_url || '',
       featured_image_url: course.featured_image_url || '',
-      course_modules: Array.isArray(course.course_modules) ? course.course_modules : []
+      course_modules: modules
     });
     setEditingCourse(course);
     setIsCreateDialogOpen(true);
@@ -216,8 +226,8 @@ const AdminCursos = () => {
         .eq('id', courseId);
 
       if (error) {
-        console.error('Error deleting course:', error);
-        throw new Error(`Error al eliminar: ${error.message}`);
+        console.error('Error al eliminar curso:', error);
+        throw error;
       }
 
       console.log('Curso eliminado correctamente');
@@ -228,14 +238,19 @@ const AdminCursos = () => {
         title: "Éxito",
         description: "Curso eliminado correctamente"
       });
-    } catch (error) {
-      console.error('Error deleting course:', error);
+    } catch (error: any) {
+      console.error('Error al eliminar curso:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Error desconocido al eliminar el curso",
+        description: `Error al eliminar el curso: ${error.message || 'Error desconocido'}`,
         variant: "destructive"
       });
     }
+  };
+
+  const handleCreateNew = () => {
+    resetForm();
+    setIsCreateDialogOpen(true);
   };
 
   return (
@@ -245,12 +260,10 @@ const AdminCursos = () => {
           <h1 className="text-3xl font-bold text-gray-900">Gestión de Cursos</h1>
           <p className="text-gray-600">Crear y gestionar cursos de formación</p>
         </div>
-        <DialogTrigger asChild>
-          <Button onClick={() => resetForm()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Curso
-          </Button>
-        </DialogTrigger>
+        <Button onClick={handleCreateNew}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nuevo Curso
+        </Button>
       </div>
 
       <CourseFormDialog
@@ -283,7 +296,7 @@ const AdminCursos = () => {
               <CardContent className="p-12 text-center">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay cursos</h3>
                 <p className="text-gray-600 mb-4">Comienza creando tu primer curso</p>
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Button onClick={handleCreateNew}>
                   <Plus className="h-4 w-4 mr-2" />
                   Crear Primer Curso
                 </Button>
