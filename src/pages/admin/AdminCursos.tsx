@@ -1,17 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import CourseFormDialog from '@/components/admin/courses/CourseFormDialog';
+import CourseCard from '@/components/admin/courses/CourseCard';
 import type { Database } from '@/integrations/supabase/types';
 
 type Course = Database['public']['Tables']['courses']['Row'];
@@ -28,7 +24,7 @@ const AdminCursos = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: '' as CourseCategory,
+    category: '' as CourseCategory | '',
     duration_minutes: 0,
     is_premium: false,
     content: '',
@@ -91,7 +87,7 @@ const AdminCursos = () => {
       const courseData = {
         title: formData.title.trim(),
         description: formData.description?.trim() || null,
-        category: formData.category,
+        category: formData.category as CourseCategory,
         duration_minutes: formData.duration_minutes > 0 ? formData.duration_minutes : null,
         is_premium: formData.is_premium,
         content: formData.content?.trim() || null,
@@ -179,7 +175,7 @@ const AdminCursos = () => {
     setFormData({
       title: '',
       description: '',
-      category: '' as CourseCategory,
+      category: '',
       duration_minutes: 0,
       is_premium: false,
       content: '',
@@ -242,38 +238,6 @@ const AdminCursos = () => {
     }
   };
 
-  const addModule = () => {
-    setFormData(prev => ({
-      ...prev,
-      course_modules: [
-        ...prev.course_modules,
-        {
-          id: `temp-${Date.now()}`,
-          title: '',
-          content: '',
-          duration: 0,
-          video_url: null
-        }
-      ]
-    }));
-  };
-
-  const updateModule = (index: number, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      course_modules: prev.course_modules.map((module, i) => 
-        i === index ? { ...module, [field]: value } : module
-      )
-    }));
-  };
-
-  const removeModule = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      course_modules: prev.course_modules.filter((_, i) => i !== index)
-    }));
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -281,202 +245,25 @@ const AdminCursos = () => {
           <h1 className="text-3xl font-bold text-gray-900">Gestión de Cursos</h1>
           <p className="text-gray-600">Crear y gestionar cursos de formación</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => resetForm()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Curso
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingCourse ? 'Editar Curso' : 'Crear Nuevo Curso'}
-              </DialogTitle>
-              <DialogDescription>
-                Completa la información del curso. Los campos marcados con * son obligatorios.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Título *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    required
-                    placeholder="Título del curso"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="category">Categoría *</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={(value) => setFormData({ ...formData, category: value as CourseCategory })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  placeholder="Descripción breve del curso"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="duration">Duración (minutos)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="0"
-                    value={formData.duration_minutes}
-                    onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 0 })}
-                    placeholder="Duración total en minutos"
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2 pt-6">
-                  <Switch
-                    id="premium"
-                    checked={formData.is_premium}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_premium: checked })}
-                  />
-                  <Label htmlFor="premium">Curso Premium</Label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="thumbnail_url">URL de la imagen miniatura</Label>
-                  <Input
-                    id="thumbnail_url"
-                    value={formData.thumbnail_url}
-                    onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                    placeholder="https://ejemplo.com/imagen.jpg"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="featured_image_url">URL de la imagen destacada</Label>
-                  <Input
-                    id="featured_image_url"
-                    value={formData.featured_image_url}
-                    onChange={(e) => setFormData({ ...formData, featured_image_url: e.target.value })}
-                    placeholder="https://ejemplo.com/imagen-destacada.jpg"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="content">Contenido del curso</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={5}
-                  placeholder="Contenido detallado del curso, objetivos, metodología..."
-                />
-              </div>
-
-              {/* Módulos del curso */}
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <Label>Módulos del curso</Label>
-                  <Button type="button" size="sm" onClick={addModule}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Añadir Módulo
-                  </Button>
-                </div>
-                
-                {formData.course_modules.map((module, index) => (
-                  <div key={index} className="border rounded-lg p-4 mb-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-medium">Módulo {index + 1}</h4>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => removeModule(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <Label>Título del módulo</Label>
-                        <Input
-                          value={module.title || ''}
-                          onChange={(e) => updateModule(index, 'title', e.target.value)}
-                          placeholder="Título del módulo"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Duración (minutos)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          value={module.duration || 0}
-                          onChange={(e) => updateModule(index, 'duration', parseInt(e.target.value) || 0)}
-                          placeholder="Duración en minutos"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label>URL del video</Label>
-                      <Input
-                        value={module.video_url || ''}
-                        onChange={(e) => updateModule(index, 'video_url', e.target.value)}
-                        placeholder="https://ejemplo.com/video.mp4"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Contenido del módulo</Label>
-                      <Textarea
-                        value={module.content || ''}
-                        onChange={(e) => updateModule(index, 'content', e.target.value)}
-                        rows={3}
-                        placeholder="Contenido y descripción del módulo"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Guardando...' : (editingCourse ? 'Actualizar' : 'Crear')} Curso
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <DialogTrigger asChild>
+          <Button onClick={() => resetForm()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Curso
+          </Button>
+        </DialogTrigger>
       </div>
+
+      <CourseFormDialog
+        isOpen={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        editingCourse={editingCourse}
+        formData={formData}
+        onFormDataChange={setFormData}
+        onSubmit={handleSubmit}
+        onCancel={resetForm}
+        submitting={submitting}
+        categories={categories}
+      />
 
       {/* Lista de cursos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -505,53 +292,13 @@ const AdminCursos = () => {
           </div>
         ) : (
           courses.map((course) => (
-            <Card key={course.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <Badge variant="outline">
-                        {categories.find(c => c.value === course.category)?.label}
-                      </Badge>
-                      {course.is_premium && (
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-                          Premium
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <CardDescription className="line-clamp-3">
-                  {course.description || 'Sin descripción'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                  <span>{course.duration_minutes ? `${course.duration_minutes} min` : 'Sin duración'}</span>
-                  <span>{new Date(course.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="text-xs text-gray-500 mb-4">
-                  <div>Módulos: {Array.isArray(course.course_modules) ? course.course_modules.length : 0}</div>
-                  <div>ID: {course.id}</div>
-                </div>
-                <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" onClick={() => handleEdit(course)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    onClick={() => handleDelete(course.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CourseCard
+              key={course.id}
+              course={course}
+              categories={categories}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           ))
         )}
       </div>
