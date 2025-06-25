@@ -36,38 +36,96 @@ export const useConfigurationData = () => {
     };
   };
 
-  const getPlatformConfig = () => ({
-    company_info: getSettingsByCategory('platform')?.company_info || {},
-    email_config: getSettingsByCategory('platform')?.email_config || {},
-    notifications_config: getSettingsByCategory('platform')?.notifications_config || {}
-  });
+  const getPlatformConfig = () => {
+    const platformData = getSettingsByCategory('platform');
+    return {
+      company_info: platformData?.company_info || {
+        name: "farmapro",
+        description: "Portal de formación farmacéutica",
+        contact_email: "info@farmapro.com"
+      },
+      email_config: platformData?.email_config || {
+        smtp_host: "",
+        smtp_port: 587,
+        smtp_user: "",
+        smtp_password: ""
+      },
+      notifications_config: platformData?.notifications_config || {
+        email_enabled: true,
+        push_enabled: false
+      }
+    };
+  };
 
-  const getUserConfig = () => ({
-    registration_config: getSettingsByCategory('users')?.registration_config || {},
-    subscription_limits: getSettingsByCategory('users')?.subscription_limits || {
-      freemium: { courses: 5, resources: 10 },
-      estudiante: { courses: 10, resources: 25 },
-      profesional: { courses: -1, resources: -1 },
-      premium: { courses: -1, resources: -1 }
-    },
-    points_config: getSettingsByCategory('users')?.points_config || {}
-  });
+  const getUserConfig = () => {
+    const usersData = getSettingsByCategory('users');
+    return {
+      registration_config: usersData?.registration_config || {
+        email_verification: true,
+        manual_moderation: false,
+        required_fields: ["full_name", "pharmacy_name"]
+      },
+      subscription_limits: usersData?.subscription_limits || {
+        freemium: { courses: 5, resources: 10 },
+        estudiante: { courses: 10, resources: 25 },
+        profesional: { courses: -1, resources: -1 },
+        premium: { courses: -1, resources: -1 }
+      },
+      points_config: usersData?.points_config || {
+        points_per_course: 10,
+        points_per_resource: 5,
+        level_threshold: 100
+      }
+    };
+  };
 
-  const getTechnicalConfig = () => ({
-    file_config: getSettingsByCategory('technical')?.file_config || {},
-    security_config: getSettingsByCategory('technical')?.security_config || {},
-    integrations: getSettingsByCategory('technical')?.integrations || {}
-  });
+  const getTechnicalConfig = () => {
+    const technicalData = getSettingsByCategory('technical');
+    return {
+      file_config: technicalData?.file_config || {
+        max_file_size: 10485760,
+        allowed_extensions: ["pdf", "doc", "docx", "jpg", "png"]
+      },
+      security_config: technicalData?.security_config || {
+        session_timeout: 3600,
+        password_min_length: 8
+      },
+      integrations: technicalData?.integrations || {
+        google_analytics_id: "",
+        stripe_enabled: false
+      }
+    };
+  };
 
-  const getAnalyticsConfig = () => ({
-    google_analytics: getSettingsByCategory('analytics')?.google_analytics || {},
-    reports_config: getSettingsByCategory('analytics')?.reports_config || {}
-  });
+  const getAnalyticsConfig = () => {
+    const analyticsData = getSettingsByCategory('analytics');
+    return {
+      google_analytics: analyticsData?.google_analytics || {
+        tracking_id: "",
+        enabled: false
+      },
+      reports_config: analyticsData?.reports_config || {
+        retention_days: 90,
+        auto_reports: true
+      }
+    };
+  };
 
-  const getRegionalConfig = () => ({
-    localization: getSettingsByCategory('regional')?.localization || {},
-    legal_config: getSettingsByCategory('regional')?.legal_config || {}
-  });
+  const getRegionalConfig = () => {
+    const regionalData = getSettingsByCategory('regional');
+    return {
+      localization: regionalData?.localization || {
+        default_language: "es",
+        timezone: "Europe/Madrid",
+        currency: "EUR"
+      },
+      legal_config: regionalData?.legal_config || {
+        privacy_policy_url: "",
+        terms_of_service_url: "",
+        cookie_policy_url: ""
+      }
+    };
+  };
 
   return {
     isLoading,
