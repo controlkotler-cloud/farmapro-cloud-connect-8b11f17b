@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { MapPin, Clock, DollarSign, Building2, Mail, Calendar, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobListing {
   id: string;
@@ -27,9 +29,11 @@ interface JobListing {
 
 const Empleo = () => {
   const { profile } = useAuth();
+  const { toast } = useToast();
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [newJob, setNewJob] = useState({
     title: '',
     company_name: '',
@@ -46,35 +50,73 @@ const Empleo = () => {
   }, []);
 
   const loadJobs = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('job_listings')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+    try {
+      setLoading(true);
+      console.log('Loading active job listings...');
+      
+      const { data, error } = await supabase
+        .from('job_listings')
+        .select('*')
+        .eq('is_active', true)
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error loading jobs:', error);
-    } else {
+      if (error) {
+        console.error('Error loading job listings:', error);
+        toast({
+          title: "Error",
+          description: "Error al cargar ofertas de empleo",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Job listings loaded:', data?.length || 0);
       setJobs(data || []);
+    } catch (error: any) {
+      console.error('Exception loading job listings:', error);
+      toast({
+        title: "Error",
+        description: "Error inesperado al cargar ofertas",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const createJob = async () => {
-    if (!profile?.id || !newJob.title || !newJob.company_name) return;
+    if (!profile?.id || !newJob.title || !newJob.company_name || !newJob.description || !newJob.contact_email) {
+      toast({
+        title: "Error",
+        description: "Por favor completa todos los campos obligatorios",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const { error } = await supabase
-      .from('job_listings')
-      .insert([{
-        ...newJob,
-        employer_id: profile.id,
-        expires_at: newJob.expires_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-      }]);
+    try {
+      setSubmitting(true);
+      console.log('Creating job listing:', newJob.title);
 
-    if (error) {
-      console.error('Error creating job:', error);
-    } else {
+      const { error } = await supabase
+        .from('job_listings')
+        .insert([{
+          ...newJob,
+          employer_id: profile.id,
+          expires_at: newJob.expires_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        }]);
+
+      if (error) {
+        console.error('Error creating job listing:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Éxito",
+        description: "Oferta de empleo publicada correctamente"
+      });
+
       setNewJob({
         title: '',
         company_name: '',
@@ -86,7 +128,16 @@ const Empleo = () => {
         expires_at: ''
       });
       setShowNewJobDialog(false);
-      loadJobs();
+      await loadJobs();
+    } catch (error: any) {
+      console.error('Error creating job listing:', error);
+      toast({
+        title: "Error",
+        description: `No se pudo crear la oferta: ${error.message || 'Error desconocido'}`,
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -121,19 +172,19 @@ const Empleo = () => {
                 Publicar Oferta
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Publicar Nueva Oferta de Trabajo</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Input
-                    placeholder="Título del puesto"
+                    placeholder="Título del puesto *"
                     value={newJob.title}
                     onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
                   />
                   <Input
-                    placeholder="Nombre de la empresa"
+                    placeholder="Nombre de la empresa *"
                     value={newJob.company_name}
                     onChange={(e) => setNewJob({ ...newJob, company_name: e.target.value })}
                   />
@@ -151,7 +202,7 @@ const Empleo = () => {
                   />
                 </div>
                 <Input
-                  placeholder="Email de contacto"
+                  placeholder="Email de contacto *"
                   type="email"
                   value={newJob.contact_email}
                   onChange={(e) => setNewJob({ ...newJob, contact_email: e.target.value })}
@@ -163,7 +214,7 @@ const Empleo = () => {
                   onChange={(e) => setNewJob({ ...newJob, expires_at: e.target.value })}
                 />
                 <Textarea
-                  placeholder="Descripción del puesto"
+                  placeholder="Descripción del puesto *"
                   value={newJob.description}
                   onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
                   rows={4}
@@ -174,8 +225,8 @@ const Empleo = () => {
                   onChange={(e) => setNewJob({ ...newJob, requirements: e.target.value })}
                   rows={3}
                 />
-                <Button onClick={createJob} className="w-full">
-                  Publicar Oferta
+                <Button onClick={createJob} className="w-full" disabled={submitting}>
+                  {submitting ? 'Publicando...' : 'Publicar Oferta'}
                 </Button>
               </div>
             </DialogContent>
@@ -230,6 +281,14 @@ const Empleo = () => {
             </Card>
           ))}
         </div>
+      ) : jobs.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay ofertas disponibles</h3>
+            <p className="text-gray-600">No hay ofertas de empleo activas en este momento.</p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {jobs.map((job, index) => (
@@ -252,12 +311,14 @@ const Empleo = () => {
                       <Building2 className="h-4 w-4 mr-1" />
                       {job.company_name}
                     </div>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {job.location}
-                    </div>
+                    {job.location && (
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {job.location}
+                      </div>
+                    )}
                   </div>
-                  <CardDescription>{job.description}</CardDescription>
+                  <CardDescription className="line-clamp-3">{job.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="space-y-3">
@@ -271,7 +332,7 @@ const Empleo = () => {
                     {job.requirements && (
                       <div>
                         <h4 className="font-medium text-sm mb-1">Requisitos:</h4>
-                        <p className="text-sm text-gray-600">{job.requirements}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2">{job.requirements}</p>
                       </div>
                     )}
                     
@@ -283,7 +344,7 @@ const Empleo = () => {
                       <Button 
                         size="sm" 
                         disabled={isJobExpired(job.expires_at)}
-                        onClick={() => window.location.href = `mailto:${job.contact_email}?subject=Interés en ${job.title}`}
+                        onClick={() => window.location.href = `mailto:${job.contact_email}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`}
                       >
                         <Mail className="h-4 w-4 mr-2" />
                         Contactar
