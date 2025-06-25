@@ -80,7 +80,8 @@ const AdminCursos = () => {
     }
 
     setSubmitting(true);
-    console.log('Guardando curso:', { formData, editingCourse });
+    console.log('Enviando datos del curso:', formData);
+    console.log('Editando curso:', editingCourse);
 
     try {
       const courseData = {
@@ -92,12 +93,13 @@ const AdminCursos = () => {
         content: formData.content?.trim() || null,
         thumbnail_url: formData.thumbnail_url?.trim() || null,
         featured_image_url: formData.featured_image_url?.trim() || null,
-        course_modules: formData.course_modules || []
+        course_modules: formData.course_modules && formData.course_modules.length > 0 ? formData.course_modules : []
       };
+
+      console.log('Datos a enviar a Supabase:', courseData);
 
       if (editingCourse) {
         console.log('Actualizando curso con ID:', editingCourse.id);
-        console.log('Datos a actualizar:', courseData);
         
         const { data, error } = await supabase
           .from('courses')
@@ -113,7 +115,6 @@ const AdminCursos = () => {
 
         console.log('Curso actualizado exitosamente:', data);
         
-        // Actualizar el estado local inmediatamente
         setCourses(prevCourses => 
           prevCourses.map(course => 
             course.id === editingCourse.id ? data : course
@@ -140,7 +141,6 @@ const AdminCursos = () => {
 
         console.log('Curso creado exitosamente:', data);
         
-        // Agregar el nuevo curso al estado local
         setCourses(prevCourses => [data, ...prevCourses]);
         
         toast({
@@ -179,10 +179,9 @@ const AdminCursos = () => {
   };
 
   const handleEdit = (course: Course) => {
-    console.log('Editando curso:', course);
-    console.log('Módulos del curso:', course.course_modules);
+    console.log('Preparando edición de curso:', course);
+    console.log('Módulos del curso a editar:', course.course_modules);
     
-    // Procesar course_modules correctamente
     let modules = [];
     if (course.course_modules) {
       if (Array.isArray(course.course_modules)) {
@@ -198,6 +197,8 @@ const AdminCursos = () => {
         modules = [course.course_modules];
       }
     }
+    
+    console.log('Módulos procesados:', modules);
     
     setFormData({
       title: course.title || '',
@@ -278,7 +279,6 @@ const AdminCursos = () => {
         categories={categories}
       />
 
-      {/* Lista de cursos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (

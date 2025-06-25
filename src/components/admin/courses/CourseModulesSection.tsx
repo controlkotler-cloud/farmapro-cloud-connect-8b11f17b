@@ -30,18 +30,20 @@ const CourseModulesSection = ({ modules, onModulesChange }: CourseModulesSection
       video_url: null
     };
     
-    const newModules = [...(modules || []), newModule];
+    const validModules = Array.isArray(modules) ? modules : [];
+    const newModules = [...validModules, newModule];
     console.log('Añadiendo nuevo módulo:', newModules);
     onModulesChange(newModules);
   };
 
   const updateModule = (index: number, field: string, value: any) => {
-    if (!modules || !Array.isArray(modules)) {
-      console.error('Módulos no válidos:', modules);
+    const validModules = Array.isArray(modules) ? modules : [];
+    if (index < 0 || index >= validModules.length) {
+      console.error('Índice de módulo inválido:', index);
       return;
     }
 
-    const updatedModules = modules.map((module, i) => 
+    const updatedModules = validModules.map((module, i) => 
       i === index ? { ...module, [field]: value } : module
     );
     
@@ -51,17 +53,17 @@ const CourseModulesSection = ({ modules, onModulesChange }: CourseModulesSection
   };
 
   const removeModule = (index: number) => {
-    if (!modules || !Array.isArray(modules)) {
-      console.error('Módulos no válidos para eliminar:', modules);
+    const validModules = Array.isArray(modules) ? modules : [];
+    if (index < 0 || index >= validModules.length) {
+      console.error('Índice de módulo inválido para eliminar:', index);
       return;
     }
 
-    const filteredModules = modules.filter((_, i) => i !== index);
+    const filteredModules = validModules.filter((_, i) => i !== index);
     console.log(`Eliminando módulo ${index}:`, filteredModules);
     onModulesChange(filteredModules);
   };
 
-  // Asegurar que modules es un array válido
   const validModules = Array.isArray(modules) ? modules : [];
 
   return (

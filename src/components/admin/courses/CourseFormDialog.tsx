@@ -48,17 +48,19 @@ const CourseFormDialog = ({
   categories
 }: CourseFormDialogProps) => {
   const handleFieldChange = (field: keyof CourseFormData, value: any) => {
-    console.log(`Cambiando ${field}:`, value);
-    onFormDataChange({ ...formData, [field]: value });
+    console.log(`Actualizando campo ${field}:`, value);
+    const updatedData = { ...formData, [field]: value };
+    console.log('FormData después del cambio:', updatedData);
+    onFormDataChange(updatedData);
   };
 
   const handleModulesChange = (modules: any[]) => {
-    console.log('Actualizando módulos:', modules);
+    console.log('Actualizando módulos en dialog:', modules);
     handleFieldChange('course_modules', modules);
   };
 
-  console.log('FormData actual:', formData);
-  console.log('Módulos en formData:', formData.course_modules);
+  console.log('Renderizando CourseFormDialog con formData:', formData);
+  console.log('Módulos actuales:', formData.course_modules);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
