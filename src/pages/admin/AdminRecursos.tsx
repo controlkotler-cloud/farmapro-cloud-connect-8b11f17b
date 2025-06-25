@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Download, FileText, Calculator, BookOpen } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Edit, Trash2, Download, FileText, Calculator, BookOpen, Link, Video, File } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -24,6 +25,7 @@ const AdminRecursos = () => {
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -68,23 +70,36 @@ const AdminRecursos = () => {
   }, []);
 
   const loadResources = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('resources')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      setLoading(true);
+      console.log('Cargando recursos...');
+      
+      const { data, error } = await supabase
+        .from('resources')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error loading resources:', error);
+      if (error) {
+        console.error('Error loading resources:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los recursos",
+          variant: "destructive"
+        });
+      } else {
+        console.log('Recursos cargados:', data?.length);
+        setResources(data || []);
+      }
+    } catch (error) {
+      console.error('Exception loading resources:', error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar los recursos",
+        description: "Error inesperado al cargar recursos",
         variant: "destructive"
       });
-    } else {
-      setResources(data || []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,6 +115,9 @@ const AdminRecursos = () => {
     }
 
     try {
+      setSubmitting(true);
+      console.log('Guardando recurso:', formData);
+
       if (editingResource) {
         const { error } = await supabase
           .from('resources')
@@ -134,6 +152,8 @@ const AdminRecursos = () => {
         description: "No se pudo guardar el recurso",
         variant: "destructive"
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -152,6 +172,7 @@ const AdminRecursos = () => {
   };
 
   const handleEdit = (resource: Resource) => {
+    console.log('Editando recurso:', resource.id);
     setFormData({
       title: resource.title,
       description: resource.description || '',
@@ -169,6 +190,8 @@ const AdminRecursos = () => {
     if (!confirm('¿Estás seguro de que quieres eliminar este recurso?')) return;
 
     try {
+      console.log('Eliminando recurso:', resourceId);
+      
       const { error } = await supabase
         .from('resources')
         .delete()
@@ -194,14 +217,33 @@ const AdminRecursos = () => {
   const getFormatIcon = (format: string) => {
     switch (format.toLowerCase()) {
       case 'pdf':
-        return <FileText className="h-5 w-5 text-red-600" />;
+        return <FileText className="h-4 w-4 text-red-600" />;
       case 'xls':
-        return <Calculator className="h-5 w-5 text-green-600" />;
+        return <Calculator className="h-4 w-4 text-green-600" />;
       case 'docs':
-        return <FileText className="h-5 w-5 text-blue-600" />;
+        return <File className="h-4 w-4 text-blue-600" />;
+      case 'url':
+        return <Link className="h-4 w-4 text-purple-600" />;
+      case 'video':
+        return <Video className="h-4 w-4 text-orange-600" />;
       default:
-        return <FileText className="h-5 w-5 text-gray-600" />;
+        return <FileText className="h-4 w-4 text-gray-600" />;
     }
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const cat = categories.find(c => c.value === category);
+    return cat ? cat.label : category;
+  };
+
+  const getTypeLabel = (type: string) => {
+    const typeObj = types.find(t => t.value === type);
+    return typeObj ? typeObj.label : type;
+  };
+
+  const getFormatLabel = (format: string) => {
+    const formatObj = formats.find(f => f.value === format);
+    return formatObj ? formatObj.label : format.toUpperCase();
   };
 
   return (
@@ -234,6 +276,7 @@ const AdminRecursos = () => {
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Ej: Protocolo de atención al cliente"
                   required
                 />
               </div>
@@ -244,19 +287,20 @@ const AdminRecursos = () => {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe brevemente el recurso y su utilidad"
                   rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="category">Categoría *</Label>
+                  <Label>Categoría *</Label>
                   <Select 
                     value={formData.category} 
                     onValueChange={(value) => setFormData({ ...formData, category: value as ResourceCategory })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Categoría" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((cat) => (
@@ -269,13 +313,13 @@ const AdminRecursos = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="type">Tipo *</Label>
+                  <Label>Tipo *</Label>
                   <Select 
                     value={formData.type} 
                     onValueChange={(value) => setFormData({ ...formData, type: value as ResourceType })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Tipo" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
                       {types.map((type) => (
@@ -288,13 +332,13 @@ const AdminRecursos = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="format">Formato *</Label>
+                  <Label>Formato *</Label>
                   <Select 
                     value={formData.format} 
                     onValueChange={(value) => setFormData({ ...formData, format: value as ResourceFormat })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Formato" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
                       {formats.map((format) => (
@@ -326,12 +370,12 @@ const AdminRecursos = () => {
                 <Label htmlFor="premium">Recurso Premium</Label>
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2 pt-4">
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  {editingResource ? 'Actualizar' : 'Crear'} Recurso
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? 'Guardando...' : (editingResource ? 'Actualizar' : 'Crear')} Recurso
                 </Button>
               </div>
             </form>
@@ -339,68 +383,119 @@ const AdminRecursos = () => {
         </Dialog>
       </div>
 
-      {/* Resources List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          resources.map((resource) => (
-            <Card key={resource.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {getFormatIcon(resource.format)}
-                    <div>
-                      <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant="outline">{resource.category}</Badge>
-                        <Badge variant="secondary">{resource.format.toUpperCase()}</Badge>
-                        {resource.is_premium && (
-                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-                            Premium
-                          </Badge>
-                        )}
+      {/* Resources Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recursos ({resources.length})</CardTitle>
+          <CardDescription>
+            Lista completa de recursos disponibles en la plataforma
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3">Cargando recursos...</span>
+            </div>
+          ) : resources.length === 0 ? (
+            <div className="text-center py-8">
+              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No hay recursos creados</p>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear primer recurso
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Recurso</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Formato</TableHead>
+                  <TableHead>Descargas</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {resources.map((resource) => (
+                  <TableRow key={resource.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        {getFormatIcon(resource.format)}
+                        <div>
+                          <div className="font-medium">{resource.title}</div>
+                          {resource.description && (
+                            <div className="text-sm text-gray-500 line-clamp-1">
+                              {resource.description}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-                <CardDescription className="line-clamp-3">
-                  {resource.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                  <div className="flex items-center">
-                    <Download className="h-4 w-4 mr-1" />
-                    {resource.download_count} descargas
-                  </div>
-                  <span>{new Date(resource.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" onClick={() => handleEdit(resource)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    onClick={() => handleDelete(resource.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getCategoryLabel(resource.category)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {getTypeLabel(resource.type)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-mono">
+                        {getFormatLabel(resource.format)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Download className="h-4 w-4 mr-1" />
+                        {resource.download_count || 0}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {resource.is_premium ? (
+                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                          Premium
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-green-600 border-green-600">
+                          Gratuito
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {new Date(resource.created_at).toLocaleDateString('es-ES')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleEdit(resource)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => handleDelete(resource.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
