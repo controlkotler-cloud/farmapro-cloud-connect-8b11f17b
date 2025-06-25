@@ -126,7 +126,7 @@ const AdminRetos = () => {
       console.log('Creating challenge:', challengeData);
       const { data, error } = await supabase
         .from('challenges')
-        .insert([challengeData])
+        .insert(challengeData)
         .select()
         .single();
 
@@ -289,6 +289,7 @@ const AdminRetos = () => {
     target_count: number;
     is_active: boolean;
   }) => {
+    console.log('handleCreateChallenge called with:', challengeData);
     await createChallengeMutation.mutateAsync(challengeData);
   };
 
@@ -300,6 +301,7 @@ const AdminRetos = () => {
     target_count?: number;
     is_active?: boolean;
   }) => {
+    console.log('handleUpdateChallenge called with:', id, challengeData);
     await updateChallengeMutation.mutateAsync({ id, ...challengeData });
   };
 
