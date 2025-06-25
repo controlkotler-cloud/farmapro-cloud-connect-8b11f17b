@@ -19,6 +19,14 @@ interface UserConfig {
       courses: number;
       resources: number;
     };
+    estudiante: {
+      courses: number;
+      resources: number;
+    };
+    profesional: {
+      courses: number;
+      resources: number;
+    };
     premium: {
       courses: number;
       resources: number;
@@ -94,9 +102,9 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
         description="Configurar límites por tipo de suscripción"
         icon={<UserCheck className="h-5 w-5 text-blue-600" />}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <div>
-            <h4 className="font-medium mb-3">Plan Freemium</h4>
+            <h4 className="font-medium mb-3 text-gray-600">Plan Freemium</h4>
             <div className="space-y-3">
               <div>
                 <Label htmlFor="freemium-courses">Cursos máximos</Label>
@@ -134,8 +142,89 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
               </div>
             </div>
           </div>
+
           <div>
-            <h4 className="font-medium mb-3">Plan Premium</h4>
+            <h4 className="font-medium mb-3 text-green-600">Plan Estudiante</h4>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="estudiante-courses">Cursos máximos</Label>
+                <Input
+                  id="estudiante-courses"
+                  type="number"
+                  value={formData.subscription_limits.estudiante.courses}
+                  onChange={(e) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      subscription_limits: {
+                        ...prev.subscription_limits,
+                        estudiante: { ...prev.subscription_limits.estudiante, courses: parseInt(e.target.value) }
+                      }
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="estudiante-resources">Recursos máximos</Label>
+                <Input
+                  id="estudiante-resources"
+                  type="number"
+                  value={formData.subscription_limits.estudiante.resources}
+                  onChange={(e) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      subscription_limits: {
+                        ...prev.subscription_limits,
+                        estudiante: { ...prev.subscription_limits.estudiante, resources: parseInt(e.target.value) }
+                      }
+                    }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium mb-3 text-blue-600">Plan Profesional</h4>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="profesional-courses">Cursos máximos (-1 = ilimitado)</Label>
+                <Input
+                  id="profesional-courses"
+                  type="number"
+                  value={formData.subscription_limits.profesional.courses}
+                  onChange={(e) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      subscription_limits: {
+                        ...prev.subscription_limits,
+                        profesional: { ...prev.subscription_limits.profesional, courses: parseInt(e.target.value) }
+                      }
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="profesional-resources">Recursos máximos (-1 = ilimitado)</Label>
+                <Input
+                  id="profesional-resources"
+                  type="number"
+                  value={formData.subscription_limits.profesional.resources}
+                  onChange={(e) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      subscription_limits: {
+                        ...prev.subscription_limits,
+                        profesional: { ...prev.subscription_limits.profesional, resources: parseInt(e.target.value) }
+                      }
+                    }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium mb-3 text-yellow-600">Plan Premium</h4>
             <div className="space-y-3">
               <div>
                 <Label htmlFor="premium-courses">Cursos máximos (-1 = ilimitado)</Label>

@@ -7,7 +7,8 @@ import { UserSettings } from '@/components/admin/settings/UserSettings';
 import { TechnicalSettings } from '@/components/admin/settings/TechnicalSettings';
 import { AnalyticsSettings } from '@/components/admin/settings/AnalyticsSettings';
 import { RegionalSettings } from '@/components/admin/settings/RegionalSettings';
-import { Building2, Users, Settings, BarChart3, Globe } from 'lucide-react';
+import { EmailTemplates } from '@/components/admin/settings/EmailTemplates';
+import { Building2, Users, Settings, BarChart3, Globe, Mail } from 'lucide-react';
 
 const AdminConfiguracion = () => {
   const { 
@@ -68,6 +69,10 @@ const AdminConfiguracion = () => {
     });
   };
 
+  const handleEmailTemplatesSave = async (config: any) => {
+    await updateCategorySettings('email_templates', config);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -76,7 +81,7 @@ const AdminConfiguracion = () => {
       </div>
 
       <Tabs defaultValue="platform" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="platform" className="flex items-center space-x-2">
             <Building2 className="h-4 w-4" />
             <span className="hidden sm:inline">Plataforma</span>
@@ -97,6 +102,10 @@ const AdminConfiguracion = () => {
             <Globe className="h-4 w-4" />
             <span className="hidden sm:inline">Regional</span>
           </TabsTrigger>
+          <TabsTrigger value="email" className="flex items-center space-x-2">
+            <Mail className="h-4 w-4" />
+            <span className="hidden sm:inline">Emails</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="platform" className="space-y-6">
@@ -114,7 +123,12 @@ const AdminConfiguracion = () => {
           <UserSettings
             config={{
               registration_config: getSettingsByCategory('users')?.registration_config || {},
-              subscription_limits: getSettingsByCategory('users')?.subscription_limits || {},
+              subscription_limits: getSettingsByCategory('users')?.subscription_limits || {
+                freemium: { courses: 5, resources: 10 },
+                estudiante: { courses: 10, resources: 25 },
+                profesional: { courses: -1, resources: -1 },
+                premium: { courses: -1, resources: -1 }
+              },
               points_config: getSettingsByCategory('users')?.points_config || {}
             }}
             onSave={handleUserSave}
@@ -149,6 +163,39 @@ const AdminConfiguracion = () => {
               legal_config: getSettingsByCategory('regional')?.legal_config || {}
             }}
             onSave={handleRegionalSave}
+          />
+        </TabsContent>
+
+        <TabsContent value="email" className="space-y-6">
+          <EmailTemplates
+            config={getSettingsByCategory('email_templates') || {
+              password_reset: {
+                subject: "Restablecer tu contraseña de farmapro",
+                content: "Hola {{user_name}},\n\nHas solicitado restablecer tu contraseña. Haz clic en el siguiente enlace:\n\n{{reset_link}}\n\nSi no solicitaste este cambio, puedes ignorar este email.\n\nSaludos,\nEquipo {{company_name}}",
+                variables: ["{{user_name}}", "{{reset_link}}", "{{company_name}}"]
+              },
+              welcome: {
+                subject: "¡Bienvenido a farmapro!",
+                content: "¡Hola {{user_name}}!\n\nBienvenido a {{company_name}}. Tu cuenta ha sido creada exitosamente.\n\nPuedes acceder a tu cuenta en: {{login_url}}\n\n¡Comienza a explorar nuestros cursos y recursos!\n\nSaludos,\nEquipo farmapro",
+                variables: ["{{user_name}}", "{{company_name}}", "{{login_url}}"]
+              },
+              course_completion: {
+                subject: "¡Felicidades! Has completado {{course_name}}",
+                content: "¡Enhorabuena {{user_name}}!\n\nHas completado exitosamente el curso: {{course_name}}\n\nHas ganado {{points_earned}} puntos.\n\nDescarga tu certificado: {{certificate_url}}\n\nSigue aprendiendo con farmapro!\n\nSaludos,\nEquipo farmapro",
+                variables: ["{{user_name}}", "{{course_name}}", "{{certificate_url}}", "{{points_earned}}"]
+              },
+              subscription_renewal: {
+                subject: "Renovación de tu suscripción {{plan_name}}",
+                content: "Hola {{user_name}},\n\nTu suscripción {{plan_name}} vence el {{renewal_date}}.\n\nRenueva tu suscripción para seguir disfrutando de todos los beneficios: {{renewal_url}}\n\nGracias por confiar en farmapro.\n\nSaludos,\nEquipo farmapro",
+                variables: ["{{user_name}}", "{{plan_name}}", "{{renewal_date}}", "{{renewal_url}}"]
+              },
+              verification: {
+                subject: "Verifica tu email en farmapro",
+                content: "Hola {{user_name}},\n\nPor favor verifica tu dirección de email haciendo clic en el siguiente enlace:\n\n{{verification_link}}\n\nGracias por unirte a {{company_name}}.\n\nSaludos,\nEquipo farmapro",
+                variables: ["{{user_name}}", "{{verification_link}}", "{{company_name}}"]
+              }
+            }}
+            onSave={handleEmailTemplatesSave}
           />
         </TabsContent>
       </Tabs>
