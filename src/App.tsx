@@ -125,6 +125,23 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
+      {/* Admin Routes */}
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <AdminDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/cursos" element={
+        <ProtectedRoute>
+          <AdminCursos />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recursos" element={
+        <ProtectedRoute>
+          <AdminRecursos />
+        </ProtectedRoute>
+      } />
+      
       {/* Páginas públicas */}
       <Route path="/subscription" element={<Subscription />} />
       <Route path="/servicios" element={<Servicios />} />
