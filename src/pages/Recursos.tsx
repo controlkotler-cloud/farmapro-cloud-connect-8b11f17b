@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,17 +37,18 @@ export const Recursos = () => {
     let query = supabase.from('resources').select('*').order('created_at', { ascending: false });
     
     if (selectedCategory !== 'all') {
-      query = query.eq('category', selectedCategory);
+      // Cast to the correct type to avoid TypeScript error
+      query = query.eq('category', selectedCategory as any);
     }
 
     const { data, error } = await query;
     if (error) {
       console.error('Error loading resources:', error);
     } else {
-      // Transformar los datos para que coincidan con la interface
+      // Transform the data to match our interface
       const transformedData = data?.map(resource => ({
         ...resource,
-        format: resource.format || 'pdf' // Valor por defecto si no existe
+        format: resource.format || 'pdf' // Default value if not exists
       })) || [];
       setResources(transformedData);
     }
