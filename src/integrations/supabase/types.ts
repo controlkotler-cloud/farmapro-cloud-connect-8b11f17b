@@ -1143,25 +1143,9 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
-      }
-      is_user_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      make_user_admin: {
-        Args: { user_email: string }
-        Returns: undefined
-      }
-      promote_user_to_admin: {
-        Args: { user_email: string }
-        Returns: undefined
       }
     }
     Enums: {
