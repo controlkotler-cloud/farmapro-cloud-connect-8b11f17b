@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -81,10 +80,7 @@ const Comunidad = () => {
       animate={{ opacity: 1 }}
       transition={{ staggerChildren: 0.1 }}
     >
-      <CommunityHeader 
-        userLevel={profile?.level || 1}
-        userPoints={profile?.total_points || 0}
-      />
+      <CommunityHeader />
 
       <CommunityStats 
         totalThreads={forumStats.totalThreads}
