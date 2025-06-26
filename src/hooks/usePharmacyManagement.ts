@@ -43,6 +43,8 @@ export const usePharmacyManagement = () => {
   };
 
   const togglePharmacyStatus = async (pharmacyId: string, currentStatus: boolean) => {
+    console.log('Toggling pharmacy status:', pharmacyId, 'from', currentStatus, 'to', !currentStatus);
+    
     const { error } = await supabase
       .from('pharmacy_listings')
       .update({ is_active: !currentStatus })
@@ -71,7 +73,9 @@ export const usePharmacyManagement = () => {
   };
 
   const deletePharmacy = async (pharmacyId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta farmacia?')) {
+    console.log('Attempting to delete pharmacy:', pharmacyId);
+    
+    try {
       const { error } = await supabase
         .from('pharmacy_listings')
         .delete()
@@ -81,16 +85,27 @@ export const usePharmacyManagement = () => {
         console.error('Error deleting pharmacy:', error);
         toast({
           title: "Error",
-          description: "No se pudo eliminar la farmacia",
+          description: `No se pudo eliminar la farmacia: ${error.message}`,
           variant: "destructive",
         });
+        return false;
       } else {
+        console.log('Pharmacy deleted successfully');
         toast({
           title: "Éxito",
           description: "Farmacia eliminada correctamente",
         });
         setPharmacies(prevPharmacies => prevPharmacies.filter(pharmacy => pharmacy.id !== pharmacyId));
+        return true;
       }
+    } catch (error) {
+      console.error('Unexpected error deleting pharmacy:', error);
+      toast({
+        title: "Error",
+        description: "Error inesperado al eliminar la farmacia",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 

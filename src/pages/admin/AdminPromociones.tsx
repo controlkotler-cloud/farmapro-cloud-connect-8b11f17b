@@ -26,6 +26,7 @@ const AdminPromociones = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,6 +64,8 @@ const AdminPromociones = () => {
   };
 
   const togglePromotionStatus = async (promotionId: string, currentStatus: boolean) => {
+    console.log('Toggling promotion status:', promotionId, 'from', currentStatus, 'to', !currentStatus);
+    
     const { error } = await supabase
       .from('promotions')
       .update({ is_active: !currentStatus })
@@ -90,8 +93,20 @@ const AdminPromociones = () => {
     }
   };
 
-  const deletePromotion = async (promotionId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta promoción?')) {
+  const deletePromotion = async (promotionId: string, promotionTitle: string) => {
+    if (deletingId) return;
+    
+    const confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la promoción "${promotionTitle}"? Esta acción no se puede deshacer.`);
+    
+    if (!confirmed) {
+      console.log('Delete cancelled by user');
+      return;
+    }
+
+    console.log('User confirmed deletion, proceeding with promotion:', promotionId);
+    setDeletingId(promotionId);
+    
+    try {
       const { error } = await supabase
         .from('promotions')
         .delete()
@@ -101,16 +116,26 @@ const AdminPromociones = () => {
         console.error('Error deleting promotion:', error);
         toast({
           title: "Error",
-          description: "No se pudo eliminar la promoción",
+          description: `No se pudo eliminar la promoción: ${error.message}`,
           variant: "destructive",
         });
       } else {
+        console.log('Promotion deleted successfully');
         toast({
           title: "Éxito",
           description: "Promoción eliminada correctamente",
         });
         setPromotions(prevPromotions => prevPromotions.filter(promotion => promotion.id !== promotionId));
       }
+    } catch (error) {
+      console.error('Unexpected error deleting promotion:', error);
+      toast({
+        title: "Error",
+        description: "Error inesperado al eliminar la promoción",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -202,9 +227,12 @@ const AdminPromociones = () => {
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      onClick={() => deletePromotion(promotion.id)}
+                      onClick={() => deletePromotion(promotion.id, promotion.title)}
+                      disabled={deletingId === promotion.id}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash className="h-4 w-4" />
+                      {deletingId === promotion.id && <span className="ml-1">...</span>}
                     </Button>
                   </div>
                 </div>

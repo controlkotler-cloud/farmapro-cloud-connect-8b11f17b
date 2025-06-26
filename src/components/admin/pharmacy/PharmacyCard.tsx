@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Edit, Trash } from 'lucide-react';
+import { useState } from 'react';
 
 interface PharmacyListing {
   id: string;
@@ -26,6 +27,28 @@ interface PharmacyCardProps {
 }
 
 export const PharmacyCard = ({ pharmacy, onEdit, onToggleStatus, onDelete }: PharmacyCardProps) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    
+    const confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la farmacia "${pharmacy.title}"? Esta acción no se puede deshacer.`);
+    
+    if (!confirmed) {
+      console.log('Delete cancelled by user');
+      return;
+    }
+
+    console.log('User confirmed deletion, proceeding...');
+    setIsDeleting(true);
+    
+    try {
+      await onDelete(pharmacy.id);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -91,9 +114,12 @@ export const PharmacyCard = ({ pharmacy, onEdit, onToggleStatus, onDelete }: Pha
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={() => onDelete(pharmacy.id)}
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <Trash className="h-4 w-4" />
+              {isDeleting && <span className="ml-1">...</span>}
             </Button>
           </div>
         </div>
