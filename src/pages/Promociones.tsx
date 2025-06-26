@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Gift, Calendar, Building2, ExternalLink, Clock, Tag, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -29,26 +28,26 @@ const Promociones = () => {
 
   // Array de imágenes para promociones farmacéuticas
   const promotionImages = [
-    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&auto=format', // farmacia moderna
-    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&auto=format', // productos farmacéuticos
-    'https://images.unsplash.com/photo-1585435557343-3b092031c777?w=400&h=300&fit=crop&auto=format', // medicina y salud
-    'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop&auto=format', // laboratorio
-    'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=400&h=300&fit=crop&auto=format', // píldoras y medicamentos
-    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop&auto=format', // equipo médico
-    'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&auto=format', // investigación médica
-    'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop&auto=format', // medicina alternativa
-    'https://images.unsplash.com/photo-1571772996211-2f02c9727629?w=400&h=300&fit=crop&auto=format', // cápsulas
-    'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=400&h=300&fit=crop&auto=format' // farmacéutico trabajando
+    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1585435557343-3b092031c777?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1571772996211-2f02c9727629?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=400&h=300&fit=crop&auto=format'
   ];
 
   const companyTypes = [
-    { id: 'all', name: 'Todas las Ofertas' },
-    { id: 'laboratorio', name: 'Laboratorios' },
-    { id: 'distribuidor', name: 'Distribuidores' },
-    { id: 'software', name: 'Software' },
-    { id: 'equipos', name: 'Equipos' },
-    { id: 'formacion', name: 'Formación' },
-    { id: 'servicios', name: 'Servicios' },
+    { id: 'all', name: 'Todas las Ofertas', icon: Gift, color: 'from-red-500 to-red-600' },
+    { id: 'laboratorio', name: 'Laboratorios', icon: Building2, color: 'from-blue-500 to-blue-600' },
+    { id: 'distribuidor', name: 'Distribuidores', icon: Tag, color: 'from-green-500 to-green-600' },
+    { id: 'software', name: 'Software', icon: ExternalLink, color: 'from-purple-500 to-purple-600' },
+    { id: 'equipos', name: 'Equipos', icon: Star, color: 'from-orange-500 to-orange-600' },
+    { id: 'formacion', name: 'Formación', icon: Calendar, color: 'from-indigo-500 to-indigo-600' },
+    { id: 'servicios', name: 'Servicios', icon: Clock, color: 'from-pink-500 to-pink-600' },
   ];
 
   useEffect(() => {
@@ -65,7 +64,6 @@ const Promociones = () => {
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
-    // Filtro por tipo de empresa si no es 'all'
     if (selectedType !== 'all') {
       query = query.eq('company_type', selectedType);
     }
@@ -76,12 +74,9 @@ const Promociones = () => {
       console.error('Error loading promotions:', error);
     } else {
       console.log('Loaded promotions:', data);
-      // Filtrar por fecha válida en el cliente para mejor control
       const validPromotions = (data || []).filter(promotion => {
-        // Si no tiene fecha de expiración, está válida
         if (!promotion.valid_until) return true;
         
-        // Si tiene fecha de expiración, verificar que no haya expirado
         const expiryDate = new Date(promotion.valid_until);
         const now = new Date();
         return expiryDate > now;
@@ -134,130 +129,168 @@ const Promociones = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Promociones Exclusivas</h1>
-        <p className="text-gray-600">Descuentos y ofertas especiales para farmacias</p>
-      </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <motion.div 
+        className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-8 shadow-lg ring-1 ring-red-200"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="relative">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-red-400 to-red-600 rounded-r-full shadow-lg"></div>
+          <div className="ml-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Promociones Exclusivas</h1>
+            <p className="text-gray-600">Descuentos y ofertas especiales para profesionales farmacéuticos</p>
+          </div>
+        </div>
+      </motion.div>
 
-      <Tabs value={selectedType} onValueChange={setSelectedType}>
-        <TabsList className="grid w-full grid-cols-6">
-          {companyTypes.map((type) => (
-            <TabsTrigger key={type.id} value={type.id} className="text-xs">
-              {type.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        {/* Filtros de Categorías */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Categorías</h2>
+          <motion.div 
+            className="flex flex-wrap gap-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {companyTypes.map((category, index) => (
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Button
+                  variant={selectedType === category.id ? "default" : "outline"}
+                  onClick={() => setSelectedType(category.id)}
+                  className={`relative group transition-all duration-300 transform hover:scale-105 ${
+                    selectedType === category.id
+                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
+                      : 'hover:shadow-md'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
+                    <category.icon className="h-4 w-4 text-white" />
+                  </div>
+                  {category.name}
+                </Button>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
 
-        <TabsContent value={selectedType} className="mt-6">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded"></div>
+        {/* Grid de promociones */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : promotions.length === 0 ? (
+          <Card className="text-center py-12 border-gray-200 shadow-sm">
+            <CardContent>
+              <Gift className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No hay promociones disponibles</h3>
+              <p className="text-gray-600">
+                {selectedType === 'all' 
+                  ? 'No hay promociones activas en este momento.'
+                  : `No hay promociones de tipo "${companyTypes.find(t => t.id === selectedType)?.name}" disponibles.`
+                }
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {promotions.map((promotion, index) => (
+              <motion.div
+                key={promotion.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card className="h-full hover:shadow-xl transition-all duration-300 border-gray-200 group">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src={promotion.image_url || getPromotionImage(index)} 
+                      alt={promotion.title}
+                      className="w-full h-48 object-cover rounded-t-lg group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = getPromotionImage(index);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-t-lg"></div>
+                    <div className="absolute top-3 left-3 space-y-2">
+                      <Badge className="bg-gradient-to-r from-red-500 to-pink-600 shadow-lg">
+                        <Gift className="h-3 w-3 mr-1" />
+                        Oferta
+                      </Badge>
+                      {promotion.valid_until && isExpiringSoon(promotion.valid_until) && (
+                        <Badge className="bg-orange-600 shadow-lg">
+                          <Clock className="h-3 w-3 mr-1" />
+                          ¡Últimos días!
+                        </Badge>
+                      )}
+                    </div>
+                    <Badge className={`absolute top-3 right-3 ${getCompanyTypeColor(promotion.company_type)} shadow-lg`}>
+                      {promotion.company_type}
+                    </Badge>
+                  </div>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg line-clamp-2 group-hover:text-red-600 transition-colors">
+                      {promotion.title}
+                    </CardTitle>
+                    <div className="flex items-center text-gray-600">
+                      <Building2 className="h-4 w-4 mr-1" />
+                      {promotion.company_name}
+                    </div>
+                    <CardDescription className="line-clamp-3 text-gray-600">
+                      {promotion.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {promotion.discount_details && (
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center mb-1">
+                            <Tag className="h-4 w-4 mr-2 text-green-600" />
+                            <span className="font-medium text-green-800">Oferta:</span>
+                          </div>
+                          <p className="text-sm text-green-700">{promotion.discount_details}</p>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="h-4 w-4 mr-2 text-red-500" />
+                        Válido hasta: {formatDate(promotion.valid_until)}
+                      </div>
+
+                      {promotion.terms_conditions && (
+                        <details className="text-xs text-gray-600">
+                          <summary className="cursor-pointer font-medium">Términos y condiciones</summary>
+                          <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
+                        </details>
+                      )}
+
+                      <Button className="w-full mt-4 bg-red-600 hover:bg-red-700 shadow-lg">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Solicitar
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {promotions.map((promotion, index) => (
-                <motion.div
-                  key={promotion.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <Card className="h-full hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      <img 
-                        src={promotion.image_url || getPromotionImage(index)} 
-                        alt={promotion.title}
-                        className="w-full h-48 object-cover rounded-t-lg"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = getPromotionImage(index);
-                        }}
-                      />
-                      <div className="absolute top-2 left-2 space-y-1">
-                        <Badge className="bg-gradient-to-r from-red-500 to-pink-600">
-                          <Gift className="h-3 w-3 mr-1" />
-                          Oferta
-                        </Badge>
-                        {promotion.valid_until && isExpiringSoon(promotion.valid_until) && (
-                          <Badge className="bg-orange-600">
-                            <Clock className="h-3 w-3 mr-1" />
-                            ¡Últimos días!
-                          </Badge>
-                        )}
-                      </div>
-                      <Badge className={`absolute top-2 right-2 ${getCompanyTypeColor(promotion.company_type)}`}>
-                        {promotion.company_type}
-                      </Badge>
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg">{promotion.title}</CardTitle>
-                      <div className="flex items-center text-gray-600">
-                        <Building2 className="h-4 w-4 mr-1" />
-                        {promotion.company_name}
-                      </div>
-                      <CardDescription>{promotion.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        {promotion.discount_details && (
-                          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                            <div className="flex items-center mb-1">
-                              <Tag className="h-4 w-4 mr-2 text-green-600" />
-                              <span className="font-medium text-green-800">Oferta:</span>
-                            </div>
-                            <p className="text-sm text-green-700">{promotion.discount_details}</p>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Válido hasta: {formatDate(promotion.valid_until)}
-                        </div>
-
-                        {promotion.terms_conditions && (
-                          <details className="text-xs text-gray-600">
-                            <summary className="cursor-pointer font-medium">Términos y condiciones</summary>
-                            <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
-                          </details>
-                        )}
-
-                        <Button className="w-full mt-4">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Solicitar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {promotions.length === 0 && !loading && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Gift className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay promociones disponibles</h3>
-            <p className="text-gray-600">
-              {selectedType === 'all' 
-                ? 'No hay promociones activas en este momento.'
-                : `No hay promociones de tipo "${companyTypes.find(t => t.id === selectedType)?.name}" disponibles.`
-              }
-            </p>
-          </CardContent>
-        </Card>
-      )}
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
