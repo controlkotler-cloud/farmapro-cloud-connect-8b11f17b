@@ -64,11 +64,21 @@ export const useModuleProgress = (courseId: string) => {
     return totalModules > 0 ? Math.round((completedModules.size / totalModules) * 100) : 0;
   };
 
+  const canAccessModule = (moduleIndex: number, modules: any[]) => {
+    // El primer módulo siempre es accesible
+    if (moduleIndex === 0) return true;
+    
+    // Para acceder a un módulo, el anterior debe estar completado
+    const previousModule = modules[moduleIndex - 1];
+    return previousModule ? isModuleCompleted(previousModule.id) : false;
+  };
+
   return {
     completedModules,
     loading,
     markModuleAsCompleted,
     isModuleCompleted,
-    getCompletionPercentage
+    getCompletionPercentage,
+    canAccessModule
   };
 };

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,8 @@ import {
   Users,
   Lightbulb,
   Star,
-  Award
+  Award,
+  Trophy
 } from 'lucide-react';
 import type { CourseModule } from '@/types/course';
 
@@ -27,8 +29,10 @@ interface ModuleContentProps {
   onPrevious: () => void;
   onNext: () => void;
   onComplete: () => void;
+  onFinishCourse: () => void;
   canGoNext: boolean;
   canGoPrevious: boolean;
+  isNextModuleUnlocked: boolean;
 }
 
 export const ModuleContent = ({ 
@@ -39,14 +43,19 @@ export const ModuleContent = ({
   onPrevious,
   onNext,
   onComplete,
+  onFinishCourse,
   canGoNext,
-  canGoPrevious
+  canGoPrevious,
+  isNextModuleUnlocked
 }: ModuleContentProps) => {
   const getModuleIcon = (index: number) => {
     const icons = [BookOpen, Target, Users, Lightbulb, Star, Award];
     const IconComponent = icons[index % icons.length];
     return <IconComponent className="h-6 w-6" />;
   };
+
+  const isFirstModule = moduleIndex === 0;
+  const isLastModule = moduleIndex === totalModules - 1;
 
   return (
     <Card className="h-full">
@@ -195,24 +204,47 @@ export const ModuleContent = ({
                 <p className="text-gray-400 text-sm mt-2">Mantente atento a las actualizaciones</p>
               </div>
             )}
+
+            {/* Advertencia si el siguiente módulo está bloqueado */}
+            {!isLastModule && !isCompleted && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-100 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-amber-800">⚠️ Completa este módulo para continuar</p>
+                    <p className="text-sm text-amber-600">Debes completar este módulo antes de avanzar al siguiente</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
 
         {/* Navegación y completar módulo */}
         <div className="border-t bg-gray-50 p-6">
           <div className="flex justify-between items-center">
-            <Button 
-              onClick={onPrevious}
-              variant="outline"
-              disabled={!canGoPrevious}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </Button>
+            {/* Botón Anterior - Solo si no es el primer módulo */}
+            <div className="flex-1">
+              {!isFirstModule ? (
+                <Button 
+                  onClick={onPrevious}
+                  variant="outline"
+                  disabled={!canGoPrevious}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </Button>
+              ) : (
+                <div></div>
+              )}
+            </div>
 
+            {/* Botón Completar módulo - Siempre presente */}
             <div className="flex items-center gap-3">
-              {!isCompleted && (
+              {!isCompleted ? (
                 <Button 
                   onClick={onComplete}
                   className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
@@ -220,8 +252,7 @@ export const ModuleContent = ({
                   <CheckCircle className="h-4 w-4" />
                   Completar módulo
                 </Button>
-              )}
-              {isCompleted && (
+              ) : (
                 <div className="flex items-center gap-2 text-green-600 font-medium">
                   <CheckCircle className="h-4 w-4" />
                   Módulo completado
@@ -229,15 +260,30 @@ export const ModuleContent = ({
               )}
             </div>
 
-            <Button 
-              onClick={onNext}
-              variant="outline"
-              disabled={!canGoNext}
-              className="flex items-center gap-2"
-            >
-              Siguiente
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            {/* Botón Siguiente/Finalizar - Solo si no es el último módulo O si es el último módulo */}
+            <div className="flex-1 flex justify-end">
+              {!isLastModule ? (
+                <Button 
+                  onClick={onNext}
+                  variant="outline"
+                  disabled={!canGoNext || !isNextModuleUnlocked}
+                  className="flex items-center gap-2"
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              ) : isCompleted ? (
+                <Button 
+                  onClick={onFinishCourse}
+                  className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <Trophy className="h-4 w-4" />
+                  Finalizar
+                </Button>
+              ) : (
+                <div></div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

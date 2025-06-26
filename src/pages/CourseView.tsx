@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useModuleProgress } from '@/hooks/useModuleProgress';
 import { supabase } from '@/integrations/supabase/client';
@@ -133,9 +133,28 @@ const CourseView = () => {
 
   const handleNextModule = () => {
     const modules = course?.course_modules || [];
+    const currentModule = modules[currentModuleIndex];
+    
+    // Verificar que el módulo actual esté completado antes de avanzar
+    if (!isModuleCompleted(currentModule.id)) {
+      return;
+    }
+    
     if (currentModuleIndex < modules.length - 1) {
       setCurrentModuleIndex(currentModuleIndex + 1);
     }
+  };
+
+  const handleFinishCourse = () => {
+    // Navegar al quiz del curso
+    window.location.href = `/curso/${courseSlug}/quiz`;
+  };
+
+  // Función para verificar si el siguiente módulo está desbloqueado
+  const isNextModuleUnlocked = () => {
+    const modules = course?.course_modules || [];
+    const currentModule = modules[currentModuleIndex];
+    return isModuleCompleted(currentModule.id);
   };
 
   const markAsCompleted = async () => {
@@ -233,16 +252,25 @@ const CourseView = () => {
         {/* Modules Sidebar */}
         <div className="lg:col-span-1 space-y-4">
           <h3 className="text-lg font-semibold">📚 Módulos del curso</h3>
-          {modules.map((module, index) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              index={index}
-              isActive={index === currentModuleIndex}
-              isCompleted={isModuleCompleted(module.id)}
-              onClick={() => setCurrentModuleIndex(index)}
-            />
-          ))}
+          {modules.map((module, index) => {
+            const isLocked = index > 0 && !isModuleCompleted(modules[index - 1].id);
+            return (
+              <ModuleCard
+                key={module.id}
+                module={module}
+                index={index}
+                isActive={index === currentModuleIndex}
+                isCompleted={isModuleCompleted(module.id)}
+                isLocked={isLocked}
+                onClick={() => {
+                  // Solo permitir navegar a módulos desbloqueados
+                  if (!isLocked) {
+                    setCurrentModuleIndex(index);
+                  }
+                }}
+              />
+            );
+          })}
         </div>
 
         {/* Module Content */}
@@ -256,8 +284,10 @@ const CourseView = () => {
               onPrevious={handlePreviousModule}
               onNext={handleNextModule}
               onComplete={() => handleCompleteModule(currentModule.id)}
+              onFinishCourse={handleFinishCourse}
               canGoNext={currentModuleIndex < modules.length - 1}
               canGoPrevious={currentModuleIndex > 0}
+              isNextModuleUnlocked={isNextModuleUnlocked()}
             />
           ) : (
             <div className="bg-white p-8 rounded-lg shadow text-center">
@@ -265,25 +295,9 @@ const CourseView = () => {
             </div>
           )}
 
-          {/* Action Buttons */}
-          {isEnrolled && (
+          {/* Course completion status */}
+          {isEnrolled && allModulesCompleted && (
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-              {/* Quiz Button - available after completing all modules */}
-              {allModulesCompleted && !quizCompleted && (
-                <Button onClick={goToQuiz} size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  <BookOpen className="h-5 w-5 mr-2" />
-                  🎯 Evalúate
-                </Button>
-              )}
-
-              {/* Complete Course Button - available after quiz */}
-              {!isCompleted && allModulesCompleted && quizCompleted && (
-                <Button onClick={markAsCompleted} size="lg" className="bg-green-600 hover:bg-green-700">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  ✅ Finalizar curso
-                </Button>
-              )}
-
               {/* Course Completed Message */}
               {isCompleted && (
                 <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">

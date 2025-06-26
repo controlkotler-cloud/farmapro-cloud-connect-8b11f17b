@@ -1,7 +1,7 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Play, FileText, Download, CheckCircle, Lock } from 'lucide-react';
+import { Clock, CheckCircle, Lock } from 'lucide-react';
 import type { CourseModule } from '@/types/course';
 
 interface ModuleCardProps {
@@ -9,86 +9,63 @@ interface ModuleCardProps {
   index: number;
   isActive: boolean;
   isCompleted: boolean;
+  isLocked?: boolean;
   onClick: () => void;
 }
 
-export const ModuleCard = ({ module, index, isActive, isCompleted, onClick }: ModuleCardProps) => {
-  const hasContent = module.content || module.video_url || (module.downloadable_resources && module.downloadable_resources.length > 0);
-  const resourceCount = module.downloadable_resources?.length || 0;
-
+export const ModuleCard = ({ 
+  module, 
+  index, 
+  isActive, 
+  isCompleted, 
+  isLocked = false,
+  onClick 
+}: ModuleCardProps) => {
   return (
     <Card 
-      className={`cursor-pointer transition-all ${
+      className={`cursor-pointer transition-all duration-200 ${
         isActive 
-          ? 'ring-2 ring-blue-500 bg-blue-50 shadow-md' 
-          : isCompleted 
-            ? 'bg-green-50 border-green-200 hover:shadow-md' 
-            : 'hover:shadow-md'
-      } ${!hasContent ? 'opacity-60' : ''}`}
-      onClick={hasContent ? onClick : undefined}
+          ? 'ring-2 ring-blue-500 bg-blue-50' 
+          : isLocked 
+            ? 'opacity-60 cursor-not-allowed bg-gray-50' 
+            : 'hover:shadow-md hover:bg-gray-50'
+      }`}
+      onClick={!isLocked ? onClick : undefined}
     >
-      <CardHeader className="pb-3">
+      <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className={`flex-shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                isCompleted 
-                  ? 'bg-green-500 text-white' 
-                  : isActive 
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
-              }`}>
-                {isCompleted ? <CheckCircle className="h-3 w-3" /> : index + 1}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-medium text-gray-600">
+                Módulo {index + 1}
               </span>
+              {isCompleted && (
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              )}
+              {isLocked && (
+                <Lock className="h-4 w-4 text-gray-400" />
+              )}
+            </div>
+            <h4 className={`font-medium mb-2 ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>
               {module.title}
-            </CardTitle>
-            {/* Resumen más corto */}
-            {module.content && (
-              <CardDescription className="mt-3 line-clamp-2 text-sm leading-relaxed">
-                {module.content.replace(/<[^>]*>/g, '').substring(0, 100)}...
-              </CardDescription>
-            )}
-          </div>
-          <div className="ml-2 flex flex-col items-end gap-1">
-            <Badge variant="outline" className="text-xs">
-              <Clock className="h-3 w-3 mr-1" />
-              {module.duration}min
-            </Badge>
-            {isCompleted && (
-              <Badge className="bg-green-500 text-xs">
-                ✅ Completado
+            </h4>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                <Clock className="h-3 w-3 mr-1" />
+                {module.duration} min
               </Badge>
-            )}
+              {isCompleted && (
+                <Badge className="text-xs bg-green-100 text-green-700 hover:bg-green-100">
+                  Completado
+                </Badge>
+              )}
+              {isLocked && (
+                <Badge variant="outline" className="text-xs text-gray-400 border-gray-300">
+                  Bloqueado
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        {/* Indicadores de contenido más compactos */}
-        <div className="flex items-center space-x-2 text-xs text-gray-600">
-          {module.video_url && (
-            <div className="flex items-center bg-red-100 text-red-600 px-2 py-1 rounded-full">
-              <Play className="h-3 w-3 mr-1" />
-              Video
-            </div>
-          )}
-          {module.content && (
-            <div className="flex items-center bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
-              <FileText className="h-3 w-3 mr-1" />
-              Lectura
-            </div>
-          )}
-          {resourceCount > 0 && (
-            <div className="flex items-center bg-green-100 text-green-600 px-2 py-1 rounded-full">
-              <Download className="h-3 w-3 mr-1" />
-              {resourceCount} recursos
-            </div>
-          )}
-          {!hasContent && (
-            <div className="flex items-center bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
-              <Lock className="h-3 w-3 mr-1" />
-              Próximamente
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
