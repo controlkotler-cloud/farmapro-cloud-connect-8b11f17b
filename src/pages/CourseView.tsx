@@ -20,6 +20,7 @@ const CourseView = () => {
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [hasQuiz, setHasQuiz] = useState(false);
   const moduleContentRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -69,6 +70,16 @@ const CourseView = () => {
             ) : []
         };
         setCourse(transformedCourse);
+
+        // Verificar si existe un quiz para este curso
+        const { data: quizData } = await supabase
+          .from('course_quizzes')
+          .select('id')
+          .eq('course_id', transformedCourse.id)
+          .eq('is_active', true)
+          .single();
+
+        setHasQuiz(!!quizData);
 
         if (profile?.id) {
           const { data: enrollmentData, error: enrollmentError } = await supabase
@@ -131,7 +142,12 @@ const CourseView = () => {
   };
 
   const handleFinishCourse = () => {
-    window.location.href = `/curso/${courseSlug}/quiz`;
+    if (hasQuiz) {
+      window.location.href = `/curso/${courseSlug}/quiz`;
+    } else {
+      // Si no hay quiz, marcar curso como completado
+      console.log('Curso completado sin quiz');
+    }
   };
 
   const isNextModuleUnlocked = () => {

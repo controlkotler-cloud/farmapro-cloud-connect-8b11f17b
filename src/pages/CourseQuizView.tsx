@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import CourseQuiz from '@/components/course/CourseQuiz';
+import { DatabaseQuiz } from '@/components/course/DatabaseQuiz';
 
 const CourseQuizView = () => {
   const { courseSlug } = useParams();
@@ -38,7 +38,7 @@ const CourseQuizView = () => {
         </Button>
       </Link>
 
-      <CourseQuiz 
+      <DatabaseQuiz 
         courseId={courseSlug}
         courseTitle={courseTitle}
         onComplete={handleQuizComplete}
