@@ -216,7 +216,7 @@ export const Recursos = () => {
                 <CardContent className="flex-1 flex flex-col justify-end">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="text-xs">
-                      {resource.file_type.toUpperCase()}
+                      {resource.format.toUpperCase()}
                     </Badge>
                     <Button
                       onClick={() => handleDownload(resource)}
