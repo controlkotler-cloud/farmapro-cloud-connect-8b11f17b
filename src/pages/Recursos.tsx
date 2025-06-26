@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,12 +17,15 @@ interface Resource {
   created_at: string;
 }
 
+type CategoryType = 'gestion' | 'marketing' | 'liderazgo' | 'atencion' | 'finanzas' | 'digital';
+type SelectedCategoryType = 'all' | CategoryType;
+
 const Recursos = () => {
   const { profile } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryType>('all');
   const [stats, setStats] = useState({
     totalResources: 0,
     downloads: 0,
@@ -43,7 +45,7 @@ const Recursos = () => {
       .order('created_at', { ascending: false });
 
     if (selectedCategory !== 'all') {
-      query = query.eq('category', selectedCategory);
+      query = query.eq('category', selectedCategory as CategoryType);
     }
 
     const { data, error } = await query;
@@ -120,7 +122,7 @@ const Recursos = () => {
     resource.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const categories = ['all', 'gestion', 'marketing', 'liderazgo', 'atencion', 'finanzas', 'digital'];
+  const categories: SelectedCategoryType[] = ['all', 'gestion', 'marketing', 'liderazgo', 'atencion', 'finanzas', 'digital'];
 
   return (
     <div className="space-y-6">
