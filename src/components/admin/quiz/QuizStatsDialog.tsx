@@ -67,7 +67,7 @@ export const QuizStatsDialog: React.FC<QuizStatsDialogProps> = ({
         passed,
         completed_at,
         time_taken_seconds,
-        profiles!inner(full_name, email)
+        profiles!quiz_attempts_user_id_fkey(full_name, email)
       `)
       .eq('quiz_id', quizId)
       .not('completed_at', 'is', null)
@@ -166,7 +166,7 @@ export const QuizStatsDialog: React.FC<QuizStatsDialogProps> = ({
                     <div key={attempt.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <p className="font-medium">
-                          {attempt.profiles.full_name || attempt.profiles.email}
+                          {attempt.profiles?.full_name || attempt.profiles?.email || 'Usuario desconocido'}
                         </p>
                         <p className="text-sm text-gray-600">
                           {new Date(attempt.completed_at).toLocaleDateString('es-ES', {
