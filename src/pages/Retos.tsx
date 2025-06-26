@@ -1,152 +1,106 @@
 
-import { Card } from '@/components/ui/card';
-import { UserStatsCards } from '@/components/retos/UserStatsCards';
-import { LevelProgressCard } from '@/components/retos/LevelProgressCard';
-import { ChallengeCard } from '@/components/retos/ChallengeCard';
+import { motion } from 'framer-motion';
 import { useRetosData } from '@/hooks/useRetosData';
-import { MessageSquare, BookOpen, Gift, Trophy } from 'lucide-react';
+import { LevelProgressCard } from '@/components/retos/LevelProgressCard';
+import { UserStatsCards } from '@/components/retos/UserStatsCards';
+import { ChallengeCard } from '@/components/retos/ChallengeCard';
+import { Trophy, Target } from 'lucide-react';
 
-const Retos = () => {
-  const {
-    challenges,
-    userProgress,
-    userStats,
-    loading,
-    getProgressForChallenge,
-    getNextLevelProgress,
-    getPointsToNextLevel
-  } = useRetosData();
+export const Retos = () => {
+  const { userStats, challenges, loading } = useRetosData();
 
-  // Categorizar retos por tipo
-  const challengesByType = {
-    forum: challenges.filter(c => c.type === 'forum_post' || c.type === 'forum_reply'),
-    course: challenges.filter(c => c.type === 'course_completed' || c.type === 'course_started'),
-    resource: challenges.filter(c => c.type === 'resource_downloaded'),
-    other: challenges.filter(c => !['forum_post', 'forum_reply', 'course_completed', 'course_started', 'resource_downloaded'].includes(c.type))
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
   };
 
-  const CategorySection = ({ 
-    title, 
-    icon: Icon, 
-    emoji, 
-    challenges: categoryChallenges, 
-    color 
-  }: { 
-    title: string; 
-    icon: any; 
-    emoji: string; 
-    challenges: any[]; 
-    color: string;
-  }) => {
-    if (categoryChallenges.length === 0) return null;
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
 
+  if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <div className={`p-2 rounded-lg ${color}`}>
-            <Icon className="h-5 w-5" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900">
-            {emoji} {title}
-          </h3>
-          <span className="text-sm text-gray-500">({categoryChallenges.length} retos)</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {categoryChallenges.map((challenge, index) => {
-            const progress = getProgressForChallenge(challenge.id);
-            return (
-              <ChallengeCard
-                key={challenge.id}
-                challenge={challenge}
-                progress={progress}
-                index={index}
-              />
-            );
-          })}
-        </div>
+      <div className="space-y-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="animate-pulse bg-gray-200 h-32 rounded-xl"></div>
+        ))}
       </div>
     );
-  };
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Sistema de Retos farmapro</h1>
-        <p className="text-gray-600">Completa desafíos y gana puntos para subir de nivel en la comunidad</p>
-      </div>
-
-      {/* User Stats Cards */}
-      <UserStatsCards userStats={userStats} />
-
-      {/* Level Progress Card */}
-      <LevelProgressCard 
-        userStats={userStats}
-        getNextLevelProgress={getNextLevelProgress}
-        getPointsToNextLevel={getPointsToNextLevel}
-      />
-
-      {/* Challenges by Category */}
-      <div className="space-y-8">
-        <div className="flex items-center space-x-2">
-          <Trophy className="h-6 w-6 text-yellow-600" />
-          <h2 className="text-2xl font-bold text-gray-900">Retos Disponibles</h2>
+    <motion.div 
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Header with gradient background */}
+      <motion.div 
+        className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl p-8 shadow-lg ring-1 ring-yellow-200"
+        variants={itemVariants}
+      >
+        <div className="relative">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-r-full shadow-lg"></div>
+          <div className="ml-6">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-lg">
+                <Trophy className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Retos y Desafíos</h1>
+                <p className="text-gray-600">Completa retos y gana puntos para subir de nivel</p>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <div className="p-6">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                </div>
-              </Card>
+      </motion.div>
+
+      {/* Level Progress */}
+      <motion.div variants={itemVariants}>
+        <LevelProgressCard userStats={userStats} />
+      </motion.div>
+
+      {/* User Stats */}
+      <motion.div variants={itemVariants}>
+        <UserStatsCards userStats={userStats} />
+      </motion.div>
+
+      {/* Available Challenges */}
+      <motion.div variants={itemVariants}>
+        <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl p-6 shadow-lg ring-1 ring-indigo-200">
+          <div className="relative mb-6">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-r-full shadow-lg"></div>
+            <div className="ml-6 flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg">
+                <Target className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Retos Disponibles</h2>
+            </div>
+          </div>
+          
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants}
+          >
+            {challenges.map((challenge, index) => (
+              <motion.div
+                key={challenge.id}
+                variants={itemVariants}
+                transition={{ delay: index * 0.1 }}
+              >
+                <ChallengeCard challenge={challenge} userStats={userStats} />
+              </motion.div>
             ))}
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Retos de Comunidad */}
-            <CategorySection
-              title="Retos de Comunidad"
-              icon={MessageSquare}
-              emoji="💬"
-              challenges={challengesByType.forum}
-              color="bg-purple-100 text-purple-600"
-            />
-
-            {/* Retos de Formación */}
-            <CategorySection
-              title="Retos de Formación"
-              icon={BookOpen}
-              emoji="📚"
-              challenges={challengesByType.course}
-              color="bg-blue-100 text-blue-600"
-            />
-
-            {/* Retos de Recursos */}
-            <CategorySection
-              title="Retos de Recursos"
-              icon={Gift}
-              emoji="📁"
-              challenges={challengesByType.resource}
-              color="bg-green-100 text-green-600"
-            />
-
-            {/* Otros Retos */}
-            {challengesByType.other.length > 0 && (
-              <CategorySection
-                title="Otros Retos"
-                icon={Trophy}
-                emoji="🏆"
-                challenges={challengesByType.other}
-                color="bg-orange-100 text-orange-600"
-              />
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
-
-export default Retos;

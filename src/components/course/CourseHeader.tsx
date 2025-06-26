@@ -1,80 +1,48 @@
 
-import { Badge } from '@/components/ui/badge';
-import { Clock, Users, Award, BookOpen } from 'lucide-react';
-import type { Course } from '@/types/course';
+import { motion } from 'framer-motion';
+import { BookOpen, Users, Trophy, Target } from 'lucide-react';
 
-interface CourseHeaderProps {
-  course: Course;
-  isEnrolled: boolean;
-  isCompleted: boolean;
-}
-
-export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderProps) => {
-  const totalModules = course.course_modules?.length || 0;
-  const totalDuration = course.course_modules?.reduce((sum, module) => sum + module.duration, 0) || course.duration_minutes;
+export const CourseHeader = () => {
+  const stats = [
+    { icon: BookOpen, label: 'Cursos', value: '20+', color: 'from-blue-500 to-blue-600' },
+    { icon: Users, label: 'Estudiantes', value: '500+', color: 'from-green-500 to-green-600' },
+    { icon: Trophy, label: 'Certificados', value: '300+', color: 'from-yellow-500 to-yellow-600' },
+    { icon: Target, label: 'Completados', value: '95%', color: 'from-purple-500 to-purple-600' }
+  ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-      {course.featured_image_url && (
-        <div className="h-64 overflow-hidden">
-          <img 
-            src={course.featured_image_url} 
-            alt={course.title}
-            className="w-full h-full object-cover"
-          />
+    <div>
+      <div className="flex items-center space-x-4 mb-6">
+        <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
+          <BookOpen className="h-8 w-8 text-white" />
         </div>
-      )}
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-3">{course.title}</h1>
-            <p className="text-gray-600 text-lg leading-relaxed">{course.description}</p>
-          </div>
-          <div className="flex flex-col items-end space-y-2 ml-6">
-            <Badge variant="outline" className="capitalize">
-              {course.category.replace('_', ' ')}
-            </Badge>
-            {course.is_premium && (
-              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
-                <Award className="h-3 w-3 mr-1" />
-                Premium
-              </Badge>
-            )}
-            {isCompleted && (
-              <Badge className="bg-green-500">
-                <Award className="h-3 w-3 mr-1" />
-                Completado
-              </Badge>
-            )}
-            {isEnrolled && !isCompleted && (
-              <Badge variant="secondary">
-                En progreso
-              </Badge>
-            )}
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Formación Profesional</h1>
+          <p className="text-gray-600">Desarrolla tus habilidades con nuestros cursos especializados</p>
         </div>
-        
-        <div className="flex items-center space-x-6 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
-          <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-2" />
-            <span className="font-medium">Duración:</span>
-            <span className="ml-1">
-              {Math.floor(totalDuration / 60)}h {totalDuration % 60}m
-            </span>
-          </div>
-          <div className="flex items-center">
-            <BookOpen className="h-4 w-4 mr-2" />
-            <span className="font-medium">Módulos:</span>
-            <span className="ml-1">{totalModules}</span>
-          </div>
-          <div className="flex items-center">
-            <Users className="h-4 w-4 mr-2" />
-            <span className="font-medium">Nivel:</span>
-            <span className="ml-1">
-              {course.is_premium ? 'Avanzado' : 'Intermedio'}
-            </span>
-          </div>
-        </div>
+      </div>
+
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.1 }}
+            className="bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-white/20"
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.color} shadow-md`}>
+                <stat.icon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm text-gray-600">{stat.label}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
