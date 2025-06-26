@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ThreadView } from '@/components/forum/ThreadView';
@@ -74,14 +75,17 @@ const Comunidad = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
+    <motion.div 
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ staggerChildren: 0.1 }}
+    >
       <CommunityHeader 
         userLevel={profile?.level || 1}
         userPoints={profile?.total_points || 0}
       />
 
-      {/* Stats Section */}
       <CommunityStats 
         totalThreads={forumStats.totalThreads}
         totalReplies={forumStats.totalReplies}
@@ -90,12 +94,11 @@ const Comunidad = () => {
         userPoints={profile?.total_points || 0}
       />
 
-      {/* Main Content */}
       <CommunityContent 
         onThreadClick={handleThreadClick}
         onDataChange={loadForumStats}
       />
-    </div>
+    </motion.div>
   );
 };
 

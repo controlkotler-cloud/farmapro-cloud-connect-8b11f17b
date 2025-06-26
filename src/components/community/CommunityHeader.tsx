@@ -1,7 +1,5 @@
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Users, MessageSquare, Trophy, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface CommunityHeaderProps {
   userLevel: number;
@@ -10,52 +8,29 @@ interface CommunityHeaderProps {
 
 export const CommunityHeader = ({ userLevel, userPoints }: CommunityHeaderProps) => {
   return (
-    <div className="mb-8">
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-100 rounded-lg p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-blue-100 rounded-full p-3 mr-3">
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Comunidad farmapro
-              </h1>
+    <motion.div 
+      className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-8 shadow-lg ring-1 ring-blue-200"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="relative">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-blue-400 to-blue-600 rounded-r-full shadow-lg"></div>
+        <div className="ml-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Comunidad farmapro</h1>
+          <p className="text-gray-600 mb-4">Conecta con profesionales farmacéuticos, comparte experiencias y aprende juntos</p>
+          
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2 bg-white/80 rounded-lg px-4 py-2 shadow-sm">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm font-medium text-gray-700">Nivel {userLevel}</span>
             </div>
-            
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Conecta con profesionales farmacéuticos, comparte experiencias y aprende juntos
-            </p>
-
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Card className="bg-white/80 border-gray-200">
-                <CardContent className="p-3 flex items-center space-x-2">
-                  <Trophy className="h-5 w-5 text-blue-600" />
-                  <div className="text-left">
-                    <p className="text-gray-900 font-medium text-sm">Nivel {userLevel}</p>
-                    <p className="text-gray-500 text-xs">Tu progreso</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/80 border-gray-200">
-                <CardContent className="p-3 flex items-center space-x-2">
-                  <Sparkles className="h-5 w-5 text-purple-600" />
-                  <div className="text-left">
-                    <p className="text-gray-900 font-medium text-sm">{userPoints} puntos</p>
-                    <p className="text-gray-500 text-xs">Experiencia</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 px-3 py-1">
-                <MessageSquare className="h-3 w-3 mr-1" />
-                Miembro Activo
-              </Badge>
+            <div className="flex items-center space-x-2 bg-white/80 rounded-lg px-4 py-2 shadow-sm">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span className="text-sm font-medium text-gray-700">{userPoints} puntos</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
