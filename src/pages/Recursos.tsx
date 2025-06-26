@@ -16,7 +16,7 @@ interface Resource {
   description: string;
   category: string;
   file_url: string;
-  file_type: string;
+  format: string;
   is_premium: boolean;
   created_at: string;
 }
@@ -45,7 +45,12 @@ export const Recursos = () => {
     if (error) {
       console.error('Error loading resources:', error);
     } else {
-      setResources(data || []);
+      // Transformar los datos para que coincidan con la interface
+      const transformedData = data?.map(resource => ({
+        ...resource,
+        format: resource.format || 'pdf' // Valor por defecto si no existe
+      })) || [];
+      setResources(transformedData);
     }
     setLoading(false);
   };

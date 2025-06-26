@@ -7,7 +7,12 @@ import { ChallengeCard } from '@/components/retos/ChallengeCard';
 import { Trophy, Target } from 'lucide-react';
 
 export const Retos = () => {
-  const { userStats, challenges, loading } = useRetosData();
+  const { 
+    challenges, 
+    userStats, 
+    loading, 
+    getProgressForChallenge 
+  } = useRetosData();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -95,7 +100,11 @@ export const Retos = () => {
                 variants={itemVariants}
                 transition={{ delay: index * 0.1 }}
               >
-                <ChallengeCard challenge={challenge} userStats={userStats} />
+                <ChallengeCard 
+                  challenge={challenge} 
+                  progress={getProgressForChallenge(challenge.id)}
+                  index={index}
+                />
               </motion.div>
             ))}
           </motion.div>

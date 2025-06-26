@@ -17,17 +17,9 @@ interface Challenge {
   created_at: string;
 }
 
-interface UserProgress {
-  id: string;
-  challenge_id: string;
-  current_count: number;
-  completed_at: string | null;
-  points_earned: number;
-}
-
 interface ChallengeCardProps {
   challenge: Challenge;
-  progress: UserProgress | undefined;
+  progress: any;
   index: number;
 }
 

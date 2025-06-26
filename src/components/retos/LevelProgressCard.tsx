@@ -8,15 +8,20 @@ interface LevelProgressCardProps {
     totalPoints: number;
     level: number;
   };
-  getNextLevelProgress: () => number;
-  getPointsToNextLevel: () => number;
 }
 
-export const LevelProgressCard = ({ 
-  userStats, 
-  getNextLevelProgress, 
-  getPointsToNextLevel 
-}: LevelProgressCardProps) => {
+export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
+  // Calcular progreso al siguiente nivel
+  const getNextLevelProgress = () => {
+    const pointsInCurrentLevel = userStats.totalPoints % 1000;
+    return (pointsInCurrentLevel / 1000) * 100;
+  };
+
+  const getPointsToNextLevel = () => {
+    const pointsInCurrentLevel = userStats.totalPoints % 1000;
+    return 1000 - pointsInCurrentLevel;
+  };
+
   return (
     <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
       <CardContent className="p-6">
