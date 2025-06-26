@@ -2,9 +2,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { PharmacyForm } from '@/components/pharmacy/PharmacyForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 import { PharmacyGrid } from '@/components/pharmacy/PharmacyGrid';
-import { SubscriptionPrompt } from '@/components/pharmacy/SubscriptionPrompt';
+import { FarmaciasHeader } from '@/components/pharmacy/FarmaciasHeader';
+import { FarmaciasActions } from '@/components/pharmacy/FarmaciasActions';
 
 interface PharmacyListing {
   id: string;
@@ -22,8 +28,20 @@ interface PharmacyListing {
 
 const Farmacias = () => {
   const { profile } = useAuth();
+  const { toast } = useToast();
   const [listings, setListings] = useState<PharmacyListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDialog, setShowDialog] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [newListing, setNewListing] = useState({
+    title: '',
+    location: '',
+    description: '',
+    price: '',
+    surface_area: '',
+    annual_revenue: '',
+    contact_email: ''
+  });
 
   useEffect(() => {
     loadListings();
@@ -39,32 +57,167 @@ const Farmacias = () => {
 
     if (error) {
       console.error('Error loading pharmacy listings:', error);
+      toast({
+        title: "Error",
+        description: "Error al cargar farmacias",
+        variant: "destructive"
+      });
     } else {
       setListings(data || []);
     }
     setLoading(false);
   };
 
+  const createListing = async () => {
+    if (!profile?.id || !newListing.title || !newListing.location) {
+      toast({
+        title: "Error",
+        description: "Por favor completa todos los campos obligatorios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      console.log('Creating pharmacy listing:', newListing.title);
+
+      const { error } = await supabase
+        .from('pharmacy_listings')
+        .insert([{
+          title: newListing.title,
+          location: newListing.location,
+          description: newListing.description,
+          price: parseFloat(newListing.price) || null,
+          surface_area: parseInt(newListing.surface_area) || null,
+          annual_revenue: parseFloat(newListing.annual_revenue) || null,
+          contact_email: newListing.contact_email,
+          seller_id: profile.id
+        }]);
+
+      if (error) {
+        console.error('Error creating pharmacy listing:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Éxito",
+        description: "Farmacia publicada correctamente"
+      });
+
+      setNewListing({
+        title: '',
+        location: '',
+        description: '',
+        price: '',
+        surface_area: '',
+        annual_revenue: '',
+        contact_email: ''
+      });
+      setShowDialog(false);
+      await loadListings();
+    } catch (error: any) {
+      console.error('Error creating pharmacy listing:', error);
+      toast({
+        title: "Error",
+        description: `No se pudo crear el anuncio: ${error.message || 'Error desconocido'}`,
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const canCreateListing = () => {
-    return profile?.subscription_role && profile.subscription_role !== 'freemium';
+    return profile?.subscription_role === 'premium' || profile?.subscription_role === 'admin';
+  };
+
+  const isPremium = () => {
+    return profile?.subscription_role === 'premium';
+  };
+
+  const isAdmin = () => {
+    return profile?.subscription_role === 'admin';
+  };
+
+  const handleCreateListing = () => {
+    setShowDialog(true);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Farmacias en Venta</h1>
-          <p className="text-gray-600">Espacio para encontrar tu farmacia ideal</p>
-        </div>
-        {canCreateListing() && profile?.id && (
-          <PharmacyForm profileId={profile.id} onListingCreated={loadListings} />
-        )}
-      </div>
+    <motion.div 
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ staggerChildren: 0.1 }}
+    >
+      <FarmaciasHeader />
 
-      <SubscriptionPrompt canCreateListing={canCreateListing()} />
+      <FarmaciasActions 
+        canCreateListing={canCreateListing()}
+        isPremium={isPremium()}
+        isAdmin={isAdmin()}
+        onCreateListing={handleCreateListing}
+      />
+
+      {/* Dialog para crear anuncios */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Publicar Farmacia en Venta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Título del anuncio *"
+              value={newListing.title}
+              onChange={(e) => setNewListing({ ...newListing, title: e.target.value })}
+            />
+            <Input
+              placeholder="Ubicación *"
+              value={newListing.location}
+              onChange={(e) => setNewListing({ ...newListing, location: e.target.value })}
+            />
+            <div className="grid grid-cols-3 gap-4">
+              <Input
+                placeholder="Precio (€)"
+                type="number"
+                value={newListing.price}
+                onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
+              />
+              <Input
+                placeholder="Superficie (m²)"
+                type="number"
+                value={newListing.surface_area}
+                onChange={(e) => setNewListing({ ...newListing, surface_area: e.target.value })}
+              />
+              <Input
+                placeholder="Facturación anual (€)"
+                type="number"
+                value={newListing.annual_revenue}
+                onChange={(e) => setNewListing({ ...newListing, annual_revenue: e.target.value })}
+              />
+            </div>
+            <Input
+              placeholder="Email de contacto"
+              type="email"
+              value={newListing.contact_email}
+              onChange={(e) => setNewListing({ ...newListing, contact_email: e.target.value })}
+            />
+            <Textarea
+              placeholder="Descripción de la farmacia"
+              value={newListing.description}
+              onChange={(e) => setNewListing({ ...newListing, description: e.target.value })}
+              rows={4}
+            />
+            <Button onClick={createListing} className="w-full" disabled={submitting}>
+              {submitting ? 'Publicando...' : 'Publicar Anuncio'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <PharmacyGrid listings={listings} loading={loading} />
-    </div>
+    </motion.div>
   );
 };
 
