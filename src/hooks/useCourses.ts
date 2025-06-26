@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,13 +65,17 @@ export const useCourses = () => {
     }
   };
 
-  const enrollInCourse = async (courseId: string) => {
+  const enrollInCourse = async (courseSlug: string) => {
     if (!profile?.id) return;
 
-    const existingEnrollment = enrollments.find(enrollment => enrollment.course_id === courseId);
+    // Buscar el curso por slug
+    const course = courses.find(c => c.slug === courseSlug);
+    if (!course) return;
+
+    const existingEnrollment = enrollments.find(enrollment => enrollment.course_id === course.id);
 
     if (existingEnrollment) {
-      window.location.href = `/curso/${courseId}`;
+      window.location.href = `/curso/${courseSlug}`;
       return;
     }
 
@@ -80,7 +83,7 @@ export const useCourses = () => {
       .from('course_enrollments')
       .insert([{
         user_id: profile.id,
-        course_id: courseId,
+        course_id: course.id,
         started_at: new Date().toISOString()
       }]);
 
@@ -100,7 +103,7 @@ export const useCourses = () => {
       }
       
       await loadEnrollments();
-      window.location.href = `/curso/${courseId}`;
+      window.location.href = `/curso/${courseSlug}`;
     }
   };
 

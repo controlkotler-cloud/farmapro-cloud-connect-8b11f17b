@@ -122,6 +122,7 @@ export type Database = {
           featured_image_url: string | null
           id: string
           is_premium: boolean | null
+          slug: string
           thumbnail_url: string | null
           title: string
           updated_at: string | null
@@ -136,6 +137,7 @@ export type Database = {
           featured_image_url?: string | null
           id?: string
           is_premium?: boolean | null
+          slug: string
           thumbnail_url?: string | null
           title: string
           updated_at?: string | null
@@ -150,6 +152,7 @@ export type Database = {
           featured_image_url?: string | null
           id?: string
           is_premium?: boolean | null
+          slug?: string
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null

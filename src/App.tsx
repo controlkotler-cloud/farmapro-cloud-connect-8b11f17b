@@ -137,12 +137,12 @@ const AppRoutes = () => {
           <Formacion />
         </ProtectedRoute>
       } />
-      <Route path="/curso/:courseId" element={
+      <Route path="/curso/:courseSlug" element={
         <ProtectedRoute>
           <CourseView />
         </ProtectedRoute>
       } />
-      <Route path="/curso/:courseId/quiz" element={
+      <Route path="/curso/:courseSlug/quiz" element={
         <ProtectedRoute>
           <CourseQuizView />
         </ProtectedRoute>

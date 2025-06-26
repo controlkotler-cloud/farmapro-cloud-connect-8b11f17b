@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import CourseModulesSection from './CourseModulesSection';
+import { generateSlug, validateSlug } from '@/utils/slugUtils';
 import type { Database } from '@/integrations/supabase/types';
 
 type Course = Database['public']['Tables']['courses']['Row'];
@@ -21,6 +22,7 @@ interface CourseFormData {
   content: string;
   thumbnail_url: string;
   featured_image_url: string;
+  slug: string;
   course_modules: any[];
 }
 
@@ -49,7 +51,13 @@ const CourseFormDialog = ({
 }: CourseFormDialogProps) => {
   const handleFieldChange = (field: keyof CourseFormData, value: any) => {
     console.log(`Actualizando campo ${field}:`, value);
-    const updatedData = { ...formData, [field]: value };
+    let updatedData = { ...formData, [field]: value };
+    
+    // Auto-generar slug cuando cambie el título (solo para cursos nuevos)
+    if (field === 'title' && !editingCourse && value) {
+      updatedData.slug = generateSlug(value);
+    }
+    
     console.log('FormData después del cambio:', updatedData);
     onFormDataChange(updatedData);
   };
@@ -58,6 +66,8 @@ const CourseFormDialog = ({
     console.log('Actualizando módulos en dialog:', modules);
     handleFieldChange('course_modules', modules);
   };
+
+  const isSlugValid = validateSlug(formData.slug);
 
   console.log('Renderizando CourseFormDialog con formData:', formData);
   console.log('Módulos actuales:', formData.course_modules);
@@ -104,6 +114,26 @@ const CourseFormDialog = ({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="slug">Slug (URL amigable) *</Label>
+            <Input
+              id="slug"
+              value={formData.slug}
+              onChange={(e) => handleFieldChange('slug', e.target.value)}
+              required
+              placeholder="ejemplo: mi-curso-fantastico"
+              className={!isSlugValid && formData.slug ? 'border-red-500' : ''}
+            />
+            {!isSlugValid && formData.slug && (
+              <p className="text-red-500 text-xs mt-1">
+                El slug debe contener solo letras minúsculas, números y guiones
+              </p>
+            )}
+            <p className="text-gray-500 text-xs mt-1">
+              URL del curso: /curso/{formData.slug || 'slug-del-curso'}
+            </p>
           </div>
           
           <div>
@@ -184,7 +214,7 @@ const CourseFormDialog = ({
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting || !isSlugValid}>
               {submitting ? 'Guardando...' : (editingCourse ? 'Actualizar' : 'Crear')} Curso
             </Button>
           </div>

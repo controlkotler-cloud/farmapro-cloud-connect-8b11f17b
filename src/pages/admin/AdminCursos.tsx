@@ -28,6 +28,7 @@ const AdminCursos = () => {
     content: '',
     thumbnail_url: '',
     featured_image_url: '',
+    slug: '',
     course_modules: [] as any[]
   });
 
@@ -69,10 +70,10 @@ const AdminCursos = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.category) {
+    if (!formData.title || !formData.category || !formData.slug) {
       toast({
         title: "Error",
-        description: "Por favor completa los campos obligatorios (título y categoría)",
+        description: "Por favor completa los campos obligatorios (título, categoría y slug)",
         variant: "destructive"
       });
       return;
@@ -140,6 +141,7 @@ const AdminCursos = () => {
         content: formData.content?.trim() || null,
         thumbnail_url: formData.thumbnail_url?.trim() || null,
         featured_image_url: formData.featured_image_url?.trim() || null,
+        slug: formData.slug.trim(),
         course_modules: processedModules
       };
 
@@ -223,6 +225,7 @@ const AdminCursos = () => {
       content: '',
       thumbnail_url: '',
       featured_image_url: '',
+      slug: '',
       course_modules: []
     });
     setEditingCourse(null);
@@ -260,6 +263,7 @@ const AdminCursos = () => {
       content: course.content || '',
       thumbnail_url: course.thumbnail_url || '',
       featured_image_url: course.featured_image_url || '',
+      slug: course.slug || '',
       course_modules: modules
     });
     setEditingCourse(course);

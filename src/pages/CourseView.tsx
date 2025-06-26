@@ -12,7 +12,7 @@ import { ModuleContent } from '@/components/course/ModuleContent';
 import type { Course, CourseEnrollment, CourseModule } from '@/types/course';
 
 const CourseView = () => {
-  const { courseId } = useParams();
+  const { courseSlug } = useParams();
   const { profile } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
@@ -21,20 +21,20 @@ const CourseView = () => {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const moduleContentRef = useRef<HTMLDivElement>(null);
 
-  // Hook para gestionar progreso de módulos
+  // Hook para gestionar progreso de módulos - usar ID del curso una vez cargado
   const {
     isModuleCompleted,
     markModuleAsCompleted,
     getCompletionPercentage,
     loading: progressLoading
-  } = useModuleProgress(courseId || '');
+  } = useModuleProgress(course?.id || '');
 
   useEffect(() => {
-    if (courseId) {
+    if (courseSlug) {
       loadCourseData();
       checkQuizCompletion();
     }
-  }, [courseId]);
+  }, [courseSlug]);
 
   useEffect(() => {
     if (moduleContentRef.current) {
@@ -44,22 +44,22 @@ const CourseView = () => {
 
   const checkQuizCompletion = () => {
     // Verificar si el quiz ya fue completado (simulado con localStorage por ahora)
-    if (profile?.id && courseId) {
-      const quizKey = `quiz_completed_${courseId}_${profile.id}`;
+    if (profile?.id && courseSlug) {
+      const quizKey = `quiz_completed_${courseSlug}_${profile.id}`;
       const completed = localStorage.getItem(quizKey) === 'true';
       setQuizCompleted(completed);
     }
   };
 
   const loadCourseData = async () => {
-    if (!courseId) return;
+    if (!courseSlug) return;
 
     try {
-      // Cargar datos del curso
+      // Cargar datos del curso usando slug
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
         .select('*')
-        .eq('id', courseId)
+        .eq('slug', courseSlug)
         .single();
 
       if (courseError) {
@@ -81,21 +81,21 @@ const CourseView = () => {
             ) : []
         };
         setCourse(transformedCourse);
-      }
 
-      // Cargar inscripción si el usuario está autenticado
-      if (profile?.id) {
-        const { data: enrollmentData, error: enrollmentError } = await supabase
-          .from('course_enrollments')
-          .select('*')
-          .eq('course_id', courseId)
-          .eq('user_id', profile.id)
-          .maybeSingle();
+        // Cargar inscripción si el usuario está autenticado
+        if (profile?.id) {
+          const { data: enrollmentData, error: enrollmentError } = await supabase
+            .from('course_enrollments')
+            .select('*')
+            .eq('course_id', transformedCourse.id)
+            .eq('user_id', profile.id)
+            .maybeSingle();
 
-        if (enrollmentError) {
-          console.error('Error loading enrollment:', enrollmentError);
-        } else {
-          setEnrollment(enrollmentData);
+          if (enrollmentError) {
+            console.error('Error loading enrollment:', enrollmentError);
+          } else {
+            setEnrollment(enrollmentData);
+          }
         }
       }
     } catch (error) {
@@ -117,7 +117,7 @@ const CourseView = () => {
         await supabase
           .from('course_enrollments')
           .update({ progress: newProgress })
-          .eq('course_id', courseId)
+          .eq('course_id', course.id)
           .eq('user_id', profile?.id);
       } catch (error) {
         console.error('Error updating course progress:', error);
@@ -139,7 +139,7 @@ const CourseView = () => {
   };
 
   const markAsCompleted = async () => {
-    if (!profile?.id || !courseId) return;
+    if (!profile?.id || !course) return;
 
     try {
       const { error } = await supabase
@@ -148,7 +148,7 @@ const CourseView = () => {
           completed_at: new Date().toISOString(),
           progress: 100 
         })
-        .eq('course_id', courseId)
+        .eq('course_id', course.id)
         .eq('user_id', profile.id);
 
       if (error) {
@@ -177,7 +177,7 @@ const CourseView = () => {
   };
 
   const goToQuiz = () => {
-    window.location.href = `/curso/${courseId}/quiz`;
+    window.location.href = `/curso/${courseSlug}/quiz`;
   };
 
   if (loading || progressLoading) {

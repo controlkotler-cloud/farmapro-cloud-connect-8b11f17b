@@ -6,10 +6,10 @@ import { ArrowLeft } from 'lucide-react';
 import CourseQuiz from '@/components/course/CourseQuiz';
 
 const CourseQuizView = () => {
-  const { courseId } = useParams();
+  const { courseSlug } = useParams();
   const [quizCompleted, setQuizCompleted] = useState(false);
 
-  if (!courseId) {
+  if (!courseSlug) {
     return <Navigate to="/formacion" replace />;
   }
 
@@ -18,16 +18,16 @@ const CourseQuizView = () => {
     console.log(`Quiz completed: ${passed ? 'PASSED' : 'FAILED'} with score ${score}%`);
   };
 
-  // Map course IDs to titles
+  // Map course slugs to titles (can be loaded from database in future)
   const courseTitles: Record<string, string> = {
-    'dafo': 'DAFO para tu Farmacia',
-    'marketing': 'Marketing Digital para Farmacias',
-    'liderazgo': 'Liderazgo en el Ámbito Farmacéutico',
-    'atencion_cliente': 'Atención al Cliente de Excelencia',
-    'tecnologia': 'Tecnología farmapro para Farmacias'
+    'dafo-para-tu-farmacia': 'DAFO para tu Farmacia',
+    'marketing-digital-para-farmacias': 'Marketing Digital para Farmacias',
+    'liderazgo-en-el-ambito-farmaceutico': 'Liderazgo en el Ámbito Farmacéutico',
+    'atencion-al-cliente-de-excelencia': 'Atención al Cliente de Excelencia',
+    'tecnologia-farmapro-para-farmacias': 'Tecnología farmapro para Farmacias'
   };
 
-  const courseTitle = courseTitles[courseId] || 'Curso';
+  const courseTitle = courseTitles[courseSlug] || 'Curso';
 
   return (
     <div className="space-y-6">
@@ -41,7 +41,7 @@ const CourseQuizView = () => {
       </Button>
 
       <CourseQuiz 
-        courseId={courseId}
+        courseId={courseSlug}
         courseTitle={courseTitle}
         onComplete={handleQuizComplete}
       />

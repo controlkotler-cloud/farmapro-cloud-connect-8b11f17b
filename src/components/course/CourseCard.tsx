@@ -10,7 +10,7 @@ interface CourseCardProps {
   index: number;
   enrollments: CourseEnrollment[];
   canAccessCourse: (course: Course) => boolean;
-  onEnroll: (courseId: string) => void;
+  onEnroll: (courseSlug: string) => void;
 }
 
 export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnroll }: CourseCardProps) => {
@@ -25,9 +25,9 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
 
   const handleClick = () => {
     if (isEnrolled) {
-      window.location.href = `/curso/${course.id}`;
+      window.location.href = `/curso/${course.slug}`;
     } else if (canAccess) {
-      onEnroll(course.id);
+      onEnroll(course.slug);
     }
   };
 

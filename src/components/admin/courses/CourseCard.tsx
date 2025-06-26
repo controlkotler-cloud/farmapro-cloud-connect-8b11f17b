@@ -19,8 +19,8 @@ const CourseCard = ({ course, categories, onEdit, onDelete }: CourseCardProps) =
   const navigate = useNavigate();
 
   const handlePreview = () => {
-    // Navegar a la página del curso para ver la vista previa
-    navigate(`/curso/${course.id}`);
+    // Navegar a la página del curso usando slug
+    navigate(`/curso/${course.slug}`);
   };
 
   return (
@@ -52,6 +52,7 @@ const CourseCard = ({ course, categories, onEdit, onDelete }: CourseCardProps) =
         </div>
         <div className="text-xs text-gray-500 mb-4">
           <div>Módulos: {Array.isArray(course.course_modules) ? course.course_modules.length : 0}</div>
+          <div>Slug: {course.slug}</div>
           <div>ID: {course.id}</div>
         </div>
         <div className="flex space-x-2">

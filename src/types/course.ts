@@ -13,6 +13,7 @@ export interface Course {
   featured_image_url?: string;
   is_premium: boolean;
   created_at: string;
+  slug: string;
   course_modules?: CourseModule[];
 }
 
