@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+
+import { useEffect, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { useModuleProgress } from '@/hooks/useModuleProgress';
-import { supabase } from '@/integrations/supabase/client';
+import { useCourseData } from '@/hooks/useCourseData';
+import { useCourseActions } from '@/components/course/CourseActions';
+import { useCourseNavigation } from '@/components/course/CourseNavigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { CourseHeader } from '@/components/course/CourseHeader';
@@ -11,18 +13,13 @@ import { CourseViewLoading } from '@/components/course/CourseViewLoading';
 import { CourseProgressBar } from '@/components/course/CourseProgressBar';
 import { CourseModulesSidebar } from '@/components/course/CourseModulesSidebar';
 import { CourseCompletionStatus } from '@/components/course/CourseCompletionStatus';
-import type { Course, CourseEnrollment, CourseModule } from '@/types/course';
 
 const CourseView = () => {
   const { courseSlug } = useParams();
-  const { profile } = useAuth();
-  const [course, setCourse] = useState<Course | null>(null);
-  const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
-  const [hasQuiz, setHasQuiz] = useState(false);
   const moduleContentRef = useRef<HTMLDivElement>(null);
 
+  const { course, enrollment, loading: courseLoading, hasQuiz } = useCourseData(courseSlug);
+  
   const {
     isModuleCompleted,
     markModuleAsCompleted,
@@ -30,11 +27,25 @@ const CourseView = () => {
     loading: progressLoading
   } = useModuleProgress(course?.id || '');
 
-  useEffect(() => {
-    if (courseSlug) {
-      loadCourseData();
-    }
-  }, [courseSlug]);
+  const { handleCompleteModule, handleFinishCourse } = useCourseActions({
+    course,
+    enrollment,
+    hasQuiz,
+    courseSlug: courseSlug || '',
+    isModuleCompleted,
+    markModuleAsCompleted,
+    getCompletionPercentage
+  });
+
+  const modules = course?.course_modules || [];
+  
+  const {
+    currentModuleIndex,
+    handlePreviousModule,
+    handleNextModule,
+    isNextModuleUnlocked,
+    handleModuleSelect
+  } = useCourseNavigation({ modules, isModuleCompleted });
 
   useEffect(() => {
     if (moduleContentRef.current) {
@@ -42,125 +53,7 @@ const CourseView = () => {
     }
   }, [currentModuleIndex]);
 
-  const loadCourseData = async () => {
-    if (!courseSlug) return;
-
-    try {
-      const { data: courseData, error: courseError } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('slug', courseSlug)
-        .single();
-
-      if (courseError) {
-        console.error('Error loading course:', courseError);
-        setLoading(false);
-        return;
-      }
-
-      if (courseData) {
-        const transformedCourse: Course = {
-          ...courseData,
-          course_modules: courseData.course_modules ? 
-            (Array.isArray(courseData.course_modules) ? 
-              courseData.course_modules as unknown as CourseModule[] : 
-              typeof courseData.course_modules === 'string' ? 
-                JSON.parse(courseData.course_modules) : 
-                []
-            ) : []
-        };
-        setCourse(transformedCourse);
-
-        // Verificar si existe un quiz para este curso
-        const { data: quizData } = await supabase
-          .from('course_quizzes')
-          .select('id')
-          .eq('course_id', transformedCourse.id)
-          .eq('is_active', true)
-          .single();
-
-        setHasQuiz(!!quizData);
-
-        if (profile?.id) {
-          const { data: enrollmentData, error: enrollmentError } = await supabase
-            .from('course_enrollments')
-            .select('*')
-            .eq('course_id', transformedCourse.id)
-            .eq('user_id', profile.id)
-            .maybeSingle();
-
-          if (enrollmentError) {
-            console.error('Error loading enrollment:', enrollmentError);
-          } else {
-            setEnrollment(enrollmentData);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading course data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCompleteModule = async (moduleId: string) => {
-    await markModuleAsCompleted(moduleId);
-    
-    if (course && enrollment) {
-      const totalModules = course.course_modules?.length || 0;
-      const newProgress = getCompletionPercentage(totalModules);
-      
-      try {
-        await supabase
-          .from('course_enrollments')
-          .update({ progress: newProgress })
-          .eq('course_id', course.id)
-          .eq('user_id', profile?.id);
-      } catch (error) {
-        console.error('Error updating course progress:', error);
-      }
-    }
-  };
-
-  const handlePreviousModule = () => {
-    if (currentModuleIndex > 0) {
-      setCurrentModuleIndex(currentModuleIndex - 1);
-    }
-  };
-
-  const handleNextModule = () => {
-    const modules = course?.course_modules || [];
-    const currentModule = modules[currentModuleIndex];
-    
-    if (!isModuleCompleted(currentModule.id)) {
-      return;
-    }
-    
-    if (currentModuleIndex < modules.length - 1) {
-      setCurrentModuleIndex(currentModuleIndex + 1);
-    }
-  };
-
-  const handleFinishCourse = () => {
-    if (hasQuiz) {
-      window.location.href = `/curso/${courseSlug}/quiz`;
-    } else {
-      // Si no hay quiz, marcar curso como completado
-      console.log('Curso completado sin quiz');
-    }
-  };
-
-  const isNextModuleUnlocked = () => {
-    const modules = course?.course_modules || [];
-    const currentModule = modules[currentModuleIndex];
-    return isModuleCompleted(currentModule.id);
-  };
-
-  const handleModuleSelect = (index: number) => {
-    setCurrentModuleIndex(index);
-  };
-
-  if (loading || progressLoading) {
+  if (courseLoading || progressLoading) {
     return <CourseViewLoading />;
   }
 
@@ -170,7 +63,6 @@ const CourseView = () => {
 
   const isEnrolled = !!enrollment;
   const isCompleted = enrollment?.completed_at !== null;
-  const modules = course.course_modules || [];
   const currentModule = modules[currentModuleIndex];
   const moduleProgress = getCompletionPercentage(modules.length);
   const allModulesCompleted = modules.every(m => isModuleCompleted(m.id));

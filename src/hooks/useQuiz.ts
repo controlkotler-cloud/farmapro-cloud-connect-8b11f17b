@@ -48,6 +48,7 @@ export const useQuiz = (courseId?: string) => {
 
       const questionsWithOptions = questionsData?.map(question => ({
         ...question,
+        question_type: question.question_type as 'multiple_choice' | 'true_false' | 'short_answer',
         options: question.quiz_question_options?.sort((a, b) => a.order_index - b.order_index) || []
       })) || [];
 
@@ -75,7 +76,12 @@ export const useQuiz = (courseId?: string) => {
         return;
       }
 
-      setUserAttempts(data || []);
+      const transformedAttempts = data?.map(attempt => ({
+        ...attempt,
+        answers: Array.isArray(attempt.answers) ? attempt.answers : []
+      })) || [];
+
+      setUserAttempts(transformedAttempts);
     } catch (error) {
       console.error('Error loading user attempts:', error);
     }
@@ -105,8 +111,13 @@ export const useQuiz = (courseId?: string) => {
         return null;
       }
 
-      setCurrentAttempt(data);
-      return data;
+      const transformedAttempt = {
+        ...data,
+        answers: Array.isArray(data.answers) ? data.answers : []
+      };
+
+      setCurrentAttempt(transformedAttempt);
+      return transformedAttempt;
     } catch (error) {
       console.error('Error starting quiz attempt:', error);
       return null;
@@ -190,9 +201,14 @@ export const useQuiz = (courseId?: string) => {
         return null;
       }
 
-      setCurrentAttempt(data);
+      const transformedAttempt = {
+        ...data,
+        answers: Array.isArray(data.answers) ? data.answers : []
+      };
+
+      setCurrentAttempt(transformedAttempt);
       await loadUserAttempts(quiz?.id || '');
-      return data;
+      return transformedAttempt;
     } catch (error) {
       console.error('Error finishing quiz attempt:', error);
       return null;
