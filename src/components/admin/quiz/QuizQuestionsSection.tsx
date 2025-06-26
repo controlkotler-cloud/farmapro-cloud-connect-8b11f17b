@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { QuestionFormDialog } from './QuestionFormDialog';
@@ -85,15 +86,35 @@ export const QuizQuestionsSection: React.FC<QuizQuestionsSectionProps> = ({ quiz
     setEditingQuestion(null);
   };
 
+  const getQuestionTypeLabel = (type: string) => {
+    switch (type) {
+      case 'multiple_choice': return 'Opción Múltiple';
+      case 'true_false': return 'Verdadero/Falso';
+      case 'short_answer': return 'Respuesta Corta';
+      default: return type;
+    }
+  };
+
   if (loading) {
-    return <div className="text-center py-4">Cargando preguntas...</div>;
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          <div className="text-center py-4">Cargando preguntas...</div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Preguntas del Quiz</CardTitle>
+          <div>
+            <CardTitle>Preguntas del Quiz</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              {questions.length} pregunta{questions.length !== 1 ? 's' : ''} creada{questions.length !== 1 ? 's' : ''}
+            </p>
+          </div>
           <Button onClick={handleCreateQuestion} size="sm">
             <Plus className="h-4 w-4 mr-1" />
             Agregar Pregunta
@@ -102,27 +123,45 @@ export const QuizQuestionsSection: React.FC<QuizQuestionsSectionProps> = ({ quiz
       </CardHeader>
       <CardContent>
         {questions.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>No hay preguntas en este quiz.</p>
-            <Button onClick={handleCreateQuestion} variant="outline" className="mt-2">
-              <Plus className="h-4 w-4 mr-1" />
-              Crear Primera Pregunta
-            </Button>
+          <div className="text-center py-8">
+            <div className="bg-gray-50 rounded-lg p-8">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No hay preguntas</h3>
+              <p className="text-gray-600 mb-4">
+                Comienza agregando preguntas a este quiz para que los usuarios puedan realizarlo.
+              </p>
+              <Button onClick={handleCreateQuestion} variant="outline">
+                <Plus className="h-4 w-4 mr-1" />
+                Crear Primera Pregunta
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             {questions.map((question, index) => (
-              <div key={question.id} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
+              <div key={question.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
-                    <h4 className="font-medium">
-                      {index + 1}. {question.question_text}
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        Pregunta {index + 1}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {getQuestionTypeLabel(question.question_type)}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {question.points} punto{question.points !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      {question.question_text}
                     </h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Tipo: {question.question_type} | Puntos: {question.points}
-                    </p>
+                    {question.explanation && (
+                      <p className="text-sm text-gray-600 italic">
+                        Explicación: {question.explanation}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -142,18 +181,38 @@ export const QuizQuestionsSection: React.FC<QuizQuestionsSectionProps> = ({ quiz
                 </div>
 
                 {question.options && question.options.length > 0 && (
-                  <div className="mt-3 pl-4">
+                  <div className="mt-3 pl-4 border-l-2 border-gray-200">
                     <p className="text-sm font-medium text-gray-700 mb-2">Opciones:</p>
-                    <ul className="space-y-1">
+                    <div className="grid gap-2">
                       {question.options.map((option) => (
-                        <li key={option.id} className="text-sm flex items-center">
-                          <span className={`mr-2 ${option.is_correct ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
-                            {option.is_correct ? '✓' : '○'}
+                        <div key={option.id} className="flex items-center text-sm p-2 rounded bg-white border">
+                          {option.is_correct ? (
+                            <CheckCircle className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
+                          )}
+                          <span className={option.is_correct ? 'font-medium text-green-800' : 'text-gray-700'}>
+                            {option.option_text}
                           </span>
-                          {option.option_text}
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
+                  </div>
+                )}
+
+                {question.question_type === 'true_false' && (
+                  <div className="mt-3 pl-4 border-l-2 border-gray-200">
+                    <p className="text-sm text-gray-600">
+                      Pregunta de Verdadero/Falso
+                    </p>
+                  </div>
+                )}
+
+                {question.question_type === 'short_answer' && (
+                  <div className="mt-3 pl-4 border-l-2 border-gray-200">
+                    <p className="text-sm text-gray-600">
+                      Respuesta de texto libre (evaluación manual requerida)
+                    </p>
                   </div>
                 )}
               </div>
