@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +73,20 @@ const planConfig = {
       'Soporte prioritario'
     ]
   },
+  admin: {
+    name: 'Administrador',
+    icon: Settings,
+    color: 'from-red-400 to-red-600',
+    bgColor: 'bg-red-100',
+    textColor: 'text-red-800',
+    features: [
+      'Acceso completo al sistema',
+      'Panel de administración',
+      'Gestión de usuarios',
+      'Gestión de contenido',
+      'Todas las funcionalidades'
+    ]
+  }
 };
 
 export default function Perfil() {
@@ -90,16 +105,24 @@ export default function Perfil() {
   
   const { settings, updateSetting, saveSettings } = useNotificationSettings();
 
+  // Scroll to top when component mounts
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
+    console.log('Profile data:', profile);
+    console.log('User data:', user);
+    
     if (profile) {
       setFormData({
         full_name: profile.full_name || '',
-        email: profile.email || '',
+        email: profile.email || user?.email || '',
         pharmacy_name: profile.pharmacy_name || '',
         position: profile.position || '',
       });
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -208,9 +231,27 @@ export default function Perfil() {
     });
   };
 
+  // Handle admin users and fallback for subscription_role
   const currentPlan = profile?.subscription_role || 'freemium';
-  const config = planConfig[currentPlan as keyof typeof planConfig];
+  const config = planConfig[currentPlan as keyof typeof planConfig] || planConfig.freemium;
   const PlanIcon = config.icon;
+
+  // Show loading state if profile is not loaded yet
+  if (!profile && !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded mb-8"></div>
+            <div className="grid grid-cols-1 gap-6">
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -297,6 +338,7 @@ export default function Perfil() {
                         <SelectItem value="titular">Titular</SelectItem>
                         <SelectItem value="gerente">Gerente</SelectItem>
                         <SelectItem value="estudiante">Estudiante</SelectItem>
+                        <SelectItem value="administrador">Administrador</SelectItem>
                         <SelectItem value="otro">Otro</SelectItem>
                       </SelectContent>
                     </Select>
@@ -338,6 +380,9 @@ export default function Perfil() {
                           {profile?.subscription_status === 'trialing' && (
                             <Badge variant="secondary">Periodo de prueba</Badge>
                           )}
+                          {currentPlan === 'admin' && (
+                            <Badge variant="destructive">Administrador</Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -378,18 +423,20 @@ export default function Perfil() {
               </CardContent>
             </Card>
 
-            {/* Actualizar suscripción */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Actualizar Suscripción</CardTitle>
-                <CardDescription>
-                  Explora otros planes y actualiza tu suscripción
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SubscriptionPlans />
-              </CardContent>
-            </Card>
+            {/* Actualizar suscripción - Solo mostrar si no es admin */}
+            {currentPlan !== 'admin' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Actualizar Suscripción</CardTitle>
+                  <CardDescription>
+                    Explora otros planes y actualiza tu suscripción
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SubscriptionPlans />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-6">
@@ -410,7 +457,8 @@ export default function Perfil() {
                           <span className="text-sm text-gray-600">Estado actual:</span>
                           <Badge variant={profile?.subscription_status === 'active' ? 'default' : 'secondary'}>
                             {profile?.subscription_status === 'active' ? 'Activo' : 
-                             profile?.subscription_status === 'trialing' ? 'Periodo de prueba' : 'Inactivo'}
+                             profile?.subscription_status === 'trialing' ? 'Periodo de prueba' : 
+                             currentPlan === 'admin' ? 'Administrador' : 'Inactivo'}
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between">
@@ -425,49 +473,57 @@ export default function Perfil() {
                       <p className="text-sm text-gray-600">
                         {currentPlan === 'freemium' 
                           ? 'No tienes una suscripción activa' 
+                          : currentPlan === 'admin'
+                          ? 'Plan de administrador - Sin facturación'
                           : 'Tu próxima facturación será procesada automáticamente'
                         }
                       </p>
                     </div>
                   </div>
 
-                  {currentPlan === 'freemium' && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                      <p className="text-yellow-800 text-sm">
-                        <strong>Plan Gratuito:</strong> Para acceder a la gestión de pagos y facturas, 
-                        necesitas suscribirte a uno de nuestros planes de pago. 
-                        Ve a la pestaña "Plan" para explorar las opciones disponibles.
+                  {(currentPlan === 'freemium' || currentPlan === 'admin') && (
+                    <div className={`${currentPlan === 'admin' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4 mb-4`}>
+                      <p className={`${currentPlan === 'admin' ? 'text-red-800' : 'text-yellow-800'} text-sm`}>
+                        <strong>{currentPlan === 'admin' ? 'Cuenta de Administrador:' : 'Plan Gratuito:'}</strong> 
+                        {currentPlan === 'admin' 
+                          ? ' Como administrador, tienes acceso completo al sistema sin necesidad de suscripción.'
+                          : ' Para acceder a la gestión de pagos y facturas, necesitas suscribirte a uno de nuestros planes de pago. Ve a la pestaña "Plan" para explorar las opciones disponibles.'
+                        }
                       </p>
                     </div>
                   )}
 
-                  <div className="space-y-4">
-                    <Button 
-                      onClick={handleManageSubscription}
-                      disabled={managementLoading}
-                      className="flex items-center gap-2 w-full"
-                    >
-                      <Settings className="h-4 w-4" />
-                      {managementLoading ? 'Abriendo...' : 'Gestionar Método de Pago'}
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={handleViewInvoices}
-                      disabled={invoiceLoading}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      {invoiceLoading ? 'Abriendo...' : 'Ver Historial de Facturas'}
-                    </Button>
-                  </div>
+                  {currentPlan !== 'admin' && (
+                    <div className="space-y-4">
+                      <Button 
+                        onClick={handleManageSubscription}
+                        disabled={managementLoading}
+                        className="flex items-center gap-2 w-full"
+                      >
+                        <Settings className="h-4 w-4" />
+                        {managementLoading ? 'Abriendo...' : 'Gestionar Método de Pago'}
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={handleViewInvoices}
+                        disabled={invoiceLoading}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        {invoiceLoading ? 'Abriendo...' : 'Ver Historial de Facturas'}
+                      </Button>
+                    </div>
+                  )}
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
-                      <strong>Gestión de pagos:</strong> Ambos botones te llevarán al portal seguro de Stripe donde podrás 
-                      gestionar tu método de pago, ver y descargar facturas, y administrar tu suscripción.
-                    </p>
-                  </div>
+                  {currentPlan !== 'admin' && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>Gestión de pagos:</strong> Ambos botones te llevarán al portal seguro de Stripe donde podrás 
+                        gestionar tu método de pago, ver y descargar facturas, y administrar tu suscripción.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
