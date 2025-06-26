@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/auth/LoginForm";
@@ -29,6 +28,7 @@ import FaqsContacto from "@/pages/FaqsContacto";
 import Blog from "@/pages/Blog";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCursos from "@/pages/admin/AdminCursos";
+import AdminQuizzes from "@/pages/admin/AdminQuizzes";
 import AdminRecursos from "@/pages/admin/AdminRecursos";
 import AdminUsuarios from "@/pages/admin/AdminUsuarios";
 import AdminEventos from "@/pages/admin/AdminEventos";
@@ -134,6 +134,11 @@ export const AppRoutes = () => {
       <Route path="/admin/cursos" element={
         <AdminProtectedRoute>
           <AdminCursos />
+        </AdminProtectedRoute>
+      } />
+      <Route path="/admin/quizzes" element={
+        <AdminProtectedRoute>
+          <AdminQuizzes />
         </AdminProtectedRoute>
       } />
       <Route path="/admin/recursos" element={
