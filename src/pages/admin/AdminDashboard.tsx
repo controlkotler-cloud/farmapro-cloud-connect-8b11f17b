@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,11 +15,6 @@ interface AdminStats {
 }
 
 const AdminDashboard = () => {
-  useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, []);
-
   // Fetch real statistics from the database
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-dashboard-stats'],

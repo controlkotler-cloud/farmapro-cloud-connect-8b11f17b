@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,9 +26,6 @@ const Farmacias = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    
     loadListings();
   }, []);
 

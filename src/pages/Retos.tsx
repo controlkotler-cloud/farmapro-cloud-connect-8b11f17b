@@ -1,10 +1,10 @@
+
 import { Card } from '@/components/ui/card';
 import { UserStatsCards } from '@/components/retos/UserStatsCards';
 import { LevelProgressCard } from '@/components/retos/LevelProgressCard';
 import { ChallengeCard } from '@/components/retos/ChallengeCard';
 import { useRetosData } from '@/hooks/useRetosData';
 import { MessageSquare, BookOpen, Gift, Trophy } from 'lucide-react';
-import { useEffect } from 'react';
 
 const Retos = () => {
   const {
@@ -16,11 +16,6 @@ const Retos = () => {
     getNextLevelProgress,
     getPointsToNextLevel
   } = useRetosData();
-
-  useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, []);
 
   // Categorizar retos por tipo
   const challengesByType = {
