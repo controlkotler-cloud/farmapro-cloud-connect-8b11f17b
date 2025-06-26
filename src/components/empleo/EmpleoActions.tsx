@@ -7,11 +7,12 @@ import { Link } from 'react-router-dom';
 interface EmpleoActionsProps {
   canPostJobs: boolean;
   isPremium: boolean;
+  isAdmin: boolean;
   onCreateJob: () => void;
 }
 
-export const EmpleoActions = ({ canPostJobs, isPremium, onCreateJob }: EmpleoActionsProps) => {
-  if (isPremium) {
+export const EmpleoActions = ({ canPostJobs, isPremium, isAdmin, onCreateJob }: EmpleoActionsProps) => {
+  if (canPostJobs) {
     return (
       <Card className="border-green-200 bg-green-50 shadow-lg">
         <CardContent className="p-6">
@@ -19,7 +20,10 @@ export const EmpleoActions = ({ canPostJobs, isPremium, onCreateJob }: EmpleoAct
             <div>
               <h3 className="text-green-800 font-semibold mb-1">Publica tu oferta de empleo</h3>
               <p className="text-green-700 text-sm">
-                Encuentra a tu equipo farmacéutico ideal con tu plan premium
+                {isAdmin 
+                  ? "Administra y publica ofertas de empleo en la plataforma"
+                  : "Encuentra a tu equipo farmacéutico ideal con tu plan premium"
+                }
               </p>
             </div>
             <Button 
@@ -35,27 +39,23 @@ export const EmpleoActions = ({ canPostJobs, isPremium, onCreateJob }: EmpleoAct
     );
   }
 
-  if (!canPostJobs) {
-    return (
-      <Card className="border-blue-200 bg-blue-50 shadow-lg">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-blue-800 font-semibold mb-1">¿Necesitas personal para tu farmacia?</h3>
-              <p className="text-blue-700 text-sm">
-                Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo
-              </p>
-            </div>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 shadow-lg">
-              <Link to="/subscription?tab=plans">
-                Ver Planes
-              </Link>
-            </Button>
+  return (
+    <Card className="border-blue-200 bg-blue-50 shadow-lg">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-blue-800 font-semibold mb-1">¿Necesitas personal para tu farmacia?</h3>
+            <p className="text-blue-700 text-sm">
+              Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo
+            </p>
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return null;
+          <Button asChild className="bg-blue-600 hover:bg-blue-700 shadow-lg">
+            <Link to="/subscription?tab=plans">
+              Ver Planes
+            </Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };

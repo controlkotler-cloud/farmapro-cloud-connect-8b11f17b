@@ -150,11 +150,15 @@ const Empleo = () => {
   };
 
   const canPostJobs = () => {
-    return profile?.subscription_role && profile.subscription_role !== 'freemium';
+    return profile?.subscription_role === 'premium' || profile?.subscription_role === 'admin';
   };
 
   const isPremium = () => {
     return profile?.subscription_role === 'premium';
+  };
+
+  const isAdmin = () => {
+    return profile?.subscription_role === 'admin';
   };
 
   const handleCreateJob = () => {
@@ -173,6 +177,7 @@ const Empleo = () => {
       <EmpleoActions 
         canPostJobs={canPostJobs()}
         isPremium={isPremium()}
+        isAdmin={isAdmin()}
         onCreateJob={handleCreateJob}
       />
 
