@@ -53,13 +53,25 @@ const CourseFormDialog = ({
     console.log(`Actualizando campo ${field}:`, value);
     let updatedData = { ...formData, [field]: value };
     
-    // Auto-generar slug cuando cambie el título (solo para cursos nuevos)
-    if (field === 'title' && !editingCourse && value) {
+    onFormDataChange(updatedData);
+  };
+
+  const handleTitleChange = (value: string) => {
+    let updatedData = { ...formData, title: value };
+    
+    // Solo auto-generar slug si estamos creando un curso nuevo Y el slug está vacío
+    if (!editingCourse && !formData.slug.trim() && value.trim()) {
       updatedData.slug = generateSlug(value);
     }
     
-    console.log('FormData después del cambio:', updatedData);
     onFormDataChange(updatedData);
+  };
+
+  const handleGenerateSlug = () => {
+    if (formData.title.trim()) {
+      const newSlug = generateSlug(formData.title);
+      handleFieldChange('slug', newSlug);
+    }
   };
 
   const handleModulesChange = (modules: any[]) => {
@@ -90,7 +102,7 @@ const CourseFormDialog = ({
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => handleFieldChange('title', e.target.value)}
+                onChange={(e) => handleTitleChange(e.target.value)}
                 required
                 placeholder="Título del curso"
               />
@@ -118,14 +130,25 @@ const CourseFormDialog = ({
 
           <div>
             <Label htmlFor="slug">Slug (URL amigable) *</Label>
-            <Input
-              id="slug"
-              value={formData.slug}
-              onChange={(e) => handleFieldChange('slug', e.target.value)}
-              required
-              placeholder="ejemplo: mi-curso-fantastico"
-              className={!isSlugValid && formData.slug ? 'border-red-500' : ''}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="slug"
+                value={formData.slug}
+                onChange={(e) => handleFieldChange('slug', e.target.value)}
+                required
+                placeholder="ejemplo: mi-curso-fantastico"
+                className={!isSlugValid && formData.slug ? 'border-red-500' : ''}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGenerateSlug}
+                disabled={!formData.title.trim()}
+                className="whitespace-nowrap"
+              >
+                Generar desde título
+              </Button>
+            </div>
             {!isSlugValid && formData.slug && (
               <p className="text-red-500 text-xs mt-1">
                 El slug debe contener solo letras minúsculas, números y guiones
