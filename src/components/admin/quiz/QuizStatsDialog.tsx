@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,28 +57,38 @@ export const QuizStatsDialog: React.FC<QuizStatsDialogProps> = ({
   const loadAttempts = async () => {
     if (!quizId) return;
 
-    const { data, error } = await supabase
+    // First get quiz attempts
+    const { data: attemptsData, error: attemptsError } = await supabase
       .from('quiz_attempts')
-      .select(`
-        id,
-        user_id,
-        percentage,
-        passed,
-        completed_at,
-        time_taken_seconds,
-        profiles(full_name, email)
-      `)
+      .select('*')
       .eq('quiz_id', quizId)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(20);
 
-    if (error) {
-      console.error('Error loading quiz attempts:', error);
-    } else {
-      setAttempts(data || []);
+    if (attemptsError) {
+      console.error('Error loading quiz attempts:', attemptsError);
+      setLoading(false);
+      return;
     }
-    
+
+    // Then get profile data for each attempt
+    const attemptsWithProfiles = await Promise.all(
+      (attemptsData || []).map(async (attempt) => {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', attempt.user_id)
+          .single();
+
+        return {
+          ...attempt,
+          profiles: profileData
+        };
+      })
+    );
+
+    setAttempts(attemptsWithProfiles);
     setLoading(false);
   };
 
