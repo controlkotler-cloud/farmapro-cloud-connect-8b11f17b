@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Database } from '@/integrations/supabase/types';
 
 type Course = Database['public']['Tables']['courses']['Row'];
@@ -15,6 +16,13 @@ interface CourseCardProps {
 }
 
 const CourseCard = ({ course, categories, onEdit, onDelete }: CourseCardProps) => {
+  const navigate = useNavigate();
+
+  const handlePreview = () => {
+    // Navegar a la página del curso para ver la vista previa
+    navigate(`/curso/${course.id}`);
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -47,16 +55,17 @@ const CourseCard = ({ course, categories, onEdit, onDelete }: CourseCardProps) =
           <div>ID: {course.id}</div>
         </div>
         <div className="flex space-x-2">
-          <Button size="sm" variant="outline" onClick={() => onEdit(course)}>
+          <Button size="sm" variant="outline" onClick={() => onEdit(course)} title="Editar curso">
             <Edit className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={handlePreview} title="Vista previa del curso">
             <Eye className="h-4 w-4" />
           </Button>
           <Button 
             size="sm" 
             variant="destructive" 
             onClick={() => onDelete(course.id)}
+            title="Eliminar curso"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
