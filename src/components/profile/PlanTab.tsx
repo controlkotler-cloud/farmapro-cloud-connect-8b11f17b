@@ -1,0 +1,155 @@
+
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { RefreshCw, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
+import { planConfig } from '@/components/profile/config/PlanConfig';
+
+interface PlanTabProps {
+  profile: any;
+  isAdmin: boolean;
+}
+
+export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
+  const [refreshLoading, setRefreshLoading] = useState(false);
+
+  const getCurrentPlan = () => {
+    if (isAdmin) return 'admin';
+    return profile?.subscription_role || 'freemium';
+  };
+
+  const currentPlan = getCurrentPlan();
+  const config = planConfig[currentPlan as keyof typeof planConfig] || planConfig.freemium;
+  const PlanIcon = config.icon;
+
+  const refreshSubscriptionStatus = async () => {
+    if (currentPlan === 'admin') {
+      toast.info('Las cuentas de administrador no requieren actualización de suscripción');
+      return;
+    }
+
+    setRefreshLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) throw error;
+      
+      toast.success('Estado de suscripción actualizado');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+      toast.error('No se pudo actualizar el estado');
+    } finally {
+      setRefreshLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Plan actual */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tu Plan Actual</CardTitle>
+          <CardDescription>
+            Detalles de tu suscripción actual y beneficios incluidos
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className={`${config.bgColor} rounded-lg p-6 border-2`}>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${config.color} flex items-center justify-center`}>
+                  <PlanIcon className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">Plan {config.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className={`${config.bgColor} ${config.textColor}`}>
+                      {config.name}
+                    </Badge>
+                    {currentPlan === 'admin' && (
+                      <Badge variant="destructive">Sin caducidad</Badge>
+                    )}
+                    {currentPlan !== 'admin' && profile?.subscription_status === 'active' && (
+                      <Badge variant="default">Activo</Badge>
+                    )}
+                    {currentPlan !== 'admin' && profile?.subscription_status === 'trialing' && (
+                      <Badge variant="secondary">Periodo de prueba</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">Características incluidas:</h4>
+              <ul className="space-y-2">
+                {config.features.map((feature, index) => (
+                  <li key={index} className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-600 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {currentPlan === 'admin' && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-red-800 text-sm">
+                  <strong>Cuenta de Administrador:</strong> Tienes acceso completo y permanente a todas las funcionalidades de farmapro.
+                </p>
+              </div>
+            )}
+
+            {currentPlan !== 'admin' && profile?.trial_ends_at && profile.subscription_status === 'trialing' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-blue-800 text-sm">
+                  <strong>Periodo de prueba activo</strong> - Termina el {formatDate(profile.trial_ends_at)}
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button 
+                variant="outline"
+                onClick={refreshSubscriptionStatus}
+                disabled={refreshLoading || currentPlan === 'admin'}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshLoading ? 'animate-spin' : ''}`} />
+                {refreshLoading ? 'Actualizando...' : 'Actualizar Estado'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actualizar suscripción - Solo mostrar si no es admin */}
+      {currentPlan !== 'admin' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Actualizar Suscripción</CardTitle>
+            <CardDescription>
+              Explora otros planes y actualiza tu suscripción
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SubscriptionPlans />
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
