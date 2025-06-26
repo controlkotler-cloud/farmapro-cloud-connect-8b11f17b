@@ -1,7 +1,7 @@
 
 import { motion } from 'framer-motion';
 import { useCourses } from '@/hooks/useCourses';
-import { CourseHeader } from '@/components/course/CourseHeader';
+import { FormacionHeader } from '@/components/course/FormacionHeader';
 import { CategoryTabs } from '@/components/course/CategoryTabs';
 import { CourseGrid } from '@/components/course/CourseGrid';
 import { LoadingSkeleton } from '@/components/course/LoadingSkeleton';
@@ -51,7 +51,7 @@ export const Formacion = () => {
         <div className="relative">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-blue-400 to-blue-600 rounded-r-full shadow-lg"></div>
           <div className="ml-6">
-            <CourseHeader />
+            <FormacionHeader />
           </div>
         </div>
       </motion.div>
