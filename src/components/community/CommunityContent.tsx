@@ -4,16 +4,12 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { 
   MessageSquare, 
   Star, 
-  Hash,
   RefreshCw,
-  Users,
-  Target,
-  Heart
+  Plus
 } from 'lucide-react';
 import { ThreadList } from '@/components/forum/ThreadList';
 import { NewThreadDialog } from '@/components/forum/NewThreadDialog';
@@ -138,28 +134,6 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
     }
   };
 
-  const getCategoryIcon = (categoryName: string) => {
-    const icons: { [key: string]: any } = {
-      'Consultas Generales': MessageSquare,
-      'Farmacovigilancia': Target,
-      'Atención Farmacéutica': Heart,
-      'Gestión Farmacéutica': Users,
-      'Nuevos Medicamentos': Star
-    };
-    return icons[categoryName] || Hash;
-  };
-
-  const getCategoryColor = (index: number) => {
-    const colors = [
-      'from-blue-500 to-blue-600',
-      'from-green-500 to-green-600',
-      'from-purple-500 to-purple-600',
-      'from-pink-500 to-pink-600',
-      'from-orange-500 to-orange-600'
-    ];
-    return colors[index % colors.length];
-  };
-
   return (
     <motion.div 
       className="space-y-8"
@@ -169,7 +143,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
+          <div className="p-2 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg">
             <MessageSquare className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -184,6 +158,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
         />
       </div>
 
+      {/* Categorías reorganizadas de manera más amigable */}
       <Card className="border-0 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -202,59 +177,59 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <div className="p-6 border-b border-gray-200">
-              <TabsList className="grid grid-cols-auto bg-transparent gap-2 h-auto">
-                <TabsTrigger 
-                  value="all" 
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-gray-600 data-[state=active]:text-white rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105"
+        <CardContent className="p-6">
+          {/* Filtros de categoría más amigables */}
+          <div className="mb-6">
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  selectedCategory === 'all'
+                    ? 'bg-pink-500 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Todas las discusiones
+              </button>
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  disabled={!canAccessCategory(category)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
+                    selectedCategory === category.id
+                      ? 'bg-pink-500 text-white shadow-lg'
+                      : canAccessCategory(category)
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                  }`}
                 >
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 shadow-lg mr-2">
-                    <Hash className="h-4 w-4 text-white" />
-                  </div>
-                  Todas
-                </TabsTrigger>
-                {categories.map((category, index) => {
-                  const IconComponent = getCategoryIcon(category.name);
-                  const colorClass = getCategoryColor(index);
-                  return (
-                    <TabsTrigger 
-                      key={category.id} 
-                      value={category.id}
-                      disabled={!canAccessCategory(category)}
-                      className="data-[state=active]:bg-gradient-to-r data-[state=active]:text-white rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105"
-                      style={{
-                        '--tw-gradient-from': `var(--${colorClass.split(' ')[0].replace('from-', '')})`,
-                        '--tw-gradient-to': `var(--${colorClass.split(' ')[1].replace('to-', '')})`
-                      } as any}
-                    >
-                      <div className={`p-2 rounded-lg bg-gradient-to-r ${colorClass} shadow-lg mr-2`}>
-                        <IconComponent className="h-4 w-4 text-white" />
-                      </div>
-                      {category.name}
-                      {category.is_premium && <Star className="h-3 w-3 ml-2 text-yellow-500" />}
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
+                  <span>{category.name}</span>
+                  {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
+                </button>
+              ))}
             </div>
+          </div>
 
-            <TabsContent value={selectedCategory} className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  {threads.length} {threads.length === 1 ? 'discusión' : 'discusiones'} activas
-                </div>
-              </div>
+          {/* Información de hilos */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="text-sm text-gray-600">
+              {threads.length} {threads.length === 1 ? 'discusión' : 'discusiones'} 
+              {selectedCategory !== 'all' && (
+                <span className="ml-1">
+                  en {categories.find(c => c.id === selectedCategory)?.name}
+                </span>
+              )}
+            </div>
+          </div>
 
-              <ThreadList
-                threads={threads}
-                loading={loading}
-                onThreadClick={onThreadClick}
-                onCreateThread={() => {/* Handled by NewThreadDialog */}}
-              />
-            </TabsContent>
-          </Tabs>
+          {/* Lista de hilos */}
+          <ThreadList
+            threads={threads}
+            loading={loading}
+            onThreadClick={onThreadClick}
+            onCreateThread={() => {/* Handled by NewThreadDialog */}}
+          />
         </CardContent>
       </Card>
     </motion.div>
