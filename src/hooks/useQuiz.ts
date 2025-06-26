@@ -79,7 +79,7 @@ export const useQuiz = (courseId?: string) => {
       const transformedAttempts = data?.map(attempt => ({
         ...attempt,
         answers: Array.isArray(attempt.answers) ? attempt.answers : []
-      })) || [];
+      })) as QuizAttempt[] || [];
 
       setUserAttempts(transformedAttempts);
     } catch (error) {
@@ -114,7 +114,7 @@ export const useQuiz = (courseId?: string) => {
       const transformedAttempt = {
         ...data,
         answers: Array.isArray(data.answers) ? data.answers : []
-      };
+      } as QuizAttempt;
 
       setCurrentAttempt(transformedAttempt);
       return transformedAttempt;
@@ -204,7 +204,7 @@ export const useQuiz = (courseId?: string) => {
       const transformedAttempt = {
         ...data,
         answers: Array.isArray(data.answers) ? data.answers : []
-      };
+      } as QuizAttempt;
 
       setCurrentAttempt(transformedAttempt);
       await loadUserAttempts(quiz?.id || '');
