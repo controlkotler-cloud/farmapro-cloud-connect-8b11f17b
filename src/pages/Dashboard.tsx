@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboard } from '@/hooks/useDashboard';
 import { WelcomeCard } from '@/components/dashboard/WelcomeCard';
@@ -9,6 +10,11 @@ import { UpcomingChallenges } from '@/components/dashboard/UpcomingChallenges';
 export const Dashboard = () => {
   const { profile } = useAuth();
   const { stats, recentActivity, getNextLevelProgress, getPointsToNextLevel } = useDashboard();
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   console.log('Dashboard stats:', stats);
 

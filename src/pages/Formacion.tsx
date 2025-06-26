@@ -1,15 +1,20 @@
-
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Clock, Users, Award, GraduationCap } from 'lucide-react';
 import { CourseGrid } from '@/components/course/CourseGrid';
 import { CategoryTabs } from '@/components/course/CategoryTabs';
 import { useCourses } from '@/hooks/useCourses';
 import { useAuth } from '@/hooks/useAuth';
+import { useEffect } from 'react';
 import type { CategoryItem } from '@/types/course';
 
 const Formacion = () => {
   const { profile } = useAuth();
   const { courses, enrollments, loading, selectedCategory, setSelectedCategory, enrollInCourse, canAccessCourse } = useCourses();
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   const categories: CategoryItem[] = [
     { id: 'all', name: 'Todos' },

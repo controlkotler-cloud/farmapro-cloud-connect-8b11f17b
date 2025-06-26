@@ -26,6 +26,9 @@ const Farmacias = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+    
     loadListings();
   }, []);
 
