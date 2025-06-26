@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { ConfigurationTabs } from '@/components/admin/configuration/ConfigurationTabs';
 import { ConfigurationLoading } from '@/components/admin/configuration/ConfigurationLoading';
 import { useConfigurationData } from '@/components/admin/configuration/ConfigurationData';
@@ -23,6 +24,11 @@ const AdminConfiguracion = () => {
     handleRegionalSave,
     handleEmailTemplatesSave
   } = useConfigurationHandlers();
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   if (isLoading) {
     return <ConfigurationLoading />;

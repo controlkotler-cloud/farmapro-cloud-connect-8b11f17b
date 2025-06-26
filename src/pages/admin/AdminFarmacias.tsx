@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { PharmacyFormDialog } from '@/components/admin/pharmacy/PharmacyFormDialog';
 import { PharmacyCard } from '@/components/admin/pharmacy/PharmacyCard';
@@ -25,6 +25,11 @@ const AdminFarmacias = () => {
   const { isAdmin } = useAuth();
   const { pharmacies, loading, loadPharmacies, togglePharmacyStatus, deletePharmacy } = usePharmacyManagement();
   const [editingPharmacy, setEditingPharmacy] = useState<PharmacyListing | null>(null);
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleEdit = (pharmacy: PharmacyListing) => {
     console.log('Editing pharmacy listing:', pharmacy.id);
