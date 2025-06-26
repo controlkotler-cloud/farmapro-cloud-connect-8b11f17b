@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Download, Search, FileText, BookOpen, Trophy, Target } from 'lucide-react';
+import { Download, Search, FileText, BookOpen, Trophy, Target, Briefcase, Heart, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Resource {
@@ -91,10 +91,11 @@ export const Recursos = () => {
 
   const categories = [
     { value: 'all', label: 'Todos', icon: FileText, color: 'from-gray-500 to-gray-600' },
-    { value: 'templates', label: 'Plantillas', icon: FileText, color: 'from-blue-500 to-blue-600' },
-    { value: 'guides', label: 'Guías', icon: BookOpen, color: 'from-green-500 to-green-600' },
-    { value: 'tools', label: 'Herramientas', icon: Trophy, color: 'from-purple-500 to-purple-600' },
-    { value: 'checklists', label: 'Checklists', icon: Target, color: 'from-orange-500 to-orange-600' }
+    { value: 'gestion', label: 'Gestión', icon: Briefcase, color: 'from-blue-500 to-blue-600' },
+    { value: 'marketing', label: 'Marketing', icon: Target, color: 'from-green-500 to-green-600' },
+    { value: 'liderazgo', label: 'Liderazgo', icon: Trophy, color: 'from-purple-500 to-purple-600' },
+    { value: 'atencion_cliente', label: 'Atención al Cliente', icon: Heart, color: 'from-pink-500 to-pink-600' },
+    { value: 'tecnologia', label: 'Tecnología', icon: Users, color: 'from-orange-500 to-orange-600' }
   ];
 
   const containerVariants = {
