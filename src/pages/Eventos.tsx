@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, Clock, Users, ExternalLink, Star } from 'lucide-react';
+import { Calendar, MapPin, Clock, ExternalLink, Star, Video, Users, Wrench, ShoppingBag, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { EventosHeader } from '@/components/events/EventosHeader';
@@ -25,12 +24,12 @@ interface Event {
 }
 
 const eventTypes = [
-  { id: 'all', name: 'Todos', color: 'from-orange-400 to-orange-500' },
-  { id: 'webinar', name: 'Webinars', color: 'from-blue-400 to-blue-500' },
-  { id: 'conferencia', name: 'Conferencias', color: 'from-purple-400 to-purple-500' },
-  { id: 'workshop', name: 'Workshops', color: 'from-green-400 to-green-500' },
-  { id: 'feria', name: 'Ferias', color: 'from-yellow-400 to-yellow-500' },
-  { id: 'curso', name: 'Cursos', color: 'from-indigo-400 to-indigo-500' }
+  { id: 'all', name: 'Todos', icon: Calendar, color: 'from-orange-500 to-orange-600' },
+  { id: 'webinar', name: 'Webinars', icon: Video, color: 'from-blue-500 to-blue-600' },
+  { id: 'conferencia', name: 'Conferencias', icon: Users, color: 'from-purple-500 to-purple-600' },
+  { id: 'workshop', name: 'Workshops', icon: Wrench, color: 'from-green-500 to-green-600' },
+  { id: 'feria', name: 'Ferias', icon: ShoppingBag, color: 'from-yellow-500 to-yellow-600' },
+  { id: 'curso', name: 'Cursos', icon: BookOpen, color: 'from-indigo-500 to-indigo-600' }
 ];
 
 const Eventos = () => {
@@ -41,16 +40,16 @@ const Eventos = () => {
 
   // Array de imágenes para eventos farmacéuticos
   const eventImages = [
-    'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=400&h=300&fit=crop&auto=format', // grupo de personas con pantallas
-    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop&auto=format', // personas con laptops
-    'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=400&h=300&fit=crop&auto=format', // hombre trabajando
-    'https://images.unsplash.com/photo-1473091534298-04dcbce3278c?w=400&h=300&fit=crop&auto=format', // stylus y tablet
-    'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop&auto=format', // MacBook con código
-    'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=300&fit=crop&auto=format', // mujer con laptop
-    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=400&h=300&fit=crop&auto=format', // laptop gris
-    'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop&auto=format', // persona usando MacBook Pro
-    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop&auto=format', // mujer con laptop blanco
-    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop&auto=format' // laptop en mesa de cristal
+    'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1473091534298-04dcbce3278c?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop&auto=format'
   ];
 
   useEffect(() => {
@@ -150,39 +149,38 @@ const Eventos = () => {
       <EventosHeader />
 
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-        {/* Categorías rediseñadas */}
+        {/* Categorías rediseñadas estilo recursos */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Categorías</h2>
-          <div className="flex flex-wrap gap-3">
-            {eventTypes.map((type) => (
-              <motion.button
-                key={type.id}
-                onClick={() => setSelectedType(type.id)}
-                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 transform hover:scale-105 ${
-                  selectedType === type.id
-                    ? 'text-white shadow-lg scale-105'
-                    : 'text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200'
-                }`}
-                style={{
-                  background: selectedType === type.id 
-                    ? `linear-gradient(135deg, ${type.color.split(' ')[0].replace('from-', '')}, ${type.color.split(' ')[1].replace('to-', '')})`
-                    : undefined
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+          <motion.div 
+            className="flex flex-wrap gap-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {eventTypes.map((category, index) => (
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
               >
-                {selectedType === type.id && (
-                  <motion.div
-                    className="absolute inset-0 rounded-xl bg-white/20"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                )}
-                <span className="relative z-10">{type.name}</span>
-              </motion.button>
+                <Button
+                  variant={selectedType === category.id ? "default" : "outline"}
+                  onClick={() => setSelectedType(category.id)}
+                  className={`relative group transition-all duration-300 transform hover:scale-105 ${
+                    selectedType === category.id
+                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
+                      : 'hover:shadow-md'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
+                    <category.icon className="h-4 w-4 text-white" />
+                  </div>
+                  {category.name}
+                </Button>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
 
         {loading ? (
