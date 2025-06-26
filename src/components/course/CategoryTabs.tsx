@@ -1,7 +1,7 @@
 
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Award, Users, Target, Briefcase } from 'lucide-react';
+import { BookOpen, Award, Users, Target, Briefcase, Heart } from 'lucide-react';
 
 interface CategoryTabsProps {
   selectedCategory: string;
@@ -11,10 +11,11 @@ interface CategoryTabsProps {
 export const CategoryTabs = ({ selectedCategory, onCategoryChange }: CategoryTabsProps) => {
   const categories = [
     { value: 'all', label: 'Todos los Cursos', icon: BookOpen, color: 'from-gray-500 to-gray-600' },
-    { value: 'management', label: 'Gestión', icon: Briefcase, color: 'from-blue-500 to-blue-600' },
-    { value: 'clinical', label: 'Clínico', icon: Award, color: 'from-green-500 to-green-600' },
-    { value: 'technology', label: 'Tecnología', icon: Target, color: 'from-purple-500 to-purple-600' },
-    { value: 'customer_service', label: 'Atención al Cliente', icon: Users, color: 'from-pink-500 to-pink-600' }
+    { value: 'gestion', label: 'Gestión', icon: Briefcase, color: 'from-blue-500 to-blue-600' },
+    { value: 'marketing', label: 'Marketing', icon: Target, color: 'from-green-500 to-green-600' },
+    { value: 'liderazgo', label: 'Liderazgo', icon: Award, color: 'from-purple-500 to-purple-600' },
+    { value: 'atencion_cliente', label: 'Atención al Cliente', icon: Heart, color: 'from-pink-500 to-pink-600' },
+    { value: 'tecnologia', label: 'Tecnología', icon: Users, color: 'from-orange-500 to-orange-600' }
   ];
 
   return (
