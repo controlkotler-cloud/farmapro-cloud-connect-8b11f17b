@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Crown, Sparkles, GraduationCap, Briefcase, User, CreditCard, Bell, CheckCircle, Settings, RefreshCw, FileText } from 'lucide-react';
+import { Crown, Sparkles, GraduationCap, Briefcase, User, CreditCard, Bell, CheckCircle, Settings, RefreshCw, FileText, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
@@ -96,11 +95,18 @@ export default function Perfil() {
   const [managementLoading, setManagementLoading] = useState(false);
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
     pharmacy_name: '',
     position: '',
+  });
+  
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
   });
   
   const { settings, updateSetting, saveSettings } = useNotificationSettings();
@@ -132,6 +138,13 @@ export default function Perfil() {
     }));
   };
 
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const saveProfile = async () => {
     if (!user) return;
     
@@ -154,6 +167,44 @@ export default function Perfil() {
       toast.error('Error al actualizar el perfil');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const changePassword = async () => {
+    if (!passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error('Por favor, completa todos los campos');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ 
+        password: passwordData.newPassword 
+      });
+
+      if (error) throw error;
+      
+      toast.success('Contraseña actualizada correctamente');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast.error('Error al actualizar la contraseña');
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -273,7 +324,7 @@ export default function Perfil() {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="personal" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Personal
@@ -285,6 +336,10 @@ export default function Perfil() {
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
               Facturación
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Seguridad
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
@@ -544,6 +599,54 @@ export default function Perfil() {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Cambiar Contraseña</CardTitle>
+                <CardDescription>
+                  Actualiza tu contraseña para mantener tu cuenta segura
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nueva contraseña</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                    placeholder="Introduce tu nueva contraseña"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                    placeholder="Confirma tu nueva contraseña"
+                  />
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Requisitos de seguridad:</strong> La contraseña debe tener al menos 6 caracteres.
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={changePassword} 
+                  disabled={passwordLoading || !passwordData.newPassword || !passwordData.confirmPassword}
+                  className="w-full"
+                >
+                  {passwordLoading ? 'Actualizando...' : 'Cambiar Contraseña'}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
