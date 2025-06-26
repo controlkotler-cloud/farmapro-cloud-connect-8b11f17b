@@ -1,6 +1,8 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, Home } from 'lucide-react';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -14,7 +16,7 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verificando permisos...</p>
+          <p className="mt-4 text-gray-600">Verificando permisos de administrador...</p>
         </div>
       </div>
     );
@@ -33,27 +35,39 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <strong className="font-bold">Acceso Denegado</strong>
-            <span className="block sm:inline"> No tienes permisos de administrador.</span>
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-lg shadow-lg">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <strong className="font-bold block">Acceso Denegado</strong>
+            <span className="text-sm">No tienes permisos de administrador para acceder a esta sección.</span>
           </div>
-          <p className="text-gray-600 mb-4">
-            Usuario: {user.email}
-          </p>
-          <div className="space-x-2">
-            <button 
+          
+          <div className="mb-6">
+            <p className="text-gray-600 mb-2">Usuario actual:</p>
+            <p className="font-medium text-gray-900">{user.email}</p>
+          </div>
+          
+          <div className="space-y-3">
+            <Button 
               onClick={reloadProfile}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="w-full flex items-center justify-center gap-2"
+              variant="outline"
             >
+              <RefreshCw className="h-4 w-4" />
               Recargar Permisos
-            </button>
-            <button 
+            </Button>
+            
+            <Button 
               onClick={() => window.location.href = '/dashboard'}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+              className="w-full flex items-center justify-center gap-2"
             >
+              <Home className="h-4 w-4" />
               Ir al Dashboard
-            </button>
+            </Button>
+          </div>
+          
+          <div className="mt-6 p-4 bg-gray-50 rounded text-sm text-gray-600">
+            <p className="font-medium mb-1">¿Necesitas acceso de administrador?</p>
+            <p>Contacta con el administrador del sistema para solicitar los permisos necesarios.</p>
           </div>
         </div>
       </div>
