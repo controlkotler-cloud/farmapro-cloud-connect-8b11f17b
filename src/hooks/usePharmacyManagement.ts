@@ -76,9 +76,25 @@ export const usePharmacyManagement = () => {
     console.log('Attempting to delete pharmacy:', pharmacyId);
     
     try {
-      const { error } = await supabase
+      // Verificar si el usuario es admin antes de intentar eliminar
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('subscription_role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!userProfile || userProfile.subscription_role !== 'admin') {
+        toast({
+          title: "Error de permisos",
+          description: "No tienes permisos para eliminar farmacias",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const { error, count } = await supabase
         .from('pharmacy_listings')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', pharmacyId);
 
       if (error) {
@@ -90,7 +106,7 @@ export const usePharmacyManagement = () => {
         });
         return false;
       } else {
-        console.log('Pharmacy deleted successfully');
+        console.log(`Pharmacy deleted successfully, rows affected: ${count}`);
         toast({
           title: "Éxito",
           description: "Farmacia eliminada correctamente",

@@ -107,9 +107,25 @@ const AdminPromociones = () => {
     setDeletingId(promotionId);
     
     try {
-      const { error } = await supabase
+      // Verificar si el usuario es admin antes de intentar eliminar
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('subscription_role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!userProfile || userProfile.subscription_role !== 'admin') {
+        toast({
+          title: "Error de permisos",
+          description: "No tienes permisos para eliminar promociones",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error, count } = await supabase
         .from('promotions')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', promotionId);
 
       if (error) {
@@ -120,7 +136,7 @@ const AdminPromociones = () => {
           variant: "destructive",
         });
       } else {
-        console.log('Promotion deleted successfully');
+        console.log(`Promotion deleted successfully, rows affected: ${count}`);
         toast({
           title: "Éxito",
           description: "Promoción eliminada correctamente",
