@@ -23,7 +23,7 @@ interface QuizAttemptData {
   profiles: {
     full_name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const QuizStatsDialog: React.FC<QuizStatsDialogProps> = ({
@@ -67,7 +67,7 @@ export const QuizStatsDialog: React.FC<QuizStatsDialogProps> = ({
         passed,
         completed_at,
         time_taken_seconds,
-        profiles!quiz_attempts_user_id_fkey(full_name, email)
+        profiles(full_name, email)
       `)
       .eq('quiz_id', quizId)
       .not('completed_at', 'is', null)
