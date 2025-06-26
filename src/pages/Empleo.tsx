@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { MapPin, Clock, DollarSign, Building2, Mail, Calendar, Plus, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { EmpleoHeader } from '@/components/empleo/EmpleoHeader';
+import { EmpleoActions } from '@/components/empleo/EmpleoActions';
 
 interface JobListing {
   id: string;
@@ -157,207 +157,187 @@ const Empleo = () => {
     return profile?.subscription_role === 'premium';
   };
 
+  const handleCreateJob = () => {
+    setShowNewJobDialog(true);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bolsa de Empleo</h1>
-          <p className="text-gray-600">Encuentra oportunidades laborales en el sector farmacéutico</p>
-        </div>
-        {canPostJobs() && (
-          <Dialog open={showNewJobDialog} onOpenChange={setShowNewJobDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Publicar Oferta
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Publicar Nueva Oferta de Trabajo</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Título del puesto *"
-                    value={newJob.title}
-                    onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
-                  />
-                  <Input
-                    placeholder="Nombre de la empresa *"
-                    value={newJob.company_name}
-                    onChange={(e) => setNewJob({ ...newJob, company_name: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Ubicación"
-                    value={newJob.location}
-                    onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
-                  />
-                  <Input
-                    placeholder="Rango salarial"
-                    value={newJob.salary_range}
-                    onChange={(e) => setNewJob({ ...newJob, salary_range: e.target.value })}
-                  />
-                </div>
-                <Input
-                  placeholder="Email de contacto *"
-                  type="email"
-                  value={newJob.contact_email}
-                  onChange={(e) => setNewJob({ ...newJob, contact_email: e.target.value })}
-                />
-                <Input
-                  placeholder="Fecha de expiración"
-                  type="date"
-                  value={newJob.expires_at}
-                  onChange={(e) => setNewJob({ ...newJob, expires_at: e.target.value })}
-                />
-                <Textarea
-                  placeholder="Descripción del puesto *"
-                  value={newJob.description}
-                  onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
-                  rows={4}
-                />
-                <Textarea
-                  placeholder="Requisitos"
-                  value={newJob.requirements}
-                  onChange={(e) => setNewJob({ ...newJob, requirements: e.target.value })}
-                  rows={3}
-                />
-                <Button onClick={createJob} className="w-full" disabled={submitting}>
-                  {submitting ? 'Publicando...' : 'Publicar Oferta'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+    <motion.div 
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ staggerChildren: 0.1 }}
+    >
+      <EmpleoHeader />
 
-      {isPremium() && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-green-800">
-                <strong>Publica tu oferta de empleo</strong> con el botón "+" para encontrar a tu equipo farmacéutico ideal.
-              </p>
-              <Button 
-                onClick={() => setShowNewJobDialog(true)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Crear Oferta
-              </Button>
+      <EmpleoActions 
+        canPostJobs={canPostJobs()}
+        isPremium={isPremium()}
+        onCreateJob={handleCreateJob}
+      />
+
+      {/* Dialog para crear ofertas */}
+      <Dialog open={showNewJobDialog} onOpenChange={setShowNewJobDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Publicar Nueva Oferta de Trabajo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                placeholder="Título del puesto *"
+                value={newJob.title}
+                onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
+              />
+              <Input
+                placeholder="Nombre de la empresa *"
+                value={newJob.company_name}
+                onChange={(e) => setNewJob({ ...newJob, company_name: e.target.value })}
+              />
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                placeholder="Ubicación"
+                value={newJob.location}
+                onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
+              />
+              <Input
+                placeholder="Rango salarial"
+                value={newJob.salary_range}
+                onChange={(e) => setNewJob({ ...newJob, salary_range: e.target.value })}
+              />
+            </div>
+            <Input
+              placeholder="Email de contacto *"
+              type="email"
+              value={newJob.contact_email}
+              onChange={(e) => setNewJob({ ...newJob, contact_email: e.target.value })}
+            />
+            <Input
+              placeholder="Fecha de expiración"
+              type="date"
+              value={newJob.expires_at}
+              onChange={(e) => setNewJob({ ...newJob, expires_at: e.target.value })}
+            />
+            <Textarea
+              placeholder="Descripción del puesto *"
+              value={newJob.description}
+              onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
+              rows={4}
+            />
+            <Textarea
+              placeholder="Requisitos"
+              value={newJob.requirements}
+              onChange={(e) => setNewJob({ ...newJob, requirements: e.target.value })}
+              rows={3}
+            />
+            <Button onClick={createJob} className="w-full" disabled={submitting}>
+              {submitting ? 'Publicando...' : 'Publicar Oferta'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      {!canPostJobs() && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-6">
-            <p className="text-blue-800">
-              <strong>¿Eres titular de una farmacia y necesitas personal?</strong> Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo.{' '}
-              <Link 
-                to="/subscription?tab=plans" 
-                className="underline hover:text-blue-900 font-medium"
-              >
-                Ver planes
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : jobs.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay ofertas disponibles</h3>
-            <p className="text-gray-600">No hay ofertas de empleo activas en este momento.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {jobs.map((job, index) => (
-            <motion.div
-              key={job.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <Card className={`h-full ${isJobExpired(job.expires_at) ? 'opacity-60' : 'hover:shadow-lg'} transition-shadow`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{job.title}</CardTitle>
-                    {isJobExpired(job.expires_at) && (
-                      <Badge variant="destructive">Expirada</Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Building2 className="h-4 w-4 mr-1" />
-                      {job.company_name}
-                    </div>
-                    {job.location && (
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {job.location}
+      {/* Lista de ofertas */}
+      <Card className="shadow-lg border-0">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+          <CardTitle className="text-xl font-semibold text-gray-900">
+            Ofertas de Empleo Disponibles
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-8 bg-gray-200 rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="text-center py-12">
+              <Briefcase className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay ofertas disponibles</h3>
+              <p className="text-gray-600">No hay ofertas de empleo activas en este momento.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {jobs.map((job, index) => (
+                <motion.div
+                  key={job.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className={`h-full shadow-lg hover:shadow-xl transition-all duration-300 ${
+                    isJobExpired(job.expires_at) ? 'opacity-60' : ''
+                  }`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold">{job.title}</CardTitle>
+                        {isJobExpired(job.expires_at) && (
+                          <Badge variant="destructive">Expirada</Badge>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <CardDescription className="line-clamp-3">{job.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    {job.salary_range && (
-                      <div className="flex items-center text-sm">
-                        <DollarSign className="h-4 w-4 mr-2 text-green-600" />
-                        <span className="font-medium">{job.salary_range}</span>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <Building2 className="h-4 w-4 mr-1" />
+                          {job.company_name}
+                        </div>
+                        {job.location && (
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            {job.location}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    
-                    {job.requirements && (
-                      <div>
-                        <h4 className="font-medium text-sm mb-1">Requisitos:</h4>
-                        <p className="text-sm text-gray-600 line-clamp-2">{job.requirements}</p>
+                      <CardDescription className="line-clamp-3 mt-2">{job.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-3">
+                        {job.salary_range && (
+                          <div className="flex items-center text-sm">
+                            <DollarSign className="h-4 w-4 mr-2 text-green-600" />
+                            <span className="font-medium">{job.salary_range}</span>
+                          </div>
+                        )}
+                        
+                        {job.requirements && (
+                          <div>
+                            <h4 className="font-medium text-sm mb-1">Requisitos:</h4>
+                            <p className="text-sm text-gray-600 line-clamp-2">{job.requirements}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Expira: {formatDate(job.expires_at)}
+                          </div>
+                          <Button 
+                            size="sm" 
+                            disabled={isJobExpired(job.expires_at)}
+                            onClick={() => window.location.href = `mailto:${job.contact_email}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`}
+                            className="shadow-md"
+                          >
+                            <Mail className="h-4 w-4 mr-2" />
+                            Contactar
+                          </Button>
+                        </div>
                       </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        Expira: {formatDate(job.expires_at)}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        disabled={isJobExpired(job.expires_at)}
-                        onClick={() => window.location.href = `mailto:${job.contact_email}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`}
-                      >
-                        <Mail className="h-4 w-4 mr-2" />
-                        Contactar
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
