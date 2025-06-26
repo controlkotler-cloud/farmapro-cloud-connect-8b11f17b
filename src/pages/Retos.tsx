@@ -4,7 +4,7 @@ import { useRetosData } from '@/hooks/useRetosData';
 import { LevelProgressCard } from '@/components/retos/LevelProgressCard';
 import { UserStatsCards } from '@/components/retos/UserStatsCards';
 import { ChallengeCard } from '@/components/retos/ChallengeCard';
-import { Trophy, Target } from 'lucide-react';
+import { Target } from 'lucide-react';
 
 export const Retos = () => {
   const { 
@@ -55,9 +55,6 @@ export const Retos = () => {
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-r-full shadow-lg"></div>
           <div className="ml-6">
             <div className="flex items-center space-x-4 mb-4">
-              <div className="p-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-lg">
-                <Trophy className="h-8 w-8 text-white" />
-              </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Retos y Desafíos</h1>
                 <p className="text-gray-600">Completa retos y gana puntos para subir de nivel</p>
