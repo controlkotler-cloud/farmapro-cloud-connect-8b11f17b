@@ -90,7 +90,7 @@ const planConfig = {
 };
 
 export default function Perfil() {
-  const { profile, user } = useAuth();
+  const { profile, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [managementLoading, setManagementLoading] = useState(false);
@@ -113,6 +113,7 @@ export default function Perfil() {
   useEffect(() => {
     console.log('Profile data:', profile);
     console.log('User data:', user);
+    console.log('Is admin:', isAdmin);
     
     if (profile) {
       setFormData({
@@ -122,7 +123,7 @@ export default function Perfil() {
         position: profile.position || '',
       });
     }
-  }, [profile, user]);
+  }, [profile, user, isAdmin]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -207,6 +208,11 @@ export default function Perfil() {
   };
 
   const refreshSubscriptionStatus = async () => {
+    if (currentPlan === 'admin') {
+      toast.info('Las cuentas de administrador no requieren actualización de suscripción');
+      return;
+    }
+
     setRefreshLoading(true);
     try {
       const { error } = await supabase.functions.invoke('check-subscription');
@@ -231,8 +237,13 @@ export default function Perfil() {
     });
   };
 
-  // Handle admin users and fallback for subscription_role
-  const currentPlan = profile?.subscription_role || 'freemium';
+  // Determine current plan based on admin status and subscription role
+  const getCurrentPlan = () => {
+    if (isAdmin) return 'admin';
+    return profile?.subscription_role || 'freemium';
+  };
+
+  const currentPlan = getCurrentPlan();
   const config = planConfig[currentPlan as keyof typeof planConfig] || planConfig.freemium;
   const PlanIcon = config.icon;
 
@@ -374,14 +385,14 @@ export default function Perfil() {
                           <Badge className={`${config.bgColor} ${config.textColor}`}>
                             {config.name}
                           </Badge>
-                          {profile?.subscription_status === 'active' && (
+                          {currentPlan === 'admin' && (
+                            <Badge variant="destructive">Sin caducidad</Badge>
+                          )}
+                          {currentPlan !== 'admin' && profile?.subscription_status === 'active' && (
                             <Badge variant="default">Activo</Badge>
                           )}
-                          {profile?.subscription_status === 'trialing' && (
+                          {currentPlan !== 'admin' && profile?.subscription_status === 'trialing' && (
                             <Badge variant="secondary">Periodo de prueba</Badge>
-                          )}
-                          {currentPlan === 'admin' && (
-                            <Badge variant="destructive">Administrador</Badge>
                           )}
                         </div>
                       </div>
@@ -400,7 +411,15 @@ export default function Perfil() {
                     </ul>
                   </div>
 
-                  {profile?.trial_ends_at && profile.subscription_status === 'trialing' && (
+                  {currentPlan === 'admin' && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                      <p className="text-red-800 text-sm">
+                        <strong>Cuenta de Administrador:</strong> Tienes acceso completo y permanente a todas las funcionalidades de farmapro.
+                      </p>
+                    </div>
+                  )}
+
+                  {currentPlan !== 'admin' && profile?.trial_ends_at && profile.subscription_status === 'trialing' && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                       <p className="text-blue-800 text-sm">
                         <strong>Periodo de prueba activo</strong> - Termina el {formatDate(profile.trial_ends_at)}
@@ -412,7 +431,7 @@ export default function Perfil() {
                     <Button 
                       variant="outline"
                       onClick={refreshSubscriptionStatus}
-                      disabled={refreshLoading}
+                      disabled={refreshLoading || currentPlan === 'admin'}
                       className="flex items-center gap-2"
                     >
                       <RefreshCw className={`h-4 w-4 ${refreshLoading ? 'animate-spin' : ''}`} />
@@ -451,14 +470,14 @@ export default function Perfil() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-2">Estado de Suscripción</h4>
+                      <h4 className="font-medium mb-2">Estado de Cuenta</h4>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600">Estado actual:</span>
-                          <Badge variant={profile?.subscription_status === 'active' ? 'default' : 'secondary'}>
-                            {profile?.subscription_status === 'active' ? 'Activo' : 
-                             profile?.subscription_status === 'trialing' ? 'Periodo de prueba' : 
-                             currentPlan === 'admin' ? 'Administrador' : 'Inactivo'}
+                          <Badge variant={currentPlan === 'admin' ? 'destructive' : profile?.subscription_status === 'active' ? 'default' : 'secondary'}>
+                            {currentPlan === 'admin' ? 'Administrador' :
+                             profile?.subscription_status === 'active' ? 'Activo' : 
+                             profile?.subscription_status === 'trialing' ? 'Periodo de prueba' : 'Inactivo'}
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between">
@@ -474,7 +493,7 @@ export default function Perfil() {
                         {currentPlan === 'freemium' 
                           ? 'No tienes una suscripción activa' 
                           : currentPlan === 'admin'
-                          ? 'Plan de administrador - Sin facturación'
+                          ? 'Sin facturación - Cuenta administrativa'
                           : 'Tu próxima facturación será procesada automáticamente'
                         }
                       </p>
@@ -486,7 +505,7 @@ export default function Perfil() {
                       <p className={`${currentPlan === 'admin' ? 'text-red-800' : 'text-yellow-800'} text-sm`}>
                         <strong>{currentPlan === 'admin' ? 'Cuenta de Administrador:' : 'Plan Gratuito:'}</strong> 
                         {currentPlan === 'admin' 
-                          ? ' Como administrador, tienes acceso completo al sistema sin necesidad de suscripción.'
+                          ? ' Como administrador, tienes acceso completo al sistema sin necesidad de suscripción ni facturación.'
                           : ' Para acceder a la gestión de pagos y facturas, necesitas suscribirte a uno de nuestros planes de pago. Ve a la pestaña "Plan" para explorar las opciones disponibles.'
                         }
                       </p>
