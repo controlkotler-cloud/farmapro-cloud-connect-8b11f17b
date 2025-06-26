@@ -6,16 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Check, X } from 'lucide-react';
-
-interface PasswordValidation {
-  hasMinLength: boolean;
-  hasUppercase: boolean;
-  hasLowercase: boolean;
-  hasNumber: boolean;
-  hasSymbol: boolean;
-  passwordsMatch: boolean;
-}
 
 export const SecurityTab = () => {
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -24,20 +14,6 @@ export const SecurityTab = () => {
     newPassword: '',
     confirmPassword: '',
   });
-
-  const validatePassword = (password: string, confirmPassword: string): PasswordValidation => {
-    return {
-      hasMinLength: password.length >= 10,
-      hasUppercase: /[A-Z]/.test(password),
-      hasLowercase: /[a-z]/.test(password),
-      hasNumber: /\d/.test(password),
-      hasSymbol: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-      passwordsMatch: password === confirmPassword && password.length > 0 && confirmPassword.length > 0,
-    };
-  };
-
-  const validation = validatePassword(passwordData.newPassword, passwordData.confirmPassword);
-  const isPasswordValid = Object.values(validation).every(Boolean);
 
   const handlePasswordChange = (field: string, value: string) => {
     setPasswordData(prev => ({
@@ -52,8 +28,13 @@ export const SecurityTab = () => {
       return;
     }
 
-    if (!isPasswordValid) {
-      toast.error('La contraseña no cumple con todos los requisitos de seguridad');
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
@@ -78,13 +59,6 @@ export const SecurityTab = () => {
       setPasswordLoading(false);
     }
   };
-
-  const ValidationIndicator = ({ isValid, text }: { isValid: boolean; text: string }) => (
-    <div className={`flex items-center gap-2 text-sm ${isValid ? 'text-green-600' : 'text-red-500'}`}>
-      {isValid ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-      <span>{text}</span>
-    </div>
-  );
 
   return (
     <Card>
@@ -117,41 +91,15 @@ export const SecurityTab = () => {
           />
         </div>
 
-        {(passwordData.newPassword || passwordData.confirmPassword) && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-            <h4 className="font-medium text-gray-900 mb-2">Requisitos de seguridad:</h4>
-            <div className="grid grid-cols-1 gap-2">
-              <ValidationIndicator 
-                isValid={validation.hasMinLength} 
-                text="Mínimo 10 caracteres" 
-              />
-              <ValidationIndicator 
-                isValid={validation.hasUppercase} 
-                text="Al menos 1 letra mayúscula" 
-              />
-              <ValidationIndicator 
-                isValid={validation.hasLowercase} 
-                text="Al menos 1 letra minúscula" 
-              />
-              <ValidationIndicator 
-                isValid={validation.hasNumber} 
-                text="Al menos 1 número" 
-              />
-              <ValidationIndicator 
-                isValid={validation.hasSymbol} 
-                text="Al menos 1 símbolo (!@#$%^&*()_+-=[]{}|;':\",./<>?)" 
-              />
-              <ValidationIndicator 
-                isValid={validation.passwordsMatch} 
-                text="Las contraseñas coinciden" 
-              />
-            </div>
-          </div>
-        )}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Requisitos de seguridad:</strong> La contraseña debe tener al menos 6 caracteres.
+          </p>
+        </div>
 
         <Button 
           onClick={changePassword} 
-          disabled={passwordLoading || !passwordData.newPassword || !passwordData.confirmPassword || !isPasswordValid}
+          disabled={passwordLoading || !passwordData.newPassword || !passwordData.confirmPassword}
           className="w-full"
         >
           {passwordLoading ? 'Actualizando...' : 'Cambiar Contraseña'}
