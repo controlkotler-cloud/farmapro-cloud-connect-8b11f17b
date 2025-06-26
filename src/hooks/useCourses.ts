@@ -1,10 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import type { Course, CourseEnrollment, CourseCategory, CourseModule, DownloadableResource } from '@/types/course';
 
 export const useCourses = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +78,7 @@ export const useCourses = () => {
     const existingEnrollment = enrollments.find(enrollment => enrollment.course_id === course.id);
 
     if (existingEnrollment) {
-      window.location.href = `/curso/${courseSlug}`;
+      navigate(`/curso/${courseSlug}`);
       return;
     }
 
@@ -103,7 +106,7 @@ export const useCourses = () => {
       }
       
       await loadEnrollments();
-      window.location.href = `/curso/${courseSlug}`;
+      navigate(`/curso/${courseSlug}`);
     }
   };
 

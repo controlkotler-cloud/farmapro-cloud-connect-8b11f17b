@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import CourseQuiz from '@/components/course/CourseQuiz';
@@ -31,14 +31,12 @@ const CourseQuizView = () => {
 
   return (
     <div className="space-y-6">
-      <Button 
-        variant="ghost" 
-        onClick={() => window.history.back()}
-        className="mb-4"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Volver al Curso
-      </Button>
+      <Link to={`/curso/${courseSlug}`}>
+        <Button variant="ghost" className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver al Curso
+        </Button>
+      </Link>
 
       <CourseQuiz 
         courseId={courseSlug}

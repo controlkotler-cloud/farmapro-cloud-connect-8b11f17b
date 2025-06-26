@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Award, BookOpen, Users, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Course, CourseEnrollment } from '@/types/course';
 
 interface CourseCardProps {
@@ -14,6 +15,7 @@ interface CourseCardProps {
 }
 
 export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnroll }: CourseCardProps) => {
+  const navigate = useNavigate();
   const isEnrolled = enrollments.some(enrollment => enrollment.course_id === course.id);
   const isCompleted = enrollments.some(enrollment => 
     enrollment.course_id === course.id && enrollment.completed_at !== null
@@ -25,7 +27,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
 
   const handleClick = () => {
     if (isEnrolled) {
-      window.location.href = `/curso/${course.slug}`;
+      navigate(`/curso/${course.slug}`);
     } else if (canAccess) {
       onEnroll(course.slug);
     }
