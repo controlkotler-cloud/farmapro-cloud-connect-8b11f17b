@@ -32,7 +32,6 @@ export const useTeamManagement = () => {
   useEffect(() => {
     if (user) {
       loadTeamData();
-      checkUserTeamStatus();
     }
   }, [user]);
 
@@ -41,61 +40,67 @@ export const useTeamManagement = () => {
 
     setLoading(true);
     try {
-      // Check if user owns a team
-      const { data: ownedTeam, error: teamError } = await supabase
-        .from('team_subscriptions')
-        .select('*')
-        .eq('owner_id', user.id)
-        .eq('status', 'active')
-        .single();
+      // Check if user owns a team using RPC function
+      const { data: ownerCheck, error: ownerError } = await supabase.rpc('is_team_owner', { 
+        user_id_param: user.id 
+      });
 
-      if (teamError && teamError.code !== 'PGRST116') {
-        console.error('Error loading team:', teamError);
-      } else if (ownedTeam) {
-        setTeamSubscription(ownedTeam);
-        setIsTeamOwner(true);
+      if (ownerError) {
+        console.error('Error checking team ownership:', ownerError);
+        setIsTeamOwner(false);
+      } else {
+        setIsTeamOwner(!!ownerCheck);
         
-        // Load team members
-        const { data: members, error: membersError } = await supabase
-          .from('team_members')
-          .select('*')
-          .eq('team_id', ownedTeam.id)
-          .order('invited_at', { ascending: true });
+        if (ownerCheck) {
+          // Load team subscription details
+          const { data: ownedTeam, error: teamError } = await supabase
+            .from('team_subscriptions')
+            .select('*')
+            .eq('owner_id', user.id)
+            .eq('status', 'active')
+            .single();
 
-        if (membersError) {
-          console.error('Error loading team members:', membersError);
-        } else {
-          // Cast the data to ensure proper typing
-          const typedMembers = members?.map(member => ({
-            ...member,
-            status: member.status as 'pending' | 'active' | 'inactive'
-          })) || [];
-          setTeamMembers(typedMembers);
+          if (teamError && teamError.code !== 'PGRST116') {
+            console.error('Error loading team:', teamError);
+          } else if (ownedTeam) {
+            setTeamSubscription(ownedTeam);
+            
+            // Load team members
+            const { data: members, error: membersError } = await supabase
+              .from('team_members')
+              .select('*')
+              .eq('team_id', ownedTeam.id)
+              .order('invited_at', { ascending: true });
+
+            if (membersError) {
+              console.error('Error loading team members:', membersError);
+            } else {
+              const typedMembers = members?.map(member => ({
+                ...member,
+                status: member.status as 'pending' | 'active' | 'inactive'
+              })) || [];
+              setTeamMembers(typedMembers);
+            }
+          }
         }
+      }
+
+      // Check if user is a team member using RPC function
+      const { data: memberCheck, error: memberError } = await supabase.rpc('is_team_member', { 
+        user_id_param: user.id 
+      });
+
+      if (memberError) {
+        console.error('Error checking team membership:', memberError);
+        setIsTeamMember(false);
+      } else {
+        setIsTeamMember(!!memberCheck);
       }
 
     } catch (error) {
       console.error('Error in loadTeamData:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const checkUserTeamStatus = async () => {
-    if (!user) return;
-
-    try {
-      const { data: ownerCheck } = await supabase.rpc('is_team_owner', { 
-        user_id_param: user.id 
-      });
-      const { data: memberCheck } = await supabase.rpc('is_team_member', { 
-        user_id_param: user.id 
-      });
-
-      setIsTeamOwner(!!ownerCheck);
-      setIsTeamMember(!!memberCheck);
-    } catch (error) {
-      console.error('Error checking team status:', error);
     }
   };
 
