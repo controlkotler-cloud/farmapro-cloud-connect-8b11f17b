@@ -1011,6 +1011,86 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invitation_token: string | null
+          invited_at: string
+          joined_at: string | null
+          status: string
+          team_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invitation_token?: string | null
+          invited_at?: string
+          joined_at?: string | null
+          status?: string
+          team_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invitation_token?: string | null
+          invited_at?: string
+          joined_at?: string | null
+          status?: string
+          team_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          max_members: number
+          owner_id: string
+          status: string
+          stripe_subscription_id: string | null
+          team_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_members?: number
+          owner_id: string
+          status?: string
+          stripe_subscription_id?: string | null
+          team_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_members?: number
+          owner_id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          team_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_challenge_progress: {
         Row: {
           challenge_id: string | null
@@ -1139,12 +1219,24 @@ export type Database = {
           pass_rate: number
         }[]
       }
+      calculate_team_price: {
+        Args: { member_count: number }
+        Returns: number
+      }
       can_access_user_data: {
         Args: { target_user_id: string }
         Returns: boolean
       }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
+      is_team_owner: {
+        Args: { user_id_param: string }
         Returns: boolean
       }
     }

@@ -2,15 +2,18 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Crown, User, CreditCard, Bell, Shield } from 'lucide-react';
+import { Crown, User, CreditCard, Bell, Shield, Users } from 'lucide-react';
 import { PersonalInfoTab } from '@/components/profile/PersonalInfoTab';
 import { PlanTab } from '@/components/profile/PlanTab';
 import { BillingTab } from '@/components/profile/BillingTab';
 import { SecurityTab } from '@/components/profile/SecurityTab';
 import { NotificationsTab } from '@/components/profile/NotificationsTab';
+import { TeamManagementTab } from '@/components/profile/TeamManagementTab';
+import { useTeamManagement } from '@/hooks/useTeamManagement';
 
 export default function Perfil() {
   const { profile, user, isAdmin } = useAuth();
+  const { isTeamOwner, loading: teamLoading } = useTeamManagement();
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -43,7 +46,7 @@ export default function Perfil() {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className={`grid w-full ${isTeamOwner ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="personal" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Personal
@@ -52,6 +55,12 @@ export default function Perfil() {
               <Crown className="h-4 w-4" />
               Plan
             </TabsTrigger>
+            {isTeamOwner && !teamLoading && (
+              <TabsTrigger value="team" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Equipo
+              </TabsTrigger>
+            )}
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
               Facturación
@@ -73,6 +82,12 @@ export default function Perfil() {
           <TabsContent value="plan" className="space-y-6">
             <PlanTab profile={profile} isAdmin={isAdmin} />
           </TabsContent>
+
+          {isTeamOwner && (
+            <TabsContent value="team" className="space-y-6">
+              <TeamManagementTab />
+            </TabsContent>
+          )}
 
           <TabsContent value="billing" className="space-y-6">
             <BillingTab profile={profile} isAdmin={isAdmin} />

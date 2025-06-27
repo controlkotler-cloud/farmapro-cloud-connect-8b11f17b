@@ -8,6 +8,7 @@ import { CheckCircle, Crown, GraduationCap, Briefcase, Sparkles, Upload } from '
 import { motion } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { TeamPlanCard } from './TeamPlanCard';
 
 const plans = [
   {
@@ -187,6 +188,31 @@ export const SubscriptionPlans = () => {
         <p className="text-xl text-gray-600">
           Elige el plan que mejor se adapte a tu perfil profesional
         </p>
+      </div>
+
+      {/* Plan Team destacado */}
+      <div className="mb-8">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-amber-900 mb-2">
+            🚀 ¡Nuevo! Para Equipos de Farmacia
+          </h3>
+          <p className="text-amber-700">
+            Ahorra hasta 15% suscribiendo a todo tu equipo
+          </p>
+        </div>
+        <div className="max-w-md mx-auto">
+          <TeamPlanCard />
+        </div>
+      </div>
+
+      {/* Separador */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-gray-50 text-gray-500">O elige un plan individual</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
