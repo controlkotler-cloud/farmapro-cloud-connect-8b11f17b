@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Calculator, Crown, AlertCircle } from 'lucide-react';
+import { Users, Calculator, Crown, AlertCircle, Plus, Minus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -26,23 +27,20 @@ export const TeamPlanCard = () => {
     // Premium titular (39€) + miembros profesionales (29€ cada uno)
     const basePrice = 39 + (memberCount * 29);
     // Aplicar 15% descuento
-    const discountedPrice = basePrice * 0.85;
-    return discountedPrice;
+    const discount = Math.round(basePrice * 0.15);
+    const finalPrice = basePrice - discount;
+    return { basePrice, discount, finalPrice };
   };
 
-  const calculateSavings = () => {
-    // Sin descuento: Premium (39€) + Profesionales (29€ * cantidad)
-    const regularPrice = 39 + (memberCount * 29);
-    const teamPrice = calculatePrice();
-    return regularPrice - teamPrice;
-  };
-
-  const handleMemberCountChange = (value: string) => {
-    const count = Math.max(1, Math.min(10, parseInt(value) || 1));
-    setMemberCount(count);
+  const handleMemberCountChange = (increment: boolean) => {
+    const newCount = increment 
+      ? Math.min(10, memberCount + 1) 
+      : Math.max(1, memberCount - 1);
+    
+    setMemberCount(newCount);
     
     // Ajustar array de emails
-    const newEmails = Array(count).fill('').map((_, index) => 
+    const newEmails = Array(newCount).fill('').map((_, index) => 
       memberEmails[index] || ''
     );
     setMemberEmails(newEmails);
@@ -109,6 +107,8 @@ export const TeamPlanCard = () => {
     }
   };
 
+  const { basePrice, discount, finalPrice } = calculatePrice();
+
   return (
     <Card className="relative border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -153,93 +153,131 @@ export const TeamPlanCard = () => {
           </div>
         )}
 
-        {/* Calculadora de precio */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="memberCount">Número de miembros</Label>
-              <div className="flex items-center gap-2 mt-1">
-                <Calculator className="h-4 w-4 text-amber-600" />
-                <Input
-                  id="memberCount"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={memberCount}
-                  onChange={(e) => handleMemberCountChange(e.target.value)}
-                  className="border-amber-200 focus:border-amber-400"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="teamName">Nombre del equipo</Label>
-              <Input
-                id="teamName"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                placeholder="Mi Farmacia"
-                className="border-amber-200 focus:border-amber-400 mt-1"
-                disabled={!canContractTeamPlan}
-              />
-            </div>
-          </div>
+        {/* Nombre del equipo */}
+        <div>
+          <Label htmlFor="teamName">Nombre del equipo</Label>
+          <Input
+            id="teamName"
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            placeholder="Ej: Farmacia San Juan"
+            className="border-amber-200 focus:border-amber-400 mt-1"
+            disabled={!canContractTeamPlan}
+          />
+        </div>
 
-          {/* Emails de miembros */}
-          <div>
-            <Label>Emails de los miembros del equipo</Label>
-            <div className="space-y-2 mt-2">
-              {memberEmails.map((email, index) => (
-                <Input
-                  key={index}
-                  type="email"
-                  value={email}
-                  onChange={(e) => handleEmailChange(index, e.target.value)}
-                  placeholder={`miembro${index + 1}@farmacia.com`}
-                  className="border-amber-200 focus:border-amber-400"
-                  disabled={!canContractTeamPlan}
-                />
-              ))}
-            </div>
+        {/* Miembros del equipo */}
+        <div>
+          <Label>Miembros del equipo (Profesional)</Label>
+          <div className="flex items-center justify-center gap-4 mt-2 p-4 border border-amber-200 rounded-lg bg-white">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handleMemberCountChange(false)}
+              disabled={memberCount <= 1 || !canContractTeamPlan}
+              className="h-12 w-12 border-amber-300"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <span className="text-2xl font-bold text-amber-900 min-w-[120px] text-center">
+              {memberCount} miembro{memberCount > 1 ? 's' : ''}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handleMemberCountChange(true)}
+              disabled={memberCount >= 10 || !canContractTeamPlan}
+              className="h-12 w-12 border-amber-300"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        {/* Desglose de precio */}
-        <div className="bg-white rounded-lg p-4 border border-amber-200">
-          <h4 className="font-semibold text-amber-900 mb-3">Desglose del precio:</h4>
+        {/* Emails de miembros */}
+        <div>
+          <Label>Emails de los miembros</Label>
+          <div className="space-y-2 mt-2">
+            {memberEmails.map((email, index) => (
+              <Input
+                key={index}
+                type="email"
+                value={email}
+                onChange={(e) => handleEmailChange(index, e.target.value)}
+                placeholder={`Email del miembro ${index + 1}`}
+                className="border-amber-200 focus:border-amber-400"
+                disabled={!canContractTeamPlan}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Cálculo del precio */}
+        <div className="bg-white rounded-lg p-4 border-2 border-amber-300">
+          <div className="flex items-center gap-2 mb-3">
+            <Calculator className="h-5 w-5 text-amber-600" />
+            <h4 className="font-semibold text-amber-900">Cálculo del precio</h4>
+          </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span>1 × Premium (titular)</span>
-              <span>39€/mes</span>
+              <span className="flex items-center gap-1">
+                <Crown className="h-4 w-4 text-amber-600" />
+                Tú (Premium):
+              </span>
+              <span className="font-medium">39€</span>
             </div>
             <div className="flex justify-between">
-              <span>{memberCount} × Profesional (miembros)</span>
-              <span>{memberCount * 29}€/mes</span>
+              <span>{memberCount} × Profesional:</span>
+              <span className="font-medium">{memberCount * 29}€</span>
             </div>
-            <div className="flex justify-between text-gray-500">
-              <span>Subtotal</span>
-              <span>{39 + (memberCount * 29)}€/mes</span>
+            <hr className="border-amber-200" />
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span className="font-medium">{basePrice}€</span>
             </div>
-            <div className="flex justify-between text-green-600 font-medium">
-              <span>Descuento 15%</span>
-              <span>-{calculateSavings().toFixed(2)}€/mes</span>
+            <div className="flex justify-between text-green-600">
+              <span>Descuento (15%):</span>
+              <span className="font-medium">-{discount}€</span>
             </div>
             <hr className="border-amber-200" />
             <div className="flex justify-between text-lg font-bold text-amber-900">
-              <span>Total</span>
-              <span>{calculatePrice().toFixed(2)}€/mes</span>
+              <span>Total mensual:</span>
+              <span className="text-2xl">{finalPrice}€</span>
+            </div>
+            <div className="text-center text-sm text-green-600 font-medium">
+              💰 Ahorras {basePrice - finalPrice}€/mes vs planes individuales
             </div>
           </div>
         </div>
 
-        {/* Beneficios incluidos */}
+        {/* Incluye */}
         <div className="space-y-2">
           <h4 className="font-semibold text-amber-900">Incluye:</h4>
           <ul className="text-sm text-amber-800 space-y-1">
-            <li>• Titular con acceso Premium completo</li>
-            <li>• {memberCount} miembro{memberCount > 1 ? 's' : ''} con acceso Profesional</li>
-            <li>• Gestión centralizada del equipo</li>
-            <li>• 15% de descuento permanente</li>
-            <li>• Facturación unificada</li>
+            <li className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</div>
+              Tú: Acceso Premium completo + gestión del equipo
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</div>
+              Miembros: Acceso Profesional completo
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</div>
+              Facturación centralizada
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</div>
+              15% descuento permanente
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</div>
+              Gestión fácil de invitaciones
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</div>
+              Soporte prioritario para equipos
+            </li>
           </ul>
         </div>
 
@@ -247,22 +285,16 @@ export const TeamPlanCard = () => {
         <Button 
           onClick={handleTeamCheckout}
           disabled={loading || !canContractTeamPlan}
-          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white h-12 text-lg"
         >
           {loading ? (
             'Procesando...'
           ) : needsPremiumUpgrade ? (
             'Requiere Plan Premium'
           ) : (
-            `Contratar Plan Team (${calculatePrice().toFixed(2)}€/mes)`
+            `Contratar Plan Team (${finalPrice}€/mes)`
           )}
         </Button>
-
-        {canContractTeamPlan && (
-          <p className="text-xs text-center text-amber-700">
-            Ahorra {calculateSavings().toFixed(2)}€/mes vs. planes individuales
-          </p>
-        )}
       </CardContent>
     </Card>
   );
