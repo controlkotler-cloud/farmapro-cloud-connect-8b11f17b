@@ -65,7 +65,12 @@ export const useTeamManagement = () => {
         if (membersError) {
           console.error('Error loading team members:', membersError);
         } else {
-          setTeamMembers(members || []);
+          // Cast the data to ensure proper typing
+          const typedMembers = members?.map(member => ({
+            ...member,
+            status: member.status as 'pending' | 'active' | 'inactive'
+          })) || [];
+          setTeamMembers(typedMembers);
         }
       }
 

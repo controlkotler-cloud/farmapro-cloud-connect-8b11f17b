@@ -112,8 +112,8 @@ const AdminCursos = () => {
         throw new Error('Error obteniendo perfil: ' + profileError.message);
       }
 
-      // DEBUG: Verificar si es admin usando la función de base de datos
-      const { data: isAdminResult, error: adminError } = await supabase.rpc('is_admin');
+      // DEBUG: Verificar si es admin usando la función de base de datos correcta
+      const { data: isAdminResult, error: adminError } = await supabase.rpc('is_current_user_admin');
       console.log('¿Es admin?:', isAdminResult);
       
       if (adminError) {
