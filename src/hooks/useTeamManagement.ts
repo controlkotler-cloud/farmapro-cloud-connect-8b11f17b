@@ -35,6 +35,16 @@ export const useTeamManagement = () => {
     }
   }, [user]);
 
+  // Force reload when component mounts
+  useEffect(() => {
+    if (user) {
+      const timer = setTimeout(() => {
+        loadTeamData();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const loadTeamData = async () => {
     if (!user) return;
 
@@ -52,13 +62,15 @@ export const useTeamManagement = () => {
         setIsTeamOwner(!!ownerCheck);
         
         if (ownerCheck) {
-          // Load team subscription details
-          const { data: ownedTeam, error: teamError } = await supabase
+          // Load team subscription details (most recent one)
+          const { data: ownedTeams, error: teamError } = await supabase
             .from('team_subscriptions')
             .select('*')
             .eq('owner_id', user.id)
             .eq('status', 'active')
-            .single();
+            .order('created_at', { ascending: false });
+
+          const ownedTeam = ownedTeams?.[0]; // Take the most recent team
 
           if (teamError && teamError.code !== 'PGRST116') {
             console.error('Error loading team:', teamError);
