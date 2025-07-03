@@ -75,12 +75,14 @@ export const useTeamManagement = () => {
             .eq('status', 'active')
             .order('created_at', { ascending: false });
 
+          console.log('[TEAM DEBUG] Query result - data:', ownedTeams, 'error:', teamError);
+          
           const ownedTeam = ownedTeams?.[0]; // Take the most recent team
           
           console.log('[TEAM DEBUG] Found teams:', ownedTeams);
           console.log('[TEAM DEBUG] Selected team:', ownedTeam);
 
-          if (teamError && teamError.code !== 'PGRST116') {
+          if (teamError) {
             console.error('[TEAM DEBUG] Error loading team:', teamError);
           } else if (ownedTeam) {
             console.log('[TEAM DEBUG] Setting team subscription:', ownedTeam);
