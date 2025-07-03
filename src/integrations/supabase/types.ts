@@ -1227,6 +1227,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      is_active_team_member_of_subscription: {
+        Args: { subscription_id: string; user_id: string }
+        Returns: boolean
+      }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -1237,6 +1241,10 @@ export type Database = {
       }
       is_team_owner: {
         Args: { user_id_param: string }
+        Returns: boolean
+      }
+      is_team_subscription_owner: {
+        Args: { subscription_id: string; user_id: string }
         Returns: boolean
       }
     }
