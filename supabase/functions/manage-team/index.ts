@@ -51,11 +51,19 @@ serve(async (req) => {
 
         if (inviteError) throw inviteError;
 
+        // Enviar email de invitación
+        const inviteUrl = `${Deno.env.get("SUPABASE_URL")}/invitation?token=${inviteToken}`;
+        
+        // TODO: Aquí deberías integrar con Resend para enviar el email
+        // Por ahora solo registramos la URL de invitación
+        logStep("Invitation URL generated", { email, inviteUrl });
+
         logStep("Member invited", { email, teamId, inviteToken });
         return new Response(JSON.stringify({ 
           success: true, 
-          message: 'Invitación enviada',
-          invitationToken: inviteToken 
+          message: `Invitación creada para ${email}. URL: ${inviteUrl}`,
+          invitationToken: inviteToken,
+          invitationUrl: inviteUrl
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
