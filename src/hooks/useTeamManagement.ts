@@ -46,8 +46,12 @@ export const useTeamManagement = () => {
   }, []);
 
   const loadTeamData = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('[TEAM DEBUG] No user, returning');
+      return;
+    }
 
+    console.log('[TEAM DEBUG] Starting loadTeamData for user:', user.id);
     setLoading(true);
     try {
       // Check if user owns a team using RPC function
@@ -56,9 +60,10 @@ export const useTeamManagement = () => {
       });
 
       if (ownerError) {
-        console.error('Error checking team ownership:', ownerError);
+        console.error('[TEAM DEBUG] Error checking team ownership:', ownerError);
         setIsTeamOwner(false);
       } else {
+        console.log('[TEAM DEBUG] Owner check result:', ownerCheck);
         setIsTeamOwner(!!ownerCheck);
         
         if (ownerCheck) {
@@ -71,10 +76,14 @@ export const useTeamManagement = () => {
             .order('created_at', { ascending: false });
 
           const ownedTeam = ownedTeams?.[0]; // Take the most recent team
+          
+          console.log('[TEAM DEBUG] Found teams:', ownedTeams);
+          console.log('[TEAM DEBUG] Selected team:', ownedTeam);
 
           if (teamError && teamError.code !== 'PGRST116') {
-            console.error('Error loading team:', teamError);
+            console.error('[TEAM DEBUG] Error loading team:', teamError);
           } else if (ownedTeam) {
+            console.log('[TEAM DEBUG] Setting team subscription:', ownedTeam);
             setTeamSubscription(ownedTeam);
             
             // Load team members
@@ -110,8 +119,9 @@ export const useTeamManagement = () => {
       }
 
     } catch (error) {
-      console.error('Error in loadTeamData:', error);
+      console.error('[TEAM DEBUG] Error in loadTeamData:', error);
     } finally {
+      console.log('[TEAM DEBUG] Final state - isTeamOwner:', isTeamOwner, 'teamSubscription:', teamSubscription);
       setLoading(false);
     }
   };
