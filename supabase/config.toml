@@ -221,6 +221,9 @@ url = ""
 [functions.check-subscription]
 verify_jwt = true
 
+[functions.clientify-sync]
+verify_jwt = true
+
 [functions.create-checkout]
 verify_jwt = true
 
