@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Users, Crown, Calculator } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,7 +14,9 @@ interface TeamPlanCardProps {
 }
 
 export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
-  const [memberCount, setMemberCount] = useState(10);
+  const [memberCount, setMemberCount] = useState(2);
+  const [teamName, setTeamName] = useState('');
+  const [memberEmails, setMemberEmails] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Precio base: 39€ (premium titular) + 29€ por cada miembro adicional
@@ -35,12 +38,37 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
       return;
     }
 
+    if (!teamName.trim()) {
+      toast.error('El nombre del equipo es obligatorio');
+      return;
+    }
+
+    // Parse member emails
+    const emailList = memberEmails
+      .split('\n')
+      .map(email => email.trim())
+      .filter(email => email.length > 0);
+
+    if (emailList.length !== memberCount) {
+      toast.error(`Debes proporcionar exactamente ${memberCount} emails de miembros`);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const invalidEmails = emailList.filter(email => !emailRegex.test(email));
+    if (invalidEmails.length > 0) {
+      toast.error(`Emails inválidos: ${invalidEmails.join(', ')}`);
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-team-checkout', {
         body: { 
           memberCount,
-          returnUrl: window.location.origin + '/perfil?tab=team'
+          teamName: teamName.trim(),
+          memberEmails: emailList
         }
       });
       
@@ -73,21 +101,56 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {/* Datos del equipo */}
+        <div className="bg-white rounded-lg p-4 border border-amber-200 space-y-4">
+          <div>
+            <Label htmlFor="teamName" className="text-sm font-medium">
+              Nombre del equipo *
+            </Label>
+            <Input
+              id="teamName"
+              type="text"
+              placeholder="Farmacia Central"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="memberCount" className="flex items-center gap-2 text-sm font-medium">
+              <Calculator className="h-4 w-4" />
+              Número de miembros del equipo
+            </Label>
+            <Input
+              id="memberCount"
+              type="number"
+              min="2"
+              max="50"
+              value={memberCount}
+              onChange={(e) => setMemberCount(Math.max(2, Math.min(50, parseInt(e.target.value) || 2)))}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="memberEmails" className="text-sm font-medium">
+              Emails de los miembros * ({memberCount} emails, uno por línea)
+            </Label>
+            <Textarea
+              id="memberEmails"
+              placeholder={`usuario1@farmacia.com\nusuario2@farmacia.com${memberCount > 2 ? '\n...' : ''}`}
+              value={memberEmails}
+              onChange={(e) => setMemberEmails(e.target.value)}
+              rows={Math.min(memberCount + 1, 6)}
+              className="mt-1"
+            />
+          </div>
+        </div>
+
         {/* Calculadora de precio */}
         <div className="bg-white rounded-lg p-4 border border-amber-200">
-          <Label htmlFor="memberCount" className="flex items-center gap-2 mb-2">
-            <Calculator className="h-4 w-4" />
-            Número de miembros del equipo
-          </Label>
-          <Input
-            id="memberCount"
-            type="number"
-            min="2"
-            max="50"
-            value={memberCount}
-            onChange={(e) => setMemberCount(Math.max(2, Math.min(50, parseInt(e.target.value) || 2)))}
-            className="mb-3"
-          />
+          <h4 className="font-medium mb-3">Resumen del precio</h4>
           <div className="space-y-2 text-sm text-gray-600">
             <div className="flex justify-between">
               <span>Plan Premium (titular):</span>
