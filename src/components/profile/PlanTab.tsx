@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
+import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
+import { TeamPlanCard } from '@/components/subscription/TeamPlanCard';
 import { planConfig } from '@/components/profile/config/PlanConfig';
 
 interface PlanTabProps {
@@ -140,22 +141,28 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
       {currentPlan !== 'admin' && (
         <Card>
           <CardHeader>
-            <CardTitle>Gestión de Suscripción</CardTitle>
+            <CardTitle>Planes Disponibles</CardTitle>
             <CardDescription>
-              Contacta con soporte para cambios en tu suscripción
+              Explora otros planes y actualiza tu suscripción
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">
-                Para cambiar tu plan o gestionar tu suscripción, contacta con nuestro equipo de soporte.
-              </p>
-              <Button asChild>
-                <a href="mailto:soporte@farmapro.es" target="_blank" rel="noopener noreferrer">
-                  Contactar Soporte
-                </a>
-              </Button>
-            </div>
+            <SubscriptionPlans />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Plan Team - Solo mostrar si no es admin */}
+      {currentPlan !== 'admin' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>¿Necesitas un Plan para tu Equipo?</CardTitle>
+            <CardDescription>
+              Gestiona las suscripciones de tu farmacia de forma centralizada
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TeamPlanCard />
           </CardContent>
         </Card>
       )}
