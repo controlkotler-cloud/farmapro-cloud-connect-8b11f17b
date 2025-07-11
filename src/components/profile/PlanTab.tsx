@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
+
 import { planConfig } from '@/components/profile/config/PlanConfig';
 
 interface PlanTabProps {
@@ -140,13 +140,22 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
       {currentPlan !== 'admin' && (
         <Card>
           <CardHeader>
-            <CardTitle>Actualizar Suscripción</CardTitle>
+            <CardTitle>Gestión de Suscripción</CardTitle>
             <CardDescription>
-              Explora otros planes y actualiza tu suscripción
+              Contacta con soporte para cambios en tu suscripción
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <SubscriptionPlans />
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">
+                Para cambiar tu plan o gestionar tu suscripción, contacta con nuestro equipo de soporte.
+              </p>
+              <Button asChild>
+                <a href="mailto:soporte@farmapro.es" target="_blank" rel="noopener noreferrer">
+                  Contactar Soporte
+                </a>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

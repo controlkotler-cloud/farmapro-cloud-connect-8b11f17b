@@ -4,9 +4,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AdminProtectedRoute } from "./AdminProtectedRoute";
 import { Dashboard } from "@/pages/Dashboard";
-import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
-import Subscription from "@/pages/Subscription";
 import { Formacion } from "@/pages/Formacion";
 import { Recursos } from "@/pages/Recursos";
 import Comunidad from "@/pages/Comunidad";
@@ -18,14 +16,6 @@ import Promociones from "@/pages/Promociones";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
-import PoliticaCookies from "@/pages/PoliticaCookies";
-import PoliticaPrivacidad from "@/pages/PoliticaPrivacidad";
-import AvisoLegal from "@/pages/AvisoLegal";
-import ContactoSoporte from "@/pages/ContactoSoporte";
-import Servicios from "@/pages/Servicios";
-import FarmaproImpulso from "@/pages/FarmaproImpulso";
-import FaqsContacto from "@/pages/FaqsContacto";
-import Blog from "@/pages/Blog";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCursos from "@/pages/admin/AdminCursos";
 import AdminQuizzes from "@/pages/admin/AdminQuizzes";
@@ -57,7 +47,7 @@ export const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
       <Route 
         path="/login" 
         element={user ? <Navigate to="/dashboard" replace /> : <LoginForm />} 
@@ -186,17 +176,6 @@ export const AppRoutes = () => {
           <AdminConfiguracion />
         </AdminProtectedRoute>
       } />
-      
-      {/* Public Pages */}
-      <Route path="/subscription" element={<Subscription />} />
-      <Route path="/servicios" element={<Servicios />} />
-      <Route path="/farmapro-impulso" element={<FarmaproImpulso />} />
-      <Route path="/faqs-contacto" element={<FaqsContacto />} />
-      <Route path="/blog" element={<Blog />} />
-      <Route path="/politica-cookies" element={<PoliticaCookies />} />
-      <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
-      <Route path="/aviso-legal" element={<AvisoLegal />} />
-      <Route path="/contacto-soporte" element={<ContactoSoporte />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
