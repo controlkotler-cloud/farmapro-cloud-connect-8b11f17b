@@ -116,18 +116,9 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
     if (error) {
       console.error('Error creating thread:', error);
     } else {
-      // Add points for creating a thread
-      try {
-        const { error: pointsError } = await supabase.rpc('add_user_points', {
-          user_id: profile.id,
-          points: 100
-        } as any);
-        if (pointsError) {
-          console.error('Error adding points:', pointsError);
-        }
-      } catch (error) {
-        console.error('Error calling add_user_points:', error);
-      }
+      // Update challenge progress for forum post
+      const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+      await updateChallengeProgress(profile.id, 'forum_post', 1);
 
       loadThreads();
       onDataChange();

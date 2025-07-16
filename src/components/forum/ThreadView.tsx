@@ -87,18 +87,9 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
     if (error) {
       console.error('Error creating reply:', error);
     } else {
-      // Add points for forum participation
-      try {
-        const { error: pointsError } = await supabase.rpc('add_user_points', {
-          user_id: profile.id,
-          points: 50
-        } as any);
-        if (pointsError) {
-          console.error('Error adding points:', pointsError);
-        }
-      } catch (error) {
-        console.error('Error calling add_user_points:', error);
-      }
+      // Update challenge progress for forum reply
+      const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+      await updateChallengeProgress(profile.id, 'forum_reply', 1);
 
       // Update thread reply count
       await supabase

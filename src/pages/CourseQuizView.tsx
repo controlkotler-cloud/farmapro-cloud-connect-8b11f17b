@@ -13,9 +13,51 @@ const CourseQuizView = () => {
     return <Navigate to="/formacion" replace />;
   }
 
-  const handleQuizComplete = (passed: boolean, score: number) => {
+  const handleQuizComplete = async (passed: boolean, score: number) => {
     setQuizCompleted(true);
     console.log(`Quiz completed: ${passed ? 'PASSED' : 'FAILED'} with score ${score}%`);
+    
+    // If quiz is passed, mark course as completed
+    if (passed) {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { useAuth } = await import('@/hooks/useAuth');
+        
+        // Get user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', (await supabase.auth.getUser()).data.user?.email || '')
+          .single();
+        
+        if (profile) {
+          // Get course by slug
+          const { data: course } = await supabase
+            .from('courses')
+            .select('id')
+            .eq('slug', courseSlug)
+            .single();
+          
+          if (course) {
+            // Update course enrollment as completed
+            await supabase
+              .from('course_enrollments')
+              .update({ 
+                completed_at: new Date().toISOString(),
+                progress: 100 
+              })
+              .eq('course_id', course.id)
+              .eq('user_id', profile.id);
+            
+            // Update challenge progress for course completion
+            const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+            await updateChallengeProgress(profile.id, 'course_completed', 1);
+          }
+        }
+      } catch (error) {
+        console.error('Error marking course as completed:', error);
+      }
+    }
   };
 
   // Map course slugs to titles (can be loaded from database in future)

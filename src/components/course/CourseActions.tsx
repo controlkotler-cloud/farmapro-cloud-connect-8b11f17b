@@ -61,6 +61,10 @@ export const useCourseActions = ({
             .eq('course_id', course.id)
             .eq('user_id', profile.id);
           
+          // Update challenge progress for course completion
+          const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+          await updateChallengeProgress(profile.id, 'course_completed', 1);
+          
           // Redirect to courses page
           window.location.href = '/formacion';
         } catch (error) {
