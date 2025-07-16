@@ -94,15 +94,11 @@ export const useCourses = () => {
       console.error('Error enrolling in course:', error);
     } else {
       try {
-        const { error: pointsError } = await supabase.rpc('add_user_points', {
-          user_id: profile.id,
-          points: 50
-        } as any);
-        if (pointsError) {
-          console.error('Error adding points:', pointsError);
-        }
+        // Update challenge progress for course started
+        const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+        await updateChallengeProgress(profile.id, 'course_started', 1);
       } catch (error) {
-        console.error('Error calling add_user_points:', error);
+        console.error('Error updating challenge progress:', error);
       }
       
       await loadEnrollments();

@@ -39,20 +39,28 @@ export const Recursos = () => {
 
     try {
       if (profile?.id) {
-        await supabase.rpc('add_user_points', {
-          user_id: profile.id,
-          points: 25
-        });
+        // Record the download in resource_downloads table
+        await supabase
+          .from('resource_downloads')
+          .insert([{
+            user_id: profile.id,
+            resource_id: resource.id,
+            downloaded_at: new Date().toISOString()
+          }]);
+
+        // Update challenge progress for resource download
+        const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+        await updateChallengeProgress(profile.id, 'resource_downloaded', 1);
       }
     } catch (error) {
-      console.error('Error adding points:', error);
+      console.error('Error recording download:', error);
     }
 
     window.open(resource.file_url, '_blank');
     
     toast({
       title: "Descarga iniciada",
-      description: `Has ganado 25 puntos por descargar ${resource.title}`,
+      description: `Has descargado ${resource.title}`,
     });
   };
 
