@@ -2,121 +2,32 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, Users, Crown } from 'lucide-react';
+import { CheckCircle, Star, GraduationCap, Briefcase, Crown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  period: string;
-  description: string;
-  features: string[];
-  icon: any;
-  popular?: boolean;
-  priceId?: string;
-}
-
-const plans: Plan[] = [
-  {
-    id: 'estudiante',
-    name: 'Estudiante',
-    price: 19,
-    period: 'mes',
-    description: 'Ideal para estudiantes de farmacia',
-    icon: Star,
-    features: [
-      'Acceso a 10 cursos',
-      'Descarga de 25 recursos',
-      'Participación en foros',
-      'Certificados de cursos',
-      'Soporte por email'
-    ]
-  },
-  {
-    id: 'profesional',
-    name: 'Profesional',
-    price: 29,
-    period: 'mes',
-    description: 'Para farmacéuticos profesionales',
-    icon: CheckCircle,
-    popular: true,
-    features: [
-      'Acceso ilimitado a cursos',
-      'Descarga ilimitada de recursos',
-      'Participación en foros premium',
-      'Certificados oficiales',
-      'Webinars exclusivos',
-      'Soporte prioritario'
-    ]
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: 39,
-    period: 'mes',
-    description: 'Acceso completo y beneficios exclusivos',
-    icon: Crown,
-    features: [
-      'Todo lo incluido en Profesional',
-      'Acceso a eventos exclusivos',
-      'Descuentos en formación presencial',
-      'Networking premium',
-      'Consultoría personalizada',
-      'Acceso anticipado a novedades'
-    ]
-  },
-  {
-    id: 'team',
-    name: 'Team',
-    price: 199,
-    period: 'mes',
-    description: 'Para equipos de farmacia (hasta 10 miembros)',
-    icon: Users,
-    features: [
-      'Hasta 10 usuarios incluidos',
-      'Plan Profesional para todos',
-      'Panel de gestión de equipo',
-      'Reportes de progreso grupal',
-      'Facturación centralizada',
-      'Soporte dedicado'
-    ]
-  }
-];
-
 export const SubscriptionPlans = () => {
   const [loading, setLoading] = useState<string | null>(null);
+  
+  // Este sería el plan actual del usuario (habría que obtenerlo de la base de datos)
+  const currentPlan = 'freemium'; // Simulando que el usuario tiene plan freemium
 
-  const handleSelectPlan = async (plan: Plan) => {
-    setLoading(plan.id);
+  const handleSelectPlan = async (planId: string) => {
+    if (planId === 'freemium') return; // Ya es el plan actual
+    
+    setLoading(planId);
     
     try {
-      if (plan.id === 'team') {
-        // Usar la función específica para equipos
-        const { data, error } = await supabase.functions.invoke('create-team-checkout', {
-          body: { memberCount: 10 }
-        });
-        
-        if (error) throw error;
-        
-        if (data.url) {
-          window.location.href = data.url;
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          plan: planId
         }
-      } else {
-        // Para planes individuales, crear checkout regular
-        const { data, error } = await supabase.functions.invoke('create-checkout', {
-          body: { 
-            planType: plan.id,
-            returnUrl: window.location.origin + '/perfil?tab=plan'
-          }
-        });
-        
-        if (error) throw error;
-        
-        if (data.url) {
-          window.location.href = data.url;
-        }
+      });
+      
+      if (error) throw error;
+      
+      if (data.url) {
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
@@ -127,57 +38,215 @@ export const SubscriptionPlans = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {plans.map((plan) => {
-        const PlanIcon = plan.icon;
-        
-        return (
-          <Card 
-            key={plan.id} 
-            className={`relative ${plan.popular ? 'border-2 border-blue-500 shadow-lg' : ''}`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-blue-600 text-white">Más Popular</Badge>
-              </div>
-            )}
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Planes de Suscripción</h1>
+        <p className="text-gray-600">Elige el plan que mejor se adapte a tu perfil profesional</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Plan Freemium */}
+        <Card className={`relative ${currentPlan === 'freemium' ? 'border-2 border-green-500' : 'border-gray-200'}`}>
+          {currentPlan === 'freemium' && (
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <Badge className="bg-green-600 text-white">Plan Actual</Badge>
+            </div>
+          )}
+          
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Freemium</CardTitle>
+            <div className="mt-4">
+              <div className="text-3xl font-bold">Gratis</div>
+              <div className="text-sm text-gray-600">7 días de prueba</div>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Acceso a 1 curso</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Máximo 2 descargas</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Ver comunidad (solo lectura)</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Retos básicos</span>
+              </li>
+            </ul>
             
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <PlanIcon className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle className="text-xl">{plan.name}</CardTitle>
-              <CardDescription className="text-sm">
-                {plan.description}
-              </CardDescription>
-              <div className="mt-4">
-                <span className="text-3xl font-bold">{plan.price}€</span>
-                <span className="text-gray-600">/{plan.period}</span>
-              </div>
-            </CardHeader>
+            <Button 
+              className="w-full"
+              variant="outline"
+              disabled={true}
+            >
+              Plan Actual
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Plan Estudiante */}
+        <Card className="relative border-gray-200">
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+            <Badge className="bg-orange-600 text-white">Validación Pendiente</Badge>
+          </div>
+          
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <GraduationCap className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Estudiante</CardTitle>
+            <div className="mt-4">
+              <span className="text-3xl font-bold">5€</span>
+              <span className="text-gray-600">/mes</span>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">1 curso al mes</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">2 descargas al mes</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Acceso a bolsa de trabajo</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Farmacias en venta</span>
+              </li>
+              <li className="text-xs text-gray-600 mt-4">
+                Verificación de matrícula requerida
+              </li>
+            </ul>
             
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <Button 
-                className="w-full"
-                onClick={() => handleSelectPlan(plan)}
-                disabled={loading === plan.id}
-                variant={plan.popular ? "default" : "outline"}
-              >
-                {loading === plan.id ? 'Procesando...' : 'Seleccionar Plan'}
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      })}
+            <Button 
+              className="w-full"
+              variant="outline"
+              onClick={() => toast.info('Por favor, sube tu documentación de estudiante para acceder a este plan')}
+            >
+              Subir Nueva Matrícula
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Plan Profesional - Más Popular */}
+        <Card className="relative border-2 border-blue-500 shadow-lg">
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+            <Badge className="bg-blue-600 text-white">Más Popular</Badge>
+          </div>
+          
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Briefcase className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Profesional</CardTitle>
+            <div className="mt-4">
+              <span className="text-3xl font-bold">29€</span>
+              <span className="text-gray-600">/mes</span>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Acceso completo a formación</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Descargas ilimitadas</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Comunidad completa</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Retos avanzados</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Eventos exclusivos</span>
+              </li>
+            </ul>
+            
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={() => handleSelectPlan('profesional')}
+              disabled={loading === 'profesional'}
+            >
+              {loading === 'profesional' ? 'Procesando...' : 'Elegir Profesional'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Plan Premium */}
+        <Card className="relative border-gray-200">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Crown className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Premium</CardTitle>
+            <div className="mt-4">
+              <span className="text-3xl font-bold">39€</span>
+              <span className="text-gray-600">/mes</span>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Todo lo anterior</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Promociones exclusivas</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Publicar ofertas de empleo</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Vender tu farmacia</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Formaciones premium</span>
+              </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+                <span className="text-sm">Soporte prioritario</span>
+              </li>
+            </ul>
+            
+            <Button 
+              className="w-full"
+              variant="outline"
+              onClick={() => handleSelectPlan('premium')}
+              disabled={loading === 'premium'}
+            >
+              {loading === 'premium' ? 'Procesando...' : 'Elegir Premium'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
