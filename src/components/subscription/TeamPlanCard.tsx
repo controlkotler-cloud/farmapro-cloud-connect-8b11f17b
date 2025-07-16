@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Users, Crown, Calculator } from 'lucide-react';
+import { Users, Crown, Calculator, Plus, Minus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -14,49 +13,64 @@ interface TeamPlanCardProps {
 }
 
 export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
-  const [memberCount, setMemberCount] = useState(2);
+  const [memberCount, setMemberCount] = useState(1);
   const [teamName, setTeamName] = useState('');
-  const [memberEmails, setMemberEmails] = useState('');
+  const [memberEmails, setMemberEmails] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
 
   // Precio base: 39€ (premium titular) + 29€ por cada miembro adicional
   // Con 15% de descuento
   const calculatePrice = (members: number) => {
-    const basePrice = 3900; // 39€ en centavos
-    const memberPrice = 2900; // 29€ en centavos por miembro
-    const totalPrice = basePrice + (members * memberPrice);
-    const discountedPrice = Math.round(totalPrice * 0.85); // 15% descuento
-    return discountedPrice / 100; // Convertir a euros
+    const basePrice = 39; // 39€ titular premium
+    const memberPrice = 29; // 29€ por miembro profesional
+    const subtotal = basePrice + (members * memberPrice);
+    const discount = Math.round(subtotal * 0.15); // 15% descuento
+    const total = subtotal - discount;
+    return { subtotal, discount, total };
   };
 
-  const totalPrice = calculatePrice(memberCount);
-  const savings = (calculatePrice(memberCount) / 0.85) - calculatePrice(memberCount);
+  const { subtotal, discount, total } = calculatePrice(memberCount);
+
+  const handleMemberCountChange = (newCount: number) => {
+    if (newCount < 1 || newCount > 50) return;
+    
+    setMemberCount(newCount);
+    
+    // Ajustar array de emails
+    const newEmails = [...memberEmails];
+    if (newCount > memberEmails.length) {
+      // Agregar campos vacíos
+      for (let i = memberEmails.length; i < newCount; i++) {
+        newEmails.push('');
+      }
+    } else {
+      // Recortar array
+      newEmails.splice(newCount);
+    }
+    setMemberEmails(newEmails);
+  };
+
+  const updateEmail = (index: number, email: string) => {
+    const newEmails = [...memberEmails];
+    newEmails[index] = email;
+    setMemberEmails(newEmails);
+  };
 
   const handleCreateTeam = async () => {
-    if (memberCount < 2 || memberCount > 50) {
-      toast.error('El número de miembros debe estar entre 2 y 50');
-      return;
-    }
-
     if (!teamName.trim()) {
       toast.error('El nombre del equipo es obligatorio');
       return;
     }
 
-    // Parse member emails
-    const emailList = memberEmails
-      .split('\n')
-      .map(email => email.trim())
-      .filter(email => email.length > 0);
-
-    if (emailList.length !== memberCount) {
+    // Validar emails
+    const filledEmails = memberEmails.filter(email => email.trim());
+    if (filledEmails.length !== memberCount) {
       toast.error(`Debes proporcionar exactamente ${memberCount} emails de miembros`);
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const invalidEmails = emailList.filter(email => !emailRegex.test(email));
+    const invalidEmails = filledEmails.filter(email => !emailRegex.test(email.trim()));
     if (invalidEmails.length > 0) {
       toast.error(`Emails inválidos: ${invalidEmails.join(', ')}`);
       return;
@@ -68,7 +82,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
         body: { 
           memberCount,
           teamName: teamName.trim(),
-          memberEmails: emailList
+          memberEmails: filledEmails.map(email => email.trim())
         }
       });
       
@@ -88,135 +102,181 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
   return (
     <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
       <CardHeader className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-          <Crown className="h-8 w-8 text-white" />
-        </div>
-        <CardTitle className="text-2xl text-amber-800">Plan Team</CardTitle>
-        <CardDescription className="text-amber-700">
-          Solución completa para equipos de farmacia
-        </CardDescription>
-        <Badge className="bg-amber-600 text-white w-fit mx-auto">
-          15% Descuento incluido
+        <Badge className="bg-amber-600 text-white w-fit mx-auto mb-2">
+          Plan Team
         </Badge>
+        <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Users className="h-8 w-8 text-white" />
+        </div>
+        <CardTitle className="text-2xl text-amber-800">Plan Team farmapro</CardTitle>
+        <CardDescription className="text-amber-700">
+          Perfecto para equipos de farmacia
+        </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Datos del equipo */}
-        <div className="bg-white rounded-lg p-4 border border-amber-200 space-y-4">
-          <div>
-            <Label htmlFor="teamName" className="text-sm font-medium">
-              Nombre del equipo *
-            </Label>
-            <Input
-              id="teamName"
-              type="text"
-              placeholder="Farmacia Central"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              className="mt-1"
-            />
-          </div>
+        {/* Nombre del equipo */}
+        <div>
+          <Label htmlFor="teamName" className="text-sm font-medium text-gray-700 mb-2 block">
+            Nombre del equipo
+          </Label>
+          <Input
+            id="teamName"
+            type="text"
+            placeholder="Ej: Farmacia San Juan"
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            className="border-amber-200"
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="memberCount" className="flex items-center gap-2 text-sm font-medium">
-              <Calculator className="h-4 w-4" />
-              Número de miembros del equipo
-            </Label>
-            <Input
-              id="memberCount"
-              type="number"
-              min="2"
-              max="50"
-              value={memberCount}
-              onChange={(e) => setMemberCount(Math.max(2, Math.min(50, parseInt(e.target.value) || 2)))}
-              className="mt-1"
-            />
+        {/* Miembros del equipo */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            Miembros del equipo (Profesional)
+          </Label>
+          <div className="flex items-center justify-center border border-amber-200 rounded-lg p-4 bg-amber-50">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleMemberCountChange(memberCount - 1)}
+              disabled={memberCount <= 1}
+              className="h-10 w-10 rounded-l-lg border-amber-200"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 text-center px-4">
+              <span className="text-lg font-medium">
+                {memberCount} miembro{memberCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleMemberCountChange(memberCount + 1)}
+              disabled={memberCount >= 50}
+              className="h-10 w-10 rounded-r-lg border-amber-200"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
+        </div>
 
-          <div>
-            <Label htmlFor="memberEmails" className="text-sm font-medium">
-              Emails de los miembros * ({memberCount} emails, uno por línea)
-            </Label>
-            <Textarea
-              id="memberEmails"
-              placeholder={`usuario1@farmacia.com\nusuario2@farmacia.com${memberCount > 2 ? '\n...' : ''}`}
-              value={memberEmails}
-              onChange={(e) => setMemberEmails(e.target.value)}
-              rows={Math.min(memberCount + 1, 6)}
-              className="mt-1"
-            />
+        {/* Emails de los miembros */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            Emails de los miembros
+          </Label>
+          <div className="space-y-2">
+            {memberEmails.map((email, index) => (
+              <Input
+                key={index}
+                type="email"
+                placeholder={`Email del miembro ${index + 1}`}
+                value={email}
+                onChange={(e) => updateEmail(index, e.target.value)}
+                className="border-amber-200"
+              />
+            ))}
           </div>
         </div>
 
         {/* Calculadora de precio */}
-        <div className="bg-white rounded-lg p-4 border border-amber-200">
-          <h4 className="font-medium mb-3">Resumen del precio</h4>
-          <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex justify-between">
-              <span>Plan Premium (titular):</span>
-              <span>39€</span>
+        <div className="bg-white rounded-lg p-4 border-2 border-amber-300">
+          <div className="flex items-center gap-2 mb-4">
+            <Calculator className="h-5 w-5 text-amber-600" />
+            <h4 className="font-semibold text-amber-800">Cálculo del precio</h4>
+          </div>
+          
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-amber-600" />
+                Tú (Premium):
+              </span>
+              <span className="font-medium">39€</span>
             </div>
-            <div className="flex justify-between">
-              <span>Miembros ({memberCount} × 29€):</span>
-              <span>{memberCount * 29}€</span>
+            
+            <div className="flex justify-between items-center">
+              <span>{memberCount} x Profesional:</span>
+              <span className="font-medium">{memberCount * 29}€</span>
             </div>
-            <div className="flex justify-between text-green-600">
-              <span>Descuento (15%):</span>
-              <span>-{savings.toFixed(2)}€</span>
-            </div>
+            
             <hr className="border-amber-200" />
-            <div className="flex justify-between font-bold text-amber-800">
+            
+            <div className="flex justify-between items-center">
+              <span>Subtotal:</span>
+              <span className="font-medium">{subtotal}€</span>
+            </div>
+            
+            <div className="flex justify-between items-center text-green-600">
+              <span>Descuento (15%):</span>
+              <span className="font-medium">-{discount}€</span>
+            </div>
+            
+            <hr className="border-amber-200" />
+            
+            <div className="flex justify-between items-center text-lg font-bold text-amber-800">
               <span>Total mensual:</span>
-              <span>{totalPrice.toFixed(2)}€</span>
+              <span>{total}€</span>
+            </div>
+            
+            <div className="text-center mt-3 py-2 bg-green-50 rounded text-green-700 text-sm font-medium">
+              💰 Ahorras {discount}€/mes vs planes individuales
             </div>
           </div>
         </div>
 
-        {/* Características incluidas */}
-        <div>
-          <h4 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            ¿Qué incluye?
-          </h4>
+        {/* Incluye */}
+        <div className="bg-white rounded-lg p-4 border border-amber-200">
+          <h4 className="font-semibold text-amber-800 mb-3">Incluye:</h4>
           <ul className="space-y-2 text-sm">
             <li className="flex items-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
-              <span>Plan Premium para el titular</span>
+              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+              <span>Tú: Acceso Premium completo + gestión del equipo</span>
             </li>
             <li className="flex items-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
-              <span>Plan Profesional para todos los miembros</span>
+              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+              <span>Miembros: Acceso Profesional completo</span>
             </li>
             <li className="flex items-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
-              <span>Panel de gestión de equipo</span>
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
-              <span>Reportes de progreso grupal</span>
-            </li>
-            <li className="flex items-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
+              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
               <span>Facturación centralizada</span>
             </li>
             <li className="flex items-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
-              <span>Soporte dedicado</span>
+              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+              <span>15% descuento permanente</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+              <span>Gestión fácil de invitaciones</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+              <span>Soporte prioritario para equipos</span>
             </li>
           </ul>
         </div>
 
         <Button 
-          className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 text-lg"
           onClick={handleCreateTeam}
           disabled={loading}
         >
-          {loading ? 'Procesando...' : `Crear Equipo - ${totalPrice.toFixed(2)}€/mes`}
+          {loading ? 'Procesando...' : `Contratar Plan Team (${total}€/mes)`}
         </Button>
-
-        <p className="text-xs text-center text-amber-700">
-          Facturación mensual. Cancela en cualquier momento.
-        </p>
       </CardContent>
     </Card>
   );
