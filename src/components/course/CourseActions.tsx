@@ -45,11 +45,28 @@ export const useCourseActions = ({
     }
   };
 
-  const handleFinishCourse = () => {
+  const handleFinishCourse = async () => {
     if (hasQuiz) {
       window.location.href = `/curso/${courseSlug}/quiz`;
     } else {
-      console.log('Curso completado sin quiz');
+      // Mark course as completed
+      if (course && enrollment && profile?.id) {
+        try {
+          await supabase
+            .from('course_enrollments')
+            .update({ 
+              completed_at: new Date().toISOString(),
+              progress: 100 
+            })
+            .eq('course_id', course.id)
+            .eq('user_id', profile.id);
+          
+          // Redirect to courses page
+          window.location.href = '/formacion';
+        } catch (error) {
+          console.error('Error completing course:', error);
+        }
+      }
     }
   };
 
