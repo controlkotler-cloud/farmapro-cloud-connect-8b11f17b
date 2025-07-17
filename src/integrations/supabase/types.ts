@@ -116,6 +116,30 @@ export type Database = {
           },
         ]
       }
+      course_generation_control: {
+        Row: {
+          created_at: string | null
+          current_topic_index: number | null
+          cycle_complete: boolean | null
+          id: string
+          last_updated: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_topic_index?: number | null
+          cycle_complete?: boolean | null
+          id?: string
+          last_updated?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_topic_index?: number | null
+          cycle_complete?: boolean | null
+          id?: string
+          last_updated?: string | null
+        }
+        Relationships: []
+      }
       course_quizzes: {
         Row: {
           course_id: string
@@ -432,6 +456,7 @@ export type Database = {
           error_message: string | null
           generated_at: string | null
           id: string
+          level: string | null
           status: string | null
           topic: string
         }
@@ -441,6 +466,7 @@ export type Database = {
           error_message?: string | null
           generated_at?: string | null
           id?: string
+          level?: string | null
           status?: string | null
           topic: string
         }
@@ -450,6 +476,7 @@ export type Database = {
           error_message?: string | null
           generated_at?: string | null
           id?: string
+          level?: string | null
           status?: string | null
           topic?: string
         }
