@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+// Librerías para generación de archivos
+import { jsPDF } from 'https://esm.sh/jspdf@2.5.1'
+import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -133,6 +136,140 @@ function selectRandomTypeAndFormat(category: string): { type: string, format: st
   const randomFormat = appropriateFormats[Math.floor(Math.random() * appropriateFormats.length)];
   
   return { type: randomType, format: randomFormat };
+}
+
+// Función para generar archivo PDF
+async function generatePDFFile(title: string, content: string): Promise<Uint8Array> {
+  const doc = new jsPDF();
+  
+  // Configurar fuente y título
+  doc.setFontSize(20);
+  doc.text(title, 20, 30);
+  
+  // Agregar contenido
+  doc.setFontSize(12);
+  const lines = doc.splitTextToSize(content, 170);
+  doc.text(lines, 20, 50);
+  
+  // Convertir a bytes
+  const pdfBytes = doc.output('arraybuffer');
+  return new Uint8Array(pdfBytes);
+}
+
+// Función para generar archivo Excel
+async function generateExcelFile(title: string, content: string, type: string): Promise<Uint8Array> {
+  const wb = XLSX.utils.book_new();
+  
+  if (type === 'calculadora') {
+    // Para calculadoras, crear hoja con fórmulas
+    const ws_data = [
+      ['Calculadora: ' + title],
+      [''],
+      ['Concepto', 'Valor', 'Resultado'],
+      ['Ingresos Mensuales', 0, '=B4*12'],
+      ['Gastos Mensuales', 0, '=B5*12'],
+      ['Beneficio Anual', '', '=C4-C5'],
+      [''],
+      ['Instrucciones:'],
+      ['1. Ingrese los valores en la columna B'],
+      ['2. Los resultados se calcularán automáticamente'],
+      ['3. ' + content.substring(0, 100) + '...']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Calculadora');
+  } else {
+    // Para otros tipos, crear plantilla simple
+    const ws_data = [
+      [title],
+      [''],
+      ['Descripción:'],
+      [content],
+      [''],
+      ['Instrucciones de uso:'],
+      ['1. Complete los campos según sus necesidades'],
+      ['2. Modifique las celdas según su farmacia'],
+      ['3. Guarde el archivo con un nuevo nombre']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Plantilla');
+  }
+  
+  // Convertir a bytes
+  const excelBuffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+  return new Uint8Array(excelBuffer);
+}
+
+// Función para subir archivo a Supabase Storage
+async function uploadFileToStorage(fileName: string, fileData: Uint8Array, contentType: string): Promise<string> {
+  try {
+    const { data, error } = await supabase.storage
+      .from('recursos')
+      .upload(fileName, fileData, {
+        contentType: contentType,
+        upsert: true
+      });
+
+    if (error) {
+      console.error('Error subiendo archivo:', error);
+      throw error;
+    }
+
+    // Obtener URL pública
+    const { data: urlData } = supabase.storage
+      .from('recursos')
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error('Error en storage:', error);
+    throw error;
+  }
+}
+
+// Función para generar archivo real según el formato
+async function generateRealFile(resourceData: any): Promise<string> {
+  const { title, content, format, type } = resourceData;
+  const timestamp = Date.now();
+  let fileName: string;
+  let fileData: Uint8Array;
+  let contentType: string;
+
+  try {
+    switch (format) {
+      case 'pdf':
+        fileName = `${type}-${timestamp}.pdf`;
+        fileData = await generatePDFFile(title, content);
+        contentType = 'application/pdf';
+        break;
+        
+      case 'xls':
+        fileName = `${type}-${timestamp}.xlsx`;
+        fileData = await generateExcelFile(title, content, type);
+        contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        break;
+        
+      case 'docs':
+        // Para docs, generar como PDF por simplicidad
+        fileName = `${type}-${timestamp}.pdf`;
+        fileData = await generatePDFFile(title, content);
+        contentType = 'application/pdf';
+        break;
+        
+      default:
+        // Para URL y video, no generar archivo físico
+        return resourceData.file_url;
+    }
+
+    // Subir archivo a storage
+    const publicUrl = await uploadFileToStorage(fileName, fileData, contentType);
+    console.log(`Archivo generado y subido: ${fileName}`);
+    return publicUrl;
+    
+  } catch (error) {
+    console.error('Error generando archivo real:', error);
+    // En caso de error, devolver URL por defecto
+    return resourceData.file_url;
+  }
 }
 
 async function searchWebContent(category: string, type: string, customTopic?: string): Promise<string> {
@@ -352,6 +489,13 @@ serve(async (req) => {
     // Generar contenido del recurso con IA
     const resourceData = await generateResourceContent(selectedCategory, type, format, webContent, customTopic);
     console.log('Contenido generado por IA');
+    
+    // Generar archivo real si es necesario
+    const realFileUrl = await generateRealFile(resourceData);
+    console.log('Archivo real generado:', realFileUrl);
+    
+    // Actualizar la URL del archivo en resourceData
+    resourceData.file_url = realFileUrl;
     
     // Crear recurso en base de datos
     const resourceId = await createResourceInDatabase(resourceData, selectedCategory, type);

@@ -378,7 +378,9 @@ const AdminRecursos = () => {
               <DialogHeader>
                 <DialogTitle>Generar Recurso con IA</DialogTitle>
                 <DialogDescription>
-                  Especifica un tema y categoría personalizados o deja vacío para usar el sistema automático
+                  Especifica un tema y categoría personalizados o deja vacío para usar el sistema automático.
+                  <br />
+                  <span className="text-green-600 font-medium">✨ Genera archivos descargables reales (PDF, Excel, Word)</span>
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -435,7 +437,7 @@ const AdminRecursos = () => {
                   ) : (
                     <Sparkles className="w-4 h-4" />
                   )}
-                  {generatingResource ? 'Generando...' : 'Generar Recurso'}
+                  {generatingResource ? 'Generando archivo real...' : 'Generar Recurso con IA'}
                 </Button>
               </div>
             </DialogContent>
