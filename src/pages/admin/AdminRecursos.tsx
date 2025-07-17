@@ -280,7 +280,7 @@ const AdminRecursos = () => {
       const { data, error } = await supabase.functions.invoke('generate-daily-resource', {
         body: { 
           customTopic: customTopic.trim() || null,
-          customCategory: customCategory || null
+          customCategory: customCategory === 'auto' ? null : customCategory || null
         }
       });
 
@@ -403,7 +403,7 @@ const AdminRecursos = () => {
                       <SelectValue placeholder="Usar rotación automática" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Usar rotación automática</SelectItem>
+                      <SelectItem value="auto">Usar rotación automática</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.value} value={cat.value}>
                           {cat.label}
