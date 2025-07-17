@@ -222,7 +222,10 @@ async function generateCourseContent(topic: string, webContent: string, level: s
     });
 
     const data = await response.json();
-    const courseContent = data.choices[0].message.content;
+    let courseContent = data.choices[0].message.content;
+    
+    // Limpiar la respuesta de OpenAI (quitar markdown formatting si existe)
+    courseContent = courseContent.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     
     // Parsear el JSON generado
     const courseData = JSON.parse(courseContent);
