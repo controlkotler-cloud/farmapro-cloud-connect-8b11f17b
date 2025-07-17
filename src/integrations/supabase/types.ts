@@ -425,6 +425,44 @@ export type Database = {
           },
         ]
       }
+      generated_courses_log: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          error_message: string | null
+          generated_at: string | null
+          id: string
+          status: string | null
+          topic: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          status?: string | null
+          topic: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          status?: string | null
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_courses_log_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_listings: {
         Row: {
           company_name: string
