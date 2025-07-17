@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Download, FileText, Calculator, BookOpen, Link, Video, File } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, FileText, Calculator, BookOpen, Link, Video, File, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -28,6 +28,7 @@ const AdminRecursos = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [generatingResource, setGeneratingResource] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -268,6 +269,41 @@ const AdminRecursos = () => {
     }
   };
 
+  const handleGenerateResource = async () => {
+    try {
+      setGeneratingResource(true);
+      console.log('Generando recurso con IA...');
+      
+      const { data, error } = await supabase.functions.invoke('generate-daily-resource', {
+        body: {}
+      });
+
+      if (error) {
+        console.error('Error generando recurso:', error);
+        throw error;
+      }
+
+      if (data?.success) {
+        toast({
+          title: "¡Recurso generado!",
+          description: `Se ha creado "${data.title}" en la categoría ${data.category}`,
+        });
+        await loadResources();
+      } else {
+        throw new Error(data?.error || 'Error desconocido al generar recurso');
+      }
+    } catch (error: any) {
+      console.error('Error generating resource:', error);
+      toast({
+        title: "Error",
+        description: `No se pudo generar el recurso: ${error.message || 'Error desconocido'}`,
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingResource(false);
+    }
+  };
+
   const getFormatIcon = (format: string) => {
     switch (format.toLowerCase()) {
       case 'pdf':
@@ -318,14 +354,24 @@ const AdminRecursos = () => {
           <h1 className="text-3xl font-bold text-gray-900">Gestión de Recursos</h1>
           <p className="text-gray-600">Crear y gestionar recursos descargables</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => resetForm()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Recurso
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex space-x-3">
+          <Button 
+            variant="outline" 
+            onClick={handleGenerateResource}
+            disabled={generatingResource}
+            className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0 hover:from-purple-600 hover:to-indigo-700"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {generatingResource ? 'Generando...' : 'Generar con IA'}
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => resetForm()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Recurso
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingResource ? 'Editar Recurso' : 'Crear Nuevo Recurso'}
@@ -446,6 +492,7 @@ const AdminRecursos = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Resources Table */}
