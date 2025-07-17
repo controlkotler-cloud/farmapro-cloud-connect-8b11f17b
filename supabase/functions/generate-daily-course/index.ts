@@ -108,12 +108,15 @@ async function searchWebContent(topic: string): Promise<string> {
   }
 }
 
-async function generateCourseContent(topic: string, webContent: string, level: string): Promise<any> {
+async function generateCourseContent(topic: string, webContent: string, level: string, customTopic?: string): Promise<any> {
   const openAIKey = Deno.env.get('OPENAI_API_KEY');
   
   if (!openAIKey) {
     throw new Error('OpenAI API key not configured');
   }
+
+  // Usar tema personalizado si está disponible, sino usar el tema automático
+  const courseTopic = customTopic || topic;
 
   // Ajustar instrucciones según el nivel
   let nivelInstrucciones = '';
@@ -160,11 +163,16 @@ async function generateCourseContent(topic: string, webContent: string, level: s
   }
 
   const prompt = `
-  Eres un experto en formación profesional. Crea un curso completo sobre "${topic}" basado en esta información actualizada:
+  Eres un experto en formación profesional. Crea un curso completo sobre "${courseTopic}" basado en esta información actualizada:
   
   ${webContent}
   
   ${nivelInstrucciones}
+  
+  ${customTopic ? `
+  IMPORTANTE: El curso debe estar enfocado específicamente en: "${customTopic}"
+  Adapta el contenido y los módulos para que sean más útiles para este tema específico.
+  ` : ''}
   
   Genera un curso estructurado con:
   1. Título atractivo y profesional (incluye ${prefix} al inicio)
@@ -286,41 +294,53 @@ serve(async (req) => {
   try {
     let requestData = {};
     let level = 'basico';
+    let customTopic = null;
     
     // Extraer datos del cuerpo de la solicitud, si los hay
     if (req.body) {
       try {
         requestData = await req.json();
         level = requestData.level || 'basico';
+        customTopic = requestData.customTopic || null;
       } catch (e) {
         console.log('No se pudo parsear el cuerpo de la solicitud');
       }
     }
     
-    console.log(`Iniciando generación de curso diario (nivel: ${level})...`);
+    console.log(`Iniciando generación de curso (nivel: ${level}, tema personalizado: ${customTopic || 'automático'})...`);
     
-    // Obtener el índice del tema actual
-    const topicIndex = await getCurrentTopicIndex();
+    let selectedTopic;
+    let topicIndex;
     
-    // Verificar si el ciclo está completo
-    if (topicIndex === -1) {
-      return new Response(JSON.stringify({
-        success: false,
-        message: 'El ciclo de generación de cursos ha finalizado. Se han completado todos los temas en los tres niveles.'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (customTopic) {
+      // Usar tema personalizado
+      selectedTopic = customTopic;
+      topicIndex = -1; // Indicar que es personalizado
+      console.log(`Usando tema personalizado: ${selectedTopic}`);
+    } else {
+      // Usar sistema automático
+      topicIndex = await getCurrentTopicIndex();
+      
+      // Verificar si el ciclo está completo
+      if (topicIndex === -1) {
+        return new Response(JSON.stringify({
+          success: false,
+          message: 'El ciclo de generación de cursos ha finalizado. Se han completado todos los temas en los tres niveles.'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      selectedTopic = COURSE_TOPICS[topicIndex];
+      console.log(`Tema seleccionado del ciclo (índice ${topicIndex}): ${selectedTopic}`);
     }
-    
-    const selectedTopic = COURSE_TOPICS[topicIndex];
-    console.log(`Tema seleccionado (índice ${topicIndex}): ${selectedTopic}`);
     
     // Buscar información actualizada
     const webContent = await searchWebContent(selectedTopic);
     console.log('Información web obtenida');
     
     // Generar contenido del curso con IA
-    const courseData = await generateCourseContent(selectedTopic, webContent, level);
+    const courseData = await generateCourseContent(selectedTopic, webContent, level, customTopic);
     console.log(`Contenido generado por IA para nivel ${level}`);
     
     // Crear curso en base de datos

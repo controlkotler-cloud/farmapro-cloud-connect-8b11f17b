@@ -135,15 +135,15 @@ function selectRandomTypeAndFormat(category: string): { type: string, format: st
   return { type: randomType, format: randomFormat };
 }
 
-async function searchWebContent(category: string, type: string): Promise<string> {
-  const searchQuery = `${category} ${type} farmacia mejores prácticas 2024`;
+async function searchWebContent(category: string, type: string, customTopic?: string): Promise<string> {
+  const searchQuery = customTopic || `${category} ${type} farmacia mejores prácticas 2024`;
   
   try {
     // Simular búsqueda web - en producción usarías una API real
     const searchResults = `
-    Información actualizada sobre ${category} - ${type} para farmacias:
+    Información actualizada sobre ${customTopic || `${category} - ${type}`} para farmacias:
     
-    - Tendencias actuales en ${category}
+    - Tendencias actuales en ${customTopic || category}
     - Mejores prácticas implementadas por farmacias líderes
     - Casos de estudio y ejemplos prácticos
     - Herramientas y recursos recomendados
@@ -156,11 +156,11 @@ async function searchWebContent(category: string, type: string): Promise<string>
     return searchResults;
   } catch (error) {
     console.error('Error en búsqueda web:', error);
-    return `Contenido base sobre ${category} - ${type} para profesionales de farmacia`;
+    return `Contenido base sobre ${customTopic || `${category} - ${type}`} para profesionales de farmacia`;
   }
 }
 
-async function generateResourceContent(category: string, type: string, format: string, webContent: string): Promise<any> {
+async function generateResourceContent(category: string, type: string, format: string, webContent: string, customTopic?: string): Promise<any> {
   const openAIKey = Deno.env.get('OPENAI_API_KEY');
   
   if (!openAIKey) {
@@ -191,8 +191,11 @@ async function generateResourceContent(category: string, type: string, format: s
   const categorySpanish = categoryNames[category] || category;
   const typeSpanish = typeNames[type] || type;
 
+  // Usar tema personalizado si está disponible, sino usar categoría y tipo
+  const resourceTopic = customTopic || `${typeSpanish} de ${categorySpanish}`;
+
   const prompt = `
-  Eres un experto en recursos profesionales para farmacias. Crea un recurso práctico de tipo "${typeSpanish}" para la categoría "${categorySpanish}" basado en esta información actualizada:
+  Eres un experto en recursos profesionales para farmacias. Crea un recurso práctico sobre "${resourceTopic}" basado en esta información actualizada:
   
   ${webContent}
   
@@ -202,6 +205,11 @@ async function generateResourceContent(category: string, type: string, format: s
   - Actualizado con información reciente del sector
   - Fácil de usar y entender
   - Que resuelva problemas reales del día a día
+  
+  ${customTopic ? `
+  IMPORTANTE: El recurso debe estar enfocado específicamente en: "${customTopic}"
+  Adapta el tipo de recurso (${typeSpanish}) para que sea más útil para este tema específico.
+  ` : ''}
   
   Genera un recurso estructurado con:
   1. Título descriptivo y profesional
@@ -301,24 +309,48 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Iniciando generación de recurso diario...');
+    let requestData = {};
+    let customTopic = null;
+    let customCategory = null;
     
-    // Obtener el índice de la categoría actual
-    const categoryIndex = await getCurrentCategoryIndex();
-    const selectedCategory = RESOURCE_CATEGORIES[categoryIndex];
+    // Extraer datos del cuerpo de la solicitud, si los hay
+    if (req.body) {
+      try {
+        requestData = await req.json();
+        customTopic = requestData.customTopic || null;
+        customCategory = requestData.customCategory || null;
+      } catch (e) {
+        console.log('No se pudo parsear el cuerpo de la solicitud');
+      }
+    }
     
-    console.log(`Categoría seleccionada (índice ${categoryIndex}): ${selectedCategory}`);
+    console.log(`Iniciando generación de recurso (tema: ${customTopic || 'automático'}, categoría: ${customCategory || 'automática'})...`);
+    
+    let selectedCategory;
+    let categoryIndex;
+    
+    if (customCategory) {
+      // Usar categoría personalizada
+      selectedCategory = customCategory;
+      categoryIndex = -1; // Indicar que es personalizada
+      console.log(`Usando categoría personalizada: ${selectedCategory}`);
+    } else {
+      // Usar sistema automático
+      categoryIndex = await getCurrentCategoryIndex();
+      selectedCategory = RESOURCE_CATEGORIES[categoryIndex];
+      console.log(`Categoría seleccionada del ciclo (índice ${categoryIndex}): ${selectedCategory}`);
+    }
     
     // Seleccionar tipo y formato aleatorio apropiado
     const { type, format } = selectRandomTypeAndFormat(selectedCategory);
     console.log(`Tipo: ${type}, Formato: ${format}`);
     
     // Buscar información actualizada
-    const webContent = await searchWebContent(selectedCategory, type);
+    const webContent = await searchWebContent(selectedCategory, type, customTopic);
     console.log('Información web obtenida');
     
     // Generar contenido del recurso con IA
-    const resourceData = await generateResourceContent(selectedCategory, type, format, webContent);
+    const resourceData = await generateResourceContent(selectedCategory, type, format, webContent, customTopic);
     console.log('Contenido generado por IA');
     
     // Crear recurso en base de datos

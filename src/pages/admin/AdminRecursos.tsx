@@ -29,6 +29,9 @@ const AdminRecursos = () => {
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [generatingResource, setGeneratingResource] = useState(false);
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [customTopic, setCustomTopic] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -275,7 +278,10 @@ const AdminRecursos = () => {
       console.log('Generando recurso con IA...');
       
       const { data, error } = await supabase.functions.invoke('generate-daily-resource', {
-        body: {}
+        body: { 
+          customTopic: customTopic.trim() || null,
+          customCategory: customCategory || null
+        }
       });
 
       if (error) {
@@ -289,6 +295,9 @@ const AdminRecursos = () => {
           description: `Se ha creado "${data.title}" en la categoría ${data.category}`,
         });
         await loadResources();
+        setIsGenerateDialogOpen(false);
+        setCustomTopic('');
+        setCustomCategory('');
       } else {
         throw new Error(data?.error || 'Error desconocido al generar recurso');
       }
@@ -355,15 +364,82 @@ const AdminRecursos = () => {
           <p className="text-gray-600">Crear y gestionar recursos descargables</p>
         </div>
         <div className="flex space-x-3">
-          <Button 
-            variant="outline" 
-            onClick={handleGenerateResource}
-            disabled={generatingResource}
-            className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0 hover:from-purple-600 hover:to-indigo-700"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            {generatingResource ? 'Generando...' : 'Generar con IA'}
-          </Button>
+          <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0 hover:from-purple-600 hover:to-indigo-700"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generar con IA
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Generar Recurso con IA</DialogTitle>
+                <DialogDescription>
+                  Especifica un tema y categoría personalizados o deja vacío para usar el sistema automático
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customTopic">Tema personalizado (opcional)</Label>
+                  <Input
+                    id="customTopic"
+                    placeholder="Ej: Protocolo de atención telefónica"
+                    value={customTopic}
+                    onChange={(e) => setCustomTopic(e.target.value)}
+                    className="w-full"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Si está vacío, se usará el próximo tema del ciclo automático
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="customCategory">Categoría personalizada (opcional)</Label>
+                  <Select value={customCategory} onValueChange={setCustomCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Usar rotación automática" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Usar rotación automática</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-gray-500">
+                    Si no seleccionas nada, se usará la próxima categoría del ciclo
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsGenerateDialogOpen(false)}
+                  disabled={generatingResource}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleGenerateResource} 
+                  disabled={generatingResource}
+                  className="flex items-center gap-2"
+                >
+                  {generatingResource ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                  {generatingResource ? 'Generando...' : 'Generar Recurso'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => resetForm()}>
