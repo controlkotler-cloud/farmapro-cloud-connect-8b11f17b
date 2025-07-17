@@ -13,21 +13,21 @@ const supabase = createClient(
 );
 
 const COURSE_TOPICS = [
-  'Gestión de inventarios farmacéuticos',
-  'Atención farmacéutica personalizada',
-  'Nuevas regulaciones farmacéuticas en España',
-  'Tecnología en la farmacia moderna',
-  'Gestión de recetas electrónicas',
-  'Farmacogenética y medicina personalizada',
-  'Servicios farmacéuticos profesionales',
-  'Gestión de la cadena de frío',
-  'Dispensación de medicamentos huérfanos',
-  'Farmacovigilancia y seguridad',
-  'Gestión de residuos farmacéuticos',
-  'Educación sanitaria en farmacia',
-  'Gestión financiera de oficinas de farmacia',
-  'Marketing farmacéutico ético',
-  'Telemedicina y farmacia digital'
+  'Gestión del tiempo y productividad personal',
+  'Planificación estratégica y establecimiento de objetivos',
+  'Análisis financiero y control de costos',
+  'Marketing digital y redes sociales',
+  'Branding y construcción de marca personal',
+  'Estrategias de ventas y negociación',
+  'Liderazgo transformacional y motivación de equipos',
+  'Comunicación efectiva y habilidades interpersonales',
+  'Gestión del cambio organizacional',
+  'Atención al cliente y experiencia de usuario',
+  'Resolución de conflictos y gestión de quejas',
+  'Fidelización de clientes y programas de lealtad',
+  'Transformación digital y automatización',
+  'Análisis de datos y toma de decisiones',
+  'Ciberseguridad y protección de datos'
 ];
 
 const COURSE_CATEGORIES = [
