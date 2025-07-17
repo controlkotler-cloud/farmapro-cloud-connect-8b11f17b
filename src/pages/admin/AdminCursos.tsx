@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import CourseFormDialog from '@/components/admin/courses/CourseFormDialog';
 import CourseCard from '@/components/admin/courses/CourseCard';
+import { GenerateCourseButton } from '@/components/admin/courses/GenerateCourseButton';
 import type { Database } from '@/integrations/supabase/types';
 
 type Course = Database['public']['Tables']['courses']['Row'];
@@ -316,10 +317,13 @@ const AdminCursos = () => {
           <h1 className="text-3xl font-bold text-gray-900">Gestión de Cursos</h1>
           <p className="text-gray-600">Crear y gestionar cursos de formación</p>
         </div>
-        <Button onClick={handleCreateNew}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Curso
-        </Button>
+        <div className="flex gap-2">
+          <GenerateCourseButton />
+          <Button onClick={handleCreateNew}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Curso
+          </Button>
+        </div>
       </div>
 
       <CourseFormDialog
