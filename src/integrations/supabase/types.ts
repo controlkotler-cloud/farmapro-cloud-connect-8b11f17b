@@ -490,6 +490,47 @@ export type Database = {
           },
         ]
       }
+      generated_resources_log: {
+        Row: {
+          category: string
+          created_at: string | null
+          error_message: string | null
+          generated_at: string | null
+          id: string
+          resource_id: string | null
+          status: string | null
+          type: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          resource_id?: string | null
+          status?: string | null
+          type: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          resource_id?: string | null
+          status?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_resources_log_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_listings: {
         Row: {
           company_name: string
@@ -964,6 +1005,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      resource_generation_control: {
+        Row: {
+          created_at: string | null
+          current_category_index: number | null
+          cycle_complete: boolean | null
+          id: string
+          last_updated: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_category_index?: number | null
+          cycle_complete?: boolean | null
+          id?: string
+          last_updated?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_category_index?: number | null
+          cycle_complete?: boolean | null
+          id?: string
+          last_updated?: string | null
+        }
+        Relationships: []
       }
       resources: {
         Row: {
