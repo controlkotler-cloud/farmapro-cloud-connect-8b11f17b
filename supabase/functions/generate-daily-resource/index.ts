@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 // Librerías para generación de archivos
-import { jsPDF } from 'https://esm.sh/jspdf@2.5.1'
+import { PDFDocument, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1'
 import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
 
 const corsHeaders = {
@@ -138,22 +138,81 @@ function selectRandomTypeAndFormat(category: string): { type: string, format: st
   return { type: randomType, format: randomFormat };
 }
 
-// Función para generar archivo PDF
+// Función para generar archivo PDF usando pdf-lib
 async function generatePDFFile(title: string, content: string): Promise<Uint8Array> {
-  const doc = new jsPDF();
-  
-  // Configurar fuente y título
-  doc.setFontSize(20);
-  doc.text(title, 20, 30);
-  
-  // Agregar contenido
-  doc.setFontSize(12);
-  const lines = doc.splitTextToSize(content, 170);
-  doc.text(lines, 20, 50);
-  
-  // Convertir a bytes
-  const pdfBytes = doc.output('arraybuffer');
-  return new Uint8Array(pdfBytes);
+  try {
+    // Crear nuevo documento PDF
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]); // A4 size
+    
+    // Obtener fuentes
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    // Configuraciones
+    const pageWidth = 595;
+    const pageHeight = 842;
+    const margin = 50;
+    const lineHeight = 20;
+    let yPosition = pageHeight - margin;
+    
+    // Título
+    page.drawText(title, {
+      x: margin,
+      y: yPosition,
+      size: 20,
+      font: helveticaBoldFont,
+    });
+    yPosition -= 40;
+    
+    // Procesar contenido línea por línea
+    const maxWidth = pageWidth - (margin * 2);
+    const fontSize = 12;
+    const words = content.split(' ');
+    let currentLine = '';
+    
+    for (const word of words) {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const textWidth = helveticaFont.widthOfTextAtSize(testLine, fontSize);
+      
+      if (textWidth > maxWidth && currentLine) {
+        // Dibujar línea actual
+        page.drawText(currentLine, {
+          x: margin,
+          y: yPosition,
+          size: fontSize,
+          font: helveticaFont,
+        });
+        yPosition -= lineHeight;
+        currentLine = word;
+        
+        // Si necesitamos nueva página
+        if (yPosition < margin) {
+          const newPage = pdfDoc.addPage([595, 842]);
+          yPosition = pageHeight - margin;
+        }
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    // Dibujar última línea si existe
+    if (currentLine && yPosition > margin) {
+      page.drawText(currentLine, {
+        x: margin,
+        y: yPosition,
+        size: fontSize,
+        font: helveticaFont,
+      });
+    }
+    
+    // Generar el PDF
+    const pdfBytes = await pdfDoc.save();
+    return new Uint8Array(pdfBytes);
+  } catch (error) {
+    console.error('Error generando PDF:', error);
+    throw error;
+  }
 }
 
 // Función para generar archivo Excel
