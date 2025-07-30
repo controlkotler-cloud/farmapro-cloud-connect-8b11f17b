@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { User } from 'lucide-react';
 
 export const SidebarFooter = () => {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
 
   return (
     <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
@@ -21,7 +21,7 @@ export const SidebarFooter = () => {
               {profile.full_name || 'Usuario farmapro'}
             </p>
             <p className="text-xs text-gray-500 capitalize font-medium">
-              {profile.subscription_role || 'freemium'}
+              {isAdmin ? 'admin' : (profile.subscription_role || 'freemium')}
             </p>
           </div>
         </div>
