@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 
 export interface CookiePreferences {
   necessary: boolean;
@@ -12,16 +12,16 @@ const COOKIE_CONSENT_KEY = 'farmapro_cookie_consent';
 const COOKIE_PREFERENCES_KEY = 'farmapro_cookie_preferences';
 
 export const useCookieConsent = () => {
-  const [showBanner, setShowBanner] = useState(false);
-  const [forceShow, setForceShow] = useState(false);
-  const [preferences, setPreferences] = useState<CookiePreferences>({
+  const [showBanner, setShowBanner] = React.useState(false);
+  const [forceShow, setForceShow] = React.useState(false);
+  const [preferences, setPreferences] = React.useState<CookiePreferences>({
     necessary: true, // Siempre activadas
     analytics: false,
     marketing: false,
     preferences: false,
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     console.log('useCookieConsent - useEffect running');
     const hasConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
     const savedPreferences = localStorage.getItem(COOKIE_PREFERENCES_KEY);
