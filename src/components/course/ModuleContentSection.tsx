@@ -1,5 +1,6 @@
 
 import { BookOpen } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 interface ModuleContentSectionProps {
   content: string;
@@ -19,7 +20,7 @@ export const ModuleContentSection = ({ content }: ModuleContentSectionProps) => 
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
         <div 
           className="prose max-w-none text-gray-700 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
           style={{
             fontSize: '16px',
             lineHeight: '1.7'
