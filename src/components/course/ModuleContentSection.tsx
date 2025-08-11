@@ -20,7 +20,19 @@ export const ModuleContentSection = ({ content }: ModuleContentSectionProps) => 
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
         <div 
           className="prose max-w-none text-gray-700 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+          dangerouslySetInnerHTML={{ 
+            __html: (() => {
+              const sanitized = DOMPurify.sanitize(content);
+              // Log if content was modified during sanitization
+              if (sanitized !== content) {
+                console.warn('Content was sanitized for security:', {
+                  original: content.substring(0, 100),
+                  sanitized: sanitized.substring(0, 100)
+                });
+              }
+              return sanitized;
+            })()
+          }}
           style={{
             fontSize: '16px',
             lineHeight: '1.7'
