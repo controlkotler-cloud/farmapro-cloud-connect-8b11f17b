@@ -1365,7 +1365,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      job_listings_public: {
+        Row: {
+          company_name: string | null
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string | null
+          is_active: boolean | null
+          location: string | null
+          salary_range: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          salary_range?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          salary_range?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_user_points: {
@@ -1388,6 +1426,36 @@ export type Database = {
       can_access_user_data: {
         Args: { target_user_id: string }
         Returns: boolean
+      }
+      get_public_job_listing: {
+        Args: { _id: string }
+        Returns: {
+          company_name: string | null
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string | null
+          is_active: boolean | null
+          location: string | null
+          salary_range: string | null
+          title: string | null
+          updated_at: string | null
+        }
+      }
+      get_public_job_listings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          company_name: string | null
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string | null
+          is_active: boolean | null
+          location: string | null
+          salary_range: string | null
+          title: string | null
+          updated_at: string | null
+        }[]
       }
       is_active_team_member_of_subscription: {
         Args: { subscription_id: string; user_id: string }
