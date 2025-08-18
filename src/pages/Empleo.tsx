@@ -77,8 +77,10 @@ const Empleo = () => {
         console.log('Job listings loaded for authenticated user:', data?.length || 0);
         setJobs(data || []);
       } else {
-        // Unauthenticated users use the secure public function (no contact email)
-        const { data, error } = await supabase.rpc('get_public_job_listings');
+        // Unauthenticated users use the secure public view (no contact email)
+        const { data, error } = await supabase
+          .from('job_listings_public')
+          .select('*');
 
         if (error) {
           console.error('Error loading public job listings:', error);
@@ -95,7 +97,7 @@ const Empleo = () => {
         const jobsWithContactEmail = (data || []).map(job => ({
           ...job,
           contact_email: '',
-          requirements: '' // Public view doesn't include requirements for security
+          requirements: job.requirements || '' // Use requirements from view or empty string
         }));
         setJobs(jobsWithContactEmail);
       }

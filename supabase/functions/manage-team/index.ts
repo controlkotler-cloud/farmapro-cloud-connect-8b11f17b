@@ -115,13 +115,27 @@ serve(async (req) => {
         });
 
       case 'accept_invitation':
-        // Accept invitation and activate member
+        // First validate the invitation before processing
+        const { data: validationResult, error: validationError } = await supabaseClient
+          .rpc('validate_team_invitation', {
+            team_id_param: teamId,
+            invitation_token_param: invitationToken,
+            user_email_param: user.email
+          });
+
+        if (validationError || !validationResult) {
+          logStep('Invitation validation failed', { validationError, result: validationResult });
+          throw new Error('Invalid or expired invitation');
+        }
+
+        // Update the team member status, clear the token, and set joined_at
         const { error: acceptError } = await supabaseClient
           .from('team_members')
           .update({
             user_id: user.id,
             status: 'active',
-            joined_at: new Date().toISOString()
+            joined_at: new Date().toISOString(),
+            invitation_token: null // Clear token to prevent reuse
           })
           .eq('invitation_token', invitationToken)
           .eq('email', user.email);

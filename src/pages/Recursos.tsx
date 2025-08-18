@@ -52,11 +52,34 @@ export const Recursos = () => {
         const { updateChallengeProgress } = await import('@/utils/challengeUtils');
         await updateChallengeProgress(profile.id, 'resource_downloaded', 1);
       }
+
+      // Secure file download using signed URLs for private storage
+      if (resource.is_premium) {
+        // For premium resources, generate a signed URL for secure access
+        const { data: signedUrl, error } = await supabase.storage
+          .from('recursos')
+          .createSignedUrl(resource.file_url.replace('/storage/v1/object/public/recursos/', ''), 60); // 1 minute expiry
+
+        if (error) {
+          console.error('Error creating signed URL:', error);
+          toast({
+            title: "Error",
+            description: "Error al generar enlace de descarga seguro",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        window.open(signedUrl.signedUrl, '_blank');
+      } else {
+        // For non-premium resources, use direct URL
+        window.open(resource.file_url, '_blank');
+      }
     } catch (error) {
       console.error('Error recording download:', error);
+      // Still allow download even if recording fails
+      window.open(resource.file_url, '_blank');
     }
-
-    window.open(resource.file_url, '_blank');
     
     toast({
       title: "Descarga iniciada",

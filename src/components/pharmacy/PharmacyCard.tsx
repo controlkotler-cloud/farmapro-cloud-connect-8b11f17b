@@ -13,15 +13,15 @@ interface PublicPharmacyListing {
   description: string;
   price: number;
   surface_area: number;
-  annual_revenue: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
   images_urls: string[] | null;
 }
 
-// Extended interface for authenticated users (includes contact info)
+// Extended interface for authenticated users (includes contact info and sensitive data)
 interface PharmacyListing extends PublicPharmacyListing {
+  annual_revenue: number;
   contact_email: string;
   seller_id: string;
 }
@@ -126,10 +126,10 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
                   <span>{listing.surface_area} m²</span>
                 </div>
               )}
-              {listing.annual_revenue && (
+              {(listing as any).annual_revenue && (
                 <div className="flex items-center">
                   <TrendingUp className="h-4 w-4 mr-1 text-gray-400" />
-                  <span className="text-xs">{formatRevenue(listing.annual_revenue)}</span>
+                  <span className="text-xs">{formatRevenue((listing as any).annual_revenue)}</span>
                 </div>
               )}
             </div>

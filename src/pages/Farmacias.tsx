@@ -34,7 +34,6 @@ interface PublicPharmacyListing {
   description: string;
   price: number;
   surface_area: number;
-  annual_revenue: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
