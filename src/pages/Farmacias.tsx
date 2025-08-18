@@ -26,10 +26,25 @@ interface PharmacyListing {
   created_at: string;
 }
 
+// Interface for public view without sensitive information
+interface PublicPharmacyListing {
+  id: string;
+  title: string;
+  location: string;
+  description: string;
+  price: number;
+  surface_area: number;
+  annual_revenue: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  images_urls: string[] | null;
+}
+
 const Farmacias = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { toast } = useToast();
-  const [listings, setListings] = useState<PharmacyListing[]>([]);
+  const [listings, setListings] = useState<PublicPharmacyListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -49,10 +64,11 @@ const Farmacias = () => {
 
   const loadListings = async () => {
     setLoading(true);
+    
+    // Use the secure public view that doesn't expose contact emails to anonymous users
     const { data, error } = await supabase
-      .from('pharmacy_listings')
+      .from('pharmacy_listings_public')
       .select('*')
-      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -140,6 +156,55 @@ const Farmacias = () => {
     return profile?.subscription_role === 'admin';
   };
 
+  // Function to handle contact click with secure email retrieval
+  const handleContactClick = async (pharmacyId: string, title: string) => {
+    if (!user) {
+      toast({
+        title: "Autenticación requerida",
+        description: "Debes iniciar sesión para ver la información de contacto",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Use the secure function to get contact email
+      const { data: contactEmail, error } = await supabase.rpc(
+        'get_pharmacy_contact_email', 
+        { pharmacy_id: pharmacyId }
+      );
+
+      if (error) {
+        console.error('Error getting contact email:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo obtener la información de contacto",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!contactEmail) {
+        toast({
+          title: "Sin acceso",
+          description: "No tienes permisos para ver esta información de contacto",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Open email client with contact information
+      window.location.href = `mailto:${contactEmail}?subject=Interés en ${title}`;
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error al obtener la información de contacto",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreateListing = () => {
     setShowDialog(true);
   };
@@ -216,7 +281,7 @@ const Farmacias = () => {
         </DialogContent>
       </Dialog>
 
-      <PharmacyGrid listings={listings} loading={loading} />
+      <PharmacyGrid listings={listings} loading={loading} onContactClick={handleContactClick} />
     </motion.div>
   );
 };

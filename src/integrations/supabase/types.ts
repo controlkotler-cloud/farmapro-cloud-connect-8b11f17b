@@ -1404,6 +1404,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy_listings_public: {
+        Row: {
+          annual_revenue: number | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          images_urls: string[] | null
+          is_active: boolean | null
+          location: string | null
+          price: number | null
+          surface_area: number | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          annual_revenue?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          images_urls?: string[] | null
+          is_active?: boolean | null
+          location?: string | null
+          price?: number | null
+          surface_area?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          annual_revenue?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          images_urls?: string[] | null
+          is_active?: boolean | null
+          location?: string | null
+          price?: number | null
+          surface_area?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_user_points: {
@@ -1429,6 +1471,10 @@ export type Database = {
       }
       get_job_contact_email: {
         Args: { job_id: string }
+        Returns: string
+      }
+      get_pharmacy_contact_email: {
+        Args: { pharmacy_id: string }
         Returns: string
       }
       get_public_job_listing: {

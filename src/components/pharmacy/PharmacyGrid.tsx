@@ -2,7 +2,7 @@
 import { PharmacyCard } from './PharmacyCard';
 import { Card, CardContent } from '@/components/ui/card';
 
-interface PharmacyListing {
+interface PublicPharmacyListing {
   id: string;
   title: string;
   location: string;
@@ -10,18 +10,19 @@ interface PharmacyListing {
   price: number;
   surface_area: number;
   annual_revenue: number;
-  contact_email: string;
-  seller_id: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
+  images_urls: string[] | null;
 }
 
 interface PharmacyGridProps {
-  listings: PharmacyListing[];
+  listings: PublicPharmacyListing[];
   loading: boolean;
+  onContactClick?: (pharmacyId: string, title: string) => void;
 }
 
-export const PharmacyGrid = ({ listings, loading }: PharmacyGridProps) => {
+export const PharmacyGrid = ({ listings, loading, onContactClick }: PharmacyGridProps) => {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -41,7 +42,7 @@ export const PharmacyGrid = ({ listings, loading }: PharmacyGridProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {listings.map((listing, index) => (
-        <PharmacyCard key={listing.id} listing={listing} index={index} />
+        <PharmacyCard key={listing.id} listing={listing} index={index} onContactClick={onContactClick} />
       ))}
     </div>
   );

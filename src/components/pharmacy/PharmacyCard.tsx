@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Home, TrendingUp, Mail, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-interface PharmacyListing {
+// Base interface for public pharmacy listings (without sensitive data)
+interface PublicPharmacyListing {
   id: string;
   title: string;
   location: string;
@@ -13,15 +14,22 @@ interface PharmacyListing {
   price: number;
   surface_area: number;
   annual_revenue: number;
-  contact_email: string;
-  seller_id: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
+  images_urls: string[] | null;
+}
+
+// Extended interface for authenticated users (includes contact info)
+interface PharmacyListing extends PublicPharmacyListing {
+  contact_email: string;
+  seller_id: string;
 }
 
 interface PharmacyCardProps {
-  listing: PharmacyListing;
+  listing: PublicPharmacyListing;
   index: number;
+  onContactClick?: (pharmacyId: string, title: string) => void;
 }
 
 const pharmacyImages = [
@@ -55,7 +63,7 @@ const getPharmacyImage = (index: number) => {
   return pharmacyImages[index % pharmacyImages.length];
 };
 
-export const PharmacyCard = ({ listing, index }: PharmacyCardProps) => {
+export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -128,7 +136,7 @@ export const PharmacyCard = ({ listing, index }: PharmacyCardProps) => {
             
             <Button 
               className="w-full mt-4"
-              onClick={() => window.location.href = `mailto:${listing.contact_email}?subject=Interés en ${listing.title}`}
+              onClick={() => onContactClick ? onContactClick(listing.id, listing.title) : undefined}
             >
               <Mail className="h-4 w-4 mr-2" />
               Contactar
