@@ -1458,6 +1458,10 @@ export type Database = {
         Args: { points: number; user_id: string }
         Returns: undefined
       }
+      audit_secure_function_access: {
+        Args: { accessed_data: Json; function_name: string }
+        Returns: undefined
+      }
       calculate_quiz_stats: {
         Args: { quiz_id_param: string }
         Returns: {
