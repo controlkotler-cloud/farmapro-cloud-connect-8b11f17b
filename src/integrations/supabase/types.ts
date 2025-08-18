@@ -687,6 +687,48 @@ export type Database = {
           },
         ]
       }
+      pharmacy_listings_public: {
+        Row: {
+          annual_revenue: number | null
+          created_at: string | null
+          description: string
+          id: string
+          images_urls: string[] | null
+          is_active: boolean | null
+          location: string
+          price: number | null
+          surface_area: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          annual_revenue?: number | null
+          created_at?: string | null
+          description: string
+          id: string
+          images_urls?: string[] | null
+          is_active?: boolean | null
+          location: string
+          price?: number | null
+          surface_area?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          annual_revenue?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          images_urls?: string[] | null
+          is_active?: boolean | null
+          location?: string
+          price?: number | null
+          surface_area?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -1404,48 +1446,6 @@ export type Database = {
         }
         Relationships: []
       }
-      pharmacy_listings_public: {
-        Row: {
-          annual_revenue: number | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          images_urls: string[] | null
-          is_active: boolean | null
-          location: string | null
-          price: number | null
-          surface_area: number | null
-          title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          annual_revenue?: number | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          images_urls?: string[] | null
-          is_active?: boolean | null
-          location?: string | null
-          price?: number | null
-          surface_area?: number | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          annual_revenue?: number | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          images_urls?: string[] | null
-          is_active?: boolean | null
-          location?: string | null
-          price?: number | null
-          surface_area?: number | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       add_user_points: {
@@ -1523,12 +1523,20 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: boolean
       }
+      is_team_owner_strict: {
+        Args: { team_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       is_team_subscription_owner: {
         Args: { subscription_id: string; user_id: string }
         Returns: boolean
       }
       log_security_event: {
         Args: { details: Json; event_type: string; user_id_param?: string }
+        Returns: undefined
+      }
+      update_challenge_progress: {
+        Args: { challenge_id_param: string; points_earned_param?: number }
         Returns: undefined
       }
     }

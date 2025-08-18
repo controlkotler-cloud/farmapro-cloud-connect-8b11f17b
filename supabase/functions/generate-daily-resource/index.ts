@@ -505,6 +505,43 @@ serve(async (req) => {
   }
 
   try {
+    // Security: Verify admin authorization
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.log("SECURITY: No authorization header provided");
+      return new Response(JSON.stringify({ error: "Authorization required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      console.log("SECURITY: Invalid token provided");
+      return new Response(JSON.stringify({ error: "Invalid authorization" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    // Check if user is admin
+    const { data: isAdmin, error: adminError } = await supabase
+      .rpc('is_current_user_admin');
+    
+    if (adminError || !isAdmin) {
+      console.log("SECURITY: Non-admin attempted resource generation", { userId: userData.user.id });
+      await supabase.rpc('log_security_event', {
+        event_type: 'unauthorized_resource_generation',
+        details: { userId: userData.user.id, email: userData.user.email }
+      });
+      return new Response(JSON.stringify({ error: "Admin privileges required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
     let requestData = {};
     let customTopic = null;
     let customCategory = null;
