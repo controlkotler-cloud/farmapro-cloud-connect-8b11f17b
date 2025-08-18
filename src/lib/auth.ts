@@ -6,7 +6,9 @@ export const signUp = async (email: string, password: string, fullName: string, 
     email,
     password,
     options: {
-      emailRedirectTo: `${window.location.origin}/`,
+      emailRedirectTo: window.location.hostname === 'localhost' 
+        ? `${window.location.origin}/`
+        : 'https://portal.farmapro.es/',
       data: {
         full_name: fullName,
         pharmacy_name: pharmacyName,
