@@ -1487,8 +1487,16 @@ export type Database = {
         Args: { job_id: string }
         Returns: string
       }
+      get_job_contact_email_secure: {
+        Args: { job_id_param: string }
+        Returns: string
+      }
       get_pharmacy_contact_email: {
         Args: { pharmacy_id: string }
+        Returns: string
+      }
+      get_pharmacy_contact_email_secure: {
+        Args: { pharmacy_id_param: string }
         Returns: string
       }
       is_active_team_member_of_subscription: {
@@ -1515,43 +1523,9 @@ export type Database = {
         Args: { subscription_id: string; user_id: string }
         Returns: boolean
       }
-      job_listings_contact_access: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          company_name: string
-          contact_email: string
-          created_at: string
-          description: string
-          expires_at: string
-          id: string
-          is_active: boolean
-          location: string
-          requirements: string
-          salary_range: string
-          title: string
-          updated_at: string
-        }[]
-      }
       log_security_event: {
         Args: { details: Json; event_type: string; user_id_param?: string }
         Returns: undefined
-      }
-      pharmacy_listings_contact_access: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          annual_revenue: number
-          contact_email: string
-          created_at: string
-          description: string
-          id: string
-          images_urls: string[]
-          is_active: boolean
-          location: string
-          price: number
-          surface_area: number
-          title: string
-          updated_at: string
-        }[]
       }
       update_challenge_progress: {
         Args: { challenge_id_param: string; points_earned_param?: number }
