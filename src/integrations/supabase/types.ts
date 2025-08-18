@@ -1452,6 +1452,62 @@ export type Database = {
         }
         Relationships: []
       }
+      job_listings_safe: {
+        Row: {
+          company_name: string | null
+          contact_email: string | null
+          created_at: string | null
+          description: string | null
+          employer_id: string | null
+          expires_at: string | null
+          id: string | null
+          is_active: boolean | null
+          location: string | null
+          requirements: string | null
+          salary_range: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          contact_email?: never
+          created_at?: string | null
+          description?: string | null
+          employer_id?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          requirements?: string | null
+          salary_range?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          contact_email?: never
+          created_at?: string | null
+          description?: string | null
+          employer_id?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          requirements?: string | null
+          salary_range?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_listings_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_user_points: {
@@ -1480,6 +1536,10 @@ export type Database = {
         Returns: boolean
       }
       get_job_contact_email: {
+        Args: { job_id: string }
+        Returns: string
+      }
+      get_job_contact_email_rpc: {
         Args: { job_id: string }
         Returns: string
       }
