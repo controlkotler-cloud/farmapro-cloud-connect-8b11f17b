@@ -54,53 +54,30 @@ const Empleo = () => {
       setLoading(true);
       console.log('Loading active job listings...');
       
-      // Use secure public function for unauthenticated users, direct access for authenticated
-      if (profile?.id) {
-        // Authenticated users can see full job listings including contact email
-        const { data, error } = await supabase
-          .from('job_listings')
-          .select('*')
-          .eq('is_active', true)
-          .gte('expires_at', new Date().toISOString())
-          .order('created_at', { ascending: false });
+      // Always use the secure public table - both authenticated and unauthenticated users
+      const { data, error } = await supabase
+        .from('job_listings_public')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error loading job listings:', error);
-          toast({
-            title: "Error",
-            description: "Error al cargar ofertas de empleo",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        console.log('Job listings loaded for authenticated user:', data?.length || 0);
-        setJobs(data || []);
-      } else {
-        // Unauthenticated users use the secure public view (no contact email)
-        const { data, error } = await supabase
-          .from('job_listings_public')
-          .select('*');
-
-        if (error) {
-          console.error('Error loading public job listings:', error);
-          toast({
-            title: "Error",
-            description: "Error al cargar ofertas de empleo",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        console.log('Public job listings loaded:', data?.length || 0);
-        // Add empty contact_email and requirements for interface compatibility
-        const jobsWithContactEmail = (data || []).map(job => ({
-          ...job,
-          contact_email: '',
-          requirements: job.requirements || '' // Use requirements from view or empty string
-        }));
-        setJobs(jobsWithContactEmail);
+      if (error) {
+        console.error('Error loading job listings:', error);
+        toast({
+          title: "Error",
+          description: "Error al cargar ofertas de empleo",
+          variant: "destructive"
+        });
+        return;
       }
+
+      console.log('Job listings loaded:', data?.length || 0);
+      // Add empty contact_email for interface compatibility
+      const jobsWithContactEmail = (data || []).map(job => ({
+        ...job,
+        contact_email: '', // Will be fetched separately when needed
+        requirements: job.requirements || ''
+      }));
+      setJobs(jobsWithContactEmail);
     } catch (error: any) {
       console.error('Exception loading job listings:', error);
       toast({
@@ -355,7 +332,31 @@ const Empleo = () => {
                             <Button 
                               size="sm" 
                               disabled={isJobExpired(job.expires_at)}
-                              onClick={() => window.location.href = `mailto:${job.contact_email}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`}
+                              onClick={async () => {
+                                try {
+                                  // Get contact email securely via RPC
+                                  const { data: contactEmail, error } = await supabase
+                                    .rpc('get_job_contact_email_rpc', { job_id: job.id });
+                                  
+                                  if (error || !contactEmail) {
+                                    toast({
+                                      title: "Error",
+                                      description: "No se pudo obtener la información de contacto",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  
+                                  window.location.href = `mailto:${contactEmail}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`;
+                                } catch (error) {
+                                  console.error('Error getting contact email:', error);
+                                  toast({
+                                    title: "Error",
+                                    description: "Error al obtener información de contacto",
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
                               className="shadow-md"
                             >
                               <Mail className="h-4 w-4 mr-2" />
