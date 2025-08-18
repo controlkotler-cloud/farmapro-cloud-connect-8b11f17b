@@ -533,10 +533,15 @@ serve(async (req) => {
     if (adminError || !isAdmin) {
       console.log("SECURITY: Non-admin attempted resource generation", { userId: userData.user.id });
       await supabase.rpc('log_security_event', {
-        event_type: 'unauthorized_resource_generation',
-        details: { userId: userData.user.id, email: userData.user.email }
+        event_type: 'suspicious_activity',
+        details: {
+          description: 'Unauthorized resource generation attempt',
+          metadata: { endpoint: 'generate-daily-resource', userId: userData.user.id, email: userData.user.email },
+          severity: 'high'
+        },
+        user_id_param: userData.user.id
       });
-      return new Response(JSON.stringify({ error: "Admin privileges required" }), {
+      return new Response(JSON.stringify({ error: "Unauthorized: Admin access required" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 403,
       });

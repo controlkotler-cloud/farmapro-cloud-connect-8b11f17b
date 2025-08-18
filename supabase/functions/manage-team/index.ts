@@ -36,22 +36,31 @@ serve(async (req) => {
 
     // Security: Log all team management attempts
     await supabaseClient.rpc('log_security_event', {
-      event_type: 'team_management_attempt',
-      details: { action, teamId, userEmail: user.email },
+      event_type: 'admin_action',
+      details: {
+        description: `Team management action: ${action}`,
+        metadata: { action, teamId, userEmail: user.email },
+        severity: 'medium'
+      },
       user_id_param: user.id
     });
 
     switch (action) {
       case 'invite_member':
-        // Security: Verify team ownership before inviting
+        // CRITICAL: Verify team ownership before inviting
         const { data: ownershipCheck, error: ownershipError } = await supabaseClient
           .rpc('is_team_owner_strict', { team_id_param: teamId, user_id_param: user.id });
         
         if (ownershipError || !ownershipCheck) {
           logStep("SECURITY: Unauthorized invite attempt", { userId: user.id, teamId });
           await supabaseClient.rpc('log_security_event', {
-            event_type: 'unauthorized_team_invite',
-            details: { teamId, attemptedBy: user.email }
+            event_type: 'suspicious_activity',
+            details: {
+              description: 'Unauthorized team member invitation attempt',
+              metadata: { teamId, attemptedBy: user.email },
+              severity: 'high'
+            },
+            user_id_param: user.id
           });
           throw new Error("Unauthorized: Only team owners can invite members");
         }
@@ -137,15 +146,20 @@ serve(async (req) => {
         });
 
       case 'remove_member':
-        // Security: Verify team ownership before removing
+        // CRITICAL: Verify team ownership before removing
         const { data: removeOwnershipCheck, error: removeOwnershipError } = await supabaseClient
           .rpc('is_team_owner_strict', { team_id_param: teamId, user_id_param: user.id });
         
         if (removeOwnershipError || !removeOwnershipCheck) {
           logStep("SECURITY: Unauthorized remove attempt", { userId: user.id, teamId });
           await supabaseClient.rpc('log_security_event', {
-            event_type: 'unauthorized_team_remove',
-            details: { teamId, attemptedBy: user.email }
+            event_type: 'suspicious_activity',
+            details: {
+              description: 'Unauthorized team member removal attempt',
+              metadata: { teamId, attemptedBy: user.email },
+              severity: 'high'
+            },
+            user_id_param: user.id
           });
           throw new Error("Unauthorized: Only team owners can remove members");
         }
