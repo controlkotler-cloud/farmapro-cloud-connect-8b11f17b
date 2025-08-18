@@ -56,19 +56,23 @@ const AdminUsuarios = () => {
   };
 
   const updateUserRole = async (userId: string, newRole: UserRole) => {
-    const { error } = await supabase
+    console.log('Attempting to update user role:', { userId, newRole });
+    
+    const { data, error } = await supabase
       .from('profiles')
       .update({ subscription_role: newRole })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select(); // Add select to see the updated data
 
     if (error) {
       console.error('Error updating user role:', error);
       toast({
         title: "Error",
-        description: "No se pudo actualizar el rol del usuario",
+        description: `No se pudo actualizar el rol del usuario: ${error.message}`,
         variant: "destructive",
       });
     } else {
+      console.log('User role updated successfully:', data);
       toast({
         title: "Éxito",
         description: "Rol de usuario actualizado correctamente",
