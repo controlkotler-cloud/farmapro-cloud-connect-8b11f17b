@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1407,16 +1407,16 @@ export type Database = {
     }
     Functions: {
       add_user_points: {
-        Args: { user_id: string; points: number }
+        Args: { points: number; user_id: string }
         Returns: undefined
       }
       calculate_quiz_stats: {
         Args: { quiz_id_param: string }
         Returns: {
-          total_attempts: number
-          total_users: number
           average_score: number
           pass_rate: number
+          total_attempts: number
+          total_users: number
         }[]
       }
       calculate_team_price: {
@@ -1426,6 +1426,10 @@ export type Database = {
       can_access_user_data: {
         Args: { target_user_id: string }
         Returns: boolean
+      }
+      get_job_contact_email: {
+        Args: { job_id: string }
+        Returns: string
       }
       get_public_job_listing: {
         Args: { _id: string }
@@ -1476,6 +1480,10 @@ export type Database = {
       is_team_subscription_owner: {
         Args: { subscription_id: string; user_id: string }
         Returns: boolean
+      }
+      log_security_event: {
+        Args: { details: Json; event_type: string; user_id_param?: string }
+        Returns: undefined
       }
     }
     Enums: {

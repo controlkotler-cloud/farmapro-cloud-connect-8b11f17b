@@ -10,7 +10,7 @@ interface SecurityEvent {
 
 export const logSecurityEvent = async (event: SecurityEvent) => {
   try {
-    // For now, log to console until the security_audit_log table is available in types
+    // Log to console for immediate visibility
     console.warn('Security Event:', {
       type: event.event_type,
       user: event.user_id,
@@ -18,15 +18,17 @@ export const logSecurityEvent = async (event: SecurityEvent) => {
       timestamp: new Date().toISOString()
     });
     
-    // TODO: Implement database logging once types are regenerated
-    // const { error } = await supabase
-    //   .from('security_audit_log')
-    //   .insert({
-    //     event_type: event.event_type,
-    //     user_id: event.user_id,
-    //     details: event.details,
-    //     timestamp: new Date().toISOString()
-    //   });
+    // Use secure RPC function for database logging
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { error } = await supabase.rpc('log_security_event', {
+      event_type: event.event_type,
+      details: event.details,
+      user_id_param: event.user_id
+    });
+    
+    if (error) {
+      console.error('Failed to log security event to database:', error);
+    }
   } catch (error) {
     console.error('Security logging error:', error);
   }

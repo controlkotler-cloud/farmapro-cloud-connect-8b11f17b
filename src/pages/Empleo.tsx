@@ -54,25 +54,51 @@ const Empleo = () => {
       setLoading(true);
       console.log('Loading active job listings...');
       
-      const { data, error } = await supabase
-        .from('job_listings')
-        .select('*')
-        .eq('is_active', true)
-        .gte('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false });
+      // Use secure public function for unauthenticated users, direct access for authenticated
+      if (profile?.id) {
+        // Authenticated users can see full job listings including contact email
+        const { data, error } = await supabase
+          .from('job_listings')
+          .select('*')
+          .eq('is_active', true)
+          .gte('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error loading job listings:', error);
-        toast({
-          title: "Error",
-          description: "Error al cargar ofertas de empleo",
-          variant: "destructive"
-        });
-        return;
+        if (error) {
+          console.error('Error loading job listings:', error);
+          toast({
+            title: "Error",
+            description: "Error al cargar ofertas de empleo",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log('Job listings loaded for authenticated user:', data?.length || 0);
+        setJobs(data || []);
+      } else {
+        // Unauthenticated users use the secure public function (no contact email)
+        const { data, error } = await supabase.rpc('get_public_job_listings');
+
+        if (error) {
+          console.error('Error loading public job listings:', error);
+          toast({
+            title: "Error",
+            description: "Error al cargar ofertas de empleo",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log('Public job listings loaded:', data?.length || 0);
+        // Add empty contact_email and requirements for interface compatibility
+        const jobsWithContactEmail = (data || []).map(job => ({
+          ...job,
+          contact_email: '',
+          requirements: '' // Public view doesn't include requirements for security
+        }));
+        setJobs(jobsWithContactEmail);
       }
-
-      console.log('Job listings loaded:', data?.length || 0);
-      setJobs(data || []);
     } catch (error: any) {
       console.error('Exception loading job listings:', error);
       toast({
@@ -323,15 +349,30 @@ const Empleo = () => {
                             <Calendar className="h-3 w-3 mr-1" />
                             Expira: {formatDate(job.expires_at)}
                           </div>
-                          <Button 
-                            size="sm" 
-                            disabled={isJobExpired(job.expires_at)}
-                            onClick={() => window.location.href = `mailto:${job.contact_email}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`}
-                            className="shadow-md"
-                          >
-                            <Mail className="h-4 w-4 mr-2" />
-                            Contactar
-                          </Button>
+                          {profile?.id ? (
+                            <Button 
+                              size="sm" 
+                              disabled={isJobExpired(job.expires_at)}
+                              onClick={() => window.location.href = `mailto:${job.contact_email}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`}
+                              className="shadow-md"
+                            >
+                              <Mail className="h-4 w-4 mr-2" />
+                              Contactar
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => toast({
+                                title: "Inicia sesión",
+                                description: "Debes iniciar sesión para ver la información de contacto",
+                                variant: "default"
+                              })}
+                            >
+                              <Mail className="h-4 w-4 mr-2" />
+                              Ver contacto
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
