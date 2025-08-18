@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 interface SecurityEvent {
   event_type: 'content_sanitized' | 'admin_action' | 'content_modification' | 'suspicious_activity';
   user_id?: string;
@@ -19,7 +21,6 @@ export const logSecurityEvent = async (event: SecurityEvent) => {
     });
     
     // Use secure RPC function for database logging
-    const { supabase } = await import('@/integrations/supabase/client');
     const { error } = await supabase.rpc('log_security_event', {
       event_type: event.event_type,
       details: event.details,
@@ -27,7 +28,7 @@ export const logSecurityEvent = async (event: SecurityEvent) => {
     });
     
     if (error) {
-      console.error('Failed to log security event to database:', error);
+      console.error('Security logging RPC error:', error);
     }
   } catch (error) {
     console.error('Security logging error:', error);

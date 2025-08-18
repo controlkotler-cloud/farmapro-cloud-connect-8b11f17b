@@ -1,6 +1,7 @@
 
 import { BookOpen } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import { sanitizationLogger } from '@/lib/securityLogger';
 
 interface ModuleContentSectionProps {
   content: string;
@@ -23,13 +24,8 @@ export const ModuleContentSection = ({ content }: ModuleContentSectionProps) => 
           dangerouslySetInnerHTML={{ 
             __html: (() => {
               const sanitized = DOMPurify.sanitize(content);
-              // Log if content was modified during sanitization
-              if (sanitized !== content) {
-                console.warn('Content was sanitized for security:', {
-                  original: content.substring(0, 100),
-                  sanitized: sanitized.substring(0, 100)
-                });
-              }
+              // Use secure logging for content sanitization
+              sanitizationLogger.logContentSanitization(content, sanitized);
               return sanitized;
             })()
           }}
