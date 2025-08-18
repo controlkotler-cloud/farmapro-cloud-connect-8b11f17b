@@ -1219,9 +1219,11 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          expires_at: string | null
           id: string
           invitation_token: string | null
           invited_at: string
+          invited_email: string | null
           joined_at: string | null
           status: string
           team_id: string
@@ -1231,9 +1233,11 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          expires_at?: string | null
           id?: string
           invitation_token?: string | null
           invited_at?: string
+          invited_email?: string | null
           joined_at?: string | null
           status?: string
           team_id: string
@@ -1243,9 +1247,11 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          expires_at?: string | null
           id?: string
           invitation_token?: string | null
           invited_at?: string
+          invited_email?: string | null
           joined_at?: string | null
           status?: string
           team_id?: string
@@ -1465,6 +1471,10 @@ export type Database = {
         Args: { member_count: number }
         Returns: number
       }
+      can_access_contact_info: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       can_access_user_data: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -1538,6 +1548,14 @@ export type Database = {
       update_challenge_progress: {
         Args: { challenge_id_param: string; points_earned_param?: number }
         Returns: undefined
+      }
+      validate_team_invitation: {
+        Args: {
+          invitation_token_param: string
+          team_id_param: string
+          user_email_param: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
