@@ -44,72 +44,84 @@ export const sanitizeHtmlContent = (content: string, userId?: string): string =>
   const originalContent = content;
   
   try {
-    // Configure DOMPurify with strict settings
-    const config = createSecurePurifyConfig();
+    // Configure DOMPurify with ultra-strict settings
+    const config = {
+      ...createSecurePurifyConfig(),
+      // Even more restrictive tags - remove img for security
+      ALLOWED_TAGS: [
+        'p', 'div', 'span', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'ul', 'ol', 'li', 'blockquote', 'pre', 'code'
+      ],
+      // Only essential attributes
+      ALLOWED_ATTR: ['title', 'class'],
+      // Block all external content
+      FORBID_ATTR: ['src', 'href', 'style', 'onclick', 'onerror', 'onload'],
+      KEEP_CONTENT: false,
+      WHOLE_DOCUMENT: false,
+      RETURN_DOM: false,
+      RETURN_DOM_FRAGMENT: false,
+      RETURN_DOM_IMPORT: false,
+      SANITIZE_DOM: true,
+      SANITIZE_NAMED_PROPS: true,
+    };
     
-    // Add hooks for security monitoring
+    // Add enhanced security hooks
     DOMPurify.addHook('uponSanitizeElement', (node, data) => {
-      // Log potentially dangerous elements that were removed
-      if (data.tagName && config.FORBID_TAGS?.includes(data.tagName.toLowerCase())) {
+      // Block any potentially dangerous elements
+      const dangerousTags = ['script', 'object', 'embed', 'iframe', 'frame', 'form', 'input', 'textarea', 'select', 'button', 'meta', 'link'];
+      if (data.tagName && dangerousTags.includes(data.tagName.toLowerCase())) {
         sanitizationLogger.logContentSanitization(
-          `Blocked dangerous tag: ${data.tagName}`,
-          'Tag removed by DOMPurify',
+          `SECURITY BLOCK: Dangerous tag ${data.tagName}`,
+          'High-risk element blocked',
           userId
         );
+        // Use DOMPurify's removal approach instead of direct DOM manipulation
+        data.allowedTags = data.allowedTags || {};
+        data.allowedTags[data.tagName] = false;
       }
     });
 
     DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
-      // Log potentially dangerous attributes that were removed
-      if (data.attrName && config.FORBID_ATTR?.includes(data.attrName.toLowerCase())) {
+      // Block all event handlers and suspicious attributes
+      const dangerousAttrs = ['on', 'style', 'href', 'src', 'action', 'formaction', 'background', 'dynsrc', 'lowsrc'];
+      if (data.attrName && dangerousAttrs.some(attr => data.attrName.toLowerCase().startsWith(attr))) {
         sanitizationLogger.logContentSanitization(
-          `Blocked dangerous attribute: ${data.attrName}`,
-          'Attribute removed by DOMPurify',
+          `SECURITY BLOCK: Dangerous attribute ${data.attrName}=${data.attrValue}`,
+          'High-risk attribute blocked',
           userId
         );
-      }
-      
-      // Check for suspicious URL schemes
-      if (data.attrValue && (data.attrName === 'href' || data.attrName === 'src')) {
-        const suspiciousPatterns = [
-          /javascript:/i,
-          /data:/i,
-          /vbscript:/i,
-          /on\w+=/i
-        ];
-        
-        for (const pattern of suspiciousPatterns) {
-          if (pattern.test(data.attrValue)) {
-            sanitizationLogger.logContentSanitization(
-              `Blocked suspicious URL: ${data.attrValue}`,
-              'Suspicious URL scheme detected',
-              userId
-            );
-            data.attrValue = '#'; // Replace with safe placeholder
-            break;
-          }
-        }
+        data.attrValue = '';
+        data.keepAttr = false;
       }
     });
 
-    // Sanitize the content
+    // Sanitize with strict config
     const sanitizedContent = DOMPurify.sanitize(content, config);
     
-    // Log if content was modified
-    sanitizationLogger.logContentSanitization(originalContent, sanitizedContent, userId);
+    // Final security check - ensure no dangerous patterns remain
+    const finalSanitized = sanitizedContent
+      .replace(/javascript:/gi, '')
+      .replace(/data:/gi, '')
+      .replace(/vbscript:/gi, '')
+      .replace(/on\w+\s*=/gi, '');
     
-    // Clean up hooks to prevent memory leaks
+    // Log if content was modified
+    if (originalContent !== finalSanitized) {
+      sanitizationLogger.logContentSanitization(originalContent, finalSanitized, userId);
+    }
+    
+    // Clean up hooks
     DOMPurify.removeAllHooks();
     
-    return sanitizedContent;
+    return finalSanitized;
     
   } catch (error) {
-    console.error('Error during content sanitization:', error);
+    console.error('SECURITY ERROR: Content sanitization failed:', error);
     
     // Log the error and return empty string as fallback
     sanitizationLogger.logContentSanitization(
       originalContent,
-      'SANITIZATION_ERROR: Content blocked due to processing error',
+      'SECURITY_ERROR: Content completely blocked due to processing error',
       userId
     );
     
