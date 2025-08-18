@@ -1415,6 +1415,7 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           description: string | null
+          employer_id: string | null
           expires_at: string | null
           id: string | null
           is_active: boolean | null
@@ -1428,6 +1429,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
+          employer_id?: string | null
           expires_at?: string | null
           id?: string | null
           is_active?: boolean | null
@@ -1441,6 +1443,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           description?: string | null
+          employer_id?: string | null
           expires_at?: string | null
           id?: string | null
           is_active?: boolean | null
@@ -1450,7 +1453,15 @@ export type Database = {
           title?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "job_listings_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
