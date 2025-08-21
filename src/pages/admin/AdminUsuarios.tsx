@@ -79,8 +79,44 @@ const AdminUsuarios = () => {
         description: `No se pudo actualizar el rol del usuario: ${error.message}`,
         variant: "destructive",
       });
-    } else {
-      console.log('User role updated successfully:', data);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      console.log('User role updated successfully:', data[0]);
+      
+      // Synchronize admin_users table
+      try {
+        if (newRole === 'admin') {
+          // Add to admin_users if not already there
+          const { error: adminInsertError } = await supabase
+            .from('admin_users')
+            .upsert({ 
+              user_id: userId, 
+              email: data[0].email,
+              role: 'admin'
+            }, {
+              onConflict: 'user_id'
+            });
+          
+          if (adminInsertError) {
+            console.error('Error adding to admin_users:', adminInsertError);
+          }
+        } else {
+          // Remove from admin_users if present
+          const { error: adminDeleteError } = await supabase
+            .from('admin_users')
+            .delete()
+            .eq('user_id', userId);
+          
+          if (adminDeleteError) {
+            console.error('Error removing from admin_users:', adminDeleteError);
+          }
+        }
+      } catch (adminSyncError) {
+        console.error('Error synchronizing admin_users:', adminSyncError);
+      }
+
       toast({
         title: "Éxito",
         description: "Rol de usuario actualizado correctamente",
