@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, User, Mail, Calendar, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { logSecurityEvent } from '@/lib/securityLogger';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
@@ -58,72 +59,108 @@ const AdminUsuarios = () => {
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     console.log('Attempting to update user role:', { userId, newRole });
     
+    // Client-side audit logging
+    await logSecurityEvent({
+      event_type: 'admin_action',
+      details: {
+        description: 'Admin attempting to change user role',
+        metadata: {
+          targetUserId: userId,
+          newRole: newRole,
+          timestamp: new Date().toISOString()
+        },
+        severity: 'medium'
+      }
+    });
+    
     // Determine subscription status based on role
     const subscriptionStatus = ['premium', 'profesional', 'estudiante', 'admin'].includes(newRole) 
       ? 'active' 
       : 'trialing';
     
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ 
-        subscription_role: newRole,
-        subscription_status: subscriptionStatus
-      })
-      .eq('id', userId)
-      .select();
-
-    if (error) {
-      console.error('Error updating user role:', error);
-      toast({
-        title: "Error",
-        description: `No se pudo actualizar el rol del usuario: ${error.message}`,
-        variant: "destructive",
+    try {
+      // Use the secure RPC function
+      const { data, error } = await supabase.rpc('update_user_role_admin', {
+        target_user_id: userId,
+        new_role: newRole,
+        new_status: subscriptionStatus
       });
-      return;
-    }
 
-    if (data && data.length > 0) {
-      console.log('User role updated successfully:', data[0]);
-      
-      // Synchronize admin_users table
-      try {
-        if (newRole === 'admin') {
-          // Add to admin_users if not already there
-          const { error: adminInsertError } = await supabase
-            .from('admin_users')
-            .upsert({ 
-              user_id: userId, 
-              email: data[0].email,
-              role: 'admin'
-            }, {
-              onConflict: 'user_id'
-            });
-          
-          if (adminInsertError) {
-            console.error('Error adding to admin_users:', adminInsertError);
+      if (error) {
+        console.error('Error updating user role:', error);
+        
+        // Log failed attempt
+        await logSecurityEvent({
+          event_type: 'admin_action',
+          details: {
+            description: 'Failed admin user role update',
+            metadata: {
+              targetUserId: userId,
+              newRole: newRole,
+              error: error.message,
+              timestamp: new Date().toISOString()
+            },
+            severity: 'high'
           }
-        } else {
-          // Remove from admin_users if present
-          const { error: adminDeleteError } = await supabase
-            .from('admin_users')
-            .delete()
-            .eq('user_id', userId);
-          
-          if (adminDeleteError) {
-            console.error('Error removing from admin_users:', adminDeleteError);
-          }
-        }
-      } catch (adminSyncError) {
-        console.error('Error synchronizing admin_users:', adminSyncError);
+        });
+        
+        toast({
+          title: "Error",
+          description: `No se pudo actualizar el rol del usuario: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
       }
 
-      toast({
-        title: "Éxito",
-        description: "Rol de usuario actualizado correctamente",
+      if (data && typeof data === 'object' && 'success' in data && data.success) {
+        console.log('User role updated successfully:', data);
+        
+        // Log successful update
+        await logSecurityEvent({
+          event_type: 'admin_action',
+          details: {
+            description: 'Successful admin user role update',
+            metadata: {
+              targetUserId: userId,
+              newRole: newRole,
+              newStatus: subscriptionStatus,
+              timestamp: new Date().toISOString()
+            },
+            severity: 'medium'
+          }
+        });
+
+        toast({
+          title: "Éxito",
+          description: "Rol de usuario actualizado correctamente",
+        });
+        
+        // Refresh data from database to ensure consistency
+        await loadUsers();
+      }
+    } catch (error: any) {
+      console.error('Unexpected error updating user role:', error);
+      
+      // Log unexpected error
+      await logSecurityEvent({
+        event_type: 'admin_action',
+        details: {
+          description: 'Unexpected error during admin user role update',
+          metadata: {
+            targetUserId: userId,
+            newRole: newRole,
+            error: error.message,
+            timestamp: new Date().toISOString()
+          },
+          severity: 'high'
+        }
       });
       
-      // Refresh data from database to ensure consistency
-      await loadUsers();
+      toast({
+        title: "Error",
+        description: "Error inesperado al actualizar el rol del usuario",
+        variant: "destructive",
+      });
     }
   };
 

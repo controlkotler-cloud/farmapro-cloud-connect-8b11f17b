@@ -1649,6 +1649,14 @@ export type Database = {
         Args: { challenge_id_param: string; points_earned_param?: number }
         Returns: undefined
       }
+      update_user_role_admin: {
+        Args: {
+          new_role: Database["public"]["Enums"]["user_role"]
+          new_status?: Database["public"]["Enums"]["subscription_status"]
+          target_user_id: string
+        }
+        Returns: Json
+      }
       validate_team_invitation: {
         Args: {
           invitation_token_param: string
