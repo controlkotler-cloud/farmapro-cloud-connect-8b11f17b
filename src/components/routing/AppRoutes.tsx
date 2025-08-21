@@ -88,7 +88,11 @@ export const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/empleo" element={<Empleo />} />
+      <Route path="/empleo" element={
+        <ProtectedRoute>
+          <Empleo />
+        </ProtectedRoute>
+      } />
       
       <Route path="/empleo/conversaciones" element={
         <ProtectedRoute>
