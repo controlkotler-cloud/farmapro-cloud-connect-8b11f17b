@@ -17,6 +17,7 @@ import Perfil from '@/pages/Perfil';
 import CourseView from '@/pages/CourseView';
 import CourseQuizView from '@/pages/CourseQuizView';
 import NotFound from '@/pages/NotFound';
+import Login from '@/pages/Login';
 
 // Admin pages
 import AdminDashboard from '@/pages/admin/AdminDashboard';
@@ -35,7 +36,10 @@ import AdminConfiguracion from '@/pages/admin/AdminConfiguracion';
 export const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public/Protected Routes */}
+      {/* Public Routes */}
+      <Route path="/login" element={<Login />} />
+      
+      {/* Protected Routes */}
       <Route path="/" element={
         <ProtectedRoute>
           <Dashboard />
