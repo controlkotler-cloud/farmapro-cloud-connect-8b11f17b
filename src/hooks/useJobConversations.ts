@@ -36,7 +36,10 @@ export const useJobConversations = () => {
     if (profile?.id) {
       loadConversations();
       loadUnreadCount();
-      subscribeToConversations();
+      
+      // Set up subscription with proper cleanup
+      const cleanup = subscribeToConversations();
+      return cleanup; // Return the cleanup function
     }
   }, [profile?.id]);
 
@@ -187,10 +190,13 @@ export const useJobConversations = () => {
   };
 
   const subscribeToConversations = () => {
-    if (!profile?.id) return;
+    if (!profile?.id) return () => {};
 
+    // Create a unique channel name to avoid conflicts
+    const channelName = `job-conversations-${profile.id}-${Date.now()}`;
+    
     const channel = supabase
-      .channel('job-conversations')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -217,8 +223,9 @@ export const useJobConversations = () => {
       )
       .subscribe();
 
+    // Return cleanup function
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   };
 
