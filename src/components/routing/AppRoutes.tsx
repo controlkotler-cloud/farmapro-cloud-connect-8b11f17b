@@ -16,6 +16,8 @@ import Promociones from "@/pages/Promociones";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
+import EmpleoConversaciones from "@/pages/EmpleoConversaciones";
+import EmpleoConversacion from "@/pages/EmpleoConversacion";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCursos from "@/pages/admin/AdminCursos";
 import AdminQuizzes from "@/pages/admin/AdminQuizzes";
@@ -97,6 +99,16 @@ export const AppRoutes = () => {
       <Route path="/empleo" element={
         <ProtectedRoute>
           <Empleo />
+        </ProtectedRoute>
+      } />
+      <Route path="/empleo/conversaciones" element={
+        <ProtectedRoute>
+          <EmpleoConversaciones />
+        </ProtectedRoute>
+      } />
+      <Route path="/empleo/conversaciones/:id" element={
+        <ProtectedRoute>
+          <EmpleoConversacion />
         </ProtectedRoute>
       } />
       <Route path="/farmacias" element={

@@ -12,6 +12,8 @@ import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { EmpleoHeader } from '@/components/empleo/EmpleoHeader';
 import { EmpleoActions } from '@/components/empleo/EmpleoActions';
+import { useJobConversations } from '@/hooks/useJobConversations';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface JobListing {
   id: string;
@@ -30,6 +32,10 @@ interface JobListing {
 const Empleo = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { createConversation } = useJobConversations();
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
+  const [contactMessage, setContactMessage] = useState('');
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
@@ -170,6 +176,88 @@ const Empleo = () => {
     setShowNewJobDialog(true);
   };
 
+  const handleContact = async (job: JobListing) => {
+    // Check if user has premium access
+    const hasPremiumAccess = profile?.subscription_role === 'premium' || 
+                            profile?.subscription_role === 'profesional' || 
+                            profile?.subscription_role === 'admin';
+
+    if (hasPremiumAccess) {
+      // Show dialog to start conversation
+      setSelectedJob(job);
+      setShowContactDialog(true);
+    } else {
+      // Use original email functionality
+      try {
+        const { data: contactEmail, error } = await supabase
+          .rpc('get_job_contact_email_rpc', { job_id: job.id });
+        
+        if (error || !contactEmail) {
+          toast({
+            title: "Error",
+            description: "No se pudo obtener la información de contacto",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        window.location.href = `mailto:${contactEmail}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`;
+      } catch (error) {
+        console.error('Error getting contact email:', error);
+        toast({
+          title: "Error",
+          description: "Error al obtener información de contacto",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!selectedJob || !contactMessage.trim()) return;
+
+    try {
+      // Get employer ID from the job
+      const { data: jobData, error } = await supabase
+        .from('job_listings')
+        .select('employer_id')
+        .eq('id', selectedJob.id)
+        .single();
+
+      if (error || !jobData?.employer_id) {
+        toast({
+          title: "Error",
+          description: "No se pudo encontrar al empleador",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const conversationId = await createConversation(
+        selectedJob.id,
+        jobData.employer_id,
+        contactMessage
+      );
+
+      if (conversationId) {
+        toast({
+          title: "Éxito",
+          description: "Mensaje enviado. Puedes ver la conversación en 'Conversaciones'",
+        });
+        setShowContactDialog(false);
+        setContactMessage('');
+        setSelectedJob(null);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo enviar el mensaje",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <motion.div 
       className="space-y-8"
@@ -244,6 +332,47 @@ const Empleo = () => {
             <Button onClick={createJob} className="w-full" disabled={submitting}>
               {submitting ? 'Publicando...' : 'Publicar Oferta'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para iniciar conversación */}
+      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Contactar para {selectedJob?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Envía un mensaje al empleador para iniciar una conversación en el portal.
+            </p>
+            <Textarea
+              placeholder="Escribe tu mensaje de presentación..."
+              value={contactMessage}
+              onChange={(e) => setContactMessage(e.target.value)}
+              rows={4}
+              className="resize-none"
+            />
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowContactDialog(false);
+                  setContactMessage('');
+                  setSelectedJob(null);
+                }}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSendMessage}
+                disabled={!contactMessage.trim()}
+                className="flex-1"
+              >
+                Enviar Mensaje
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -332,31 +461,7 @@ const Empleo = () => {
                             <Button 
                               size="sm" 
                               disabled={isJobExpired(job.expires_at)}
-                              onClick={async () => {
-                                try {
-                                  // Get contact email securely via RPC
-                                  const { data: contactEmail, error } = await supabase
-                                    .rpc('get_job_contact_email_rpc', { job_id: job.id });
-                                  
-                                  if (error || !contactEmail) {
-                                    toast({
-                                      title: "Error",
-                                      description: "No se pudo obtener la información de contacto",
-                                      variant: "destructive"
-                                    });
-                                    return;
-                                  }
-                                  
-                                  window.location.href = `mailto:${contactEmail}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`;
-                                } catch (error) {
-                                  console.error('Error getting contact email:', error);
-                                  toast({
-                                    title: "Error",
-                                    description: "Error al obtener información de contacto",
-                                    variant: "destructive"
-                                  });
-                                }
-                              }}
+                              onClick={() => handleContact(job)}
                               className="shadow-md"
                             >
                               <Mail className="h-4 w-4 mr-2" />

@@ -11,7 +11,9 @@ import {
   Calendar,
   Tag,
   ChevronRight,
+  MessageCircle,
 } from 'lucide-react';
+import { useJobConversations } from '@/hooks/useJobConversations';
 
 const menuItems = [
   { name: 'Dashboard', icon: Home, path: '/dashboard', color: 'from-green-500 to-green-600' },
@@ -20,6 +22,7 @@ const menuItems = [
   { name: 'Comunidad', icon: MessageSquare, path: '/comunidad', color: 'from-pink-500 to-pink-600' },
   { name: 'Retos', icon: Trophy, path: '/retos', color: 'from-yellow-500 to-yellow-600' },
   { name: 'Empleo', icon: Briefcase, path: '/empleo', color: 'from-indigo-500 to-indigo-600' },
+  { name: 'Conversaciones', icon: MessageCircle, path: '/empleo/conversaciones', color: 'from-cyan-500 to-cyan-600', hasUnread: true },
   { name: 'Farmacias', icon: Building, path: '/farmacias', color: 'from-teal-500 to-teal-600' },
   { name: 'Eventos', icon: Calendar, path: '/eventos', color: 'from-orange-500 to-orange-600' },
   { name: 'Promociones', icon: Tag, path: '/promociones', color: 'from-red-500 to-red-600' },
@@ -27,6 +30,7 @@ const menuItems = [
 
 export const SidebarNavigation = () => {
   const location = useLocation();
+  const { unreadCount } = useJobConversations();
 
   return (
     <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
@@ -58,6 +62,13 @@ export const SidebarNavigation = () => {
             </div>
             
             <span className="flex-1 font-semibold tracking-wide">{item.name}</span>
+            
+            {/* Badge de conversaciones no leídas */}
+            {item.hasUnread && unreadCount > 0 && (
+              <div className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
+                {unreadCount}
+              </div>
+            )}
             
             {/* Flecha indicadora */}
             <ChevronRight
