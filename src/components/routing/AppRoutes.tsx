@@ -2,11 +2,11 @@
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AdminProtectedRoute } from './AdminProtectedRoute';
-import { Dashboard } from '@/pages/Dashboard';
-import { Formacion } from '@/pages/Formacion';
-import { Recursos } from '@/pages/Recursos';
+import Dashboard from '@/pages/Dashboard';
+import Formacion from '@/pages/Formacion';
+import Recursos from '@/pages/Recursos';
 import Comunidad from '@/pages/Comunidad';
-import { Retos } from '@/pages/Retos';
+import Retos from '@/pages/Retos';
 import Farmacias from '@/pages/Farmacias';
 import Empleo from '@/pages/Empleo';
 import EmpleoConversaciones from '@/pages/EmpleoConversaciones';
@@ -17,7 +17,6 @@ import Perfil from '@/pages/Perfil';
 import CourseView from '@/pages/CourseView';
 import CourseQuizView from '@/pages/CourseQuizView';
 import NotFound from '@/pages/NotFound';
-import Login from '@/pages/Login';
 
 // Admin pages
 import AdminDashboard from '@/pages/admin/AdminDashboard';
@@ -36,10 +35,7 @@ import AdminConfiguracion from '@/pages/admin/AdminConfiguracion';
 export const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route path="/login" element={<Login />} />
-      
-      {/* Protected Routes */}
+      {/* Public/Protected Routes */}
       <Route path="/" element={
         <ProtectedRoute>
           <Dashboard />
@@ -88,11 +84,7 @@ export const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/empleo" element={
-        <ProtectedRoute>
-          <Empleo />
-        </ProtectedRoute>
-      } />
+      <Route path="/empleo" element={<Empleo />} />
       
       <Route path="/empleo/conversaciones" element={
         <ProtectedRoute>
