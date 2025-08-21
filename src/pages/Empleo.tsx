@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { MapPin, Clock, DollarSign, Building2, Mail, Calendar, Plus, Briefcase } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Building2, Mail, Calendar, Plus, Briefcase, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { EmpleoHeader } from '@/components/empleo/EmpleoHeader';
@@ -54,7 +54,6 @@ const Empleo = () => {
       setLoading(true);
       console.log('Loading active job listings...');
       
-      // Always use the secure public table - both authenticated and unauthenticated users
       const { data, error } = await supabase
         .from('job_listings_public')
         .select('*')
@@ -71,10 +70,9 @@ const Empleo = () => {
       }
 
       console.log('Job listings loaded:', data?.length || 0);
-      // Add empty contact_email for interface compatibility
       const jobsWithContactEmail = (data || []).map(job => ({
         ...job,
-        contact_email: '', // Will be fetched separately when needed
+        contact_email: '',
         requirements: job.requirements || ''
       }));
       setJobs(jobsWithContactEmail);
@@ -143,6 +141,67 @@ const Empleo = () => {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleContactJob = async (jobId: string, jobTitle: string) => {
+    if (!profile?.id) {
+      toast({
+        title: "Inicia sesión",
+        description: "Debes iniciar sesión para contactar con la oferta",
+        variant: "default"
+      });
+      return;
+    }
+
+    try {
+      console.log('Starting conversation for job:', jobId);
+      
+      const { data: conversationId, error } = await supabase
+        .rpc('start_job_conversation', { job_id_param: jobId });
+
+      if (error) {
+        console.error('Error starting conversation:', error);
+        
+        if (error.message.includes('Solo los usuarios con plan de pago')) {
+          toast({
+            title: "Plan requerido",
+            description: "Necesitas un plan de pago para contactar con ofertas de empleo",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        if (error.message.includes('No puedes contactar tu propia oferta')) {
+          toast({
+            title: "Error",
+            description: "No puedes contactar tu propia oferta",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        throw error;
+      }
+
+      console.log('Conversation started with ID:', conversationId);
+      
+      toast({
+        title: "¡Contacto iniciado!",
+        description: `Conversación iniciada para: ${jobTitle}`,
+        variant: "default"
+      });
+
+      // Redirigir a la conversación (implementaremos esta página después)
+      window.location.href = `/empleo/conversaciones/${conversationId}`;
+      
+    } catch (error: any) {
+      console.error('Error contacting job:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo iniciar la conversación",
+        variant: "destructive"
+      });
     }
   };
 
@@ -328,54 +387,15 @@ const Empleo = () => {
                             <Calendar className="h-3 w-3 mr-1" />
                             Expira: {formatDate(job.expires_at)}
                           </div>
-                          {profile?.id ? (
-                            <Button 
-                              size="sm" 
-                              disabled={isJobExpired(job.expires_at)}
-                              onClick={async () => {
-                                try {
-                                  // Get contact email securely via RPC
-                                  const { data: contactEmail, error } = await supabase
-                                    .rpc('get_job_contact_email_rpc', { job_id: job.id });
-                                  
-                                  if (error || !contactEmail) {
-                                    toast({
-                                      title: "Error",
-                                      description: "No se pudo obtener la información de contacto",
-                                      variant: "destructive"
-                                    });
-                                    return;
-                                  }
-                                  
-                                  window.location.href = `mailto:${contactEmail}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`;
-                                } catch (error) {
-                                  console.error('Error getting contact email:', error);
-                                  toast({
-                                    title: "Error",
-                                    description: "Error al obtener información de contacto",
-                                    variant: "destructive"
-                                  });
-                                }
-                              }}
-                              className="shadow-md"
-                            >
-                              <Mail className="h-4 w-4 mr-2" />
-                              Contactar
-                            </Button>
-                          ) : (
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => toast({
-                                title: "Inicia sesión",
-                                description: "Debes iniciar sesión para ver la información de contacto",
-                                variant: "default"
-                              })}
-                            >
-                              <Mail className="h-4 w-4 mr-2" />
-                              Ver contacto
-                            </Button>
-                          )}
+                          <Button 
+                            size="sm" 
+                            disabled={isJobExpired(job.expires_at)}
+                            onClick={() => handleContactJob(job.id, job.title)}
+                            className="shadow-md"
+                          >
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            {profile?.id ? 'Contactar' : 'Ver detalles'}
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
