@@ -93,23 +93,21 @@ export const SidebarNavigation = () => {
             key={item.name}
             to={item.href}
             className={`
-              group flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
+              group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
               ${isActive 
                 ? 'bg-blue-100 text-blue-900 border-r-2 border-blue-600' 
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }
             `}
           >
-            <div className="flex items-center">
-              <item.icon 
-                className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                  isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
-                }`} 
-              />
-              <span className="truncate">{item.name}</span>
-            </div>
+            <item.icon 
+              className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
+              }`} 
+            />
+            <span className="truncate">{item.name}</span>
             {item.badge && (
-              <Badge variant="destructive" className="text-xs h-5 px-1.5">
+              <Badge variant="destructive" className="ml-2 text-xs h-5 px-1.5">
                 {item.badge}
               </Badge>
             )}
