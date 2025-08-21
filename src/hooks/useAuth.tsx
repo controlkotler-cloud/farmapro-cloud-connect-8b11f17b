@@ -71,12 +71,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+    let subscription: any = null;
 
     const initializeAuth = async () => {
       try {
         console.log('Initializing auth...');
         
-        // Get initial session
+        // Listen for auth changes FIRST
+        const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state changed:', event, session?.user?.email);
+          
+          if (mounted) {
+            setUser(session?.user ?? null);
+            
+            if (session?.user) {
+              // Use setTimeout to avoid potential callback loops
+              setTimeout(async () => {
+                if (mounted) {
+                  await loadProfile(session.user.id);
+                  await checkAdminStatus();
+                }
+              }, 0);
+            } else {
+              setProfile(null);
+              setIsAdmin(false);
+            }
+          }
+        });
+        
+        subscription = data.subscription;
+
+        // THEN get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -93,8 +118,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            await loadProfile(session.user.id);
-            await checkAdminStatus();
+            setTimeout(async () => {
+              if (mounted) {
+                await loadProfile(session.user.id);
+                await checkAdminStatus();
+              }
+            }, 0);
           }
           
           setLoading(false);
@@ -110,31 +139,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Initialize auth
     initializeAuth();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (mounted) {
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Use setTimeout to avoid potential callback loops
-          setTimeout(async () => {
-            if (mounted) {
-              await loadProfile(session.user.id);
-              await checkAdminStatus();
-            }
-          }, 0);
-        } else {
-          setProfile(null);
-          setIsAdmin(false);
-        }
-      }
-    });
-
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -172,6 +179,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       console.log('Signing out user');
+      // Clear state immediately to prevent UI issues
+      setUser(null);
       setProfile(null);
       setIsAdmin(false);
       await supabase.auth.signOut();
