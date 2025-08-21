@@ -2,11 +2,11 @@
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AdminProtectedRoute } from './AdminProtectedRoute';
-import Dashboard from '@/pages/Dashboard';
-import Formacion from '@/pages/Formacion';
-import Recursos from '@/pages/Recursos';
+import { Dashboard } from '@/pages/Dashboard';
+import { Formacion } from '@/pages/Formacion';
+import { Recursos } from '@/pages/Recursos';
 import Comunidad from '@/pages/Comunidad';
-import Retos from '@/pages/Retos';
+import { Retos } from '@/pages/Retos';
 import Farmacias from '@/pages/Farmacias';
 import Empleo from '@/pages/Empleo';
 import EmpleoConversaciones from '@/pages/EmpleoConversaciones';
