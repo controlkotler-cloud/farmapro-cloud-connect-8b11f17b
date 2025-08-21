@@ -13,6 +13,7 @@ import Empleo from "@/pages/Empleo";
 import Farmacias from "@/pages/Farmacias";
 import Eventos from "@/pages/Eventos";
 import Promociones from "@/pages/Promociones";
+import Planes from "@/pages/Planes";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
@@ -124,6 +125,11 @@ export const AppRoutes = () => {
       <Route path="/promociones" element={
         <ProtectedRoute>
           <Promociones />
+        </ProtectedRoute>
+      } />
+      <Route path="/planes" element={
+        <ProtectedRoute>
+          <Planes />
         </ProtectedRoute>
       } />
       

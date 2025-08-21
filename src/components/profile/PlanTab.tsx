@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, CheckCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RefreshCw, CheckCircle, Star, Users, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
@@ -137,34 +139,115 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
         </CardContent>
       </Card>
 
-      {/* Actualizar suscripción - Solo mostrar si no es admin */}
+      {/* Recomendación y opciones de planes - Solo mostrar si no es admin */}
       {currentPlan !== 'admin' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Planes Disponibles</CardTitle>
-            <CardDescription>
-              Explora otros planes y actualiza tu suscripción
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SubscriptionPlans />
-          </CardContent>
-        </Card>
-      )}
+        <>
+          {/* Recomendación */}
+          {currentPlan === 'freemium' && (
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                    <Star className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      ¿Listo para dar el siguiente paso?
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      El plan <strong>Profesional</strong> es el más equilibrado: acceso completo a formación, recursos ilimitados y comunidad activa.
+                    </p>
+                  </div>
+                  <Button asChild>
+                    <Link to="/planes" className="flex items-center gap-2">
+                      Ver todos los planes
+                      <ExternalLink className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-      {/* Plan Team - Solo mostrar si no es admin */}
-      {currentPlan !== 'admin' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>¿Necesitas un Plan para tu Equipo?</CardTitle>
-            <CardDescription>
-              Gestiona las suscripciones de tu farmacia de forma centralizada
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TeamPlanCard />
-          </CardContent>
-        </Card>
+          {currentPlan === 'estudiante' && (
+            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
+                    <Star className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      Mejora tu experiencia
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      Considera el plan <strong>Profesional</strong> para acceso ilimitado o <strong>Premium</strong> si necesitas funcionalidades de negocio.
+                    </p>
+                  </div>
+                  <Button asChild variant="outline">
+                    <Link to="/planes" className="flex items-center gap-2">
+                      Comparar planes
+                      <ExternalLink className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sección de planes con tabs */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Actualizar Suscripción</CardTitle>
+              <CardDescription>
+                Explora otros planes o gestiona tu equipo
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="individual" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="individual" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Planes Individuales
+                  </TabsTrigger>
+                  <TabsTrigger value="team" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Plan de Equipo
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="individual" className="mt-6">
+                  <SubscriptionPlans 
+                    variant="compact" 
+                    currentPlan={currentPlan}
+                  />
+                  <div className="mt-4 text-center">
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/planes" className="flex items-center gap-2">
+                        Ver comparativa completa
+                        <ExternalLink className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="team" className="mt-6">
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Gestiona las suscripciones de tu farmacia
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        Facturación centralizada, descuentos por volumen y acceso Premium para todo tu equipo
+                      </p>
+                    </div>
+                    <TeamPlanCard />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

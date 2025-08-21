@@ -6,11 +6,13 @@ import { CheckCircle, Star, GraduationCap, Briefcase, Crown } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export const SubscriptionPlans = () => {
+interface SubscriptionPlansProps {
+  variant?: 'default' | 'marketing' | 'compact';
+  currentPlan?: string;
+}
+
+export const SubscriptionPlans = ({ variant = 'default', currentPlan = 'freemium' }: SubscriptionPlansProps) => {
   const [loading, setLoading] = useState<string | null>(null);
-  
-  // Este sería el plan actual del usuario (habría que obtenerlo de la base de datos)
-  const currentPlan = 'freemium'; // Simulando que el usuario tiene plan freemium
 
   const handleSelectPlan = async (planId: string) => {
     if (planId === 'freemium') return; // Ya es el plan actual
@@ -37,16 +39,21 @@ export const SubscriptionPlans = () => {
     }
   };
 
+  const isMarketing = variant === 'marketing';
+  const isCompact = variant === 'compact';
+
   return (
     <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Planes de Suscripción</h1>
-        <p className="text-gray-600">Elige el plan que mejor se adapte a tu perfil profesional</p>
-      </div>
+      {!isCompact && !isMarketing && (
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Planes de Suscripción</h1>
+          <p className="text-gray-600">Elige el plan que mejor se adapte a tu perfil profesional</p>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-1 ${isCompact ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2 lg:grid-cols-4'} gap-6`}>
         {/* Plan Freemium */}
-        <Card className={`relative ${currentPlan === 'freemium' ? 'border-2 border-green-500' : 'border-gray-200'}`}>
+        <Card className={`relative ${currentPlan === 'freemium' ? 'border-2 border-green-500' : 'border-gray-200'} ${isMarketing ? 'hover:shadow-lg transition-shadow' : ''}`}>
           {currentPlan === 'freemium' && (
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <Badge className="bg-green-600 text-white">Plan Actual</Badge>
@@ -54,33 +61,33 @@ export const SubscriptionPlans = () => {
           )}
           
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Star className="h-8 w-8 text-white" />
+            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4`}>
+              <Star className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
             </div>
-            <CardTitle className="text-2xl">Freemium</CardTitle>
+            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Freemium</CardTitle>
             <div className="mt-4">
-              <div className="text-3xl font-bold">Gratis</div>
+              <div className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>Gratis</div>
               <div className="text-sm text-gray-600">7 días de prueba</div>
             </div>
           </CardHeader>
           
           <CardContent>
-            <ul className="space-y-3 mb-6">
+            <ul className={`space-y-3 mb-6 ${isCompact ? 'space-y-2' : 'space-y-3'}`}>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className="text-sm">Acceso a 1 curso</span>
+                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Acceso a 1 curso</span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className="text-sm">Máximo 2 descargas</span>
+                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Máximo 2 descargas</span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className="text-sm">Ver comunidad (solo lectura)</span>
+                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Ver comunidad (solo lectura)</span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className="text-sm">Retos básicos</span>
+                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Retos básicos</span>
               </li>
             </ul>
             
@@ -95,18 +102,20 @@ export const SubscriptionPlans = () => {
         </Card>
 
         {/* Plan Estudiante */}
-        <Card className="relative border-gray-200">
-          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-            <Badge className="bg-orange-600 text-white">Validación Pendiente</Badge>
-          </div>
+        <Card className={`relative border-gray-200 ${isMarketing ? 'hover:shadow-lg transition-shadow' : ''}`}>
+          {!isCompact && (
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <Badge className="bg-orange-600 text-white">Validación Pendiente</Badge>
+            </div>
+          )}
           
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <GraduationCap className="h-8 w-8 text-white" />
+            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4`}>
+              <GraduationCap className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
             </div>
-            <CardTitle className="text-2xl">Estudiante</CardTitle>
+            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Estudiante</CardTitle>
             <div className="mt-4">
-              <span className="text-3xl font-bold">5€</span>
+              <span className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>5€</span>
               <span className="text-gray-600">/mes</span>
             </div>
           </CardHeader>
@@ -145,18 +154,18 @@ export const SubscriptionPlans = () => {
         </Card>
 
         {/* Plan Profesional - Más Popular */}
-        <Card className="relative border-2 border-blue-500 shadow-lg">
+        <Card className={`relative border-2 border-blue-500 shadow-lg ${isMarketing ? 'hover:shadow-xl transition-shadow scale-105' : ''}`}>
           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
             <Badge className="bg-blue-600 text-white">Más Popular</Badge>
           </div>
           
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Briefcase className="h-8 w-8 text-white" />
+            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4`}>
+              <Briefcase className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
             </div>
-            <CardTitle className="text-2xl">Profesional</CardTitle>
+            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Profesional</CardTitle>
             <div className="mt-4">
-              <span className="text-3xl font-bold">29€</span>
+              <span className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>29€</span>
               <span className="text-gray-600">/mes</span>
             </div>
           </CardHeader>
@@ -196,14 +205,14 @@ export const SubscriptionPlans = () => {
         </Card>
 
         {/* Plan Premium */}
-        <Card className="relative border-gray-200">
+        <Card className={`relative border-gray-200 ${isMarketing ? 'hover:shadow-lg transition-shadow' : ''}`}>
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Crown className="h-8 w-8 text-white" />
+            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4`}>
+              <Crown className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
             </div>
-            <CardTitle className="text-2xl">Premium</CardTitle>
+            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Premium</CardTitle>
             <div className="mt-4">
-              <span className="text-3xl font-bold">39€</span>
+              <span className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>39€</span>
               <span className="text-gray-600">/mes</span>
             </div>
           </CardHeader>
