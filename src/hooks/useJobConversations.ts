@@ -68,15 +68,19 @@ export const useJobConversations = () => {
     if (!profile?.id) return;
 
     try {
-      const { data, error } = await supabase
-        .rpc('get_unread_conversations_count', { user_id: profile.id });
+      // Count unread messages across all conversations
+      const { count, error } = await supabase
+        .from('job_messages')
+        .select('*', { count: 'exact', head: true })
+        .is('read_at', null)
+        .neq('sender_id', profile.id);
 
       if (error) {
         console.error('Error loading unread count:', error);
         return;
       }
 
-      setUnreadCount(data || 0);
+      setUnreadCount(count || 0);
     } catch (error) {
       console.error('Error loading unread count:', error);
     }
@@ -108,13 +112,9 @@ export const useJobConversations = () => {
     if (!profile?.id) return null;
 
     try {
-      const { data, error } = await supabase
-        .rpc('create_job_conversation', {
-          job_id: jobId,
-          applicant_id: profile.id,
-          employer_id: employerId,
-          initial_message: initialMessage
-        });
+      // Use existing function to start conversation
+      const { data: conversationId, error } = await supabase
+        .rpc('start_job_conversation', { job_id_param: jobId });
 
       if (error) {
         console.error('Error creating conversation:', error);
@@ -126,10 +126,15 @@ export const useJobConversations = () => {
         return null;
       }
 
+      // Send initial message
+      if (conversationId && initialMessage.trim()) {
+        await sendMessage(conversationId, initialMessage);
+      }
+
       await loadConversations();
       await loadUnreadCount();
       
-      return data;
+      return conversationId;
     } catch (error) {
       console.error('Error creating conversation:', error);
       return null;
@@ -142,9 +147,8 @@ export const useJobConversations = () => {
     try {
       const { error } = await supabase
         .rpc('send_job_message', {
-          conversation_id: conversationId,
-          sender_id: profile.id,
-          message_body: message.trim()
+          conversation_id_param: conversationId,
+          body_param: message.trim()
         });
 
       if (error) {
@@ -172,9 +176,8 @@ export const useJobConversations = () => {
 
     try {
       await supabase
-        .rpc('mark_conversation_as_read', {
-          conversation_id: conversationId,
-          user_id: profile.id
+        .rpc('mark_conversation_read', {
+          conversation_id_param: conversationId
         });
 
       await loadUnreadCount();

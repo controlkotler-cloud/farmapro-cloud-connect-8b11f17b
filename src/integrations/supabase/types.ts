@@ -531,6 +531,50 @@ export type Database = {
           },
         ]
       }
+      job_conversations: {
+        Row: {
+          applicant_id: string
+          created_at: string
+          employer_id: string
+          id: string
+          job_id: string
+          last_message_at: string
+          last_message_preview: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applicant_id: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          job_id: string
+          last_message_at?: string
+          last_message_preview?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applicant_id?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          job_id?: string
+          last_message_at?: string
+          last_message_preview?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_listings: {
         Row: {
           company_name: string
@@ -631,6 +675,41 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      job_messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "job_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1483,6 +1562,17 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      create_notification_for_user: {
+        Args: {
+          message_param: string
+          target_id_param: string
+          target_url_param: string
+          title_param: string
+          type_param?: string
+          user_id_param: string
+        }
+        Returns: undefined
+      }
       get_job_contact_email: {
         Args: { job_id: string }
         Returns: string
@@ -1507,8 +1597,16 @@ export type Database = {
         Args: { subscription_id: string; user_id: string }
         Returns: boolean
       }
+      is_conversation_participant: {
+        Args: { conversation_id_param: string }
+        Returns: boolean
+      }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_paid_user: {
+        Args: { uid: string }
         Returns: boolean
       }
       is_team_member: {
@@ -1527,9 +1625,25 @@ export type Database = {
         Args: { subscription_id: string; user_id: string }
         Returns: boolean
       }
+      job_is_active_and_visible: {
+        Args: { job_id_param: string }
+        Returns: boolean
+      }
       log_security_event: {
         Args: { details: Json; event_type: string; user_id_param?: string }
         Returns: undefined
+      }
+      mark_conversation_read: {
+        Args: { conversation_id_param: string }
+        Returns: undefined
+      }
+      send_job_message: {
+        Args: { body_param: string; conversation_id_param: string }
+        Returns: string
+      }
+      start_job_conversation: {
+        Args: { job_id_param: string }
+        Returns: string
       }
       update_challenge_progress: {
         Args: { challenge_id_param: string; points_earned_param?: number }

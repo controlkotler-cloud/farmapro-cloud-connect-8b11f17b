@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { EmpleoHeader } from '@/components/empleo/EmpleoHeader';
 import { EmpleoActions } from '@/components/empleo/EmpleoActions';
 import { useJobConversations } from '@/hooks/useJobConversations';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface JobListing {
   id: string;
@@ -217,25 +216,9 @@ const Empleo = () => {
     if (!selectedJob || !contactMessage.trim()) return;
 
     try {
-      // Get employer ID from the job
-      const { data: jobData, error } = await supabase
-        .from('job_listings')
-        .select('employer_id')
-        .eq('id', selectedJob.id)
-        .single();
-
-      if (error || !jobData?.employer_id) {
-        toast({
-          title: "Error",
-          description: "No se pudo encontrar al empleador",
-          variant: "destructive"
-        });
-        return;
-      }
-
       const conversationId = await createConversation(
         selectedJob.id,
-        jobData.employer_id,
+        '', // employerId will be determined by the RPC function
         contactMessage
       );
 
