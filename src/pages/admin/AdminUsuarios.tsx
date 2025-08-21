@@ -58,11 +58,19 @@ const AdminUsuarios = () => {
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     console.log('Attempting to update user role:', { userId, newRole });
     
+    // Determine subscription status based on role
+    const subscriptionStatus = ['premium', 'profesional', 'estudiante', 'admin'].includes(newRole) 
+      ? 'active' 
+      : 'trialing';
+    
     const { data, error } = await supabase
       .from('profiles')
-      .update({ subscription_role: newRole })
+      .update({ 
+        subscription_role: newRole,
+        subscription_status: subscriptionStatus
+      })
       .eq('id', userId)
-      .select(); // Add select to see the updated data
+      .select();
 
     if (error) {
       console.error('Error updating user role:', error);
@@ -77,14 +85,9 @@ const AdminUsuarios = () => {
         title: "Éxito",
         description: "Rol de usuario actualizado correctamente",
       });
-      // Actualizar el usuario específico en el estado
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId 
-            ? { ...user, subscription_role: newRole }
-            : user
-        )
-      );
+      
+      // Refresh data from database to ensure consistency
+      await loadUsers();
     }
   };
 
