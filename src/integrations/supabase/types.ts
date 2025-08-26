@@ -860,6 +860,7 @@ export type Database = {
           position: string | null
           stripe_customer_id: string | null
           student_document_url: string | null
+          student_valid_until: string | null
           student_verification_status: string | null
           subscription_role: Database["public"]["Enums"]["user_role"] | null
           subscription_status:
@@ -877,6 +878,7 @@ export type Database = {
           position?: string | null
           stripe_customer_id?: string | null
           student_document_url?: string | null
+          student_valid_until?: string | null
           student_verification_status?: string | null
           subscription_role?: Database["public"]["Enums"]["user_role"] | null
           subscription_status?:
@@ -894,6 +896,7 @@ export type Database = {
           position?: string | null
           stripe_customer_id?: string | null
           student_document_url?: string | null
+          student_valid_until?: string | null
           student_verification_status?: string | null
           subscription_role?: Database["public"]["Enums"]["user_role"] | null
           subscription_status?:

@@ -37,6 +37,42 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check if we're in beta mode
+    const { data: validationModeData } = await supabaseClient
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'validation_mode')
+      .single();
+
+    const validationMode = validationModeData?.value ? JSON.parse(validationModeData.value) : 'beta';
+    logStep("Validation mode", { mode: validationMode });
+
+    // Get current profile to avoid downgrades in beta mode
+    const { data: currentProfile } = await supabaseClient
+      .from('profiles')
+      .select('subscription_role, subscription_status')
+      .eq('id', user.id)
+      .single();
+
+    if (validationMode === 'beta') {
+      logStep("Beta mode active, skipping Stripe validation");
+      
+      // In beta mode, don't validate with Stripe, just return current status
+      const currentRole = currentProfile?.subscription_role || 'freemium';
+      const currentStatus = currentProfile?.subscription_status || 'trialing';
+      
+      return new Response(JSON.stringify({
+        subscribed: currentRole !== 'freemium',
+        subscription_role: currentRole,
+        subscription_status: currentStatus,
+        current_period_end: null
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Active mode - validate with Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
     });
@@ -44,17 +80,23 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, updating profile");
-      await supabaseClient.from("profiles").update({
-        subscription_role: 'freemium',
-        subscription_status: 'trialing',
-        updated_at: new Date().toISOString(),
-      }).eq('id', user.id);
+      logStep("No customer found, checking if should downgrade");
+      
+      // Only downgrade to freemium if not in beta mode and not already a paid plan
+      const shouldDowngrade = currentProfile?.subscription_role === 'freemium' || !currentProfile?.subscription_role;
+      
+      if (shouldDowngrade) {
+        await supabaseClient.from("profiles").update({
+          subscription_role: 'freemium',
+          subscription_status: 'trialing',
+          updated_at: new Date().toISOString(),
+        }).eq('id', user.id);
+      }
       
       return new Response(JSON.stringify({ 
         subscribed: false, 
-        subscription_role: 'freemium',
-        subscription_status: 'trialing'
+        subscription_role: shouldDowngrade ? 'freemium' : (currentProfile?.subscription_role || 'freemium'),
+        subscription_status: shouldDowngrade ? 'trialing' : (currentProfile?.subscription_status || 'trialing')
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

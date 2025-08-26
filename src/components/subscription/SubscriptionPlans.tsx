@@ -2,260 +2,301 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, GraduationCap, Briefcase, Crown } from 'lucide-react';
+import { Check, Sparkles, GraduationCap, Briefcase, Crown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionPlansProps {
   variant?: 'default' | 'marketing' | 'compact';
   currentPlan?: string;
+  userRole?: string;
+  hideFreemium?: boolean;
 }
 
-export const SubscriptionPlans = ({ variant = 'default', currentPlan = 'freemium' }: SubscriptionPlansProps) => {
+export function SubscriptionPlans({ 
+  variant = 'default', 
+  currentPlan, 
+  userRole = 'freemium',
+  hideFreemium = false 
+}: SubscriptionPlansProps) {
   const [loading, setLoading] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const handleSelectPlan = async (planId: string) => {
-    if (planId === 'freemium') return; // Ya es el plan actual
+  // Determine which plans to show based on user role
+  const getVisiblePlans = () => {
+    const allPlans = ['freemium', 'estudiante', 'profesional', 'premium'];
     
-    setLoading(planId);
+    if (userRole === 'premium') {
+      return []; // Premium users only see team plan (handled elsewhere)
+    }
     
+    if (userRole === 'profesional') {
+      return ['premium']; // Professional users only see premium
+    }
+    
+    if (userRole === 'estudiante') {
+      return ['profesional', 'premium']; // Student users can upgrade to professional or premium
+    }
+    
+    // Freemium users see all plans except freemium if hideFreemium is true
+    if (hideFreemium) {
+      return ['estudiante', 'profesional', 'premium'];
+    }
+    
+    return allPlans;
+  };
+
+  const visiblePlans = getVisiblePlans();
+
+  const handleSelectPlan = async (planType: string) => {
+    if (planType === currentPlan) return;
+    
+    setLoading(planType);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          plan: planId
-        }
+        body: { plan: planType }
       });
       
       if (error) throw error;
       
       if (data.url) {
-        window.location.href = data.url;
+        window.open(data.url, '_blank');
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
-      toast.error('Error al procesar la suscripción. Contacta con soporte.');
+      toast({
+        title: "Error",
+        description: "Error al procesar la suscripción. Contacta con soporte.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(null);
     }
   };
 
-  const isMarketing = variant === 'marketing';
-  const isCompact = variant === 'compact';
+  // If no plans are visible, show a message or team plan info
+  if (visiblePlans.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">
+          Ya tienes el plan más alto disponible. Considera el Plan de Equipo para añadir miembros.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {!isCompact && !isMarketing && (
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Planes de Suscripción</h1>
-          <p className="text-gray-600">Elige el plan que mejor se adapte a tu perfil profesional</p>
-        </div>
+    <div className={`grid gap-6 ${
+      visiblePlans.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
+      visiblePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto' :
+      visiblePlans.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
+      'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+    }`}>
+      {/* Freemium Plan */}
+      {visiblePlans.includes('freemium') && (
+        <Card className={`relative overflow-hidden ${currentPlan === 'freemium' ? 'ring-2 ring-primary' : ''}`}>
+          <CardHeader className="text-center">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <CardTitle className="text-xl">Freemium</CardTitle>
+            <CardDescription>
+              <span className="text-2xl font-bold">Gratis</span>
+            </CardDescription>
+            {currentPlan === 'freemium' && (
+              <Badge variant="secondary" className="mx-auto">Plan Actual</Badge>
+            )}
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-sm">Acceso a 1 curso</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-sm">Máximo 2 descargas</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-sm">Ver comunidad (solo lectura)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-sm">Retos básicos</span>
+              </li>
+            </ul>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              disabled={currentPlan === 'freemium'}
+            >
+              {currentPlan === 'freemium' ? 'Plan Actual' : 'Empezar Gratis'}
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
-      <div className={`grid grid-cols-1 ${isCompact ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2 lg:grid-cols-4'} gap-6`}>
-        {/* Plan Freemium */}
-        <Card className={`relative ${currentPlan === 'freemium' ? 'border-2 border-green-500' : 'border-gray-200'} ${isMarketing ? 'hover:shadow-lg transition-shadow' : ''}`}>
-          {currentPlan === 'freemium' && (
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <Badge className="bg-green-600 text-white">Plan Actual</Badge>
-            </div>
-          )}
-          
+      {/* Student Plan */}
+      {visiblePlans.includes('estudiante') && (
+        <Card className={`relative overflow-hidden ${currentPlan === 'estudiante' ? 'ring-2 ring-primary' : ''}`}>
           <CardHeader className="text-center">
-            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <Star className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-white" />
             </div>
-            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Freemium</CardTitle>
-            <div className="mt-4">
-              <div className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>Gratis</div>
-              <div className="text-sm text-gray-600">7 días de prueba</div>
-            </div>
+            <CardTitle className="text-xl">Estudiante</CardTitle>
+            <CardDescription>
+              <span className="text-2xl font-bold">5€</span>
+              <span className="text-muted-foreground">/mes</span>
+            </CardDescription>
+            {currentPlan === 'estudiante' && (
+              <Badge variant="secondary" className="mx-auto">Plan Actual</Badge>
+            )}
           </CardHeader>
-          
           <CardContent>
-            <ul className={`space-y-3 mb-6 ${isCompact ? 'space-y-2' : 'space-y-3'}`}>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Acceso a 1 curso</span>
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Máximo 2 descargas</span>
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Ver comunidad (solo lectura)</span>
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
-                <span className={`${isCompact ? 'text-xs' : 'text-sm'}`}>Retos básicos</span>
-              </li>
-            </ul>
-            
-            <Button 
-              className="w-full"
-              variant="outline"
-              disabled={true}
-            >
-              Plan Actual
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Plan Estudiante */}
-        <Card className={`relative border-gray-200 ${isMarketing ? 'hover:shadow-lg transition-shadow' : ''}`}>
-          {!isCompact && (
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <Badge className="bg-orange-600 text-white">Validación Pendiente</Badge>
-            </div>
-          )}
-          
-          <CardHeader className="text-center">
-            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <GraduationCap className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
-            </div>
-            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Estudiante</CardTitle>
-            <div className="mt-4">
-              <span className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>5€</span>
-              <span className="text-gray-600">/mes</span>
-            </div>
-          </CardHeader>
-          
-          <CardContent>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">1 curso al mes</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">2 descargas al mes</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Acceso a bolsa de trabajo</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Farmacias en venta</span>
               </li>
-              <li className="text-xs text-gray-600 mt-4">
-                Verificación de matrícula requerida
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-sm">Verificación de matrícula requerida</span>
               </li>
             </ul>
-            
             <Button 
-              className="w-full"
               variant="outline"
-              onClick={() => toast.info('Por favor, sube tu documentación de estudiante para acceder a este plan')}
+              className="w-full"
+              onClick={() => toast({
+                title: "Plan Estudiante",
+                description: "Por favor, sube tu documentación de estudiante para acceder a este plan",
+              })}
+              disabled={currentPlan === 'estudiante'}
             >
-              Subir Nueva Matrícula
+              {currentPlan === 'estudiante' ? 'Plan Actual' : 'Subir Documentación de Estudiante'}
             </Button>
           </CardContent>
         </Card>
+      )}
 
-        {/* Plan Profesional - Más Popular */}
-        <Card className={`relative border-2 border-blue-500 shadow-lg ${isMarketing ? 'hover:shadow-xl transition-shadow scale-105' : ''}`}>
-          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-            <Badge className="bg-blue-600 text-white">Más Popular</Badge>
+      {/* Professional Plan */}
+      {visiblePlans.includes('profesional') && (
+        <Card className={`relative overflow-hidden border-primary ${currentPlan === 'profesional' ? 'ring-2 ring-primary' : ''}`}>
+          <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 text-sm font-medium">
+            Más Popular
           </div>
-          
-          <CardHeader className="text-center">
-            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <Briefcase className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
+          <CardHeader className="text-center pt-12">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+              <Briefcase className="w-6 h-6 text-white" />
             </div>
-            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Profesional</CardTitle>
-            <div className="mt-4">
-              <span className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>29€</span>
-              <span className="text-gray-600">/mes</span>
-            </div>
+            <CardTitle className="text-xl">Profesional</CardTitle>
+            <CardDescription>
+              <span className="text-2xl font-bold">29€</span>
+              <span className="text-muted-foreground">/mes</span>
+            </CardDescription>
+            {currentPlan === 'profesional' && (
+              <Badge variant="secondary" className="mx-auto">Plan Actual</Badge>
+            )}
           </CardHeader>
-          
           <CardContent>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Acceso completo a formación</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Descargas ilimitadas</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Comunidad completa</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Retos avanzados</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Eventos exclusivos</span>
               </li>
             </ul>
-            
             <Button 
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full" 
               onClick={() => handleSelectPlan('profesional')}
-              disabled={loading === 'profesional'}
+              disabled={loading === 'profesional' || currentPlan === 'profesional'}
             >
-              {loading === 'profesional' ? 'Procesando...' : 'Elegir Profesional'}
+              {loading === 'profesional' ? 'Procesando...' : (currentPlan === 'profesional' ? 'Plan Actual' : 'Seleccionar Plan')}
             </Button>
           </CardContent>
         </Card>
+      )}
 
-        {/* Plan Premium */}
-        <Card className={`relative border-gray-200 ${isMarketing ? 'hover:shadow-lg transition-shadow' : ''}`}>
+      {/* Premium Plan */}
+      {visiblePlans.includes('premium') && (
+        <Card className={`relative overflow-hidden ${currentPlan === 'premium' ? 'ring-2 ring-primary' : ''}`}>
           <CardHeader className="text-center">
-            <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <Crown className={`${isCompact ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center">
+              <Crown className="w-6 h-6 text-white" />
             </div>
-            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'}`}>Premium</CardTitle>
-            <div className="mt-4">
-              <span className={`${isCompact ? 'text-2xl' : 'text-3xl'} font-bold`}>39€</span>
-              <span className="text-gray-600">/mes</span>
-            </div>
+            <CardTitle className="text-xl">Premium</CardTitle>
+            <CardDescription>
+              <span className="text-2xl font-bold">39€</span>
+              <span className="text-muted-foreground">/mes</span>
+            </CardDescription>
+            {currentPlan === 'premium' && (
+              <Badge variant="secondary" className="mx-auto">Plan Actual</Badge>
+            )}
           </CardHeader>
-          
           <CardContent>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Todo lo anterior</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Promociones exclusivas</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Publicar ofertas de empleo</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Vender tu farmacia</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Formaciones premium</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-3" />
+              <li className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
                 <span className="text-sm">Soporte prioritario</span>
               </li>
             </ul>
-            
             <Button 
-              className="w-full"
-              variant="outline"
+              className="w-full" 
               onClick={() => handleSelectPlan('premium')}
-              disabled={loading === 'premium'}
+              disabled={loading === 'premium' || currentPlan === 'premium'}
             >
-              {loading === 'premium' ? 'Procesando...' : 'Elegir Premium'}
+              {loading === 'premium' ? 'Procesando...' : (currentPlan === 'premium' ? 'Plan Actual' : 'Seleccionar Plan')}
             </Button>
           </CardContent>
         </Card>
-      </div>
+      )}
     </div>
   );
-};
+}

@@ -14,6 +14,7 @@ import Farmacias from "@/pages/Farmacias";
 import Eventos from "@/pages/Eventos";
 import Promociones from "@/pages/Promociones";
 import Planes from "@/pages/Planes";
+import Precios from "@/pages/Precios";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
@@ -33,7 +34,7 @@ import AdminRetos from "@/pages/admin/AdminRetos";
 import AdminConfiguracion from "@/pages/admin/AdminConfiguracion";
 
 export const AppRoutes = () => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   console.log('AppRoutes - user:', user?.email, 'loading:', loading);
 
@@ -48,8 +49,40 @@ export const AppRoutes = () => {
     );
   }
 
+  // Check if trial has expired and redirect to precios
+  const isTrialExpired = user && profile?.subscription_role === 'freemium' && 
+    profile?.trial_ends_at && 
+    new Date(profile.trial_ends_at) < new Date();
+
+  // Check if student plan has expired
+  const isStudentExpired = user && profile?.subscription_role === 'estudiante' &&
+    profile?.student_valid_until &&
+    new Date(profile.student_valid_until) < new Date();
+
+  const shouldRedirectToPrecios = isTrialExpired || isStudentExpired;
+
   return (
     <Routes>
+      {/* Public pricing page */}
+      <Route path="/precios" element={<Precios />} />
+      
+      {/* Redirect expired users to precios when they try to access protected routes */}
+      {shouldRedirectToPrecios && (
+        <>
+          <Route path="/dashboard" element={<Navigate to="/precios" replace />} />
+          <Route path="/formacion" element={<Navigate to="/precios" replace />} />
+          <Route path="/recursos" element={<Navigate to="/precios" replace />} />
+          <Route path="/comunidad" element={<Navigate to="/precios" replace />} />
+          <Route path="/empleo" element={<Navigate to="/precios" replace />} />
+          <Route path="/eventos" element={<Navigate to="/precios" replace />} />
+          <Route path="/retos" element={<Navigate to="/precios" replace />} />
+          <Route path="/farmacias" element={<Navigate to="/precios" replace />} />
+          <Route path="/promociones" element={<Navigate to="/precios" replace />} />
+          <Route path="/perfil" element={<Navigate to="/precios" replace />} />
+          <Route path="/planes" element={<Navigate to="/precios" replace />} />
+        </>
+      )}
+      
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
       <Route 
         path="/login" 

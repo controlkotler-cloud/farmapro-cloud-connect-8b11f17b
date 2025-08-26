@@ -1,12 +1,12 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, Settings, BarChart3, Globe, Mail } from 'lucide-react';
+import { Building2, Users, Settings, BarChart3, Globe, Mail, CreditCard } from 'lucide-react';
 import { PlatformSettings } from '@/components/admin/settings/PlatformSettings';
 import { UserSettings } from '@/components/admin/settings/UserSettings';
 import { TechnicalSettings } from '@/components/admin/settings/TechnicalSettings';
 import { AnalyticsSettings } from '@/components/admin/settings/AnalyticsSettings';
 import { RegionalSettings } from '@/components/admin/settings/RegionalSettings';
 import { EmailTemplates } from '@/components/admin/settings/EmailTemplates';
+import { SubscriptionSettings } from '@/components/admin/settings/SubscriptionSettings';
 
 interface ConfigurationTabsProps {
   platformConfig: any;
@@ -39,7 +39,7 @@ export const ConfigurationTabs = ({
 }: ConfigurationTabsProps) => {
   return (
     <Tabs defaultValue="platform" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-6">
+      <TabsList className="grid w-full grid-cols-7">
         <TabsTrigger value="platform" className="flex items-center space-x-2">
           <Building2 className="h-4 w-4" />
           <span className="hidden sm:inline">Plataforma</span>
@@ -63,6 +63,10 @@ export const ConfigurationTabs = ({
         <TabsTrigger value="email" className="flex items-center space-x-2">
           <Mail className="h-4 w-4" />
           <span className="hidden sm:inline">Emails</span>
+        </TabsTrigger>
+        <TabsTrigger value="subscription" className="flex items-center space-x-2">
+          <CreditCard className="h-4 w-4" />
+          <span className="hidden sm:inline">Planes</span>
         </TabsTrigger>
       </TabsList>
 
@@ -106,6 +110,10 @@ export const ConfigurationTabs = ({
           config={emailConfig}
           onSave={onEmailTemplatesSave}
         />
+      </TabsContent>
+
+      <TabsContent value="subscription" className="space-y-6">
+        <SubscriptionSettings />
       </TabsContent>
     </Tabs>
   );
