@@ -128,6 +128,21 @@ serve(async (req) => {
           throw new Error('Invalid or expired invitation');
         }
 
+        // Get the member role before updating
+        const { data: memberData, error: memberError } = await supabaseClient
+          .from('team_members')
+          .select('member_role')
+          .eq('invitation_token', invitationToken)
+          .single();
+
+        if (memberError || !memberData) {
+          logStep("Failed to get member role", { error: memberError?.message });
+          throw new Error('Invalid invitation token');
+        }
+
+        const memberRole = memberData.member_role;
+        logStep("Retrieved member role", { memberRole });
+
         // Update the team member status, clear the token, and set joined_at
         const { error: acceptError } = await supabaseClient
           .from('team_members')
@@ -142,15 +157,19 @@ serve(async (req) => {
 
         if (acceptError) throw acceptError;
 
-        // Update user profile to professional
+        // Update user profile role based on member role
+        const subscriptionRole = memberRole === 'premium' ? 'premium' : 'profesional';
         const { error: profileError } = await supabaseClient
           .from('profiles')
-          .update({ subscription_role: 'profesional' })
+          .update({ 
+            subscription_role: subscriptionRole,
+            subscription_status: 'active'
+          })
           .eq('id', user.id);
 
         if (profileError) throw profileError;
 
-        logStep("Invitation accepted", { userId: user.id, email: user.email });
+        logStep("Invitation accepted", { userId: user.id, email: user.email, subscriptionRole });
         return new Response(JSON.stringify({ 
           success: true, 
           message: 'Te has unido al equipo exitosamente' 

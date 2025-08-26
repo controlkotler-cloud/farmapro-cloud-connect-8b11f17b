@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Crown, Calculator, Plus, Minus } from 'lucide-react';
+import { Users, Crown, Calculator, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -13,87 +13,140 @@ interface TeamPlanCardProps {
 }
 
 export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
-  const [memberCount, setMemberCount] = useState(1);
+  const [premiumCount, setPremiumCount] = useState(1); // Includes owner
+  const [professionalCount, setProfessionalCount] = useState(1);
   const [teamName, setTeamName] = useState('');
-  const [memberEmails, setMemberEmails] = useState<string[]>(['']);
+  const [premiumMemberEmails, setPremiumMemberEmails] = useState<string[]>([]);
+  const [professionalMemberEmails, setProfessionalMemberEmails] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
 
-  // Precio base: 39€ (premium titular) + 29€ por cada miembro adicional
-  // Con 15% de descuento
-  const calculatePrice = (members: number) => {
-    const basePrice = 39; // 39€ titular premium
-    const memberPrice = 29; // 29€ por miembro profesional
-    const subtotal = basePrice + (members * memberPrice);
-    const discount = Math.round(subtotal * 0.15); // 15% descuento
+  // Calculate price based on premium and professional counts
+  const calculatePrice = (premiumMembers: number, professionalMembers: number) => {
+    const premiumPrice = 39;
+    const professionalPrice = 29;
+    const subtotal = (premiumMembers * premiumPrice) + (professionalMembers * professionalPrice);
+    const discount = Math.round(subtotal * 0.15);
     const total = subtotal - discount;
+    
     return { subtotal, discount, total };
   };
 
-  const { subtotal, discount, total } = calculatePrice(memberCount);
+  const currentPrice = calculatePrice(premiumCount, professionalCount);
+  const totalSeats = premiumCount + professionalCount;
 
-  const handleMemberCountChange = (newCount: number) => {
-    if (newCount < 1 || newCount > 50) return;
+  // Handle premium count changes (minimum 1, includes owner)
+  const handlePremiumCountChange = (newCount: number) => {
+    const validCount = Math.max(1, newCount); // Owner is always premium
+    setPremiumCount(validCount);
     
-    setMemberCount(newCount);
-    
-    // Ajustar array de emails
-    const newEmails = [...memberEmails];
-    if (newCount > memberEmails.length) {
-      // Agregar campos vacíos
-      for (let i = memberEmails.length; i < newCount; i++) {
-        newEmails.push('');
+    // Adjust premium emails array (excluding owner)
+    const premiumEmailsNeeded = validCount - 1; // Subtract 1 for owner
+    const currentEmails = [...premiumMemberEmails];
+    if (premiumEmailsNeeded > currentEmails.length) {
+      const emailsToAdd = premiumEmailsNeeded - currentEmails.length;
+      for (let i = 0; i < emailsToAdd; i++) {
+        currentEmails.push('');
       }
-    } else {
-      // Recortar array
-      newEmails.splice(newCount);
+    } else if (premiumEmailsNeeded < currentEmails.length) {
+      currentEmails.splice(premiumEmailsNeeded);
     }
-    setMemberEmails(newEmails);
+    setPremiumMemberEmails(currentEmails);
   };
 
-  const updateEmail = (index: number, email: string) => {
-    const newEmails = [...memberEmails];
-    newEmails[index] = email;
-    setMemberEmails(newEmails);
+  // Handle professional count changes
+  const handleProfessionalCountChange = (newCount: number) => {
+    const validCount = Math.max(0, newCount);
+    setProfessionalCount(validCount);
+    
+    // Adjust professional emails array
+    const currentEmails = [...professionalMemberEmails];
+    if (validCount > currentEmails.length) {
+      const emailsToAdd = validCount - currentEmails.length;
+      for (let i = 0; i < emailsToAdd; i++) {
+        currentEmails.push('');
+      }
+    } else if (validCount < currentEmails.length) {
+      currentEmails.splice(validCount);
+    }
+    setProfessionalMemberEmails(currentEmails);
   };
 
+  // Update premium email at specific index
+  const updatePremiumEmail = (index: number, email: string) => {
+    const updatedEmails = [...premiumMemberEmails];
+    updatedEmails[index] = email;
+    setPremiumMemberEmails(updatedEmails);
+  };
+
+  // Update professional email at specific index
+  const updateProfessionalEmail = (index: number, email: string) => {
+    const updatedEmails = [...professionalMemberEmails];
+    updatedEmails[index] = email;
+    setProfessionalMemberEmails(updatedEmails);
+  };
+
+  // Handle team creation and checkout
   const handleCreateTeam = async () => {
+    // Basic validation
     if (!teamName.trim()) {
-      toast.error('El nombre del equipo es obligatorio');
+      toast.error("El nombre del equipo es obligatorio");
       return;
     }
 
-    // Validar emails
-    const filledEmails = memberEmails.filter(email => email.trim());
-    if (filledEmails.length !== memberCount) {
-      toast.error(`Debes proporcionar exactamente ${memberCount} emails de miembros`);
+    if (totalSeats > 11) {
+      toast.error("Máximo 11 usuarios por equipo (incluyéndote)");
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const invalidEmails = filledEmails.filter(email => !emailRegex.test(email.trim()));
-    if (invalidEmails.length > 0) {
-      toast.error(`Emails inválidos: ${invalidEmails.join(', ')}`);
-      return;
+    // Validate premium emails (excluding owner)
+    for (let i = 0; i < premiumMemberEmails.length; i++) {
+      const email = premiumMemberEmails[i].trim();
+      if (!email) {
+        toast.error(`Email del miembro Premium ${i + 1} es obligatorio`);
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error(`Email del miembro Premium ${i + 1} no es válido`);
+        return;
+      }
+    }
+
+    // Validate professional emails
+    for (let i = 0; i < professionalMemberEmails.length; i++) {
+      const email = professionalMemberEmails[i].trim();
+      if (!email) {
+        toast.error(`Email del miembro Profesional ${i + 1} es obligatorio`);
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error(`Email del miembro Profesional ${i + 1} no es válido`);
+        return;
+      }
     }
 
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-team-checkout', {
-        body: { 
-          memberCount,
+        body: {
+          premiumCount,
+          professionalCount,
           teamName: teamName.trim(),
-          memberEmails: filledEmails.map(email => email.trim())
+          premiumMemberEmails: premiumMemberEmails.map(email => email.trim()),
+          professionalMemberEmails: professionalMemberEmails.map(email => email.trim())
         }
       });
-      
+
       if (error) throw error;
-      
-      if (data.url) {
-        window.location.href = data.url;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        onPlanSelect?.();
+      } else {
+        throw new Error('No se recibió URL de checkout');
       }
     } catch (error) {
       console.error('Error creating team checkout:', error);
-      toast.error('Error al procesar la suscripción de equipo. Contacta con soporte.');
+      toast.error('Error al crear el checkout del equipo');
     } finally {
       setLoading(false);
     }
@@ -101,7 +154,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
 
   return (
     <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-      <CardHeader className="text-center">
+      <CardHeader className="text-center pb-4">
         <Badge className="bg-amber-600 text-white w-fit mx-auto mb-2">
           Plan Team
         </Badge>
@@ -110,173 +163,190 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
         </div>
         <CardTitle className="text-2xl text-amber-800">Plan Team farmapro</CardTitle>
         <CardDescription className="text-amber-700">
-          Perfecto para equipos de farmacia
+          Ideal para equipos de farmacia. Combina múltiples planes Premium y Profesional con 15% de descuento.
         </CardDescription>
       </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {/* Nombre del equipo */}
-        <div>
-          <Label htmlFor="teamName" className="text-sm font-medium text-gray-700 mb-2 block">
-            Nombre del equipo
-          </Label>
-          <Input
-            id="teamName"
-            type="text"
-            placeholder="Ej: Farmacia San Juan"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            className="border-amber-200"
-          />
-        </div>
 
-        {/* Miembros del equipo */}
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            Miembros del equipo (Profesional)
-          </Label>
-          <div className="flex items-center justify-center border border-amber-200 rounded-lg p-4 bg-amber-50">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleMemberCountChange(memberCount - 1)}
-              disabled={memberCount <= 1}
-              className="h-10 w-10 rounded-l-lg border-amber-200"
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <div className="flex-1 text-center px-4">
-              <span className="text-lg font-medium">
-                {memberCount} miembro{memberCount !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleMemberCountChange(memberCount + 1)}
-              disabled={memberCount >= 50}
-              className="h-10 w-10 rounded-r-lg border-amber-200"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+      <CardContent>
+        <div className="space-y-6 p-6">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Plan de Equipo
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Ideal para equipos de farmacia. Combina múltiples planes Premium y Profesional con 15% de descuento.
+            </p>
           </div>
-        </div>
 
-        {/* Emails de los miembros */}
-        <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">
-            Emails de los miembros
-          </Label>
-          <div className="space-y-2">
-            {memberEmails.map((email, index) => (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="teamName" className="text-sm font-medium">
+                Nombre del equipo
+              </Label>
               <Input
-                key={index}
-                type="email"
-                placeholder={`Email del miembro ${index + 1}`}
-                value={email}
-                onChange={(e) => updateEmail(index, e.target.value)}
-                className="border-amber-200"
+                id="teamName"
+                type="text"
+                placeholder="Ej: Farmacia San Juan"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                className="mt-1"
               />
-            ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="premiumCount" className="text-sm font-medium">
+                  Miembros Premium (incluido tú)
+                </Label>
+                <Input
+                  id="premiumCount"
+                  type="number"
+                  min="1"
+                  max="11"
+                  value={premiumCount}
+                  onChange={(e) => handlePremiumCountChange(parseInt(e.target.value) || 1)}
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tú serás Premium automáticamente
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="professionalCount" className="text-sm font-medium">
+                  Miembros Profesional
+                </Label>
+                <Input
+                  id="professionalCount"
+                  type="number"
+                  min="0"
+                  max={11 - premiumCount}
+                  value={professionalCount}
+                  onChange={(e) => handleProfessionalCountChange(parseInt(e.target.value) || 0)}
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Acceso profesional completo
+                </p>
+              </div>
+            </div>
+
+            <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+              <p><strong>Total del equipo:</strong> {totalSeats} miembros ({totalSeats <= 11 ? '✓' : '✗'} Máximo 11)</p>
+              <p><strong>Premium:</strong> {premiumCount} × 39€ = {premiumCount * 39}€</p>
+              <p><strong>Profesional:</strong> {professionalCount} × 29€ = {professionalCount * 29}€</p>
+            </div>
+
+            {premiumMemberEmails.length > 0 && (
+              <div>
+                <Label className="text-sm font-medium">
+                  Emails miembros Premium (además de ti)
+                </Label>
+                <div className="space-y-2 mt-2">
+                  {premiumMemberEmails.map((email, index) => (
+                    <Input
+                      key={`premium-${index}`}
+                      type="email"
+                      placeholder={`Email Premium ${index + 1}`}
+                      value={email}
+                      onChange={(e) => updatePremiumEmail(index, e.target.value)}
+                      className="text-sm"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {professionalMemberEmails.length > 0 && (
+              <div>
+                <Label className="text-sm font-medium">
+                  Emails miembros Profesional
+                </Label>
+                <div className="space-y-2 mt-2">
+                  {professionalMemberEmails.map((email, index) => (
+                    <Input
+                      key={`professional-${index}`}
+                      type="email"
+                      placeholder={`Email Profesional ${index + 1}`}
+                      value={email}
+                      onChange={(e) => updateProfessionalEmail(index, e.target.value)}
+                      className="text-sm"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">
+                {currentPrice.total}€
+              </div>
+              <div className="text-sm text-muted-foreground">por mes</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Subtotal: {currentPrice.subtotal}€ - Descuento: {currentPrice.discount}€
+              </div>
+              <div className="text-xs text-primary font-medium mt-1">
+                15% de descuento aplicado
+              </div>
+            </div>
+          </div>
+
+          <Button 
+            onClick={handleCreateTeam}
+            disabled={loading || !teamName.trim() || totalSeats > 11 || 
+              premiumMemberEmails.some(email => !email.trim()) || 
+              professionalMemberEmails.some(email => !email.trim())}
+            className="w-full"
+            size="lg"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Procesando...
+              </>
+            ) : (
+              `Crear Equipo - ${currentPrice.total}€/mes`
+            )}
+          </Button>
+
+          <div className="bg-white rounded-lg p-4 border border-amber-200">
+            <h4 className="font-semibold text-amber-800 mb-3">¿Qué incluye?</h4>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span>Combina planes Premium y Profesional según necesites</span>
+              </li>
+              <li className="flex items-center">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span>15% descuento permanente sobre el total</span>
+              </li>
+              <li className="flex items-center">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span>El titular siempre obtiene plan Premium</span>
+              </li>
+              <li className="flex items-center">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span>Facturación centralizada y gestión simple</span>
+              </li>
+              <li className="flex items-center">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span>Máximo 11 usuarios total por equipo</span>
+              </li>
+            </ul>
           </div>
         </div>
-
-        {/* Calculadora de precio */}
-        <div className="bg-white rounded-lg p-4 border-2 border-amber-300">
-          <div className="flex items-center gap-2 mb-4">
-            <Calculator className="h-5 w-5 text-amber-600" />
-            <h4 className="font-semibold text-amber-800">Cálculo del precio</h4>
-          </div>
-          
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-amber-600" />
-                Tú (Premium):
-              </span>
-              <span className="font-medium">39€</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span>{memberCount} x Profesional:</span>
-              <span className="font-medium">{memberCount * 29}€</span>
-            </div>
-            
-            <hr className="border-amber-200" />
-            
-            <div className="flex justify-between items-center">
-              <span>Subtotal:</span>
-              <span className="font-medium">{subtotal}€</span>
-            </div>
-            
-            <div className="flex justify-between items-center text-green-600">
-              <span>Descuento (15%):</span>
-              <span className="font-medium">-{discount}€</span>
-            </div>
-            
-            <hr className="border-amber-200" />
-            
-            <div className="flex justify-between items-center text-lg font-bold text-amber-800">
-              <span>Total mensual:</span>
-              <span>{total}€</span>
-            </div>
-            
-            <div className="text-center mt-3 py-2 bg-green-50 rounded text-green-700 text-sm font-medium">
-              💰 Ahorras {discount}€/mes vs planes individuales
-            </div>
-          </div>
-        </div>
-
-        {/* Incluye */}
-        <div className="bg-white rounded-lg p-4 border border-amber-200">
-          <h4 className="font-semibold text-amber-800 mb-3">Incluye:</h4>
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-center">
-              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <span>Tú: Acceso Premium completo + gestión del equipo</span>
-            </li>
-            <li className="flex items-center">
-              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <span>Miembros: Acceso Profesional completo</span>
-            </li>
-            <li className="flex items-center">
-              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <span>Facturación centralizada</span>
-            </li>
-            <li className="flex items-center">
-              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <span>15% descuento permanente</span>
-            </li>
-            <li className="flex items-center">
-              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <span>Gestión fácil de invitaciones</span>
-            </li>
-            <li className="flex items-center">
-              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <span>Soporte prioritario para equipos</span>
-            </li>
-          </ul>
-        </div>
-
-        <Button 
-          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 text-lg"
-          onClick={handleCreateTeam}
-          disabled={loading}
-        >
-          {loading ? 'Procesando...' : `Contratar Plan Team (${total}€/mes)`}
-        </Button>
       </CardContent>
     </Card>
   );

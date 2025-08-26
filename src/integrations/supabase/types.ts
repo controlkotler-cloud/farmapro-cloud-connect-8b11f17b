@@ -1349,6 +1349,7 @@ export type Database = {
           invited_at: string
           invited_email: string | null
           joined_at: string | null
+          member_role: Database["public"]["Enums"]["team_member_role"]
           status: string
           team_id: string
           updated_at: string
@@ -1363,6 +1364,7 @@ export type Database = {
           invited_at?: string
           invited_email?: string | null
           joined_at?: string | null
+          member_role?: Database["public"]["Enums"]["team_member_role"]
           status?: string
           team_id: string
           updated_at?: string
@@ -1377,6 +1379,7 @@ export type Database = {
           invited_at?: string
           invited_email?: string | null
           joined_at?: string | null
+          member_role?: Database["public"]["Enums"]["team_member_role"]
           status?: string
           team_id?: string
           updated_at?: string
@@ -1557,6 +1560,10 @@ export type Database = {
         Args: { member_count: number }
         Returns: number
       }
+      calculate_team_price_v2: {
+        Args: { premium_count: number; professional_count: number }
+        Returns: number
+      }
       can_access_contact_info: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -1699,6 +1706,7 @@ export type Database = {
         | "manual"
         | "herramienta"
       subscription_status: "active" | "canceled" | "expired" | "trialing"
+      team_member_role: "premium" | "profesional"
       user_role: "freemium" | "estudiante" | "profesional" | "premium" | "admin"
     }
     CompositeTypes: {
@@ -1860,6 +1868,7 @@ export const Constants = {
         "herramienta",
       ],
       subscription_status: ["active", "canceled", "expired", "trialing"],
+      team_member_role: ["premium", "profesional"],
       user_role: ["freemium", "estudiante", "profesional", "premium", "admin"],
     },
   },

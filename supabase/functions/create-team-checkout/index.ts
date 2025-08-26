@@ -26,11 +26,46 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { memberCount, teamName, memberEmails } = await req.json();
-    logStep("Request data", { memberCount, teamName, memberEmails });
+    const requestBody = await req.json();
+    logStep("Request data received", requestBody);
 
-    if (!memberCount || memberCount < 1 || memberCount > 10) {
-      throw new Error("Invalid member count");
+    // Handle both new and legacy payload formats
+    let premiumCount, professionalCount, premiumMemberEmails, professionalMemberEmails, teamName;
+    
+    if (requestBody.premiumCount !== undefined) {
+      // New format
+      ({ premiumCount, professionalCount, premiumMemberEmails = [], professionalMemberEmails = [], teamName } = requestBody);
+    } else {
+      // Legacy format - convert to new format
+      const { memberCount, memberEmails = [] } = requestBody;
+      premiumCount = 1; // Owner is always premium
+      professionalCount = memberCount || 0;
+      premiumMemberEmails = [];
+      professionalMemberEmails = memberEmails;
+      teamName = requestBody.teamName;
+    }
+
+    logStep("Parsed team data", { premiumCount, professionalCount, premiumMemberEmails, professionalMemberEmails, teamName });
+
+    // Validations
+    if (!premiumCount || premiumCount < 1) {
+      throw new Error("Premium count must be at least 1 (includes team owner)");
+    }
+    if (professionalCount < 0) {
+      throw new Error("Professional count cannot be negative");
+    }
+    const totalSeats = premiumCount + professionalCount;
+    if (totalSeats > 11) {
+      throw new Error("Team cannot exceed 11 total members (owner + 10 additional)");
+    }
+    if (premiumMemberEmails.length !== (premiumCount - 1)) {
+      throw new Error(`Premium member emails count mismatch: expected ${premiumCount - 1}, got ${premiumMemberEmails.length}`);
+    }
+    if (professionalMemberEmails.length !== professionalCount) {
+      throw new Error(`Professional member emails count mismatch: expected ${professionalCount}, got ${professionalMemberEmails.length}`);
+    }
+    if (!teamName || teamName.trim().length === 0) {
+      throw new Error("Team name is required");
     }
 
     const authHeader = req.headers.get("Authorization")!;
@@ -52,12 +87,23 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    // Calculate team price using database function
-    const { data: priceData } = await supabaseClient.rpc('calculate_team_price', { 
-      member_count: memberCount 
-    });
-    const teamPrice = priceData;
-    logStep("Team price calculated", { memberCount, teamPrice });
+    // Calculate team price using appropriate function
+    let teamPrice;
+    if (requestBody.premiumCount !== undefined) {
+      // Use new pricing function
+      const { data: priceData } = await supabaseClient.rpc('calculate_team_price_v2', { 
+        premium_count: premiumCount,
+        professional_count: professionalCount
+      });
+      teamPrice = priceData;
+    } else {
+      // Use legacy pricing function for backward compatibility
+      const { data: priceData } = await supabaseClient.rpc('calculate_team_price', { 
+        member_count: professionalCount 
+      });
+      teamPrice = priceData;
+    }
+    logStep("Team price calculated", { premiumCount, professionalCount, teamPrice });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -67,8 +113,8 @@ serve(async (req) => {
           price_data: {
             currency: "eur",
             product_data: { 
-              name: `Plan Team farmapro (${memberCount + 1} usuarios)`,
-              description: `1 Premium + ${memberCount} Profesional con 15% descuento`
+              name: `Plan Team farmapro (${totalSeats} usuarios)`,
+              description: `${premiumCount} Premium + ${professionalCount} Profesional con 15% descuento`
             },
             unit_amount: teamPrice,
             recurring: { interval: "month" },
@@ -82,9 +128,14 @@ serve(async (req) => {
       metadata: {
         user_id: user.id,
         plan_type: 'team',
-        member_count: memberCount.toString(),
+        premium_count: premiumCount.toString(),
+        professional_count: professionalCount.toString(),
+        premium_member_emails: JSON.stringify(premiumMemberEmails),
+        professional_member_emails: JSON.stringify(professionalMemberEmails),
         team_name: teamName,
-        member_emails: JSON.stringify(memberEmails),
+        // Legacy fields for backward compatibility
+        member_count: professionalCount.toString(),
+        member_emails: JSON.stringify(professionalMemberEmails),
       },
     });
 
