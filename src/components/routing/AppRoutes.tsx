@@ -13,7 +13,7 @@ import Empleo from "@/pages/Empleo";
 import Farmacias from "@/pages/Farmacias";
 import Eventos from "@/pages/Eventos";
 import Promociones from "@/pages/Promociones";
-import Planes from "@/pages/Planes";
+
 import Precios from "@/pages/Precios";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
@@ -49,7 +49,7 @@ export const AppRoutes = () => {
     );
   }
 
-  // Check if trial has expired and redirect to precios
+  // Check if trial has expired and redirect to precios  
   const isTrialExpired = user && profile?.subscription_role === 'freemium' && 
     profile?.trial_ends_at && 
     new Date(profile.trial_ends_at) < new Date();
@@ -59,7 +59,9 @@ export const AppRoutes = () => {
     profile?.student_valid_until &&
     new Date(profile.student_valid_until) < new Date();
 
-  const shouldRedirectToPrecios = isTrialExpired || isStudentExpired;
+  // Only redirect freemium and students when expired, not admins/premium users
+  const shouldRedirectToPrecios = (isTrialExpired || isStudentExpired) && 
+    !['admin', 'premium', 'profesional'].includes(profile?.subscription_role || '');
 
   return (
     <Routes>
@@ -79,7 +81,7 @@ export const AppRoutes = () => {
           <Route path="/farmacias" element={<Navigate to="/precios" replace />} />
           <Route path="/promociones" element={<Navigate to="/precios" replace />} />
           <Route path="/perfil" element={<Navigate to="/precios" replace />} />
-          <Route path="/planes" element={<Navigate to="/precios" replace />} />
+          
         </>
       )}
       
@@ -158,11 +160,6 @@ export const AppRoutes = () => {
       <Route path="/promociones" element={
         <ProtectedRoute>
           <Promociones />
-        </ProtectedRoute>
-      } />
-      <Route path="/planes" element={
-        <ProtectedRoute>
-          <Planes />
         </ProtectedRoute>
       } />
       
