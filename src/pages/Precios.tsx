@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, GraduationCap, Briefcase, Crown } from "lucide-react";
+import { Check, GraduationCap, Briefcase, Crown, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentLinks {
@@ -61,7 +62,44 @@ export default function Precios() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          {/* Plan Freemium */}
+          <Card className="relative overflow-hidden">
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <CardTitle className="text-2xl">Freemium</CardTitle>
+              <CardDescription>
+                <span className="text-3xl font-bold">Gratis</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-3">
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Acceso a 1 curso</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Máximo 2 descargas</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Ver comunidad (solo lectura)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Retos básicos</span>
+                </li>
+              </ul>
+              <Button asChild className="w-full" variant="outline">
+                <Link to="/login">
+                  Empezar Gratis
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
           {/* Plan Estudiante */}
           <Card className="relative overflow-hidden">
             <CardHeader className="text-center">

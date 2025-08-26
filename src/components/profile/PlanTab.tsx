@@ -1,13 +1,10 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, CheckCircle, Star, Users, ExternalLink } from 'lucide-react';
+import { CheckCircle, Star, Users, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
 import { TeamPlanCard } from '@/components/subscription/TeamPlanCard';
 import { planConfig } from '@/components/profile/config/PlanConfig';
@@ -18,7 +15,6 @@ interface PlanTabProps {
 }
 
 export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
-  const [refreshLoading, setRefreshLoading] = useState(false);
 
   const getCurrentPlan = () => {
     if (isAdmin) return 'admin';
@@ -29,27 +25,6 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
   const config = planConfig[currentPlan as keyof typeof planConfig] || planConfig.freemium;
   const PlanIcon = config.icon;
 
-  const refreshSubscriptionStatus = async () => {
-    if (currentPlan === 'admin') {
-      toast.info('Las cuentas de administrador no requieren actualización de suscripción');
-      return;
-    }
-
-    setRefreshLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('check-subscription');
-      
-      if (error) throw error;
-      
-      toast.success('Estado de suscripción actualizado');
-      window.location.reload();
-    } catch (error) {
-      console.error('Error refreshing subscription:', error);
-      toast.error('No se pudo actualizar el estado');
-    } finally {
-      setRefreshLoading(false);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -124,17 +99,6 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
               </div>
             )}
 
-            <div className="flex gap-3">
-              <Button 
-                variant="outline"
-                onClick={refreshSubscriptionStatus}
-                disabled={refreshLoading || currentPlan === 'admin'}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${refreshLoading ? 'animate-spin' : ''}`} />
-                {refreshLoading ? 'Actualizando...' : 'Actualizar Estado'}
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -159,7 +123,7 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                     </p>
                   </div>
                   <Button asChild>
-                    <Link to="/planes" className="flex items-center gap-2">
+                    <Link to="/precios" className="flex items-center gap-2">
                       Ver todos los planes
                       <ExternalLink className="h-4 w-4" />
                     </Link>
@@ -185,7 +149,7 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                     </p>
                   </div>
                   <Button asChild variant="outline">
-                    <Link to="/planes" className="flex items-center gap-2">
+                    <Link to="/precios" className="flex items-center gap-2">
                       Comparar planes
                       <ExternalLink className="h-4 w-4" />
                     </Link>
@@ -220,10 +184,11 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                   <SubscriptionPlans 
                     variant="compact" 
                     currentPlan={currentPlan}
+                    userRole={currentPlan}
                   />
                   <div className="mt-4 text-center">
                     <Button asChild variant="outline" size="sm">
-                      <Link to="/planes" className="flex items-center gap-2">
+                      <Link to="/precios" className="flex items-center gap-2">
                         Ver comparativa completa
                         <ExternalLink className="h-4 w-4" />
                       </Link>
