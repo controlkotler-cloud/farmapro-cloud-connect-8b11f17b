@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AdminProtectedRoute } from "./AdminProtectedRoute";
@@ -35,10 +36,15 @@ import AdminConfiguracion from "@/pages/admin/AdminConfiguracion";
 
 export const AppRoutes = () => {
   const { user, profile, loading } = useAuth();
+  const { getSettingsByCategory, isLoading: settingsLoading } = useSystemSettings();
 
   console.log('AppRoutes - user:', user?.email, 'loading:', loading);
 
-  if (loading) {
+  // Get system settings
+  const systemSettings = getSettingsByCategory('system');
+  const validationMode = systemSettings?.validation_mode || 'beta';
+
+  if (loading || settingsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -59,8 +65,9 @@ export const AppRoutes = () => {
     profile?.student_valid_until &&
     new Date(profile.student_valid_until) < new Date();
 
-  // Only redirect freemium and students when expired, not admins/premium users
-  const shouldRedirectToPrecios = (isTrialExpired || isStudentExpired) && 
+  // Only redirect when validation_mode is 'active' and user is expired freemium/student (not admin/premium/profesional)
+  const shouldRedirectToPrecios = validationMode === 'active' && 
+    (isTrialExpired || isStudentExpired) && 
     !['admin', 'premium', 'profesional'].includes(profile?.subscription_role || '');
 
   return (
