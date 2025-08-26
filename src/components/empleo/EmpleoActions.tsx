@@ -50,7 +50,7 @@ export const EmpleoActions = ({ canPostJobs, isPremium, isAdmin, onCreateJob }: 
             </p>
           </div>
           <Button asChild className="bg-blue-600 hover:bg-blue-700 shadow-lg">
-            <Link to="/subscription?tab=plans">
+            <Link to="/precios">
               Ver Planes
             </Link>
           </Button>
