@@ -531,6 +531,53 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          applicant_email: string
+          applicant_id: string
+          applicant_name: string
+          applied_at: string
+          consent_given: boolean
+          created_at: string
+          id: string
+          job_id: string
+          resume_url: string | null
+          summary: string
+        }
+        Insert: {
+          applicant_email: string
+          applicant_id: string
+          applicant_name: string
+          applied_at?: string
+          consent_given?: boolean
+          created_at?: string
+          id?: string
+          job_id: string
+          resume_url?: string | null
+          summary: string
+        }
+        Update: {
+          applicant_email?: string
+          applicant_id?: string
+          applicant_name?: string
+          applied_at?: string
+          consent_given?: boolean
+          created_at?: string
+          id?: string
+          job_id?: string
+          resume_url?: string | null
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_conversations: {
         Row: {
           applicant_id: string
@@ -585,7 +632,9 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean | null
+          job_type: string | null
           location: string
+          province: string | null
           requirements: string | null
           salary_range: string | null
           title: string
@@ -600,7 +649,9 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          job_type?: string | null
           location: string
+          province?: string | null
           requirements?: string | null
           salary_range?: string | null
           title: string
@@ -615,7 +666,9 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          job_type?: string | null
           location?: string
+          province?: string | null
           requirements?: string | null
           salary_range?: string | null
           title?: string
@@ -640,7 +693,9 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean | null
+          job_type: string | null
           location: string
+          province: string | null
           requirements: string | null
           salary_range: string | null
           title: string
@@ -654,7 +709,9 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          job_type?: string | null
           location: string
+          province?: string | null
           requirements?: string | null
           salary_range?: string | null
           title: string
@@ -668,7 +725,9 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          job_type?: string | null
           location?: string
+          province?: string | null
           requirements?: string | null
           salary_range?: string | null
           title?: string
@@ -1653,6 +1712,14 @@ export type Database = {
       }
       start_job_conversation: {
         Args: { job_id_param: string }
+        Returns: string
+      }
+      submit_job_application: {
+        Args: {
+          job_id_param: string
+          resume_url_param?: string
+          summary_param: string
+        }
         Returns: string
       }
       update_challenge_progress: {

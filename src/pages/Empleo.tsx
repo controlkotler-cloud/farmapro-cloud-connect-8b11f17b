@@ -4,41 +4,33 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { MapPin, Clock, DollarSign, Building2, Mail, Calendar, Plus, Briefcase } from 'lucide-react';
+import { MapPin, Euro, Building2, Mail, Calendar, Plus, Briefcase, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { EmpleoHeader } from '@/components/empleo/EmpleoHeader';
 import { EmpleoActions } from '@/components/empleo/EmpleoActions';
-import { useJobConversations } from '@/hooks/useJobConversations';
-
-interface JobListing {
-  id: string;
-  title: string;
-  company_name: string;
-  location: string;
-  description: string;
-  requirements: string;
-  salary_range: string;
-  contact_email: string;
-  expires_at: string;
-  is_active: boolean;
-  created_at: string;
-}
+import { JobFilters } from '@/components/empleo/JobFilters';
+import { JobDetailDialog } from '@/components/empleo/JobDetailDialog';
+import { JobApplicationDialog } from '@/components/empleo/JobApplicationDialog';
+import { JobListing } from '@/types/job';
 
 const Empleo = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const { createConversation } = useJobConversations();
-  const [showContactDialog, setShowContactDialog] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
-  const [contactMessage, setContactMessage] = useState('');
   const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [applications, setApplications] = useState<string[]>([]);
+  const [applicationDates, setApplicationDates] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [showNewJobDialog, setShowNewJobDialog] = useState(false);
+  const [showJobDetailDialog, setShowJobDetailDialog] = useState(false);
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [jobTypeFilter, setJobTypeFilter] = useState('all');
+  const [provinceFilter, setProvinceFilter] = useState('all');
   const [newJob, setNewJob] = useState({
     title: '',
     company_name: '',
@@ -47,23 +39,41 @@ const Empleo = () => {
     requirements: '',
     salary_range: '',
     contact_email: '',
-    expires_at: ''
+    expires_at: '',
+    job_type: 'otros',
+    province: ''
   });
 
   useEffect(() => {
     loadJobs();
-  }, []);
+    if (profile?.id) {
+      loadUserApplications();
+    }
+  }, [profile?.id]);
+
+  useEffect(() => {
+    loadJobs();
+  }, [jobTypeFilter, provinceFilter]);
 
   const loadJobs = async () => {
     try {
       setLoading(true);
       console.log('Loading active job listings...');
       
-      // Always use the secure public table - both authenticated and unauthenticated users
-      const { data, error } = await supabase
+      let query = supabase
         .from('job_listings_public')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Apply filters
+      if (jobTypeFilter !== 'all') {
+        query = query.eq('job_type', jobTypeFilter);
+      }
+      if (provinceFilter !== 'all') {
+        query = query.eq('province', provinceFilter);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error loading job listings:', error);
@@ -76,7 +86,6 @@ const Empleo = () => {
       }
 
       console.log('Job listings loaded:', data?.length || 0);
-      // Add empty contact_email for interface compatibility
       const jobsWithContactEmail = (data || []).map(job => ({
         ...job,
         contact_email: '', // Will be fetched separately when needed
@@ -92,6 +101,33 @@ const Empleo = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserApplications = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('job_applications')
+        .select('job_id, applied_at')
+        .eq('applicant_id', profile.id);
+
+      if (error) {
+        console.error('Error loading applications:', error);
+        return;
+      }
+
+      const jobIds = (data || []).map(app => app.job_id);
+      const dates = (data || []).reduce((acc, app) => {
+        acc[app.job_id] = app.applied_at;
+        return acc;
+      }, {} as Record<string, string>);
+
+      setApplications(jobIds);
+      setApplicationDates(dates);
+    } catch (error) {
+      console.error('Exception loading applications:', error);
     }
   };
 
@@ -135,7 +171,9 @@ const Empleo = () => {
         requirements: '',
         salary_range: '',
         contact_email: '',
-        expires_at: ''
+        expires_at: '',
+        job_type: 'otros',
+        province: ''
       });
       setShowNewJobDialog(false);
       await loadJobs();
@@ -175,70 +213,19 @@ const Empleo = () => {
     setShowNewJobDialog(true);
   };
 
-  const handleContact = async (job: JobListing) => {
-    // Check if user has premium access
-    const hasPremiumAccess = profile?.subscription_role === 'premium' || 
-                            profile?.subscription_role === 'profesional' || 
-                            profile?.subscription_role === 'admin';
-
-    if (hasPremiumAccess) {
-      // Show dialog to start conversation
-      setSelectedJob(job);
-      setShowContactDialog(true);
-    } else {
-      // Use original email functionality
-      try {
-        const { data: contactEmail, error } = await supabase
-          .rpc('get_job_contact_email_rpc', { job_id: job.id });
-        
-        if (error || !contactEmail) {
-          toast({
-            title: "Error",
-            description: "No se pudo obtener la información de contacto",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        window.location.href = `mailto:${contactEmail}?subject=Interés en ${job.title}&body=Hola,%0D%0A%0D%0AEstoy interesado/a en la oferta de ${job.title} publicada en farmapro.%0D%0A%0D%0ASaludos cordiales.`;
-      } catch (error) {
-        console.error('Error getting contact email:', error);
-        toast({
-          title: "Error",
-          description: "Error al obtener información de contacto",
-          variant: "destructive"
-        });
-      }
-    }
+  const handleJobClick = (job: JobListing) => {
+    setSelectedJob(job);
+    setShowJobDetailDialog(true);
   };
 
-  const handleSendMessage = async () => {
-    if (!selectedJob || !contactMessage.trim()) return;
+  const handleContact = (job: JobListing) => {
+    setSelectedJob(job);
+    setShowApplicationDialog(true);
+  };
 
-    try {
-      const conversationId = await createConversation(
-        selectedJob.id,
-        '', // employerId will be determined by the RPC function
-        contactMessage
-      );
-
-      if (conversationId) {
-        toast({
-          title: "Éxito",
-          description: "Mensaje enviado. Puedes ver la conversación en 'Conversaciones'",
-        });
-        setShowContactDialog(false);
-        setContactMessage('');
-        setSelectedJob(null);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo enviar el mensaje",
-        variant: "destructive"
-      });
-    }
+  const handleApplicationSuccess = () => {
+    loadUserApplications();
+    loadJobs();
   };
 
   return (
@@ -255,6 +242,13 @@ const Empleo = () => {
         isPremium={isPremium()}
         isAdmin={isAdmin()}
         onCreateJob={handleCreateJob}
+      />
+
+      <JobFilters
+        jobType={jobTypeFilter}
+        province={provinceFilter}
+        onJobTypeChange={setJobTypeFilter}
+        onProvinceChange={setProvinceFilter}
       />
 
       {/* Dialog para crear ofertas */}
@@ -283,10 +277,27 @@ const Empleo = () => {
                 onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
               />
               <Input
+                placeholder="Provincia"
+                value={newJob.province}
+                onChange={(e) => setNewJob({ ...newJob, province: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
                 placeholder="Rango salarial"
                 value={newJob.salary_range}
                 onChange={(e) => setNewJob({ ...newJob, salary_range: e.target.value })}
               />
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={newJob.job_type}
+                onChange={(e) => setNewJob({ ...newJob, job_type: e.target.value })}
+              >
+                <option value="adjunto_farmaceutico">Adjunto/a Farmacéutico/a</option>
+                <option value="tecnico">Técnico</option>
+                <option value="auxiliar">Auxiliar</option>
+                <option value="otros">Otros</option>
+              </select>
             </div>
             <Input
               placeholder="Email de contacto *"
@@ -319,46 +330,33 @@ const Empleo = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog para iniciar conversación */}
-      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Contactar para {selectedJob?.title}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Envía un mensaje al empleador para iniciar una conversación en el portal.
-            </p>
-            <Textarea
-              placeholder="Escribe tu mensaje de presentación..."
-              value={contactMessage}
-              onChange={(e) => setContactMessage(e.target.value)}
-              rows={4}
-              className="resize-none"
-            />
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowContactDialog(false);
-                  setContactMessage('');
-                  setSelectedJob(null);
-                }}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSendMessage}
-                disabled={!contactMessage.trim()}
-                className="flex-1"
-              >
-                Enviar Mensaje
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Job Detail Dialog */}
+      <JobDetailDialog
+        job={selectedJob}
+        isOpen={showJobDetailDialog}
+        onClose={() => {
+          setShowJobDetailDialog(false);
+          setSelectedJob(null);
+        }}
+        onContact={() => {
+          setShowJobDetailDialog(false);
+          handleContact(selectedJob!);
+        }}
+        isExpired={selectedJob ? isJobExpired(selectedJob.expires_at) : false}
+        hasApplied={selectedJob ? applications.includes(selectedJob.id) : false}
+        applicationDate={selectedJob ? applicationDates[selectedJob.id] : undefined}
+      />
+
+      {/* Job Application Dialog */}
+      <JobApplicationDialog
+        job={selectedJob}
+        isOpen={showApplicationDialog}
+        onClose={() => {
+          setShowApplicationDialog(false);
+          setSelectedJob(null);
+        }}
+        onSuccess={handleApplicationSuccess}
+      />
 
       {/* Lista de ofertas */}
       <Card className="shadow-lg border-0">
@@ -395,25 +393,33 @@ const Empleo = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className={`h-full shadow-lg hover:shadow-xl transition-all duration-300 ${
-                    isJobExpired(job.expires_at) ? 'opacity-60' : ''
-                  }`}>
+                  <Card 
+                    className={`h-full shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer ${
+                      isJobExpired(job.expires_at) ? 'opacity-60' : ''
+                    }`}
+                    onClick={() => handleJobClick(job)}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-semibold">{job.title}</CardTitle>
-                        {isJobExpired(job.expires_at) && (
-                          <Badge variant="destructive">Expirada</Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {applications.includes(job.id) && (
+                            <Badge variant="secondary" className="text-xs">Contactado</Badge>
+                          )}
+                          {isJobExpired(job.expires_at) && (
+                            <Badge variant="destructive">Expirada</Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-4 text-sm text-gray-600">
                         <div className="flex items-center">
                           <Building2 className="h-4 w-4 mr-1" />
                           {job.company_name}
                         </div>
-                        {job.location && (
+                        {(job.location || job.province) && (
                           <div className="flex items-center">
                             <MapPin className="h-4 w-4 mr-1" />
-                            {job.location}
+                            {job.location || job.province}
                           </div>
                         )}
                       </div>
@@ -423,15 +429,14 @@ const Empleo = () => {
                       <div className="space-y-3">
                         {job.salary_range && (
                           <div className="flex items-center text-sm">
-                            <DollarSign className="h-4 w-4 mr-2 text-green-600" />
+                            <Euro className="h-4 w-4 mr-2 text-green-600" />
                             <span className="font-medium">{job.salary_range}</span>
                           </div>
                         )}
                         
-                        {job.requirements && (
-                          <div>
-                            <h4 className="font-medium text-sm mb-1">Requisitos:</h4>
-                            <p className="text-sm text-gray-600 line-clamp-2">{job.requirements}</p>
+                        {applications.includes(job.id) && applicationDates[job.id] && (
+                          <div className="text-xs text-green-600 font-medium">
+                            Contactado el {formatDate(applicationDates[job.id])}
                           </div>
                         )}
                         
@@ -440,30 +445,33 @@ const Empleo = () => {
                             <Calendar className="h-3 w-3 mr-1" />
                             Expira: {formatDate(job.expires_at)}
                           </div>
-                          {profile?.id ? (
-                            <Button 
-                              size="sm" 
-                              disabled={isJobExpired(job.expires_at)}
-                              onClick={() => handleContact(job)}
-                              className="shadow-md"
-                            >
-                              <Mail className="h-4 w-4 mr-2" />
-                              Contactar
-                            </Button>
-                          ) : (
+                          <div className="flex items-center gap-2">
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => toast({
-                                title: "Inicia sesión",
-                                description: "Debes iniciar sesión para ver la información de contacto",
-                                variant: "default"
-                              })}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleJobClick(job);
+                              }}
                             >
-                              <Mail className="h-4 w-4 mr-2" />
-                              Ver contacto
+                              <Eye className="h-4 w-4 mr-1" />
+                              Ver más
                             </Button>
-                          )}
+                            {profile?.id && (
+                              <Button 
+                                size="sm" 
+                                disabled={isJobExpired(job.expires_at) || applications.includes(job.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleContact(job);
+                                }}
+                                className="shadow-md"
+                              >
+                                <Mail className="h-4 w-4 mr-2" />
+                                {applications.includes(job.id) ? 'Contactado' : 'Contactar'}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardContent>
