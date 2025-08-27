@@ -1,46 +1,15 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { syncUserPoints } from '@/utils/pointsSync';
+import { calculateTotalPointsFromChallenges } from '@/utils/challengeUtils';
 import type { DashboardStats, ActivityItem } from '@/types/dashboard';
 
 export const loadUserStats = async (userId: string): Promise<DashboardStats> => {
   console.log('Loading user stats for user:', userId);
 
   try {
-    // Primero sincronizar puntos de retos completados
-    console.log('Syncing challenge points...');
-    await syncUserPoints(userId);
-
-    const { data: points, error: pointsError } = await supabase
-      .from('user_points')
-      .select('total_points, level')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (pointsError && pointsError.code !== 'PGRST116') {
-      console.error('Error fetching points:', pointsError);
-    } else {
-      console.log('User points fetched after sync:', points);
-    }
-
-    if (!points) {
-      console.log('No points record found after sync, creating initial record...');
-      const { data: newPoints, error: createError } = await supabase
-        .from('user_points')
-        .insert({
-          user_id: userId,
-          total_points: 0,
-          level: 1
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('Error creating initial points record:', createError);
-      } else {
-        console.log('Initial points record created:', newPoints);
-      }
-    }
+    // Calculate points from completed challenges
+    const { totalPoints, level } = await calculateTotalPointsFromChallenges(userId);
+    console.log('Calculated total points from challenges:', { totalPoints, level });
 
     console.log('Searching for course completion challenge...');
     const { data: challenges, error: challengeError } = await supabase
@@ -109,8 +78,8 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
       .not('completed_at', 'is', null);
 
     const stats = {
-      totalPoints: points?.total_points || 0,
-      level: points?.level || 1,
+      totalPoints,
+      level,
       coursesCompleted,
       resourcesDownloaded: resources?.length || 0,
       forumPosts: posts?.length || 0,

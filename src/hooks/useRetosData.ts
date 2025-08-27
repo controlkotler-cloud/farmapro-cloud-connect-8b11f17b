@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { syncUserPoints } from '@/utils/pointsSync';
-import { updateChallengeProgress } from '@/utils/challengeUtils';
+import { updateChallengeProgress, calculateTotalPointsFromChallenges } from '@/utils/challengeUtils';
 
 interface Challenge {
   id: string;
@@ -128,22 +127,9 @@ export const useRetosData = () => {
 
     console.log('Loading user stats for retos page, user:', profile.id);
 
-    // Sincronizar puntos antes de cargar stats
-    console.log('Syncing points in retos page...');
-    await syncUserPoints(profile.id);
-
-    // Get user points
-    const { data: pointsData, error: pointsError } = await supabase
-      .from('user_points')
-      .select('total_points, level')
-      .eq('user_id', profile.id)
-      .maybeSingle();
-
-    if (pointsError) {
-      console.error('Error fetching user points:', pointsError);
-    } else {
-      console.log('User points from retos page after sync:', pointsData);
-    }
+    // Calculate points from completed challenges
+    const { totalPoints, level } = await calculateTotalPointsFromChallenges(profile.id);
+    console.log('Calculated points from challenges:', { totalPoints, level });
 
     // Get completed challenges - SOLO contar los que tienen completed_at no nulo
     const { data: completedData } = await supabase
@@ -175,8 +161,8 @@ export const useRetosData = () => {
     }
 
     const newStats = {
-      totalPoints: pointsData?.total_points || 0,
-      level: pointsData?.level || 1,
+      totalPoints,
+      level,
       completedChallenges: completedData?.length || 0,
       activeStreaks
     };
