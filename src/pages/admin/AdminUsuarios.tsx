@@ -30,6 +30,7 @@ const AdminUsuarios = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -164,6 +165,52 @@ const AdminUsuarios = () => {
     }
   };
 
+  const createAdminUser = async () => {
+    setCreatingAdmin(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('provision-admin-user', {
+        body: {
+          email: 'alejandro@mkpro.es',
+          password: '2FRMmkpro?'
+        }
+      });
+
+      if (error) {
+        console.error('Error creating admin user:', error);
+        toast({
+          title: "Error",
+          description: `No se pudo crear el usuario admin: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.success) {
+        toast({
+          title: "Éxito",
+          description: "Usuario admin alejandro@mkpro.es creado correctamente",
+        });
+        await loadUsers(); // Refresh the users list
+      } else {
+        toast({
+          title: "Error",
+          description: data?.error || "Error desconocido al crear el usuario admin",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Unexpected error creating admin user:', error);
+      toast({
+        title: "Error",
+        description: "Error inesperado al crear el usuario admin",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -187,9 +234,20 @@ const AdminUsuarios = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestión de Usuarios</h1>
-        <p className="text-gray-600">Administra perfiles de usuario y suscripciones</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gestión de Usuarios</h1>
+          <p className="text-gray-600">Administra perfiles de usuario y suscripciones</p>
+        </div>
+        <Button 
+          onClick={createAdminUser}
+          disabled={creatingAdmin}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          {creatingAdmin ? 'Creando...' : 'Crear Admin Alejandro'}
+        </Button>
       </div>
 
       {/* Filters */}
