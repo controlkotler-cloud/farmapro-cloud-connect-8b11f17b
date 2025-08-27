@@ -19,8 +19,6 @@ import Precios from "@/pages/Precios";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
-import EmpleoConversaciones from "@/pages/EmpleoConversaciones";
-import EmpleoConversacion from "@/pages/EmpleoConversacion";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCursos from "@/pages/admin/AdminCursos";
 import AdminQuizzes from "@/pages/admin/AdminQuizzes";
