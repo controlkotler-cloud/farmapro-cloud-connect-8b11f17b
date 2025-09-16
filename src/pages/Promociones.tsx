@@ -131,8 +131,8 @@ const Promociones = () => {
         <div className="relative">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-red-400 to-red-600 rounded-r-full shadow-lg"></div>
           <div className="ml-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Promociones Exclusivas</h1>
-            <p className="text-gray-600">Descuentos y ofertas especiales para profesionales farmacéuticos</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Promociones exclusivas</h1>
+            <p className="text-gray-600">Descuentos y ofertas especiales para tu farmacia</p>
           </div>
         </div>
       </motion.div>
