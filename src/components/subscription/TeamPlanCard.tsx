@@ -7,12 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Users, Crown, Calculator, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TeamPlanCardProps {
   onPlanSelect?: () => void;
 }
 
 export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
+  const isMobile = useIsMobile();
   const [premiumCount, setPremiumCount] = useState(1); // Includes owner
   const [professionalCount, setProfessionalCount] = useState(1);
   const [teamName, setTeamName] = useState('');
@@ -168,7 +170,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-6 p-6">
+        <div className={`space-y-6 ${isMobile ? 'p-4' : 'p-6'}`}>
           <div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
               Plan de Equipo
@@ -193,7 +195,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-2 gap-4'}`}>
               <div>
                 <Label htmlFor="premiumCount" className="text-sm font-medium">
                   Miembros Premium (incluido tú)
@@ -231,10 +233,12 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
               </div>
             </div>
 
-            <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
-              <p><strong>Total del equipo:</strong> {totalSeats} miembros ({totalSeats <= 11 ? '✓' : '✗'} Máximo 11)</p>
-              <p><strong>Premium:</strong> {premiumCount} × 39€ = {premiumCount * 39}€</p>
-              <p><strong>Profesional:</strong> {professionalCount} × 29€ = {professionalCount * 29}€</p>
+            <div className={`text-sm text-muted-foreground bg-muted ${isMobile ? 'p-3' : 'p-3'} rounded-lg space-y-1`}>
+              <div className={`${isMobile ? 'space-y-1' : 'space-y-0'}`}>
+                <p><strong>Total del equipo:</strong> {totalSeats} miembros ({totalSeats <= 11 ? '✓' : '✗'} Máximo 11)</p>
+                <p><strong>Premium:</strong> {premiumCount} × 39€ = {premiumCount * 39}€</p>
+                <p><strong>Profesional:</strong> {professionalCount} × 29€ = {professionalCount * 29}€</p>
+              </div>
             </div>
 
             {premiumMemberEmails.length > 0 && (
@@ -242,7 +246,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                 <Label className="text-sm font-medium">
                   Emails miembros Premium (además de ti)
                 </Label>
-                <div className="space-y-2 mt-2">
+                <div className={`${isMobile ? 'space-y-3 mt-3' : 'space-y-2 mt-2'}`}>
                   {premiumMemberEmails.map((email, index) => (
                     <Input
                       key={`premium-${index}`}
@@ -250,7 +254,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                       placeholder={`Email Premium ${index + 1}`}
                       value={email}
                       onChange={(e) => updatePremiumEmail(index, e.target.value)}
-                      className="text-sm"
+                      className={`text-sm ${isMobile ? 'h-11' : ''}`}
                     />
                   ))}
                 </div>
@@ -262,7 +266,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                 <Label className="text-sm font-medium">
                   Emails miembros Profesional
                 </Label>
-                <div className="space-y-2 mt-2">
+                <div className={`${isMobile ? 'space-y-3 mt-3' : 'space-y-2 mt-2'}`}>
                   {professionalMemberEmails.map((email, index) => (
                     <Input
                       key={`professional-${index}`}
@@ -270,7 +274,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                       placeholder={`Email Profesional ${index + 1}`}
                       value={email}
                       onChange={(e) => updateProfessionalEmail(index, e.target.value)}
-                      className="text-sm"
+                      className={`text-sm ${isMobile ? 'h-11' : ''}`}
                     />
                   ))}
                 </div>
@@ -278,13 +282,13 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
             )}
           </div>
 
-          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg">
+          <div className={`bg-gradient-to-r from-primary/10 to-secondary/10 ${isMobile ? 'p-4' : 'p-4'} rounded-lg`}>
             <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">
+              <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-foreground`}>
                 {currentPrice.total}€
               </div>
               <div className="text-sm text-muted-foreground">por mes</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className={`text-xs text-muted-foreground mt-1 ${isMobile ? 'leading-relaxed' : ''}`}>
                 Subtotal: {currentPrice.subtotal}€ - Descuento: {currentPrice.discount}€
               </div>
               <div className="text-xs text-primary font-medium mt-1">
@@ -298,7 +302,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
             disabled={loading || !teamName.trim() || totalSeats > 11 || 
               premiumMemberEmails.some(email => !email.trim()) || 
               professionalMemberEmails.some(email => !email.trim())}
-            className="w-full"
+            className={`w-full ${isMobile ? 'h-12 text-base' : ''}`}
             size="lg"
           >
             {loading ? (
@@ -311,14 +315,14 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
             )}
           </Button>
 
-          <div className="bg-white rounded-lg p-4 border border-amber-200">
-            <h4 className="font-semibold text-amber-800 mb-3">¿Qué incluye?</h4>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+          <div className={`bg-white rounded-lg ${isMobile ? 'p-4' : 'p-4'} border border-amber-200`}>
+            <h4 className={`font-semibold text-amber-800 ${isMobile ? 'mb-4' : 'mb-3'}`}>¿Qué incluye?</h4>
+            <ul className={`${isMobile ? 'space-y-3' : 'space-y-2'} text-sm`}>
+              <li className={`flex items-center ${isMobile ? 'items-start' : ''}`}>
+                <div className={`${isMobile ? 'w-6 h-6 mt-0.5' : 'w-5 h-5'} bg-green-500 rounded-full ${isMobile ? 'mr-4' : 'mr-3'} flex items-center justify-center`}>
                   <span className="text-white text-xs">✓</span>
                 </div>
-                <span>Combina planes Premium y Profesional según necesites</span>
+                <span className={isMobile ? 'leading-relaxed' : ''}>Combina planes Premium y Profesional según necesites</span>
               </li>
               <li className="flex items-center">
                 <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
