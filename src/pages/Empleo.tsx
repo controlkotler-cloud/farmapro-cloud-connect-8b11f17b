@@ -415,7 +415,7 @@ const Empleo = () => {
               <p className="text-gray-600">No hay ofertas de empleo activas en este momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
               {jobs.map((job, index) => (
                 <motion.div
                   key={job.id}
@@ -429,10 +429,11 @@ const Empleo = () => {
                     }`}
                     onClick={() => handleJobClick(job)}
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg font-semibold">{job.title}</CardTitle>
-                        <div className="flex items-center gap-2">
+                    <CardHeader className="p-4 md:p-6 pb-3">
+                      {/* Title and badges */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <CardTitle className="text-lg md:text-xl font-semibold pr-2 break-words">{job.title}</CardTitle>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-shrink-0">
                           {applications.includes(job.id) && (
                             <Badge variant="secondary" className="text-xs">Contactado</Badge>
                           )}
@@ -441,25 +442,29 @@ const Empleo = () => {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      
+                      {/* Company and location */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-2">
                         <div className="flex items-center">
-                          <Building2 className="h-4 w-4 mr-1" />
-                          {job.company_name}
+                          <Building2 className="h-4 w-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">{job.company_name}</span>
                         </div>
                         {(job.location || job.province) && (
                           <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {job.location || job.province}
+                            <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                            <span className="truncate">{job.location || job.province}</span>
                           </div>
                         )}
                       </div>
-                      <CardDescription className="line-clamp-3 mt-2">{job.description}</CardDescription>
+                      
+                      <CardDescription className="line-clamp-3 mt-3">{job.description}</CardDescription>
                     </CardHeader>
-                    <CardContent className="pt-0">
+                    
+                    <CardContent className="p-4 md:p-6 pt-0">
                       <div className="space-y-3">
                         {job.salary_range && (
                           <div className="flex items-center text-sm">
-                            <Euro className="h-4 w-4 mr-2 text-green-600" />
+                            <Euro className="h-4 w-4 mr-2 text-green-600 flex-shrink-0" />
                             <span className="font-medium">{job.salary_range}</span>
                           </div>
                         )}
@@ -470,12 +475,14 @@ const Empleo = () => {
                           </div>
                         )}
                         
-                        <div className="flex items-center justify-between pt-3 border-t">
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Calendar className="h-3 w-3 mr-1" />
+                        {/* Footer reorganized for mobile */}
+                        <div className="pt-3 border-t space-y-3 sm:space-y-0">
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
                             Expira: {formatDate(job.expires_at)}
                           </div>
-                          <div className="flex items-center gap-2">
+                          
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                             <Button 
                               size="sm" 
                               variant="outline"
@@ -483,8 +490,9 @@ const Empleo = () => {
                                 e.stopPropagation();
                                 handleJobClick(job);
                               }}
+                              className="w-full sm:w-auto text-xs"
                             >
-                              <Eye className="h-4 w-4 mr-1" />
+                              <Eye className="h-3 w-3 mr-1" />
                               Ver más
                             </Button>
                             {profile?.id && (
@@ -495,9 +503,9 @@ const Empleo = () => {
                                   e.stopPropagation();
                                   handleContact(job);
                                 }}
-                                className="shadow-md"
+                                className="w-full sm:w-auto text-xs shadow-md"
                               >
-                                <Mail className="h-4 w-4 mr-2" />
+                                <Mail className="h-3 w-3 mr-1" />
                                 {applications.includes(job.id) ? 'Contactado' : 'Contactar'}
                               </Button>
                             )}
