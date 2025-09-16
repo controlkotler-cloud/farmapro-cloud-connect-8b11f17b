@@ -75,13 +75,13 @@ export const JobFilters = ({ jobType, province, onJobTypeChange, onProvinceChang
   return (
     <Card className="shadow-md">
       <CardContent className="p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium text-muted-foreground">Filtros:</span>
           </div>
           
-          <div className="flex gap-4 flex-1">
+          <div className="flex flex-col md:flex-row gap-4 flex-1">
             <div className="flex-1">
               <Select value={jobType} onValueChange={onJobTypeChange}>
                 <SelectTrigger>

@@ -1,5 +1,5 @@
 
-import { Bell, User, LogOut } from 'lucide-react';
+import { Bell, User, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,11 +13,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useNotifications } from '@/hooks/useNotifications';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const Header = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { notifications, loading, markAsRead, getTargetUrl } = useNotifications();
+  const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -42,18 +45,19 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Logo */}
+        {/* Mobile: Hamburger + Logo */}
         <div className="flex items-center space-x-3">
+          <SidebarTrigger className="md:hidden" />
           <img src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" alt="farmapro" className="h-8" />
         </div>
 
-        {/* Search */}
-        <GlobalSearch />
+        {/* Desktop: Search */}
+        {!isMobile && <GlobalSearch />}
 
         {/* Right Section */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -129,7 +133,7 @@ export const Header = () => {
                 <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                   {profile?.full_name?.charAt(0) || 'U'}
                 </div>
-                <span className="font-medium">{profile?.full_name || 'Usuario'}</span>
+                {!isMobile && <span className="font-medium">{profile?.full_name || 'Usuario'}</span>}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
@@ -153,6 +157,13 @@ export const Header = () => {
           </DropdownMenu>
         </div>
       </div>
+      
+      {/* Mobile: Search below header */}
+      {isMobile && (
+        <div className="mt-4">
+          <GlobalSearch />
+        </div>
+      )}
     </header>
   );
 };

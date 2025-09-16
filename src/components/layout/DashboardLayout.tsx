@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,6 +14,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const isMobile = useIsMobile();
   
   // Páginas legales que no necesitan el footer del dashboard
   const legalPages = [
@@ -31,15 +34,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }, [location.pathname]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main ref={mainRef} className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-        {!isLegalPage && <Footer />}
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="flex h-screen bg-gray-50 w-full">
+        <Sidebar />
+        <SidebarInset className="flex-1 flex flex-col overflow-hidden">
+          <Header />
+          <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-6">
+            {children}
+          </main>
+          {!isLegalPage && <Footer />}
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };

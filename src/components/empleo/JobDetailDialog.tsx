@@ -41,14 +41,14 @@ export const JobDetailDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl md:max-w-3xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold text-gray-900">
+              <DialogTitle className="text-xl md:text-2xl font-bold text-gray-900">
                 {job.title}
               </DialogTitle>
-              <div className="flex items-center gap-4 mt-2 text-muted-foreground">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2 text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
                   <span>{job.company_name}</span>
@@ -67,7 +67,7 @@ export const JobDetailDialog = ({
                 )}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-row md:flex-col items-start md:items-end gap-2">
               {isExpired && <Badge variant="destructive">Expirada</Badge>}
               {hasApplied && (
                 <div className="flex items-center gap-1 text-green-600">
@@ -81,7 +81,7 @@ export const JobDetailDialog = ({
 
         <div className="space-y-6">
           {/* Job Type and Salary */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-blue-600" />
               <span className="font-medium">Tipo de puesto:</span>
@@ -127,7 +127,7 @@ export const JobDetailDialog = ({
           )}
 
           {/* Expiration Date */}
-          <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span className="text-sm">
@@ -139,6 +139,7 @@ export const JobDetailDialog = ({
               onClick={onContact}
               disabled={isExpired || hasApplied}
               size="lg"
+              className="w-full md:w-auto"
             >
               {hasApplied ? 'Ya contactado' : 'Contactar'}
             </Button>

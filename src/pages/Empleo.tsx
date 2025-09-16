@@ -253,12 +253,12 @@ const Empleo = () => {
 
       {/* Dialog para crear ofertas */}
       <Dialog open={showNewJobDialog} onOpenChange={setShowNewJobDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl md:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Publicar Nueva Oferta de Trabajo</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 placeholder="Título del puesto *"
                 value={newJob.title}
@@ -270,7 +270,7 @@ const Empleo = () => {
                 onChange={(e) => setNewJob({ ...newJob, company_name: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 placeholder="Ubicación"
                 value={newJob.location}
@@ -282,7 +282,7 @@ const Empleo = () => {
                 onChange={(e) => setNewJob({ ...newJob, province: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 placeholder="Rango salarial"
                 value={newJob.salary_range}
