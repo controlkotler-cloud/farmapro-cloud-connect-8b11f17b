@@ -47,7 +47,7 @@ export const ThreadCard = ({ thread, index, onClick }: ThreadCardProps) => {
         className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-blue-300 group"
         onClick={onClick}
       >
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               {thread.is_pinned && (
@@ -71,19 +71,21 @@ export const ThreadCard = ({ thread, index, onClick }: ThreadCardProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 text-sm text-gray-600">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center space-x-1">
                 <Users className="h-4 w-4" />
                 <span className="font-medium">{thread.profiles?.full_name || 'Usuario farmapro'}</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <MessageSquare className="h-4 w-4" />
-                <span>{thread.replies_count} respuestas</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Eye className="h-4 w-4" />
-                <span>{Math.floor(Math.random() * 100) + 20} vistas</span>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-1">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>{thread.replies_count} respuestas</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Eye className="h-4 w-4" />
+                  <span>{Math.floor(Math.random() * 100) + 20} vistas</span>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-1">

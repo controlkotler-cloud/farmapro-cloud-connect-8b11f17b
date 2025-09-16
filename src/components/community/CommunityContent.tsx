@@ -5,6 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   MessageSquare, 
   Star, 
@@ -46,6 +48,7 @@ interface CommunityContentProps {
 
 export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityContentProps) => {
   const { profile } = useAuth();
+  const isMobile = useIsMobile();
   const [threads, setThreads] = useState<ForumThread[]>([]);
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,19 +130,19 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
 
   return (
     <motion.div 
-      className="space-y-8"
+      className="space-y-4 md:space-y-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ staggerChildren: 0.1 }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg">
             <MessageSquare className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Foro de Discusión</h2>
-            <p className="text-gray-600">Participa en conversaciones con profesionales</p>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Foro de Discusión</h2>
+            <p className="text-sm md:text-base text-gray-600">Participa en conversaciones con profesionales</p>
           </div>
         </div>
         <NewThreadDialog 
@@ -168,38 +171,61 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
           </div>
         </CardHeader>
 
-        <CardContent className="p-6">
-          {/* Filtros de categoría más amigables */}
+        <CardContent className="p-4 md:p-6">
+          {/* Filtros de categoría responsivos */}
           <div className="mb-6">
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => setSelectedCategory('all')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                  selectedCategory === 'all'
-                    ? 'bg-pink-500 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Todas las discusiones
-              </button>
-              {categories.map((category) => (
+            {isMobile ? (
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las discusiones</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem 
+                      key={category.id} 
+                      value={category.id}
+                      disabled={!canAccessCategory(category)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span>{category.name}</span>
+                        {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex flex-wrap gap-3">
                 <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  disabled={!canAccessCategory(category)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
-                    selectedCategory === category.id
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    selectedCategory === 'all'
                       ? 'bg-pink-500 text-white shadow-lg'
-                      : canAccessCategory(category)
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  <span>{category.name}</span>
-                  {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
+                  Todas las discusiones
                 </button>
-              ))}
-            </div>
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    disabled={!canAccessCategory(category)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
+                      selectedCategory === category.id
+                        ? 'bg-pink-500 text-white shadow-lg'
+                        : canAccessCategory(category)
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <span>{category.name}</span>
+                    {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Información de hilos */}

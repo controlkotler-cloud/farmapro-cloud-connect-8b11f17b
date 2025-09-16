@@ -49,7 +49,7 @@ export const ThreadList = ({ threads, loading, onThreadClick, onCreateThread }: 
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       {threads.map((thread, index) => (
         <ThreadCard
           key={thread.id}
