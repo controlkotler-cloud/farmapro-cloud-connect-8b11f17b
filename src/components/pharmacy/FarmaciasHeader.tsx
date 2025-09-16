@@ -12,7 +12,7 @@ export const FarmaciasHeader = () => {
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-r-full shadow-lg"></div>
         <div className="ml-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Farmacias en Venta</h1>
-          <p className="text-gray-600">Encuentra tu farmacia ideal o publica la tuya para vender</p>
+          <p className="text-gray-600">Encuentra tu farmacia ideal</p>
         </div>
       </div>
     </motion.div>
