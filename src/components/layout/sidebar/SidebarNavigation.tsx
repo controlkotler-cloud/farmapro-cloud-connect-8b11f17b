@@ -68,7 +68,7 @@ export const SidebarNavigation = () => {
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <SidebarMenu className="space-y-2">
+        <SidebarMenu className="space-y-2 lg:space-y-3">
           {getVisibleMenuItems().map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -77,7 +77,7 @@ export const SidebarNavigation = () => {
                    <Link
                      to={item.path}
                      onClick={handleNavClick}
-                     className={`group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${
+                     className={`group relative flex items-center px-4 py-3 lg:py-4 text-sm lg:text-base font-medium rounded-xl transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${
                        isActive
                          ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-lg ring-1 ring-blue-200 translate-x-1'
                          : 'text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:text-gray-800'
@@ -89,9 +89,9 @@ export const SidebarNavigation = () => {
                     )}
                     
                     {/* Icono con gradiente */}
-                    <div className={`relative p-2 rounded-lg bg-gradient-to-r ${item.color} shadow-lg mr-4 transition-transform group-hover:scale-110`}>
+                    <div className={`relative p-2 lg:p-2.5 rounded-lg bg-gradient-to-r ${item.color} shadow-lg mr-4 lg:mr-5 transition-transform group-hover:scale-110`}>
                       <item.icon
-                        className="h-5 w-5 text-white"
+                        className="h-5 w-5 lg:h-6 lg:w-6 text-white"
                       />
                       {isActive && (
                         <div className="absolute inset-0 rounded-lg bg-white/20 animate-pulse"></div>
