@@ -49,7 +49,7 @@ export const Header = () => {
       <div className="flex items-center justify-between">
         {/* Mobile: Hamburger + Logo */}
         <div className="flex items-center space-x-3">
-          <SidebarTrigger className="md:hidden" />
+          <SidebarTrigger className="lg:hidden" />
           <img src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" alt="farmapro" className="h-8" />
         </div>
 

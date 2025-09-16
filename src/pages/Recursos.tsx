@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useResources } from '@/hooks/useResources';
 import { ResourcesHeader } from '@/components/resources/ResourcesHeader';
-import { ResourcesSearch } from '@/components/resources/ResourcesSearch';
+
 import { ResourcesCategoryTabs } from '@/components/resources/ResourcesCategoryTabs';
 import { ResourcesGrid } from '@/components/resources/ResourcesGrid';
 
@@ -25,7 +25,7 @@ export const Recursos = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const { resources, loading, selectedCategory, setSelectedCategory } = useResources();
-  const [searchTerm, setSearchTerm] = useState('');
+  
 
   const handleDownload = async (resource: Resource) => {
     if (resource.is_premium && (!profile?.subscription_role || profile.subscription_role === 'freemium')) {
@@ -87,10 +87,7 @@ export const Recursos = () => {
     });
   };
 
-  const filteredResources = resources.filter(resource =>
-    resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    resource.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredResources = resources;
 
   return (
     <motion.div 
@@ -101,10 +98,6 @@ export const Recursos = () => {
     >
       <ResourcesHeader />
       
-      <ResourcesSearch 
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-      />
 
       <ResourcesCategoryTabs 
         selectedCategory={selectedCategory}
@@ -114,7 +107,7 @@ export const Recursos = () => {
       <ResourcesGrid 
         resources={filteredResources}
         loading={loading}
-        searchTerm={searchTerm}
+        searchTerm=""
         onDownload={handleDownload}
       />
     </motion.div>
