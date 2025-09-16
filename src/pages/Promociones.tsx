@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Gift, Calendar, Building2, ExternalLink, Clock, Tag, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { PromotionCategoryFilter } from '@/components/admin/promotion/PromotionCategoryFilter';
 
 interface Promotion {
   id: string;
@@ -40,15 +41,6 @@ const Promociones = () => {
     'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=400&h=300&fit=crop&auto=format'
   ];
 
-  const companyTypes = [
-    { id: 'all', name: 'Todas las Ofertas', icon: Gift, color: 'from-red-500 to-red-600' },
-    { id: 'laboratorio', name: 'Laboratorios', icon: Building2, color: 'from-blue-500 to-blue-600' },
-    { id: 'distribuidor', name: 'Distribuidores', icon: Tag, color: 'from-green-500 to-green-600' },
-    { id: 'software', name: 'Software', icon: ExternalLink, color: 'from-purple-500 to-purple-600' },
-    { id: 'equipos', name: 'Equipos', icon: Star, color: 'from-orange-500 to-orange-600' },
-    { id: 'formacion', name: 'Formación', icon: Calendar, color: 'from-indigo-500 to-indigo-600' },
-    { id: 'servicios', name: 'Servicios', icon: Clock, color: 'from-pink-500 to-pink-600' },
-  ];
 
   useEffect(() => {
     loadPromotions();
@@ -147,38 +139,10 @@ const Promociones = () => {
 
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
         {/* Filtros de Categorías */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Categorías</h2>
-          <motion.div 
-            className="flex flex-wrap gap-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {companyTypes.map((category, index) => (
-              <motion.div
-                key={category.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Button
-                  variant={selectedType === category.id ? "default" : "outline"}
-                  onClick={() => setSelectedType(category.id)}
-                  className={`relative group transition-all duration-300 transform hover:scale-105 ${
-                    selectedType === category.id
-                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
-                      : 'hover:shadow-md'
-                  }`}
-                >
-                  <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
-                    <category.icon className="h-4 w-4 text-white" />
-                  </div>
-                  {category.name}
-                </Button>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
+        <PromotionCategoryFilter 
+          selectedType={selectedType}
+          onTypeChange={setSelectedType}
+        />
 
         {/* Grid de promociones */}
         {loading ? (
@@ -201,7 +165,7 @@ const Promociones = () => {
               <p className="text-gray-600">
                 {selectedType === 'all' 
                   ? 'No hay promociones activas en este momento.'
-                  : `No hay promociones de tipo "${companyTypes.find(t => t.id === selectedType)?.name}" disponibles.`
+                  : 'No hay promociones de este tipo disponibles.'
                 }
               </p>
             </CardContent>

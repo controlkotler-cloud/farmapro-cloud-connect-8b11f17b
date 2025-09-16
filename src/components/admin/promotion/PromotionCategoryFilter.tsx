@@ -1,28 +1,28 @@
-
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Video, Users, Wrench, ShoppingBag, BookOpen } from 'lucide-react';
+import { Gift, Building2, Tag, ExternalLink, Star, Calendar, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-export const eventTypes = [
-  { id: 'all', name: 'Todos', icon: Calendar, color: 'from-orange-500 to-orange-600' },
-  { id: 'webinar', name: 'Webinars', icon: Video, color: 'from-blue-500 to-blue-600' },
-  { id: 'conferencia', name: 'Conferencias', icon: Users, color: 'from-purple-500 to-purple-600' },
-  { id: 'workshop', name: 'Workshops', icon: Wrench, color: 'from-green-500 to-green-600' },
-  { id: 'feria', name: 'Ferias', icon: ShoppingBag, color: 'from-yellow-500 to-yellow-600' },
-  { id: 'curso', name: 'Cursos', icon: BookOpen, color: 'from-indigo-500 to-indigo-600' }
+export const companyTypes = [
+  { id: 'all', name: 'Todas las Ofertas', icon: Gift, color: 'from-red-500 to-red-600' },
+  { id: 'laboratorio', name: 'Laboratorios', icon: Building2, color: 'from-blue-500 to-blue-600' },
+  { id: 'distribuidor', name: 'Distribuidores', icon: Tag, color: 'from-green-500 to-green-600' },
+  { id: 'software', name: 'Software', icon: ExternalLink, color: 'from-purple-500 to-purple-600' },
+  { id: 'equipos', name: 'Equipos', icon: Star, color: 'from-orange-500 to-orange-600' },
+  { id: 'formacion', name: 'Formación', icon: Calendar, color: 'from-indigo-500 to-indigo-600' },
+  { id: 'servicios', name: 'Servicios', icon: Clock, color: 'from-pink-500 to-pink-600' },
 ];
 
-interface EventCategoryFilterProps {
+interface PromotionCategoryFilterProps {
   selectedType: string;
   onTypeChange: (type: string) => void;
 }
 
-export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategoryFilterProps) => {
+export const PromotionCategoryFilter = ({ selectedType, onTypeChange }: PromotionCategoryFilterProps) => {
   const isMobile = useIsMobile();
 
-  const selectedCategory = eventTypes.find(cat => cat.id === selectedType) || eventTypes[0];
+  const selectedCategory = companyTypes.find(cat => cat.id === selectedType) || companyTypes[0];
 
   if (isMobile) {
     return (
@@ -40,7 +40,7 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {eventTypes.map((category) => (
+            {companyTypes.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center">
                   <div className={`p-1 rounded bg-gradient-to-r ${category.color} mr-2`}>
@@ -64,7 +64,7 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {eventTypes.map((category, index) => (
+        {companyTypes.map((category, index) => (
           <motion.div
             key={category.id}
             initial={{ opacity: 0, x: -20 }}
