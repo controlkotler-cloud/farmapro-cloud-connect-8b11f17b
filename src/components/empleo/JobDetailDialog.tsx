@@ -41,9 +41,9 @@ export const JobDetailDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-3 sm:p-4 md:p-6">
+      <DialogContent className="max-w-[95vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto p-2 sm:p-4 md:p-6">
         <DialogHeader>
-          <div className="flex flex-col gap-2 sm:gap-3 md:gap-4">
+          <div className="flex flex-col gap-1.5 sm:gap-3 md:gap-4">
             {/* Title */}
             <div className="text-center sm:text-left">
               <DialogTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-foreground break-words leading-tight">
@@ -63,20 +63,20 @@ export const JobDetailDialog = ({
             </div>
             
             {/* Company and Location Info */}
-            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center justify-center sm:justify-start gap-1">
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <div className="flex items-center justify-start gap-1">
                 <Building2 className="h-4 w-4 flex-shrink-0" />
                 <span className="truncate">{job.company_name}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
                 {job.location && (
-                  <div className="flex items-center justify-center sm:justify-start gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">{job.location}</span>
                   </div>
                 )}
                 {job.province && job.province !== job.location && (
-                  <div className="flex items-center justify-center sm:justify-start gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">{job.province}</span>
                   </div>
@@ -86,17 +86,17 @@ export const JobDetailDialog = ({
           </div>
         </DialogHeader>
 
-        <div className="space-y-3 sm:space-y-4 md:space-y-6">
+        <div className="space-y-2 sm:space-y-4 md:space-y-6">
           {/* Job Type and Salary */}
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <div className="flex items-center justify-center sm:justify-start gap-2">
-                <Briefcase className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                <span className="font-medium text-sm sm:text-base">Tipo de puesto:</span>
-                <Badge variant="outline">{getJobTypeLabel(job.job_type || 'otros')}</Badge>
-              </div>
-              {job.salary_range && (
-                <div className="flex items-center justify-center sm:justify-start gap-2">
+               <div className="flex items-center justify-start gap-2">
+                 <Briefcase className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                 <span className="font-medium text-sm sm:text-base">Tipo de puesto:</span>
+                 <Badge variant="outline">{getJobTypeLabel(job.job_type || 'otros')}</Badge>
+               </div>
+               {job.salary_range && (
+                 <div className="flex items-center justify-start gap-2">
                   <Euro className="h-4 w-4 text-green-600 flex-shrink-0" />
                   <span className="font-medium text-sm sm:text-base">{job.salary_range}</span>
                 </div>
@@ -125,7 +125,7 @@ export const JobDetailDialog = ({
           {/* Application Info */}
           {hasApplied && applicationDate && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-green-800">
+              <div className="flex items-center justify-start gap-2 text-green-800">
                 <CheckCircle className="h-5 w-5" />
                 <span className="font-medium text-sm sm:text-base">Ya has contactado con esta oferta</span>
               </div>
@@ -136,8 +136,8 @@ export const JobDetailDialog = ({
           )}
 
           {/* Footer with expiration and contact button */}
-          <div className="flex flex-col gap-3 pt-3 sm:pt-4 border-t">
-            <div className="flex items-center justify-center sm:justify-start gap-2 text-muted-foreground">
+          <div className="flex flex-col gap-3 pt-2 sm:pt-4 border-t">
+            <div className="flex items-center justify-start gap-2 text-muted-foreground">
               <Calendar className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm">
                 {isExpired ? 'Expiró el' : 'Expira el'}: {formatDate(job.expires_at)}
