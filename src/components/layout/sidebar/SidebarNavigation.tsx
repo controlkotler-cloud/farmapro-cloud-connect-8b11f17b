@@ -100,13 +100,6 @@ export const SidebarNavigation = () => {
                     
                     <span className="flex-1 font-semibold tracking-wide">{item.name}</span>
                     
-                    {/* Badge de conversaciones no leídas */}
-                    {item.path === '/empleo' && (
-                      <div className="bg-blue-500 text-white text-xs rounded-full px-2 py-0.5">
-                        Empleos
-                      </div>
-                    )}
-                    
                     {/* Flecha indicadora */}
                     <ChevronRight
                       className={`h-4 w-4 transition-all duration-300 ${
