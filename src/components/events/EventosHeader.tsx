@@ -12,7 +12,7 @@ export const EventosHeader = () => {
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-orange-400 to-orange-600 rounded-r-full shadow-lg"></div>
         <div className="ml-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Eventos</h1>
-          <p className="text-gray-600">Mantente actualizado con webinars, conferencias y ferias del sector farmacéutico</p>
+          <p className="text-gray-600">Aquí encontrarás actualizados todos los webinars, conferencias y ferias del sector farmacéutico</p>
         </div>
       </div>
     </motion.div>
