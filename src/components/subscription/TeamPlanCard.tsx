@@ -156,29 +156,25 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
 
   return (
     <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-      <CardHeader className="text-center pb-4">
-        <Badge className="bg-amber-600 text-white w-fit mx-auto mb-2">
-          Plan Team
-        </Badge>
-        <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Users className="h-8 w-8 text-white" />
+      <CardHeader className={`text-center ${isMobile ? 'pb-2' : 'pb-4'}`}>
+        <div className="flex items-center justify-center gap-3 mb-3">
+          <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center`}>
+            <Users className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
+          </div>
+          <Badge className="bg-amber-600 text-white text-xs">
+            Plan Team
+          </Badge>
         </div>
-        <CardTitle className="text-2xl text-amber-800">Plan Team farmapro</CardTitle>
-        <CardDescription className="text-amber-700">
-          Ideal para equipos de farmacia. Combina múltiples planes Premium y Profesional con 15% de descuento.
-        </CardDescription>
+        <CardTitle className={`${isMobile ? 'text-xl' : 'text-2xl'} text-amber-800`}>Plan Team farmapro</CardTitle>
+        {!isMobile && (
+          <CardDescription className="text-amber-700">
+            Ideal para equipos de farmacia. Combina múltiples planes Premium y Profesional con 15% de descuento.
+          </CardDescription>
+        )}
       </CardHeader>
 
-      <CardContent>
-        <div className={`space-y-6 ${isMobile ? 'p-4' : 'p-6'}`}>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Plan de Equipo
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Ideal para equipos de farmacia. Combina múltiples planes Premium y Profesional con 15% de descuento.
-            </p>
-          </div>
+      <CardContent className={isMobile ? 'p-3' : 'p-6'}>
+        <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
 
           <div className="space-y-4">
             <div>
@@ -233,12 +229,29 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
               </div>
             </div>
 
-            <div className={`text-sm text-muted-foreground bg-muted ${isMobile ? 'p-3' : 'p-3'} rounded-lg space-y-1`}>
-              <div className={`${isMobile ? 'space-y-1' : 'space-y-0'}`}>
-                <p><strong>Total del equipo:</strong> {totalSeats} miembros ({totalSeats <= 11 ? '✓' : '✗'} Máximo 11)</p>
-                <p><strong>Premium:</strong> {premiumCount} × 39€ = {premiumCount * 39}€</p>
-                <p><strong>Profesional:</strong> {professionalCount} × 29€ = {professionalCount * 29}€</p>
-              </div>
+            <div className={`text-sm bg-muted ${isMobile ? 'p-2 text-xs' : 'p-3'} rounded-lg`}>
+              {isMobile ? (
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span>Equipo:</span>
+                    <span className="font-medium">{totalSeats} miembros {totalSeats <= 11 ? '✓' : '✗'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Premium:</span>
+                    <span>{premiumCount} × 39€ = {premiumCount * 39}€</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Profesional:</span>
+                    <span>{professionalCount} × 29€ = {professionalCount * 29}€</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p><strong>Total del equipo:</strong> {totalSeats} miembros ({totalSeats <= 11 ? '✓' : '✗'} Máximo 11)</p>
+                  <p><strong>Premium:</strong> {premiumCount} × 39€ = {premiumCount * 39}€</p>
+                  <p><strong>Profesional:</strong> {professionalCount} × 29€ = {professionalCount * 29}€</p>
+                </div>
+              )}
             </div>
 
             {premiumMemberEmails.length > 0 && (
@@ -246,7 +259,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                 <Label className="text-sm font-medium">
                   Emails miembros Premium (además de ti)
                 </Label>
-                <div className={`${isMobile ? 'space-y-3 mt-3' : 'space-y-2 mt-2'}`}>
+                <div className={`${isMobile ? 'space-y-2 mt-2' : 'space-y-2 mt-2'}`}>
                   {premiumMemberEmails.map((email, index) => (
                     <Input
                       key={`premium-${index}`}
@@ -254,7 +267,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                       placeholder={`Email Premium ${index + 1}`}
                       value={email}
                       onChange={(e) => updatePremiumEmail(index, e.target.value)}
-                      className={`text-sm ${isMobile ? 'h-11' : ''}`}
+                      className={`${isMobile ? 'text-sm h-10' : 'text-sm'}`}
                     />
                   ))}
                 </div>
@@ -266,7 +279,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                 <Label className="text-sm font-medium">
                   Emails miembros Profesional
                 </Label>
-                <div className={`${isMobile ? 'space-y-3 mt-3' : 'space-y-2 mt-2'}`}>
+                <div className={`${isMobile ? 'space-y-2 mt-2' : 'space-y-2 mt-2'}`}>
                   {professionalMemberEmails.map((email, index) => (
                     <Input
                       key={`professional-${index}`}
@@ -274,7 +287,7 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
                       placeholder={`Email Profesional ${index + 1}`}
                       value={email}
                       onChange={(e) => updateProfessionalEmail(index, e.target.value)}
-                      className={`text-sm ${isMobile ? 'h-11' : ''}`}
+                      className={`${isMobile ? 'text-sm h-10' : 'text-sm'}`}
                     />
                   ))}
                 </div>
@@ -282,19 +295,32 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
             )}
           </div>
 
-          <div className={`bg-gradient-to-r from-primary/10 to-secondary/10 ${isMobile ? 'p-4' : 'p-4'} rounded-lg`}>
-            <div className="text-center">
-              <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-foreground`}>
-                {currentPrice.total}€
+          <div className={`bg-gradient-to-r from-primary/10 to-secondary/10 ${isMobile ? 'p-3' : 'p-4'} rounded-lg`}>
+            {isMobile ? (
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-lg font-bold text-foreground">{currentPrice.total}€<span className="text-sm font-normal text-muted-foreground">/mes</span></div>
+                  <div className="text-xs text-primary font-medium">15% descuento aplicado</div>
+                </div>
+                <div className="text-right text-xs text-muted-foreground">
+                  <div>Subtotal: {currentPrice.subtotal}€</div>
+                  <div>Descuento: -{currentPrice.discount}€</div>
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">por mes</div>
-              <div className={`text-xs text-muted-foreground mt-1 ${isMobile ? 'leading-relaxed' : ''}`}>
-                Subtotal: {currentPrice.subtotal}€ - Descuento: {currentPrice.discount}€
+            ) : (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground">
+                  {currentPrice.total}€
+                </div>
+                <div className="text-sm text-muted-foreground">por mes</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Subtotal: {currentPrice.subtotal}€ - Descuento: {currentPrice.discount}€
+                </div>
+                <div className="text-xs text-primary font-medium mt-1">
+                  15% de descuento aplicado
+                </div>
               </div>
-              <div className="text-xs text-primary font-medium mt-1">
-                15% de descuento aplicado
-              </div>
-            </div>
+            )}
           </div>
 
           <Button 
@@ -315,38 +341,38 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
             )}
           </Button>
 
-          <div className={`bg-white rounded-lg ${isMobile ? 'p-4' : 'p-4'} border border-amber-200`}>
-            <h4 className={`font-semibold text-amber-800 ${isMobile ? 'mb-4' : 'mb-3'}`}>¿Qué incluye?</h4>
-            <ul className={`${isMobile ? 'space-y-3' : 'space-y-2'} text-sm`}>
-              <li className={`flex items-center ${isMobile ? 'items-start' : ''}`}>
-                <div className={`${isMobile ? 'w-6 h-6 mt-0.5' : 'w-5 h-5'} bg-green-500 rounded-full ${isMobile ? 'mr-4' : 'mr-3'} flex items-center justify-center`}>
+          <div className={`bg-white rounded-lg ${isMobile ? 'p-3' : 'p-4'} border border-amber-200`}>
+            <h4 className={`font-semibold text-amber-800 ${isMobile ? 'text-sm mb-3' : 'mb-3'}`}>¿Qué incluye?</h4>
+            <ul className={`${isMobile ? 'space-y-2 text-xs' : 'space-y-2 text-sm'}`}>
+              <li className="flex items-start">
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
                   <span className="text-white text-xs">✓</span>
                 </div>
-                <span className={isMobile ? 'leading-relaxed' : ''}>Combina planes Premium y Profesional según necesites</span>
+                <span className={isMobile ? 'leading-tight' : ''}>Combina planes Premium y Profesional según necesites</span>
               </li>
-              <li className="flex items-center">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+              <li className="flex items-start">
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
                   <span className="text-white text-xs">✓</span>
                 </div>
-                <span>15% descuento permanente sobre el total</span>
+                <span className={isMobile ? 'leading-tight' : ''}>15% descuento permanente sobre el total</span>
               </li>
-              <li className="flex items-center">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+              <li className="flex items-start">
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
                   <span className="text-white text-xs">✓</span>
                 </div>
-                <span>El titular siempre obtiene plan Premium</span>
+                <span className={isMobile ? 'leading-tight' : ''}>El titular siempre obtiene plan Premium</span>
               </li>
-              <li className="flex items-center">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+              <li className="flex items-start">
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
                   <span className="text-white text-xs">✓</span>
                 </div>
-                <span>Facturación centralizada y gestión simple</span>
+                <span className={isMobile ? 'leading-tight' : ''}>Facturación centralizada y gestión simple</span>
               </li>
-              <li className="flex items-center">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+              <li className="flex items-start">
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
                   <span className="text-white text-xs">✓</span>
                 </div>
-                <span>Máximo 11 usuarios total por equipo</span>
+                <span className={isMobile ? 'leading-tight' : ''}>Máximo 11 usuarios total por equipo</span>
               </li>
             </ul>
           </div>
