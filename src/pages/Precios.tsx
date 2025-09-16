@@ -221,10 +221,6 @@ export default function Precios() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>Vender tu farmacia</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
                   <span>Formaciones premium</span>
                 </li>
                 <li className="flex items-center gap-2">

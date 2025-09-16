@@ -53,7 +53,6 @@ export const planConfig = {
       'Todo lo anterior',
       'Promociones exclusivas',
       'Publicar ofertas de empleo',
-      'Vender tu farmacia',
       'Formaciones premium',
       'Soporte prioritario'
     ]
