@@ -12,7 +12,7 @@ export const CommunityHeader = () => {
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-pink-400 to-pink-600 rounded-r-full shadow-lg"></div>
         <div className="ml-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Comunidad farmapro</h1>
-          <p className="text-gray-600">Conecta con profesionales farmacéuticos, comparte experiencias y aprende juntos</p>
+          <p className="text-gray-600">Conecta con profesionales como tú, comparte experiencias y aprendamos juntos</p>
         </div>
       </div>
     </motion.div>
