@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Crown, User, CreditCard, Bell, Shield, Users } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { PersonalInfoTab } from '@/components/profile/PersonalInfoTab';
 import { PlanTab } from '@/components/profile/PlanTab';
 import { BillingTab } from '@/components/profile/BillingTab';
@@ -14,6 +16,8 @@ import { useTeamManagement } from '@/hooks/useTeamManagement';
 export default function Perfil() {
   const { profile, user, isAdmin } = useAuth();
   const { isTeamOwner, loading: teamLoading } = useTeamManagement();
+  const isMobile = useIsMobile();
+  const [selectedTab, setSelectedTab] = useState('personal');
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -37,43 +41,66 @@ export default function Perfil() {
     );
   }
 
+  const tabOptions = [
+    { value: 'personal', label: 'Personal', icon: User },
+    { value: 'plan', label: 'Plan', icon: Crown },
+    ...(isTeamOwner && !teamLoading ? [{ value: 'team', label: 'Equipo', icon: Users }] : []),
+    { value: 'billing', label: 'Facturación', icon: CreditCard },
+    { value: 'security', label: 'Seguridad', icon: Shield },
+    { value: 'notifications', label: 'Notificaciones', icon: Bell },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mi Perfil</h1>
           <p className="text-gray-600 mt-2">Gestiona tu información personal y configuración de cuenta</p>
         </div>
 
-        <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className={`grid w-full ${isTeamOwner ? 'grid-cols-6' : 'grid-cols-5'}`}>
-            <TabsTrigger value="personal" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Personal
-            </TabsTrigger>
-            <TabsTrigger value="plan" className="flex items-center gap-2">
-              <Crown className="h-4 w-4" />
-              Plan
-            </TabsTrigger>
-            {isTeamOwner && !teamLoading && (
-              <TabsTrigger value="team" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Equipo
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="billing" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Facturación
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Seguridad
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notificaciones
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4 md:space-y-6">
+          {isMobile ? (
+            <div className="w-full">
+              <Select value={selectedTab} onValueChange={setSelectedTab}>
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {(() => {
+                      const currentTab = tabOptions.find(tab => tab.value === selectedTab);
+                      if (currentTab) {
+                        const IconComponent = currentTab.icon;
+                        return (
+                          <div className="flex items-center gap-2">
+                            <IconComponent className="h-4 w-4" />
+                            {currentTab.label}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {tabOptions.map((tab) => (
+                    <SelectItem key={tab.value} value={tab.value}>
+                      <div className="flex items-center gap-2">
+                        <tab.icon className="h-4 w-4" />
+                        {tab.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <TabsList className={`grid w-full ${isTeamOwner ? 'grid-cols-6' : 'grid-cols-5'}`}>
+              {tabOptions.map((tab) => (
+                <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
+                  <tab.icon className="h-4 w-4" />
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          )}
 
           <TabsContent value="personal" className="space-y-6">
             <PersonalInfoTab profile={profile} user={user} />

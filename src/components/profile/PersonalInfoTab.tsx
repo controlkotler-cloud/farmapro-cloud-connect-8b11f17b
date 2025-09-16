@@ -62,8 +62,8 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
           Actualiza tu información personal y datos de contacto
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="space-y-6 p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <Label htmlFor="full_name">Nombre completo</Label>
             <Input
@@ -86,7 +86,7 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <Label htmlFor="pharmacy_name">Nombre de la farmacia</Label>
             <Input
@@ -118,9 +118,11 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
           </div>
         </div>
 
-        <Button onClick={saveProfile} disabled={loading} className="w-full">
-          {loading ? 'Guardando...' : 'Guardar cambios'}
-        </Button>
+        <div className="pt-2">
+          <Button onClick={saveProfile} disabled={loading} className="w-full">
+            {loading ? 'Guardando...' : 'Guardar cambios'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
