@@ -16,9 +16,12 @@ import { JobFilters } from '@/components/empleo/JobFilters';
 import { JobDetailDialog } from '@/components/empleo/JobDetailDialog';
 import { JobApplicationDialog } from '@/components/empleo/JobApplicationDialog';
 import { JobListing } from '@/types/job';
+import { useSectionVisibility } from '@/hooks/useSectionVisibility';
+import { AlertCircle } from 'lucide-react';
 
 const Empleo = () => {
-  const { profile } = useAuth();
+  const { profile, isAdmin: userIsAdmin } = useAuth();
+  const { isEmpleoVisible } = useSectionVisibility();
   const { toast } = useToast();
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [jobs, setJobs] = useState<JobListing[]>([]);
@@ -205,7 +208,7 @@ const Empleo = () => {
     return profile?.subscription_role === 'premium';
   };
 
-  const isAdmin = () => {
+  const checkIsAdmin = () => {
     return profile?.subscription_role === 'admin';
   };
 
@@ -228,6 +231,33 @@ const Empleo = () => {
     loadJobs();
   };
 
+  // Show message if section is not visible to public users (except admins)
+  if (!userIsAdmin && !isEmpleoVisible()) {
+    return (
+      <motion.div 
+        className="space-y-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <EmpleoHeader />
+        
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-800">
+              <AlertCircle className="h-5 w-5" />
+              Sección en Desarrollo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-amber-700">
+              La sección de Empleo estará disponible próximamente. Estamos trabajando para ofrecerte las mejores oportunidades laborales en el sector farmacéutico.
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div 
       className="space-y-8"
@@ -240,7 +270,7 @@ const Empleo = () => {
       <EmpleoActions 
         canPostJobs={canPostJobs()}
         isPremium={isPremium()}
-        isAdmin={isAdmin()}
+        isAdmin={checkIsAdmin()}
         onCreateJob={handleCreateJob}
       />
 

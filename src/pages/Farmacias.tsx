@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { PharmacyGrid } from '@/components/pharmacy/PharmacyGrid';
 import { FarmaciasHeader } from '@/components/pharmacy/FarmaciasHeader';
 import { FarmaciasActions } from '@/components/pharmacy/FarmaciasActions';
+import { useSectionVisibility } from '@/hooks/useSectionVisibility';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
 
 interface PharmacyListing {
   id: string;
@@ -41,7 +44,8 @@ interface PublicPharmacyListing {
 }
 
 const Farmacias = () => {
-  const { profile, user } = useAuth();
+  const { profile, user, isAdmin: userIsAdmin } = useAuth();
+  const { isFarmaciasVisible } = useSectionVisibility();
   const { toast } = useToast();
   const [listings, setListings] = useState<PublicPharmacyListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +155,7 @@ const Farmacias = () => {
     return profile?.subscription_role === 'premium';
   };
 
-  const isAdmin = () => {
+  const checkIsAdmin = () => {
     return profile?.subscription_role === 'admin';
   };
 
@@ -208,6 +212,33 @@ const Farmacias = () => {
     setShowDialog(true);
   };
 
+  // Show message if section is not visible to public users (except admins)
+  if (!userIsAdmin && !isFarmaciasVisible()) {
+    return (
+      <motion.div 
+        className="space-y-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <FarmaciasHeader />
+        
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-800">
+              <AlertCircle className="h-5 w-5" />
+              Sección en Desarrollo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-amber-700">
+              La sección de Farmacias estará disponible próximamente. Estamos preparando el mejor marketplace para la compra y venta de farmacias.
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div 
       className="space-y-8"
@@ -220,7 +251,7 @@ const Farmacias = () => {
       <FarmaciasActions 
         canCreateListing={canCreateListing()}
         isPremium={isPremium()}
-        isAdmin={isAdmin()}
+        isAdmin={checkIsAdmin()}
         onCreateListing={handleCreateListing}
       />
 

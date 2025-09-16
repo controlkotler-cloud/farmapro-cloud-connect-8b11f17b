@@ -22,6 +22,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSectionVisibility } from '@/hooks/useSectionVisibility';
+import { useAuth } from '@/hooks/useAuth';
 
 
 const menuItems = [
@@ -40,6 +42,8 @@ export const SidebarNavigation = () => {
   const location = useLocation();
   const { setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
+  const { isEmpleoVisible, isFarmaciasVisible } = useSectionVisibility();
+  const { isAdmin } = useAuth();
 
   const handleNavClick = () => {
     if (isMobile) {
@@ -47,11 +51,25 @@ export const SidebarNavigation = () => {
     }
   };
 
+  // Filter menu items based on visibility settings
+  const getVisibleMenuItems = () => {
+    return menuItems.filter(item => {
+      // Always show all items to admins
+      if (isAdmin) return true;
+      
+      // Filter based on visibility settings for regular users
+      if (item.path === '/empleo' && !isEmpleoVisible()) return false;
+      if (item.path === '/farmacias' && !isFarmaciasVisible()) return false;
+      
+      return true;
+    });
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupContent>
         <SidebarMenu className="space-y-2">
-          {menuItems.map((item) => {
+          {getVisibleMenuItems().map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <SidebarMenuItem key={item.name}>

@@ -13,7 +13,8 @@ const AdminConfiguracion = () => {
     getUserConfig,
     getTechnicalConfig,
     getAnalyticsConfig,
-    getRegionalConfig
+    getRegionalConfig,
+    getVisibilityConfig
   } = useConfigurationData();
 
   const {
@@ -22,7 +23,8 @@ const AdminConfiguracion = () => {
     handleTechnicalSave,
     handleAnalyticsSave,
     handleRegionalSave,
-    handleEmailTemplatesSave
+    handleEmailTemplatesSave,
+    handleVisibilitySave
   } = useConfigurationHandlers();
 
   useEffect(() => {
@@ -48,12 +50,14 @@ const AdminConfiguracion = () => {
         analyticsConfig={getAnalyticsConfig()}
         regionalConfig={getRegionalConfig()}
         emailConfig={getEmailTemplatesConfig()}
+        visibilityConfig={getVisibilityConfig()}
         onPlatformSave={handlePlatformSave}
         onUserSave={handleUserSave}
         onTechnicalSave={handleTechnicalSave}
         onAnalyticsSave={handleAnalyticsSave}
         onRegionalSave={handleRegionalSave}
         onEmailTemplatesSave={handleEmailTemplatesSave}
+        onVisibilitySave={handleVisibilitySave}
       />
     </div>
   );
