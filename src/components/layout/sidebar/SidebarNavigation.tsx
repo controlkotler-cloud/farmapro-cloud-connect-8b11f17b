@@ -91,7 +91,7 @@ export const SidebarNavigation = () => {
                     {/* Icono con gradiente */}
                     <div className={`relative p-2 rounded-lg bg-gradient-to-r ${item.color} shadow-lg mr-4 lg:mr-5 transition-transform group-hover:scale-110`}>
                       <item.icon
-                        className="h-5 w-5 lg:h-6 lg:w-6 text-white"
+                        className="h-5 w-5 text-white"
                       />
                       {isActive && (
                         <div className="absolute inset-0 rounded-lg bg-white/20 animate-pulse"></div>
