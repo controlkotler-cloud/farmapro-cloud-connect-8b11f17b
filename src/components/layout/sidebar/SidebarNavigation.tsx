@@ -68,7 +68,7 @@ export const SidebarNavigation = () => {
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <SidebarMenu className="space-y-2 lg:space-y-3">
+        <SidebarMenu className="space-y-2 lg:space-y-5">
           {getVisibleMenuItems().map((item) => {
             const isActive = location.pathname === item.path;
             return (
