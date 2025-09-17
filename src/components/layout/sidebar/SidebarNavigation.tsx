@@ -89,7 +89,7 @@ export const SidebarNavigation = () => {
                     )}
                     
                     {/* Icono con gradiente */}
-                    <div className={`relative p-2 lg:p-2.5 rounded-lg bg-gradient-to-r ${item.color} shadow-lg mr-4 lg:mr-5 transition-transform group-hover:scale-110`}>
+                    <div className={`relative p-2 rounded-lg bg-gradient-to-r ${item.color} shadow-lg mr-4 lg:mr-5 transition-transform group-hover:scale-110`}>
                       <item.icon
                         className="h-5 w-5 lg:h-6 lg:w-6 text-white"
                       />
