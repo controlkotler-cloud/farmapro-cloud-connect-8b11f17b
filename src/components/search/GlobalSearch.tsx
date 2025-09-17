@@ -1,17 +1,19 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, BookOpen, FileText, MessageSquare, Loader2 } from 'lucide-react';
+import { Search, BookOpen, FileText, MessageSquare, Loader2, Gift, Calendar, Briefcase, Building, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useSectionVisibility } from '@/hooks/useSectionVisibility';
 import { Input } from '@/components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 
 interface SearchResult {
   id: string;
   title: string;
-  type: 'course' | 'resource' | 'thread';
+  type: 'course' | 'resource' | 'thread' | 'promotion' | 'event' | 'job' | 'pharmacy' | 'challenge';
   description?: string;
   category?: string;
+  slug?: string;
 }
 
 export const GlobalSearch = () => {
@@ -21,6 +23,7 @@ export const GlobalSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+  const { isEmpleoVisible, isFarmaciasVisible } = useSectionVisibility();
 
   // Cerrar resultados al hacer clic fuera
   useEffect(() => {
@@ -55,12 +58,12 @@ export const GlobalSearch = () => {
     try {
       const searchResults: SearchResult[] = [];
 
-      // Buscar en cursos
+      // Buscar en cursos (incluir slug para navegación directa)
       const { data: courses } = await supabase
         .from('courses')
-        .select('id, title, description, category')
+        .select('id, title, description, category, slug')
         .or(`title.ilike.%${query}%, description.ilike.%${query}%`)
-        .limit(5);
+        .limit(3);
 
       if (courses) {
         searchResults.push(...courses.map(course => ({
@@ -68,7 +71,8 @@ export const GlobalSearch = () => {
           title: course.title,
           type: 'course' as const,
           description: course.description,
-          category: course.category
+          category: course.category,
+          slug: course.slug
         })));
       }
 
@@ -77,7 +81,7 @@ export const GlobalSearch = () => {
         .from('resources')
         .select('id, title, description, category')
         .or(`title.ilike.%${query}%, description.ilike.%${query}%`)
-        .limit(5);
+        .limit(3);
 
       if (resources) {
         searchResults.push(...resources.map(resource => ({
@@ -94,7 +98,7 @@ export const GlobalSearch = () => {
         .from('forum_threads')
         .select('id, title, content')
         .or(`title.ilike.%${query}%, content.ilike.%${query}%`)
-        .limit(5);
+        .limit(3);
 
       if (threads) {
         searchResults.push(...threads.map(thread => ({
@@ -102,6 +106,99 @@ export const GlobalSearch = () => {
           title: thread.title,
           type: 'thread' as const,
           description: thread.content?.substring(0, 100) + '...'
+        })));
+      }
+
+      // Buscar en promociones
+      const { data: promotions } = await supabase
+        .from('promotions')
+        .select('id, title, description, company_name')
+        .eq('is_active', true)
+        .or(`title.ilike.%${query}%, description.ilike.%${query}%, company_name.ilike.%${query}%`)
+        .limit(3);
+
+      if (promotions) {
+        searchResults.push(...promotions.map(promotion => ({
+          id: promotion.id,
+          title: promotion.title,
+          type: 'promotion' as const,
+          description: promotion.description,
+          category: promotion.company_name
+        })));
+      }
+
+      // Buscar en eventos
+      const { data: events } = await supabase
+        .from('events')
+        .select('id, title, description, location')
+        .gte('end_date', new Date().toISOString())
+        .or(`title.ilike.%${query}%, description.ilike.%${query}%, location.ilike.%${query}%`)
+        .limit(3);
+
+      if (events) {
+        searchResults.push(...events.map(event => ({
+          id: event.id,
+          title: event.title,
+          type: 'event' as const,
+          description: event.description,
+          category: event.location
+        })));
+      }
+
+      // Buscar en empleos (solo si está visible)
+      if (isEmpleoVisible()) {
+        const { data: jobs } = await supabase
+          .from('job_listings_public')
+          .select('id, title, description, company_name')
+          .eq('is_active', true)
+          .or(`title.ilike.%${query}%, description.ilike.%${query}%, company_name.ilike.%${query}%`)
+          .limit(3);
+
+        if (jobs) {
+          searchResults.push(...jobs.map(job => ({
+            id: job.id,
+            title: job.title,
+            type: 'job' as const,
+            description: job.description,
+            category: job.company_name
+          })));
+        }
+      }
+
+      // Buscar en farmacias (solo si está visible)
+      if (isFarmaciasVisible()) {
+        const { data: pharmacies } = await supabase
+          .from('pharmacy_listings_public')
+          .select('id, title, description, location')
+          .eq('is_active', true)
+          .or(`title.ilike.%${query}%, description.ilike.%${query}%, location.ilike.%${query}%`)
+          .limit(3);
+
+        if (pharmacies) {
+          searchResults.push(...pharmacies.map(pharmacy => ({
+            id: pharmacy.id,
+            title: pharmacy.title,
+            type: 'pharmacy' as const,
+            description: pharmacy.description,
+            category: pharmacy.location
+          })));
+        }
+      }
+
+      // Buscar en retos
+      const { data: challenges } = await supabase
+        .from('challenges')
+        .select('id, name, description')
+        .eq('is_active', true)
+        .or(`name.ilike.%${query}%, description.ilike.%${query}%`)
+        .limit(3);
+
+      if (challenges) {
+        searchResults.push(...challenges.map(challenge => ({
+          id: challenge.id,
+          title: challenge.name,
+          type: 'challenge' as const,
+          description: challenge.description
         })));
       }
 
@@ -120,13 +217,32 @@ export const GlobalSearch = () => {
     
     switch (result.type) {
       case 'course':
-        navigate('/formacion');
+        if (result.slug) {
+          navigate(`/curso/${result.slug}`);
+        } else {
+          navigate('/formacion');
+        }
         break;
       case 'resource':
         navigate('/recursos');
         break;
       case 'thread':
         navigate('/comunidad');
+        break;
+      case 'promotion':
+        navigate('/promociones');
+        break;
+      case 'event':
+        navigate('/eventos');
+        break;
+      case 'job':
+        navigate('/empleo');
+        break;
+      case 'pharmacy':
+        navigate('/farmacias');
+        break;
+      case 'challenge':
+        navigate('/retos');
         break;
     }
   };
@@ -139,6 +255,16 @@ export const GlobalSearch = () => {
         return <FileText className="h-4 w-4" />;
       case 'thread':
         return <MessageSquare className="h-4 w-4" />;
+      case 'promotion':
+        return <Gift className="h-4 w-4" />;
+      case 'event':
+        return <Calendar className="h-4 w-4" />;
+      case 'job':
+        return <Briefcase className="h-4 w-4" />;
+      case 'pharmacy':
+        return <Building className="h-4 w-4" />;
+      case 'challenge':
+        return <Trophy className="h-4 w-4" />;
       default:
         return <Search className="h-4 w-4" />;
     }
@@ -152,6 +278,16 @@ export const GlobalSearch = () => {
         return 'Recurso';
       case 'thread':
         return 'Comunidad';
+      case 'promotion':
+        return 'Promoción';
+      case 'event':
+        return 'Evento';
+      case 'job':
+        return 'Empleo';
+      case 'pharmacy':
+        return 'Farmacia';
+      case 'challenge':
+        return 'Reto';
       default:
         return '';
     }
@@ -162,7 +298,7 @@ export const GlobalSearch = () => {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
-          placeholder="Buscar cursos, recursos, comunidad..."
+          placeholder="Buscar en farmapro..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => results.length > 0 && setShowResults(true)}
@@ -249,6 +385,131 @@ export const GlobalSearch = () => {
                               </div>
                             )}
                             <div className="text-xs text-purple-600 mt-1">
+                              {getTypeLabel(result.type)}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {results.filter(r => r.type === 'promotion').length > 0 && (
+                    <CommandGroup heading="Promociones">
+                      {results.filter(r => r.type === 'promotion').map((result) => (
+                        <CommandItem
+                          key={`promotion-${result.id}`}
+                          onSelect={() => handleResultClick(result)}
+                          className="flex items-start gap-3 p-3 cursor-pointer"
+                        >
+                          {getIcon(result.type)}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{result.title}</div>
+                            {result.description && (
+                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {result.description}
+                              </div>
+                            )}
+                            <div className="text-xs text-orange-600 mt-1">
+                              {getTypeLabel(result.type)}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {results.filter(r => r.type === 'event').length > 0 && (
+                    <CommandGroup heading="Eventos">
+                      {results.filter(r => r.type === 'event').map((result) => (
+                        <CommandItem
+                          key={`event-${result.id}`}
+                          onSelect={() => handleResultClick(result)}
+                          className="flex items-start gap-3 p-3 cursor-pointer"
+                        >
+                          {getIcon(result.type)}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{result.title}</div>
+                            {result.description && (
+                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {result.description}
+                              </div>
+                            )}
+                            <div className="text-xs text-teal-600 mt-1">
+                              {getTypeLabel(result.type)}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {results.filter(r => r.type === 'job').length > 0 && (
+                    <CommandGroup heading="Empleo">
+                      {results.filter(r => r.type === 'job').map((result) => (
+                        <CommandItem
+                          key={`job-${result.id}`}
+                          onSelect={() => handleResultClick(result)}
+                          className="flex items-start gap-3 p-3 cursor-pointer"
+                        >
+                          {getIcon(result.type)}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{result.title}</div>
+                            {result.description && (
+                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {result.description}
+                              </div>
+                            )}
+                            <div className="text-xs text-indigo-600 mt-1">
+                              {getTypeLabel(result.type)}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {results.filter(r => r.type === 'pharmacy').length > 0 && (
+                    <CommandGroup heading="Farmacias">
+                      {results.filter(r => r.type === 'pharmacy').map((result) => (
+                        <CommandItem
+                          key={`pharmacy-${result.id}`}
+                          onSelect={() => handleResultClick(result)}
+                          className="flex items-start gap-3 p-3 cursor-pointer"
+                        >
+                          {getIcon(result.type)}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{result.title}</div>
+                            {result.description && (
+                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {result.description}
+                              </div>
+                            )}
+                            <div className="text-xs text-pink-600 mt-1">
+                              {getTypeLabel(result.type)}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {results.filter(r => r.type === 'challenge').length > 0 && (
+                    <CommandGroup heading="Retos">
+                      {results.filter(r => r.type === 'challenge').map((result) => (
+                        <CommandItem
+                          key={`challenge-${result.id}`}
+                          onSelect={() => handleResultClick(result)}
+                          className="flex items-start gap-3 p-3 cursor-pointer"
+                        >
+                          {getIcon(result.type)}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{result.title}</div>
+                            {result.description && (
+                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {result.description}
+                              </div>
+                            )}
+                            <div className="text-xs text-yellow-600 mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
