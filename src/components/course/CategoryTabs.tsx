@@ -70,7 +70,7 @@ export const CategoryTabs = ({ selectedCategory, onCategoryChange }: CategoryTab
               className={`relative group transition-all duration-300 transform hover:scale-105 ${
                 selectedCategory === category.value
                   ? `bg-gradient-to-r ${category.color} text-white shadow-lg ring-1 ring-opacity-50`
-                  : 'hover:shadow-md hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                  : 'hover:shadow-md hover:bg-green-600 hover:text-white'
               }`}
             >
               {selectedCategory === category.value && (
