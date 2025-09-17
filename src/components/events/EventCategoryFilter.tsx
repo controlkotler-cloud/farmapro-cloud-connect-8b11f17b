@@ -77,7 +77,7 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
               className={`relative group transition-all duration-300 transform hover:scale-105 ${
                 selectedType === category.id
                   ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
-                  : 'hover:shadow-md'
+                  : 'hover:shadow-md hover:bg-green-600 hover:text-white'
               }`}
             >
               <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
