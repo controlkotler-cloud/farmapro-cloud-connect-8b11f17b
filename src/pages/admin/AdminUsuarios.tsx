@@ -4,8 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, User, Mail, Calendar } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Search, User, Mail, Calendar, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { logSecurityEvent } from '@/lib/securityLogger';
 import type { Database } from '@/integrations/supabase/types';
@@ -29,6 +32,13 @@ const AdminUsuarios = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    email: '',
+    password: '',
+    fullName: ''
+  });
+  const [creatingUser, setCreatingUser] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -163,6 +173,91 @@ const AdminUsuarios = () => {
     }
   };
 
+  const createAdminUser = async () => {
+    if (!createFormData.email || !createFormData.password || !createFormData.fullName) {
+      toast({
+        title: "Error",
+        description: "Todos los campos son obligatorios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCreatingUser(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('provision-admin-user', {
+        body: {
+          email: createFormData.email,
+          password: createFormData.password,
+          fullName: createFormData.fullName
+        }
+      });
+
+      if (error) {
+        console.error('Error creating admin user:', error);
+        toast({
+          title: "Error",
+          description: `Error al crear usuario admin: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.success) {
+        // Log successful creation
+        await logSecurityEvent({
+          event_type: 'admin_action',
+          details: {
+            description: 'New admin user created successfully',
+            metadata: {
+              adminEmail: createFormData.email,
+              createdUserId: data.user_id,
+              timestamp: new Date().toISOString()
+            },
+            severity: 'medium'
+          }
+        });
+
+        toast({
+          title: "Éxito",
+          description: `Usuario admin ${createFormData.email} creado correctamente`,
+        });
+
+        // Reset form and close dialog
+        setCreateFormData({ email: '', password: '', fullName: '' });
+        setShowCreateDialog(false);
+        
+        // Refresh users list
+        await loadUsers();
+      }
+    } catch (error: any) {
+      console.error('Error calling provision-admin-user:', error);
+      
+      // Log failed attempt
+      await logSecurityEvent({
+        event_type: 'admin_action',
+        details: {
+          description: 'Failed admin user creation attempt',
+          metadata: {
+            adminEmail: createFormData.email,
+            error: error.message,
+            timestamp: new Date().toISOString()
+          },
+          severity: 'high'
+        }
+      });
+      
+      toast({
+        title: "Error",
+        description: "Error inesperado al crear usuario admin",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -193,7 +288,7 @@ const AdminUsuarios = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters and Actions */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -217,6 +312,69 @@ const AdminUsuarios = () => {
             <SelectItem value="admin">Administrador</SelectItem>
           </SelectContent>
         </Select>
+        
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2 whitespace-nowrap">
+              <Plus className="h-4 w-4" />
+              Crear Admin
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Crear Usuario Administrador</DialogTitle>
+              <DialogDescription>
+                Crea un nuevo usuario con permisos de administrador.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@farmapro.es"
+                  value={createFormData.email}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Contraseña segura"
+                  value={createFormData.password}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, password: e.target.value }))}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="fullName">Nombre Completo</Label>
+                <Input
+                  id="fullName"
+                  placeholder="Nombre completo"
+                  value={createFormData.fullName}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateDialog(false)}
+                disabled={creatingUser}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={createAdminUser}
+                disabled={creatingUser}
+              >
+                {creatingUser ? 'Creando...' : 'Crear Usuario'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Users Grid */}

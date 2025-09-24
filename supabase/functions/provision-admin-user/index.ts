@@ -45,7 +45,7 @@ serve(async (req) => {
       throw new Error('Insufficient permissions: Only admins can create admin users');
     }
 
-    const { email, password } = await req.json();
+    const { email, password, fullName } = await req.json();
     
     if (!email || !password) {
       throw new Error('Email and password are required');
@@ -59,7 +59,7 @@ serve(async (req) => {
       password: password,
       email_confirm: true, // Auto-confirm email
       user_metadata: {
-        full_name: 'Alejandro Admin'
+        full_name: fullName || 'Admin User'
       }
     });
 
