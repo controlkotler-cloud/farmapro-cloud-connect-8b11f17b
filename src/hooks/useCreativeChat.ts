@@ -29,7 +29,7 @@ export const useCreativeChat = () => {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-creative-assistant`,
+        'https://fcqctkhvplmqukgosmya.supabase.co/functions/v1/ai-creative-assistant',
         {
           method: 'POST',
           headers: {
@@ -44,11 +44,17 @@ export const useCreativeChat = () => {
       );
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
         if (response.status === 403) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'No tienes acceso a esta funcionalidad');
+          throw new Error(errorData.error || 'No tienes acceso a esta funcionalidad. Necesitas un plan Premium, Profesional o Admin.');
         }
-        throw new Error('Error al procesar la solicitud');
+        
+        if (response.status === 401) {
+          throw new Error(errorData.error || 'Sesión expirada. Por favor, vuelve a iniciar sesión.');
+        }
+        
+        throw new Error(errorData.error || 'Error al procesar la solicitud');
       }
 
       const reader = response.body?.getReader();
@@ -113,7 +119,7 @@ export const useCreativeChat = () => {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-generate-image`,
+        'https://fcqctkhvplmqukgosmya.supabase.co/functions/v1/ai-generate-image',
         {
           method: 'POST',
           headers: {

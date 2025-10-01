@@ -17,14 +17,24 @@ serve(async (req) => {
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
     if (!lovableApiKey) {
+      console.error('LOVABLE_API_KEY not configured');
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Get auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header');
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
+
+    console.log('Auth header present, creating Supabase client...');
 
     // Create Supabase client with hardcoded public values
     const supabaseClient = createClient(
@@ -34,10 +44,32 @@ serve(async (req) => {
     );
 
     // Get user info
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
+    console.log('Getting user from token...');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    
+    if (userError) {
+      console.error('Error getting user:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Error de autenticación: ' + userError.message }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
+    
+    if (!user) {
+      console.error('No user found in token');
+      return new Response(
+        JSON.stringify({ error: 'Usuario no autenticado' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('User authenticated:', user.id);
 
     const { data: profile } = await supabaseClient
       .from('profiles')
