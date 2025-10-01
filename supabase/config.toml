@@ -241,3 +241,12 @@ verify_jwt = false
 
 [functions.provision-admin-user]
 verify_jwt = true
+
+[functions.ai-portal-chat]
+verify_jwt = true
+
+[functions.ai-creative-assistant]
+verify_jwt = true
+
+[functions.ai-generate-image]
+verify_jwt = true

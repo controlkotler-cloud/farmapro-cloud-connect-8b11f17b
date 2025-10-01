@@ -6,6 +6,8 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PortalChatbot } from '@/components/ai/PortalChatbot';
+import { CreativeAssistant } from '@/components/ai/CreativeAssistant';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -44,6 +46,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </main>
           {!isLegalPage && <Footer />}
         </SidebarInset>
+        <PortalChatbot />
+        <CreativeAssistant />
       </div>
     </SidebarProvider>
   );
