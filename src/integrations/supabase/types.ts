@@ -1682,6 +1682,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_email_admin: {
+        Args: { check_email: string }
+        Returns: boolean
+      }
       is_paid_user: {
         Args: { uid: string }
         Returns: boolean
