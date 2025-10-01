@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCreativeChat } from '@/hooks/useCreativeChat';
-import { Copy, Download, ImageIcon, Send, Trash2, Sparkles } from 'lucide-react';
+import { Copy, Send, Trash2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const CreativeWorkspace = () => {
@@ -17,7 +17,6 @@ export const CreativeWorkspace = () => {
     contentType,
     setContentType,
     sendMessage,
-    generateImage,
     clearChat,
   } = useCreativeChat();
 
@@ -29,26 +28,12 @@ export const CreativeWorkspace = () => {
     }
   };
 
-  const handleGenerateImage = async () => {
-    if (input.trim()) {
-      await generateImage(input);
-      setInput('');
-    }
-  };
-
   const handleCopy = (content: string) => {
     navigator.clipboard.writeText(content);
     toast({
       title: 'Copiado',
       description: 'Contenido copiado al portapapeles',
     });
-  };
-
-  const handleDownload = (imageUrl: string) => {
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = 'imagen-generada.png';
-    link.click();
   };
 
   const getContentInfo = () => {
@@ -201,28 +186,9 @@ export const CreativeWorkspace = () => {
                     )}
                   </div>
                   
-                  {message.content.startsWith('data:image') ? (
-                    <div className="space-y-2">
-                      <img
-                        src={message.content}
-                        alt="Generated"
-                        className="rounded-lg max-w-full shadow-lg"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownload(message.content)}
-                        className="w-full"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Descargar Imagen
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {message.content}
-                    </p>
-                  )}
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                    {message.content}
+                  </p>
                 </div>
               ))}
             </div>
@@ -238,36 +204,23 @@ export const CreativeWorkspace = () => {
             disabled={isLoading}
           />
           
-          <div className="flex gap-2">
-            <Button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-            >
-              {isLoading ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Generar Contenido
-                </>
-              )}
-            </Button>
-            
-            <Button
-              type="button"
-              onClick={handleGenerateImage}
-              disabled={isLoading || !input.trim()}
-              variant="outline"
-              className="border-purple-300 hover:bg-purple-50"
-            >
-              <ImageIcon className="h-4 w-4 mr-2" />
-              Generar Imagen
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            disabled={isLoading || !input.trim()}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          >
+            {isLoading ? (
+              <>
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Generando...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Generar Contenido
+              </>
+            )}
+          </Button>
         </form>
       </Card>
     </div>

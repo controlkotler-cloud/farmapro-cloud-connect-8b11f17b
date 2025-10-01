@@ -204,21 +204,37 @@ function getSystemPrompt(contentType: string, profile: any) {
   const pharmacyName = profile?.pharmacy_name || 'tu farmacia';
   const position = profile?.position || 'profesional';
 
+  const formatInstruction = `
+IMPORTANTE: Responde en formato de texto plano, NO uses markdown ni formato especial. El usuario debe poder copiar y pegar tu respuesta directamente sin necesidad de editarla.
+- NO uses asteriscos, almohadillas ni otros caracteres de markdown
+- Usa saltos de línea para separar secciones
+- Para énfasis usa MAYÚSCULAS o repite palabras clave
+- Los títulos van en una línea aparte, sin formato especial
+`;
+
   switch (contentType) {
     case 'blog':
-      return `Asistente creativo de copywritting para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
+      return `${formatInstruction}
+
+Asistente creativo de copywritting para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
 Crea contenido profesional para blog farmacéutico de 1000 palabras: título atractivo, introducción clara, desarrollo con datos, conclusión práctica y call to action. Tono profesional pero accesible. Integra de forma natural los datos que te aporto y ten intención seo para la palabras clave relevantes como el nombre de la farmacia la localidad y el tema.`;
 
     case 'social-media':
-      return `Asistente creativo de comunitat manager para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
+      return `${formatInstruction}
+
+Asistente creativo de comunitat manager para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
 Crea copy para redes sociales de la farmacia (máx. 2200 caracteres): tono cercano, emojis apropiados, call to action claro. Sugiere tipo de imagen ideal. Integra el nombre de la farmacia y la localidad de forma natural en el texto.`;
 
     case 'promotion':
-      return `Asistente creativo para crear promociones en la farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
+      return `${formatInstruction}
+
+Asistente creativo para crear promociones en la farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
 Crea copy promocional farmacéutico: mensaje directo, beneficios claros, call to action potente. Cumple normativa farmacéutica y sugiere diseño visual.`;
 
     default:
-      return `Asistente creativo para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
+      return `${formatInstruction}
+
+Asistente creativo para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
 Crea contenido profesional y relevante según las necesidades del usuario.`;
   }
 }

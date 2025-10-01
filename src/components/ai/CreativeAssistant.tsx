@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wand2, X, Send, Trash2, Image as ImageIcon, Copy, Download, Crown } from 'lucide-react';
+import { Wand2, X, Send, Trash2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,8 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export const CreativeAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const { messages, isLoading, contentType, setContentType, sendMessage, generateImage, clearChat } = useCreativeChat();
+  const { messages, isLoading, contentType, setContentType, sendMessage, clearChat } = useCreativeChat();
   const { toast } = useToast();
   const { profile } = useAuth();
 
@@ -33,16 +32,6 @@ export const CreativeAssistant = () => {
     
     await sendMessage(input);
     setInput('');
-  };
-
-  const handleGenerateImage = async () => {
-    if (!input.trim() || isLoading) return;
-    
-    const imageUrl = await generateImage(input);
-    if (imageUrl) {
-      setGeneratedImage(imageUrl);
-      setInput('');
-    }
   };
 
   const handleCopyContent = (content: string) => {
@@ -193,24 +182,6 @@ export const CreativeAssistant = () => {
                     </div>
                   </div>
                 )}
-                {generatedImage && (
-                  <div className="flex flex-col gap-2">
-                    <img src={generatedImage} alt="Generated" className="rounded-lg max-w-full" />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = generatedImage;
-                        link.download = 'farmapro-image.png';
-                        link.click();
-                      }}
-                    >
-                      <Download className="h-3 w-3 mr-1" />
-                      Descargar
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
           </ScrollArea>
@@ -225,16 +196,6 @@ export const CreativeAssistant = () => {
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                disabled={isLoading || !input.trim()}
-                onClick={handleGenerateImage}
-                title="Generar imagen"
-              >
-                <ImageIcon className="h-4 w-4" />
-              </Button>
               <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
                 <Send className="h-4 w-4" />
               </Button>

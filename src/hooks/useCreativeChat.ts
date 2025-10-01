@@ -122,45 +122,6 @@ export const useCreativeChat = () => {
     }
   }, [messages, contentType, toast]);
 
-  const generateImage = useCallback(async (imagePrompt: string) => {
-    setIsLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No estás autenticado');
-      }
-
-      const response = await fetch(
-        'https://fcqctkhvplmqukgosmya.supabase.co/functions/v1/ai-generate-image',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ prompt: imagePrompt }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Error al generar la imagen');
-      }
-
-      const data = await response.json();
-      return data.imageUrl;
-    } catch (error) {
-      console.error('Error generating image:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo generar la imagen',
-        variant: 'destructive',
-      });
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
   const clearChat = useCallback(() => {
     setMessages([]);
   }, []);
@@ -171,7 +132,6 @@ export const useCreativeChat = () => {
     contentType,
     setContentType,
     sendMessage,
-    generateImage,
     clearChat,
   };
 };
