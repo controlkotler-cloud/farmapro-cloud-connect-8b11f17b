@@ -2,7 +2,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarNavigation } from './sidebar/SidebarNavigation';
-import { SidebarCreativeSection } from './sidebar/SidebarCreativeSection';
 import { SidebarAdminSection } from './sidebar/SidebarAdminSection';
 import { SidebarFooter } from './sidebar/SidebarFooter';
 import {
@@ -19,7 +18,6 @@ export const Sidebar = () => {
       <SidebarContent className="bg-white">
         <SidebarHeader />
         <SidebarNavigation />
-        <SidebarCreativeSection />
         {isAdmin && <SidebarAdminSection />}
         <SidebarFooter />
       </SidebarContent>

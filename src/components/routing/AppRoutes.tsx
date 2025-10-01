@@ -19,6 +19,7 @@ import Precios from "@/pages/Precios";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
+import AsistenteCreativo from "@/pages/AsistenteCreativo";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCursos from "@/pages/admin/AdminCursos";
 import AdminQuizzes from "@/pages/admin/AdminQuizzes";
@@ -155,6 +156,11 @@ export const AppRoutes = () => {
       <Route path="/promociones" element={
         <ProtectedRoute>
           <Promociones />
+        </ProtectedRoute>
+      } />
+      <Route path="/asistente-creativo" element={
+        <ProtectedRoute>
+          <AsistenteCreativo />
         </ProtectedRoute>
       } />
       
