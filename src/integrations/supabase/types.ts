@@ -1606,6 +1606,10 @@ export type Database = {
         Args: { points: number; user_id: string }
         Returns: undefined
       }
+      anonymize_old_applications: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       calculate_quiz_stats: {
         Args: { quiz_id_param: string }
         Returns: {
@@ -1629,6 +1633,10 @@ export type Database = {
       }
       can_access_user_data: {
         Args: { target_user_id: string }
+        Returns: boolean
+      }
+      can_view_thread_author: {
+        Args: { thread_author_id: string }
         Returns: boolean
       }
       create_notification_for_user: {

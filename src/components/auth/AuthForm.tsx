@@ -6,6 +6,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { usePasswordReset } from '@/hooks/usePasswordReset';
+import { z } from 'zod';
+
+// Security: Strong validation schema for authentication
+const authSchema = z.object({
+  email: z.string()
+    .min(1, "El email es obligatorio")
+    .email("Formato de email inválido")
+    .max(255, "El email es demasiado largo"),
+  password: z.string()
+    .min(8, "La contraseña debe tener al menos 8 caracteres")
+    .max(100, "La contraseña es demasiado larga")
+    .regex(/[A-Z]/, "La contraseña debe contener al menos una mayúscula")
+    .regex(/[a-z]/, "La contraseña debe contener al menos una minúscula")
+    .regex(/[0-9]/, "La contraseña debe contener al menos un número"),
+  fullName: z.string()
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(100, "El nombre es demasiado largo")
+    .optional(),
+  pharmacyName: z.string()
+    .max(200, "El nombre de la farmacia es demasiado largo")
+    .optional(),
+  position: z.string()
+    .max(100, "El cargo es demasiado largo")
+    .optional()
+});
 
 interface AuthFormProps {
   isRegistering: boolean;
@@ -27,24 +52,38 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
     setLoading(true);
 
     try {
-      if (isRegistering) {
-        // Registro
-        if (!fullName.trim()) {
-          toast({
-            title: "Error",
-            description: "El nombre completo es requerido",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
+      // Security: Validate input before sending to server
+      const validationData = isRegistering 
+        ? { email, password, fullName, pharmacyName, position }
+        : { email, password };
+      
+      const result = authSchema.safeParse(validationData);
+      
+      if (!result.success) {
+        const firstError = result.error.issues[0];
+        toast({
+          title: "Error de validación",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
+      if (isRegistering) {
         const { error } = await signUp(email, password, fullName, pharmacyName, position);
 
         if (error) {
+          // Security: Don't expose internal error details
+          const errorMessage = error.message.includes('already registered')
+            ? 'Este email ya está registrado'
+            : error.message.includes('invalid')
+            ? 'Datos inválidos. Por favor, verifica la información'
+            : 'Error al registrarse. Intenta de nuevo';
+          
           toast({
             title: "Error de registro",
-            description: error.message,
+            description: errorMessage,
             variant: "destructive",
           });
         } else {
@@ -52,20 +91,23 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
             title: "¡Registro exitoso!",
             description: "Tu cuenta ha sido creada correctamente. Puedes iniciar sesión ahora.",
           });
-          // Cambiar a modo login después del registro exitoso
           onToggleMode();
           setFullName('');
           setPharmacyName('');
           setPosition('');
         }
       } else {
-        // Login
         const { error } = await signIn(email, password);
 
         if (error) {
+          // Security: Generic error message to prevent user enumeration
+          const errorMessage = error.message.includes('Invalid') || error.message.includes('invalid')
+            ? 'Email o contraseña incorrectos'
+            : 'Error al iniciar sesión. Intenta de nuevo';
+          
           toast({
             title: "Error de inicio de sesión",
-            description: error.message,
+            description: errorMessage,
             variant: "destructive",
           });
         } else {
@@ -142,6 +184,11 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
             className="mt-1"
             placeholder="Tu contraseña"
           />
+          {isRegistering && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Mínimo 8 caracteres, una mayúscula, una minúscula y un número
+            </p>
+          )}
         </div>
 
         {isRegistering && (

@@ -10,6 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { JobListing } from '@/types/job';
+import { z } from 'zod';
+
+// Security: Strong validation schema for job applications
+const jobApplicationSchema = z.object({
+  summary: z.string()
+    .min(50, "El resumen debe tener al menos 50 caracteres")
+    .max(2000, "El resumen no puede superar los 2000 caracteres")
+    .refine(val => val.trim().length >= 50, "El resumen debe contener contenido real"),
+  consentGiven: z.boolean().refine(val => val === true, "Debes aceptar compartir tu información")
+});
 
 interface JobApplicationDialogProps {
   job: JobListing | null;
@@ -72,19 +82,17 @@ export const JobApplicationDialog = ({ job, isOpen, onClose, onSuccess }: JobApp
   const handleSubmit = async () => {
     if (!job || !profile?.id) return;
 
-    if (!summary.trim()) {
-      toast({
-        title: "Error",
-        description: "El resumen es obligatorio",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Security: Validate input before submission
+    const result = jobApplicationSchema.safeParse({
+      summary: summary.trim(),
+      consentGiven
+    });
 
-    if (!consentGiven) {
+    if (!result.success) {
+      const firstError = result.error.issues[0];
       toast({
-        title: "Error",
-        description: "Debes aceptar compartir tu información",
+        title: "Error de validación",
+        description: firstError.message,
         variant: "destructive"
       });
       return;
