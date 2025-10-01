@@ -97,7 +97,7 @@ export const CreativeWorkspace = () => {
   const contentInfo = getContentInfo();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Panel de control */}
       <Card className="lg:col-span-1 p-6 bg-white/80 backdrop-blur-sm">
         <h2 className="text-xl font-bold mb-4">Tipo de Contenido</h2>
@@ -125,15 +125,27 @@ export const CreativeWorkspace = () => {
           </TabsList>
         </Tabs>
 
-        <div className="mt-6 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-          <h3 className="font-semibold text-sm mb-2">💡 Sugerencias</h3>
-          <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Sé específico sobre tu audiencia</li>
-            <li>• Menciona productos concretos</li>
-            <li>• Define el tono deseado</li>
-            <li>• Indica el objetivo del contenido</li>
-          </ul>
-        </div>
+        {/* Información dinámica según tipo de contenido */}
+        {contentInfo && (
+          <div className="mt-6">
+            <div className={`bg-gradient-to-r ${contentInfo.gradient} text-white p-4 rounded-lg mb-4`}>
+              <h3 className="text-sm font-bold mb-2">{contentInfo.title}</h3>
+              <p className="text-xs opacity-90">{contentInfo.description}</p>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-semibold text-xs text-muted-foreground">Información necesaria:</h4>
+              <ul className="space-y-2">
+                {contentInfo.items.map((item, index) => (
+                  <li key={index} className="flex items-start gap-2 text-xs">
+                    <span className="text-purple-500 font-bold">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
         {messages.length > 0 && (
           <Button
@@ -146,28 +158,6 @@ export const CreativeWorkspace = () => {
           </Button>
         )}
       </Card>
-
-      {/* Sección informativa dinámica */}
-      {contentInfo && (
-        <Card className="lg:col-span-1 p-6 bg-white/80 backdrop-blur-sm">
-          <div className={`bg-gradient-to-r ${contentInfo.gradient} text-white p-4 rounded-lg mb-4`}>
-            <h2 className="text-lg font-bold mb-2">{contentInfo.title}</h2>
-            <p className="text-sm opacity-90">{contentInfo.description}</p>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="font-semibold text-sm text-muted-foreground">Información necesaria:</h3>
-            <ul className="space-y-2">
-              {contentInfo.items.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm">
-                  <span className="text-purple-500 font-bold">•</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
-      )}
 
       {/* Área de trabajo */}
       <Card className="lg:col-span-2 p-6 bg-white/80 backdrop-blur-sm">
