@@ -66,28 +66,16 @@ export const CreativeWorkspace = () => {
               📝 Blog Post
             </TabsTrigger>
             <TabsTrigger 
-              value="social-instagram"
+              value="social-media"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-pink-600 data-[state=active]:text-white"
             >
-              📱 Instagram
-            </TabsTrigger>
-            <TabsTrigger 
-              value="social-linkedin"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-            >
-              💼 LinkedIn
+              📱 Redes Sociales
             </TabsTrigger>
             <TabsTrigger 
               value="promotion"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
             >
               🎯 Promoción
-            </TabsTrigger>
-            <TabsTrigger 
-              value="general"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-gray-600 data-[state=active]:text-white"
-            >
-              ✨ General
             </TabsTrigger>
           </TabsList>
         </Tabs>

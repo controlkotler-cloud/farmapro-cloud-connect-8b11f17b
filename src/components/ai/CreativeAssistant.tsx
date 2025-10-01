@@ -47,15 +47,10 @@ export const CreativeAssistant = () => {
       'Crea un post sobre la importancia de la adherencia terapéutica',
       'Redacta sobre las últimas novedades en atención farmacéutica',
     ],
-    'social-instagram': [
+    'social-media': [
       'Crea un post para promocionar un nuevo servicio de farmacia',
       'Redacta contenido sobre consejos de salud para el verano',
       'Escribe sobre la importancia de la vacunación',
-    ],
-    'social-linkedin': [
-      'Redacta un post profesional sobre liderazgo en farmacia',
-      'Crea contenido sobre innovación en el sector farmacéutico',
-      'Escribe sobre gestión de equipos en farmacia',
     ],
     promotion: [
       'Crea un copy para promoción de campaña de gripe',
@@ -64,7 +59,7 @@ export const CreativeAssistant = () => {
     ],
   };
 
-  const templates = contentType !== 'general' ? contentTemplates[contentType as keyof typeof contentTemplates] : [];
+  const templates = contentTemplates[contentType as keyof typeof contentTemplates] || [];
 
   return (
     <>
@@ -113,10 +108,8 @@ export const CreativeAssistant = () => {
           {/* Content Type Selector */}
           <Tabs value={contentType} onValueChange={(v) => setContentType(v as ContentType)} className="border-b">
             <TabsList className="w-full justify-start rounded-none h-auto flex-wrap">
-              <TabsTrigger value="general" className="text-xs">General</TabsTrigger>
               <TabsTrigger value="blog" className="text-xs">Blog</TabsTrigger>
-              <TabsTrigger value="social-instagram" className="text-xs">Instagram</TabsTrigger>
-              <TabsTrigger value="social-linkedin" className="text-xs">LinkedIn</TabsTrigger>
+              <TabsTrigger value="social-media" className="text-xs">Redes Sociales</TabsTrigger>
               <TabsTrigger value="promotion" className="text-xs">Promoción</TabsTrigger>
             </TabsList>
           </Tabs>

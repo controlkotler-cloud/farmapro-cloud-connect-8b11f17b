@@ -109,28 +109,18 @@ ESTRUCTURA:
 
 TEMAS SUGERIDOS: Actualidad farmacéutica, nuevos medicamentos, atención farmacéutica, gestión de farmacia, salud pública`;
 
-    case 'social-instagram':
+    case 'social-media':
       return `${baseContext}
 
-TAREA: Crear copy para Instagram de farmacia
+TAREA: Crear copy para redes sociales de farmacia (Instagram, Facebook, Twitter, etc.)
 CARACTERÍSTICAS:
 - Máximo 2200 caracteres
 - Tono cercano y profesional
 - 3-5 hashtags relevantes
 - Include emoji apropiados
 - Call to action claro
-- Enfoque visual (menciona qué imagen usar)`;
-
-    case 'social-linkedin':
-      return `${baseContext}
-
-TAREA: Crear copy para LinkedIn profesional
-CARACTERÍSTICAS:
-- Tono profesional y corporativo
-- Datos y estadísticas relevantes
-- Valor para profesionales del sector
-- 3 hashtags profesionales
-- Call to action orientado a networking o aprendizaje`;
+- Enfoque visual (menciona qué imagen usar)
+- Adaptable a diferentes plataformas`;
 
     case 'promotion':
       return `${baseContext}
@@ -147,7 +137,14 @@ CARACTERÍSTICAS:
     default:
       return `${baseContext}
 
-Eres un asistente versátil para crear contenido profesional relacionado con farmacia.
-Adapta tu respuesta al contexto y necesidades específicas del usuario.`;
+TAREA: Crear contenido para blog profesional de farmacia
+ESTILO: Profesional, informativo, con base científica pero accesible
+ESTRUCTURA: 
+- Título atractivo
+- Introducción enganchadora
+- Desarrollo con datos y evidencia
+- Conclusión práctica
+- Call to action relevante`;
+  }
   }
 }

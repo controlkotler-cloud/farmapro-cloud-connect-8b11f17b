@@ -7,12 +7,12 @@ interface Message {
   content: string;
 }
 
-export type ContentType = 'blog' | 'social-instagram' | 'social-linkedin' | 'promotion' | 'general';
+export type ContentType = 'blog' | 'social-media' | 'promotion';
 
 export const useCreativeChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [contentType, setContentType] = useState<ContentType>('general');
+  const [contentType, setContentType] = useState<ContentType>('blog');
   const { toast } = useToast();
 
   const sendMessage = useCallback(async (userMessage: string) => {
