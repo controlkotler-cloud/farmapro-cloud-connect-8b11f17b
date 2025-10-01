@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wand2, X, Send, Trash2, Image as ImageIcon, Copy, Download } from 'lucide-react';
+import { Wand2, X, Send, Trash2, Image as ImageIcon, Copy, Download, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCreativeChat, ContentType } from '@/hooks/useCreativeChat';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const CreativeAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +16,16 @@ export const CreativeAssistant = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { messages, isLoading, contentType, setContentType, sendMessage, generateImage, clearChat } = useCreativeChat();
   const { toast } = useToast();
+  const { profile } = useAuth();
+
+  // Check if user has access (premium, profesional, or admin)
+  const allowedRoles = ['premium', 'profesional', 'admin'];
+  const hasAccess = profile && allowedRoles.includes(profile.subscription_role) && profile.subscription_status === 'active';
+
+  // Don't show the button if user doesn't have access
+  if (!hasAccess) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

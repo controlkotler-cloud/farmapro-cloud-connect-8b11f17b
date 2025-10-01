@@ -44,6 +44,10 @@ export const useCreativeChat = () => {
       );
 
       if (!response.ok) {
+        if (response.status === 403) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'No tienes acceso a esta funcionalidad');
+        }
         throw new Error('Error al procesar la solicitud');
       }
 

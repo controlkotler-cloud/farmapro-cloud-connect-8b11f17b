@@ -41,9 +41,24 @@ serve(async (req) => {
 
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('full_name, pharmacy_name, position')
+      .select('full_name, pharmacy_name, position, subscription_role, subscription_status')
       .eq('id', user.id)
       .single();
+
+    // Validate user has access (premium, profesional, or admin)
+    const allowedRoles = ['premium', 'profesional', 'admin'];
+    if (!profile || !allowedRoles.includes(profile.subscription_role) || profile.subscription_status !== 'active') {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Esta funcionalidad está disponible solo para usuarios Premium, Profesional y Admin. Actualiza tu plan para acceder.',
+          requiresUpgrade: true 
+        }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Build system prompt based on content type
     const systemPrompt = getSystemPrompt(contentType, profile);
