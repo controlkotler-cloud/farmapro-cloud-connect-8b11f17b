@@ -51,8 +51,53 @@ export const CreativeWorkspace = () => {
     link.click();
   };
 
+  const getContentInfo = () => {
+    switch (contentType) {
+      case 'blog':
+        return {
+          title: 'Redacta un post para el blog de tu web',
+          description: 'Para que sea más personalizado debes indicar el nombre de tu farmacia, la población y el tema sobre el que quieres escribir.',
+          gradient: 'from-purple-500 to-purple-600',
+          items: [
+            'Nombre de la farmacia',
+            'Población/ubicación',
+            'Tema específico (ej: temporada de gripe, productos naturales)',
+            'Tono deseado (profesional, cercano, educativo)',
+          ],
+        };
+      case 'social-media':
+        return {
+          title: 'Crea contenido atractivo para tus redes sociales',
+          description: 'Genera posts llamativos que conecten con tu comunidad local y promuevan tus servicios farmacéuticos.',
+          gradient: 'from-pink-500 to-pink-600',
+          items: [
+            'Red social específica (Instagram, Facebook, etc.)',
+            'Nombre de la farmacia',
+            'Producto/servicio a destacar',
+          ],
+        };
+      case 'promotion':
+        return {
+          title: 'Diseña promociones que impulsen tus ventas',
+          description: 'Crea copy promocional persuasivo que destaque tus ofertas y genere urgencia en tus clientes.',
+          gradient: 'from-orange-500 to-orange-600',
+          items: [
+            'Producto/servicio en promoción',
+            'Descuento o beneficio específico',
+            'Fecha límite de la oferta',
+            'Público objetivo',
+            'Ubicación de la farmacia',
+          ],
+        };
+      default:
+        return null;
+    }
+  };
+
+  const contentInfo = getContentInfo();
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Panel de control */}
       <Card className="lg:col-span-1 p-6 bg-white/80 backdrop-blur-sm">
         <h2 className="text-xl font-bold mb-4">Tipo de Contenido</h2>
@@ -101,6 +146,28 @@ export const CreativeWorkspace = () => {
           </Button>
         )}
       </Card>
+
+      {/* Sección informativa dinámica */}
+      {contentInfo && (
+        <Card className="lg:col-span-1 p-6 bg-white/80 backdrop-blur-sm">
+          <div className={`bg-gradient-to-r ${contentInfo.gradient} text-white p-4 rounded-lg mb-4`}>
+            <h2 className="text-lg font-bold mb-2">{contentInfo.title}</h2>
+            <p className="text-sm opacity-90">{contentInfo.description}</p>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="font-semibold text-sm text-muted-foreground">Información necesaria:</h3>
+            <ul className="space-y-2">
+              {contentInfo.items.map((item, index) => (
+                <li key={index} className="flex items-start gap-2 text-sm">
+                  <span className="text-purple-500 font-bold">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Card>
+      )}
 
       {/* Área de trabajo */}
       <Card className="lg:col-span-2 p-6 bg-white/80 backdrop-blur-sm">
