@@ -14,10 +14,10 @@ serve(async (req) => {
 
   try {
     const { messages, contentType } = await req.json();
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY not configured');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Get auth header
@@ -29,7 +29,7 @@ serve(async (req) => {
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     );
 
@@ -48,14 +48,14 @@ serve(async (req) => {
     // Build system prompt based on content type
     const systemPrompt = getSystemPrompt(contentType, profile);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages
@@ -66,8 +66,30 @@ serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI error:', error);
-      throw new Error('OpenAI API error');
+      console.error('Lovable AI error:', response.status, error);
+      
+      // Handle rate limits and payment errors
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Límite de solicitudes alcanzado, intenta de nuevo en un momento.' }),
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Créditos insuficientes. Por favor, añade créditos a tu workspace de Lovable AI.' }),
+          { 
+            status: 402, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
+      throw new Error('Lovable AI API error');
     }
 
     return new Response(response.body, {
@@ -91,59 +113,23 @@ function getSystemPrompt(contentType: string, profile: any) {
   const pharmacyName = profile?.pharmacy_name || 'tu farmacia';
   const position = profile?.position || 'profesional';
 
-  const baseContext = `Eres un asistente creativo especializado en contenido para profesionales de farmacia.
-Usuario: ${userName} (${position} en ${pharmacyName})`;
+  const baseContext = `Asistente creativo para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})`;
 
   switch (contentType) {
     case 'blog':
       return `${baseContext}
-
-TAREA: Crear contenido para blog profesional de farmacia
-ESTILO: Profesional, informativo, con base científica pero accesible
-ESTRUCTURA: 
-- Título atractivo
-- Introducción enganchadora
-- Desarrollo con datos y evidencia
-- Conclusión práctica
-- Call to action relevante
-
-TEMAS SUGERIDOS: Actualidad farmacéutica, nuevos medicamentos, atención farmacéutica, gestión de farmacia, salud pública`;
+Crea contenido profesional para blog farmacéutico: título atractivo, introducción clara, desarrollo con datos, conclusión práctica y call to action. Tono profesional pero accesible.`;
 
     case 'social-media':
       return `${baseContext}
-
-TAREA: Crear copy para redes sociales de farmacia (Instagram, Facebook, Twitter, etc.)
-CARACTERÍSTICAS:
-- Máximo 2200 caracteres
-- Tono cercano y profesional
-- 3-5 hashtags relevantes
-- Include emoji apropiados
-- Call to action claro
-- Enfoque visual (menciona qué imagen usar)
-- Adaptable a diferentes plataformas`;
+Crea copy para redes sociales de farmacia (máx. 2200 caracteres): tono cercano, 3-5 hashtags, emojis apropiados, call to action claro. Sugiere tipo de imagen ideal.`;
 
     case 'promotion':
       return `${baseContext}
-
-TAREA: Crear copy promocional para farmacia
-CARACTERÍSTICAS:
-- Mensaje claro y directo
-- Beneficios destacados
-- Sentido de urgencia (si aplica)
-- Call to action potente
-- Cumplimiento normativo farmacéutico
-- Sugerencias de diseño visual`;
+Crea copy promocional farmacéutico: mensaje directo, beneficios claros, call to action potente. Cumple normativa farmacéutica y sugiere diseño visual.`;
 
     default:
       return `${baseContext}
-
-TAREA: Crear contenido para blog profesional de farmacia
-ESTILO: Profesional, informativo, con base científica pero accesible
-ESTRUCTURA: 
-- Título atractivo
-- Introducción enganchadora
-- Desarrollo con datos y evidencia
-- Conclusión práctica
-- Call to action relevante`;
+Crea contenido profesional para blog farmacéutico: título atractivo, introducción clara, desarrollo con datos, conclusión práctica y call to action.`;
   }
 }
