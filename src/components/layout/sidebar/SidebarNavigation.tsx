@@ -31,7 +31,7 @@ const menuItems = [
   { name: 'Dashboard', icon: Home, path: '/dashboard', color: 'from-green-500 to-green-600' },
   { name: 'Formación', icon: BookOpen, path: '/formacion', color: 'from-blue-500 to-blue-600' },
   { name: 'Recursos', icon: FileText, path: '/recursos', color: 'from-purple-500 to-purple-600' },
-  { name: 'Asistente Creativo', icon: Sparkles, path: '/asistente-creativo', color: 'from-purple-600 to-pink-600' },
+  { name: 'IAFarma', icon: Sparkles, path: '/asistente-creativo', color: 'from-purple-600 to-pink-600' },
   { name: 'Comunidad', icon: MessageSquare, path: '/comunidad', color: 'from-pink-500 to-pink-600' },
   { name: 'Retos', icon: Trophy, path: '/retos', color: 'from-yellow-500 to-yellow-600' },
   { name: 'Empleo', icon: Briefcase, path: '/empleo', color: 'from-indigo-500 to-indigo-600' },

@@ -10,7 +10,7 @@ export const CreativeHeader = () => {
         </div>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Asistente Creativo IA
+            IAFarma
           </h1>
           <p className="text-muted-foreground mt-1">
             Genera contenido profesional para tu farmacia con inteligencia artificial
