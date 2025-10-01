@@ -1,32 +1,38 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { messages, contentType } = await req.json();
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      throw new Error('LOVABLE_API_KEY not configured');
+    console.log('Received request with contentType:', contentType);
+
+    // Validate input
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Mensajes inválidos' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Get auth header
+    // Extract JWT token from Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('No authorization header provided');
+      console.error('No authorization header');
       return new Response(
-        JSON.stringify({ error: 'No authorization header' }),
+        JSON.stringify({ error: 'No autorizado' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -34,34 +40,33 @@ serve(async (req) => {
       );
     }
 
-    console.log('Auth header present, creating Supabase client...');
+    const token = authHeader.replace('Bearer ', '');
+    console.log('Token extracted, creating Supabase admin client...');
 
-    // Create Supabase client with hardcoded public values
-    const supabaseClient = createClient(
-      'https://fcqctkhvplmqukgosmya.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjcWN0a2h2cGxtcXVrZ29zbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxNTMwNDIsImV4cCI6MjA2NTcyOTA0Mn0.JQLph5vaUOS0gphHbucjmE_yq-fIQiJmhh7h1ogCHx0',
-      { global: { headers: { Authorization: authHeader } } }
+    // Create Supabase client with service role for backend operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      }
     );
 
-    // Get user info
-    console.log('Getting user from token...');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Verify JWT token directly with the extracted token
+    console.log('Verifying JWT token...');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
-    if (userError) {
-      console.error('Error getting user:', userError);
+    if (authError || !user) {
+      console.error('JWT verification failed:', authError);
       return new Response(
-        JSON.stringify({ error: 'Error de autenticación: ' + userError.message }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-    
-    if (!user) {
-      console.error('No user found in token');
-      return new Response(
-        JSON.stringify({ error: 'Usuario no autenticado' }),
+        JSON.stringify({ 
+          error: authError?.message === 'invalid JWT' 
+            ? 'Sesión expirada. Por favor, vuelve a iniciar sesión.' 
+            : 'Usuario no autenticado' 
+        }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -71,19 +76,33 @@ serve(async (req) => {
 
     console.log('User authenticated:', user.id);
 
-    const { data: profile } = await supabaseClient
+    // Check user subscription with admin client
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('full_name, pharmacy_name, position, subscription_role, subscription_status')
+      .select('subscription_role, subscription_status, full_name, pharmacy_name, position')
       .eq('id', user.id)
       .single();
 
-    // Validate user has access (premium, profesional, or admin)
+    if (profileError || !profile) {
+      console.error('Error fetching profile:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'Error al verificar el perfil del usuario' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('Profile validated for user:', user.id, 'Role:', profile.subscription_role);
+
+    // Validate subscription access
     const allowedRoles = ['premium', 'profesional', 'admin'];
-    if (!profile || !allowedRoles.includes(profile.subscription_role) || profile.subscription_status !== 'active') {
+    if (!allowedRoles.includes(profile.subscription_role) || profile.subscription_status !== 'active') {
+      console.error('Access denied - Role:', profile.subscription_role, 'Status:', profile.subscription_status);
       return new Response(
         JSON.stringify({ 
-          error: 'Esta funcionalidad está disponible solo para usuarios Premium, Profesional y Admin. Actualiza tu plan para acceder.',
-          requiresUpgrade: true 
+          error: 'No tienes acceso a esta funcionalidad. Necesitas un plan Premium, Profesional o Admin activo.' 
         }),
         { 
           status: 403, 
@@ -92,13 +111,26 @@ serve(async (req) => {
       );
     }
 
-    // Build system prompt based on content type
-    const systemPrompt = getSystemPrompt(contentType, profile);
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Configuración del servidor incompleta' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    console.log('Calling Lovable AI for user:', user.id);
+
+    const systemPrompt = getSystemPrompt(contentType || 'blog', profile);
+
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -111,14 +143,14 @@ serve(async (req) => {
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Lovable AI error:', response.status, error);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('Lovable AI error:', aiResponse.status, errorText);
       
-      // Handle rate limits and payment errors
-      if (response.status === 429) {
+      // Handle specific error codes
+      if (aiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Límite de solicitudes alcanzado, intenta de nuevo en un momento.' }),
+          JSON.stringify({ error: 'Límite de uso excedido. Por favor, intenta de nuevo en unos momentos.' }),
           { 
             status: 429, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -126,9 +158,9 @@ serve(async (req) => {
         );
       }
       
-      if (response.status === 402) {
+      if (aiResponse.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Por favor, añade créditos a tu workspace de Lovable AI.' }),
+          JSON.stringify({ error: 'Créditos insuficientes. Por favor, contacta con soporte.' }),
           { 
             status: 402, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -136,17 +168,29 @@ serve(async (req) => {
         );
       }
       
-      throw new Error('Lovable AI API error');
+      return new Response(
+        JSON.stringify({ error: 'Error al comunicarse con el servicio de IA' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
-    });
+    console.log('AI response received, streaming to client...');
 
+    return new Response(aiResponse.body, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    });
   } catch (error) {
     console.error('Error in ai-creative-assistant:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Error interno del servidor' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

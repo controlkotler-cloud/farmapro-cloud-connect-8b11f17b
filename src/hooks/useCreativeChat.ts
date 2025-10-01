@@ -23,10 +23,13 @@ export const useCreativeChat = () => {
     setIsLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No estás autenticado');
+      // Get fresh session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        throw new Error('Sesión expirada. Por favor, vuelve a iniciar sesión.');
       }
+
+      console.log('Sending message to AI assistant...');
 
       const response = await fetch(
         'https://fcqctkhvplmqukgosmya.supabase.co/functions/v1/ai-creative-assistant',
@@ -44,17 +47,26 @@ export const useCreativeChat = () => {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = 'Error al procesar la solicitud';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Error parsing error response:', e);
+        }
         
         if (response.status === 403) {
-          throw new Error(errorData.error || 'No tienes acceso a esta funcionalidad. Necesitas un plan Premium, Profesional o Admin.');
+          errorMessage = 'No tienes acceso a esta funcionalidad. Necesitas un plan Premium, Profesional o Admin activo.';
+        } else if (response.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, vuelve a iniciar sesión.';
+        } else if (response.status === 429) {
+          errorMessage = 'Límite de uso excedido. Por favor, intenta de nuevo en unos momentos.';
+        } else if (response.status === 402) {
+          errorMessage = 'Créditos insuficientes. Por favor, contacta con soporte.';
         }
         
-        if (response.status === 401) {
-          throw new Error(errorData.error || 'Sesión expirada. Por favor, vuelve a iniciar sesión.');
-        }
-        
-        throw new Error(errorData.error || 'Error al procesar la solicitud');
+        throw new Error(errorMessage);
       }
 
       const reader = response.body?.getReader();
