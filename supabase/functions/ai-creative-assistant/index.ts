@@ -146,5 +146,4 @@ ESTRUCTURA:
 - Conclusión práctica
 - Call to action relevante`;
   }
-  }
 }
