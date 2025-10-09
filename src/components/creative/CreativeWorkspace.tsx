@@ -42,7 +42,7 @@ export const CreativeWorkspace = () => {
         return {
           title: 'Redacta un post para el blog de tu web',
           description: 'Para que sea más personalizado debes indicar el nombre de tu farmacia, la población y el tema sobre el que quieres escribir.',
-          gradient: 'from-purple-500 to-purple-600',
+          gradient: 'from-cyan-500 to-cyan-600',
           items: [
             'Nombre de la farmacia',
             'Población/ubicación',
@@ -91,7 +91,7 @@ export const CreativeWorkspace = () => {
           <TabsList className="grid grid-cols-1 gap-2 h-auto bg-transparent">
             <TabsTrigger 
               value="blog" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white"
             >
               📝 Blog Post
             </TabsTrigger>
@@ -123,7 +123,7 @@ export const CreativeWorkspace = () => {
               <ul className="space-y-2">
                 {contentInfo.items.map((item, index) => (
                   <li key={index} className="flex items-start gap-2 text-xs">
-                    <span className="text-purple-500 font-bold">•</span>
+                    <span className="text-cyan-500 font-bold">•</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -151,7 +151,7 @@ export const CreativeWorkspace = () => {
         <ScrollArea className="h-[400px] mb-4 rounded-lg border bg-gray-50 p-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <Sparkles className="h-16 w-16 text-purple-300 mb-4" />
+              <Sparkles className="h-16 w-16 text-cyan-300 mb-4" />
               <p className="text-muted-foreground text-lg">
                 Escribe tu solicitud abajo para comenzar a generar contenido
               </p>
@@ -166,7 +166,7 @@ export const CreativeWorkspace = () => {
                   key={index}
                   className={`p-4 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-r from-purple-100 to-pink-100 ml-8'
+                      ? 'bg-gradient-to-r from-cyan-50 to-cyan-100 ml-8'
                       : 'bg-white shadow-sm mr-8'
                   }`}
                 >
@@ -207,7 +207,7 @@ export const CreativeWorkspace = () => {
           <Button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700"
           >
             {isLoading ? (
               <>
