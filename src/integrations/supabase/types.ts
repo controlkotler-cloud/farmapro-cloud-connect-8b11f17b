@@ -1597,6 +1597,30 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1606,10 +1630,7 @@ export type Database = {
         Args: { points: number; user_id: string }
         Returns: undefined
       }
-      anonymize_old_applications: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      anonymize_old_applications: { Args: never; Returns: undefined }
       calculate_quiz_stats: {
         Args: { quiz_id_param: string }
         Returns: {
@@ -1619,18 +1640,12 @@ export type Database = {
           total_users: number
         }[]
       }
-      calculate_team_price: {
-        Args: { member_count: number }
-        Returns: number
-      }
+      calculate_team_price: { Args: { member_count: number }; Returns: number }
       calculate_team_price_v2: {
         Args: { premium_count: number; professional_count: number }
         Returns: number
       }
-      can_access_contact_info: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      can_access_contact_info: { Args: never; Returns: boolean }
       can_access_user_data: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -1650,14 +1665,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      get_job_contact_email: {
-        Args: { job_id: string }
-        Returns: string
-      }
-      get_job_contact_email_rpc: {
-        Args: { job_id: string }
-        Returns: string
-      }
+      get_job_contact_email: { Args: { job_id: string }; Returns: string }
+      get_job_contact_email_rpc: { Args: { job_id: string }; Returns: string }
       get_job_contact_email_secure: {
         Args: { job_id_param: string }
         Returns: string
@@ -1670,6 +1679,20 @@ export type Database = {
         Args: { pharmacy_id_param: string }
         Returns: string
       }
+      grant_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_active_team_member_of_subscription: {
         Args: { subscription_id: string; user_id: string }
         Returns: boolean
@@ -1678,26 +1701,11 @@ export type Database = {
         Args: { conversation_id_param: string }
         Returns: boolean
       }
-      is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_email_admin: {
-        Args: { check_email: string }
-        Returns: boolean
-      }
-      is_paid_user: {
-        Args: { uid: string }
-        Returns: boolean
-      }
-      is_team_member: {
-        Args: { user_id_param: string }
-        Returns: boolean
-      }
-      is_team_owner: {
-        Args: { user_id_param: string }
-        Returns: boolean
-      }
+      is_current_user_admin: { Args: never; Returns: boolean }
+      is_email_admin: { Args: { check_email: string }; Returns: boolean }
+      is_paid_user: { Args: { uid: string }; Returns: boolean }
+      is_team_member: { Args: { user_id_param: string }; Returns: boolean }
+      is_team_owner: { Args: { user_id_param: string }; Returns: boolean }
       is_team_owner_strict: {
         Args: { team_id_param: string; user_id_param: string }
         Returns: boolean
@@ -1716,6 +1724,13 @@ export type Database = {
       }
       mark_conversation_read: {
         Args: { conversation_id_param: string }
+        Returns: undefined
+      }
+      revoke_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: undefined
       }
       send_job_message: {
@@ -1756,6 +1771,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       challenge_type:
         | "course_started"
         | "course_completed"
@@ -1914,6 +1930,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       challenge_type: [
         "course_started",
         "course_completed",
