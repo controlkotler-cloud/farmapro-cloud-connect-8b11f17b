@@ -15,7 +15,7 @@ export const SidebarHeader = () => {
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full shadow-lg animate-pulse"></div>
           </div>
           <img 
-            src="/lovable-uploads/436f630b-82e2-4604-bbee-e932d97e61e2.png" 
+            src="/lovable-uploads/logo_farmapro.svg" 
             alt="farmapro" 
             className="h-8" 
           />
