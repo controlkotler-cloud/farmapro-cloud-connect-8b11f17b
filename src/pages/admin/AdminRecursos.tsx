@@ -156,8 +156,9 @@ const AdminRecursos = () => {
       setSubmitting(true);
       console.log('Saving resource:', formData);
 
-      const resourceData: ResourceInsert = {
+      const resourceData: any = {
         title: formData.title.trim(),
+        slug: formData.title.trim().toLowerCase().replace(/\s+/g, '-'),
         description: formData.description.trim() || null,
         category: formData.category,
         type: formData.type,

@@ -105,14 +105,17 @@ export const PharmacyFormDialog = ({ editingPharmacy, onPharmacyUpdated }: Pharm
 
       const pharmacyData = {
         title: values.title.trim(),
+        name: values.title.trim(),
         location: values.location.trim(),
+        address: values.location.trim(),
+        city: values.location.trim(),
         description: values.description.trim(),
         price: values.price ? parseFloat(values.price) : null,
         surface_area: values.surface_area ? parseInt(values.surface_area) : null,
         annual_revenue: values.annual_revenue ? parseFloat(values.annual_revenue) : null,
         contact_email: values.contact_email.trim(),
         is_active: values.is_active
-      };
+      } as any;
 
       if (editingPharmacy) {
         const { error } = await supabase

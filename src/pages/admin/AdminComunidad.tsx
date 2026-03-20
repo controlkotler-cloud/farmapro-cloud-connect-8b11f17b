@@ -179,6 +179,7 @@ const AdminComunidad = () => {
         .from('forum_categories')
         .insert([{
           name: data.name.trim(),
+          slug: data.name.trim().toLowerCase().replace(/\s+/g, '-'),
           description: data.description.trim() || null,
           is_premium: data.is_premium
         }]);
