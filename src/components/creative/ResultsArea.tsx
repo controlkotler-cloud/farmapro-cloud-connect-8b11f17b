@@ -123,7 +123,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
 
   return (
     <div className="space-y-4">
-      <ScrollArea className="min-h-[500px] max-h-[600px] rounded-xl border border-green-100 bg-white p-6">
+      <ScrollArea className="h-[600px] rounded-xl border border-green-100 bg-white p-6">
         <AnimatePresence mode="popLayout">
           {messages.map((message, index) => (
             <motion.div
