@@ -938,6 +938,7 @@ export type Database = {
           company_name: string
           created_at: string | null
           description: string
+          expires_at: string | null
           id: string
           is_active: boolean | null
           is_featured: boolean | null
@@ -956,6 +957,7 @@ export type Database = {
           company_name: string
           created_at?: string | null
           description: string
+          expires_at?: string | null
           id: string
           is_active?: boolean | null
           is_featured?: boolean | null
@@ -974,6 +976,7 @@ export type Database = {
           company_name?: string
           created_at?: string | null
           description?: string
+          expires_at?: string | null
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
@@ -2102,9 +2105,10 @@ export type Database = {
     }
     Functions: {
       add_user_points: {
-        Args: { p_points: number; p_user_id: string }
+        Args: { points: number; user_id: string }
         Returns: undefined
       }
+      anonymize_old_applications: { Args: never; Returns: undefined }
       calculate_quiz_stats: {
         Args: { quiz_id_param: string }
         Returns: {
@@ -2114,6 +2118,52 @@ export type Database = {
           total_users: number
         }[]
       }
+      calculate_team_price: { Args: { member_count: number }; Returns: number }
+      calculate_team_price_v2: {
+        Args: { premium_count: number; professional_count: number }
+        Returns: number
+      }
+      can_access_contact_info: { Args: never; Returns: boolean }
+      can_access_user_data: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
+      can_view_thread_author: {
+        Args: { thread_author_id: string }
+        Returns: boolean
+      }
+      create_notification_for_user: {
+        Args: {
+          message_param: string
+          target_id_param: string
+          target_url_param: string
+          title_param: string
+          type_param?: string
+          user_id_param: string
+        }
+        Returns: undefined
+      }
+      get_job_contact_email: { Args: { job_id: string }; Returns: string }
+      get_job_contact_email_rpc: { Args: { job_id: string }; Returns: string }
+      get_job_contact_email_secure: {
+        Args: { job_id_param: string }
+        Returns: string
+      }
+      get_pharmacy_contact_email: {
+        Args: { pharmacy_id: string }
+        Returns: string
+      }
+      get_pharmacy_contact_email_secure: {
+        Args: { pharmacy_id_param: string }
+        Returns: string
+      }
+      grant_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2121,7 +2171,82 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_team_member_of_subscription: {
+        Args: { subscription_id: string; user_id: string }
+        Returns: boolean
+      }
+      is_conversation_participant: {
+        Args: { conversation_id_param: string }
+        Returns: boolean
+      }
       is_current_user_admin: { Args: never; Returns: boolean }
+      is_email_admin: { Args: { check_email: string }; Returns: boolean }
+      is_paid_user: { Args: { uid: string }; Returns: boolean }
+      is_team_member: { Args: { user_id_param: string }; Returns: boolean }
+      is_team_owner: { Args: { user_id_param: string }; Returns: boolean }
+      is_team_owner_strict: {
+        Args: { team_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
+      is_team_subscription_owner: {
+        Args: { subscription_id: string; user_id: string }
+        Returns: boolean
+      }
+      job_is_active_and_visible: {
+        Args: { job_id_param: string }
+        Returns: boolean
+      }
+      log_security_event: {
+        Args: { details: Json; event_type: string; user_id_param?: string }
+        Returns: undefined
+      }
+      mark_conversation_read: {
+        Args: { conversation_id_param: string }
+        Returns: undefined
+      }
+      revoke_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      send_job_message: {
+        Args: { body_param: string; conversation_id_param: string }
+        Returns: string
+      }
+      start_job_conversation: {
+        Args: { job_id_param: string }
+        Returns: string
+      }
+      submit_job_application: {
+        Args: {
+          job_id_param: string
+          resume_url_param?: string
+          summary_param: string
+        }
+        Returns: string
+      }
+      update_challenge_progress: {
+        Args: { challenge_id_param: string; points_earned_param?: number }
+        Returns: undefined
+      }
+      update_user_role_admin: {
+        Args: {
+          new_role: Database["public"]["Enums"]["user_role"]
+          new_status?: Database["public"]["Enums"]["subscription_status"]
+          target_user_id: string
+        }
+        Returns: Json
+      }
+      validate_team_invitation: {
+        Args: {
+          invitation_token_param: string
+          team_id_param: string
+          user_email_param: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
