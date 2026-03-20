@@ -97,7 +97,8 @@ const Promociones = () => {
     return diffInDays <= 7 && diffInDays > 0;
   };
 
-  const getCompanyTypeColor = (type: string) => {
+  const getCompanyTypeColor = (type: string | null) => {
+    if (!type) return 'bg-gray-100 text-gray-800';
     switch (type.toLowerCase()) {
       case 'laboratorio':
         return 'bg-blue-100 text-blue-800';
