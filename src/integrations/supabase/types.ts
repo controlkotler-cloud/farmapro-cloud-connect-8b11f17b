@@ -768,6 +768,7 @@ export type Database = {
           applicant_id: string | null
           applicant_name: string | null
           applied_at: string | null
+          consent_given: boolean | null
           cover_letter: string | null
           created_at: string
           id: string
@@ -783,6 +784,7 @@ export type Database = {
           applicant_id?: string | null
           applicant_name?: string | null
           applied_at?: string | null
+          consent_given?: boolean | null
           cover_letter?: string | null
           created_at?: string
           id?: string
@@ -798,6 +800,7 @@ export type Database = {
           applicant_id?: string | null
           applicant_name?: string | null
           applied_at?: string | null
+          consent_given?: boolean | null
           cover_letter?: string | null
           created_at?: string
           id?: string
@@ -867,6 +870,7 @@ export type Database = {
           contact_email: string | null
           created_at: string
           description: string
+          employer_id: string | null
           expires_at: string | null
           id: string
           is_active: boolean
@@ -888,6 +892,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           description: string
+          employer_id?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
@@ -909,6 +914,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           description?: string
+          employer_id?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
