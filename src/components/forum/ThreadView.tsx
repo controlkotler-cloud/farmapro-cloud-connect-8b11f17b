@@ -201,7 +201,9 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{reply.content}</p>
+                <div className="prose max-w-none text-gray-700 leading-relaxed">
+                  <ReactMarkdown>{reply.content}</ReactMarkdown>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
