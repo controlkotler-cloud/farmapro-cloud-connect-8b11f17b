@@ -126,7 +126,7 @@ const AdminRetos = () => {
       console.log('Creating challenge:', challengeData);
       const { data, error } = await supabase
         .from('challenges')
-        .insert(challengeData)
+        .insert({ ...challengeData, title: challengeData.name } as any)
         .select()
         .single();
 

@@ -21,7 +21,7 @@ export const logSecurityEvent = async (event: SecurityEvent) => {
     });
     
     // Use secure RPC function for database logging
-    const { error } = await supabase.rpc('log_security_event', {
+    const { error } = await supabase.rpc('log_security_event' as any, {
       event_type: event.event_type,
       details: event.details,
       user_id_param: event.user_id

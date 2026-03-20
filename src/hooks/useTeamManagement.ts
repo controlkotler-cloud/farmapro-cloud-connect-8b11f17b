@@ -55,7 +55,7 @@ export const useTeamManagement = () => {
     setLoading(true);
     try {
       // Check if user owns a team using RPC function
-      const { data: ownerCheck, error: ownerError } = await supabase.rpc('is_team_owner', { 
+      const { data: ownerCheck, error: ownerError } = await supabase.rpc('is_team_owner' as any, { 
         user_id_param: user.id 
       });
 
@@ -109,7 +109,7 @@ export const useTeamManagement = () => {
       }
 
       // Check if user is a team member using RPC function
-      const { data: memberCheck, error: memberError } = await supabase.rpc('is_team_member', { 
+      const { data: memberCheck, error: memberError } = await supabase.rpc('is_team_member' as any, { 
         user_id_param: user.id 
       });
 

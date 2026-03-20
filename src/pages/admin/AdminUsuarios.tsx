@@ -89,7 +89,7 @@ const AdminUsuarios = () => {
     
     try {
       // Use the secure RPC function
-      const { data, error } = await supabase.rpc('update_user_role_admin', {
+      const { data, error } = await supabase.rpc('update_user_role_admin' as any, {
         target_user_id: userId,
         new_role: newRole,
         new_status: subscriptionStatus

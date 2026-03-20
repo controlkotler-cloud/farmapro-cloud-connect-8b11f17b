@@ -115,7 +115,7 @@ export const JobApplicationDialog = ({ job, isOpen, onClose, onSuccess }: JobApp
       }
 
       const { data, error } = await supabase
-        .rpc('submit_job_application', {
+        .rpc('submit_job_application' as any, {
           job_id_param: job.id,
           summary_param: summary.trim(),
           resume_url_param: resumeUrl

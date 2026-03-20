@@ -140,12 +140,13 @@ export const QuestionFormDialog: React.FC<QuestionFormDialogProps> = ({
     try {
       const questionData = {
         quiz_id: quizId,
+        question: formData.question_text.trim(),
         question_text: formData.question_text.trim(),
         question_type: formData.question_type,
         points: formData.points,
         explanation: formData.explanation?.trim() || null,
         order_index: formData.order_index
-      };
+      } as any;
 
       let questionId: string;
 

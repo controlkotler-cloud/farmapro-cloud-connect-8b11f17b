@@ -31,7 +31,10 @@ export const PharmacyForm = ({ profileId, onListingCreated }: PharmacyFormProps)
       .from('pharmacy_listings')
       .insert([{
         title: newListing.title,
+        name: newListing.title,
         location: newListing.location,
+        address: newListing.location,
+        city: newListing.location,
         description: newListing.description,
         price: parseFloat(newListing.price) || null,
         surface_area: parseInt(newListing.surface_area) || null,
