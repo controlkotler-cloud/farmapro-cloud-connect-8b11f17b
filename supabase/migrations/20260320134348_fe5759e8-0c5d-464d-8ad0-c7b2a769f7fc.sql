@@ -1,0 +1,2 @@
+DELETE FROM resource_downloads WHERE resource_id IN ('13e4a9f7-f03f-4a77-b1ca-a122cf25859d', 'e7a80b5f-091d-4733-9812-f758ce39398c');
+DELETE FROM resources WHERE id IN ('13e4a9f7-f03f-4a77-b1ca-a122cf25859d', 'e7a80b5f-091d-4733-9812-f758ce39398c');
