@@ -1,123 +1,112 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Trophy, Zap, CheckCircle, Target } from "lucide-react";
-import { toast } from "sonner";
 
-const Retos = () => {
-  const { user } = useAuth();
+import { motion } from 'framer-motion';
+import { useRetosData } from '@/hooks/useRetosData';
+import { LevelProgressCard } from '@/components/retos/LevelProgressCard';
+import { UserStatsCards } from '@/components/retos/UserStatsCards';
+import { ChallengeCard } from '@/components/retos/ChallengeCard';
+import { Target } from 'lucide-react';
 
-  const { data: challenges } = useQuery({
-    queryKey: ["challenges"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("challenges")
-        .select("*")
-        .eq("is_active", true)
-        .order("type");
-      return data || [];
-    },
-  });
+export const Retos = () => {
+  const { 
+    challenges, 
+    userStats, 
+    loading, 
+    getProgressForChallenge 
+  } = useRetosData();
 
-  const { data: userChallenges, refetch } = useQuery({
-    queryKey: ["user-challenges"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("user_challenges")
-        .select("*");
-      return data || [];
-    },
-  });
-
-  const handleComplete = async (challengeId: string, points: number) => {
-    if (!user) return;
-    const { error } = await supabase.from("user_challenges").insert({
-      user_id: user.id,
-      challenge_id: challengeId,
-      completed: true,
-      completed_at: new Date().toISOString(),
-      progress: 100,
-    });
-    if (error) {
-      toast.error("Error al completar el reto");
-    } else {
-      await supabase.rpc("add_user_points", { p_user_id: user.id, p_points: points });
-      toast.success(`¡Reto completado! +${points} puntos`);
-      refetch();
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
     }
   };
 
-  const isCompleted = (challengeId: string) =>
-    userChallenges?.some((uc: any) => uc.challenge_id === challengeId && uc.completed);
-
-  const typeLabels: Record<string, string> = {
-    daily: "Diario",
-    weekly: "Semanal",
-    monthly: "Mensual",
-    special: "Especial",
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
   };
 
-  const typeColors: Record<string, string> = {
-    daily: "bg-primary/10 text-primary",
-    weekly: "bg-info/10 text-info",
-    monthly: "bg-accent/10 text-accent",
-    special: "bg-destructive/10 text-destructive",
-  };
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="animate-pulse bg-gray-200 h-32 rounded-xl"></div>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-display font-bold">Retos y gamificación</h1>
-        <p className="text-muted-foreground">Completa retos para ganar puntos y subir de nivel</p>
-      </div>
-
-      {challenges && challenges.length > 0 ? (
-        <div className="grid md:grid-cols-2 gap-4">
-          {challenges.map((challenge: any) => {
-            const completed = isCompleted(challenge.id);
-            return (
-              <Card key={challenge.id} className={`border-border ${completed ? "opacity-60" : ""}`}>
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Badge className={typeColors[challenge.type] || ""} variant="secondary">
-                          {typeLabels[challenge.type] || challenge.type}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          <Zap className="w-3 h-3 mr-1" /> {challenge.points} pts
-                        </Badge>
-                      </div>
-                      <h3 className="font-display font-semibold">{challenge.title}</h3>
-                      <p className="text-sm text-muted-foreground">{challenge.description}</p>
-                    </div>
-                    {completed ? (
-                      <CheckCircle className="w-8 h-8 text-primary shrink-0" />
-                    ) : (
-                      <Button size="sm" onClick={() => handleComplete(challenge.id, challenge.points)}>
-                        Completar
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+    <motion.div 
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Header with gradient background */}
+      <motion.div 
+        className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl p-8 shadow-lg ring-1 ring-yellow-200"
+        variants={itemVariants}
+      >
+        <div className="relative">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-r-full shadow-lg"></div>
+          <div className="ml-6">
+            <div className="flex items-center space-x-4 mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Retos y Desafíos</h1>
+                <p className="text-gray-600">Completa retos y gana puntos para subir de nivel</p>
+              </div>
+            </div>
+          </div>
         </div>
-      ) : (
-        <Card className="border-border border-dashed">
-          <CardContent className="p-12 text-center">
-            <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-display font-semibold text-lg mb-2">Sin retos activos</h3>
-            <p className="text-muted-foreground">Los retos estarán disponibles pronto</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      </motion.div>
+
+      {/* Level Progress */}
+      <motion.div variants={itemVariants}>
+        <LevelProgressCard userStats={userStats} />
+      </motion.div>
+
+      {/* User Stats */}
+      <motion.div variants={itemVariants}>
+        <UserStatsCards userStats={userStats} />
+      </motion.div>
+
+      {/* Available Challenges */}
+      <motion.div variants={itemVariants}>
+        <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl p-6 shadow-lg ring-1 ring-indigo-200">
+          <div className="relative mb-6">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-r-full shadow-lg"></div>
+            <div className="ml-6 flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg">
+                <Target className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Retos Disponibles</h2>
+            </div>
+          </div>
+          
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants}
+          >
+            {challenges.map((challenge, index) => (
+              <motion.div
+                key={challenge.id}
+                variants={itemVariants}
+                transition={{ delay: index * 0.1 }}
+              >
+                <ChallengeCard 
+                  challenge={challenge} 
+                  progress={getProgressForChallenge(challenge.id)}
+                  index={index}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
-
-export default Retos;

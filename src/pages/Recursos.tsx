@@ -1,67 +1,115 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { FileText, Download } from "lucide-react";
 
-const Recursos = () => {
-  const { data: resources } = useQuery({
-    queryKey: ["resources"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("resources")
-        .select("*")
-        .eq("is_published", true)
-        .order("created_at", { ascending: false });
-      return data || [];
-    },
-  });
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useResources } from '@/hooks/useResources';
+import { ResourcesHeader } from '@/components/resources/ResourcesHeader';
 
-  const typeIcons: Record<string, string> = {
-    pdf: "📄", video: "🎥", infografia: "📊", plantilla: "📋", guia: "📖", otro: "📁",
+import { ResourcesCategoryTabs } from '@/components/resources/ResourcesCategoryTabs';
+import { ResourcesGrid } from '@/components/resources/ResourcesGrid';
+
+interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  file_url: string;
+  format: string;
+  is_premium: boolean;
+  created_at: string;
+}
+
+export const Recursos = () => {
+  const { profile } = useAuth();
+  const { toast } = useToast();
+  const { resources, loading, selectedCategory, setSelectedCategory } = useResources();
+  
+
+  const handleDownload = async (resource: Resource) => {
+    if (resource.is_premium && (!profile?.subscription_role || profile.subscription_role === 'freemium')) {
+      toast({
+        title: "Recurso Premium",
+        description: "Necesitas una suscripción premium para descargar este recurso.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      if (profile?.id) {
+        // Record the download in resource_downloads table
+        await supabase
+          .from('resource_downloads')
+          .insert([{
+            user_id: profile.id,
+            resource_id: resource.id,
+            downloaded_at: new Date().toISOString()
+          }]);
+
+        // Update challenge progress for resource download
+        const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+        await updateChallengeProgress(profile.id, 'resource_downloaded', 1);
+      }
+
+      // Secure file download using signed URLs for private storage
+      if (resource.is_premium) {
+        // For premium resources, generate a signed URL for secure access
+        const { data: signedUrl, error } = await supabase.storage
+          .from('recursos')
+          .createSignedUrl(resource.file_url.replace('/storage/v1/object/public/recursos/', ''), 60); // 1 minute expiry
+
+        if (error) {
+          console.error('Error creating signed URL:', error);
+          toast({
+            title: "Error",
+            description: "Error al generar enlace de descarga seguro",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        window.open(signedUrl.signedUrl, '_blank');
+      } else {
+        // For non-premium resources, use direct URL
+        window.open(resource.file_url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error recording download:', error);
+      // Still allow download even if recording fails
+      window.open(resource.file_url, '_blank');
+    }
+    
+    toast({
+      title: "Descarga iniciada",
+      description: `Has descargado ${resource.title}`,
+    });
   };
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-display font-bold">Recursos</h1>
-        <p className="text-muted-foreground">Material descargable para tu farmacia</p>
-      </div>
+  const filteredResources = resources;
 
-      {resources && resources.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {resources.map((resource: any) => (
-            <Card key={resource.id} className="border-border hover:shadow-lg transition-shadow">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{typeIcons[resource.type] || "📁"}</span>
-                  <Badge variant="secondary">{resource.category}</Badge>
-                  {resource.is_premium && <Badge className="bg-accent text-accent-foreground">Premium</Badge>}
-                </div>
-                <h3 className="font-display font-semibold">{resource.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">{resource.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Download className="w-3 h-3" /> {resource.downloads_count} descargas
-                  </span>
-                  <Button size="sm" variant="outline">Descargar</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card className="border-border border-dashed">
-          <CardContent className="p-12 text-center">
-            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-display font-semibold text-lg mb-2">Sin recursos disponibles</h3>
-            <p className="text-muted-foreground">Los recursos aparecerán aquí</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+  return (
+    <motion.div 
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ staggerChildren: 0.1 }}
+    >
+      <ResourcesHeader />
+      
+
+      <ResourcesCategoryTabs 
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
+
+      <ResourcesGrid 
+        resources={filteredResources}
+        loading={loading}
+        searchTerm=""
+        onDownload={handleDownload}
+      />
+    </motion.div>
   );
 };
-
-export default Recursos;
