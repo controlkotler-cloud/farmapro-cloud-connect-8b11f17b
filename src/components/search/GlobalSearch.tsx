@@ -7,6 +7,13 @@ import { useSectionVisibility } from '@/hooks/useSectionVisibility';
 import { Input } from '@/components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 
+const stripMarkdown = (text: string): string =>
+  text
+    .replace(/[*_~`#>\-]/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\n+/g, ' ')
+    .trim();
+
 interface SearchResult {
   id: string;
   title: string;
@@ -105,7 +112,7 @@ export const GlobalSearch = () => {
           id: thread.id,
           title: thread.title,
           type: 'thread' as const,
-          description: thread.content?.substring(0, 100) + '...'
+          description: stripMarkdown(thread.content?.substring(0, 100) || '') + '...'
         })));
       }
 
