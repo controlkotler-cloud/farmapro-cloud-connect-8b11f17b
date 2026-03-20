@@ -1,4 +1,5 @@
 
+import ReactMarkdown from 'react-markdown';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
