@@ -1,4 +1,5 @@
 
+import ReactMarkdown from 'react-markdown';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -166,8 +167,8 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="prose max-w-none">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{thread.content}</p>
+          <div className="prose max-w-none text-gray-700 leading-relaxed">
+            <ReactMarkdown>{thread.content}</ReactMarkdown>
           </div>
         </CardContent>
       </Card>
@@ -200,7 +201,9 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{reply.content}</p>
+                <div className="prose max-w-none text-gray-700 leading-relaxed">
+                  <ReactMarkdown>{reply.content}</ReactMarkdown>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
