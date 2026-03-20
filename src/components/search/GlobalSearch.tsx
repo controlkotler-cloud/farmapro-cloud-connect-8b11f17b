@@ -105,7 +105,7 @@ export const GlobalSearch = () => {
           id: thread.id,
           title: thread.title,
           type: 'thread' as const,
-          description: thread.content?.substring(0, 100) + '...'
+          description: stripMarkdown(thread.content?.substring(0, 100) || '') + '...'
         })));
       }
 
