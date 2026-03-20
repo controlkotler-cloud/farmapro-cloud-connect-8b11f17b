@@ -7,7 +7,7 @@ interface Message {
   content: string;
 }
 
-export type ContentType = 
+export type ContentType =
   | 'instagram-post'
   | 'reel-script'
   | 'carousel'
@@ -33,17 +33,42 @@ export const CONTENT_TYPES: ContentTypeInfo[] = [
   { id: 'whatsapp', icon: '💬', label: 'Mensaje WhatsApp', description: 'Mensaje para enviar a tus clientes (recordatorios, novedades)' },
 ];
 
+export interface CreativeContext {
+  pharmacyName?: string;
+  location?: string;
+  topic?: string;
+  objective?: string;
+  tone?: string;
+  duration?: string;
+  who?: string;
+  slides?: number;
+  style?: string;
+  postType?: string;
+  keywords?: string;
+  length?: string;
+  product?: string;
+  discount?: string;
+  deadline?: string;
+  channel?: string;
+  messageType?: string;
+  extraInstructions?: string;
+}
+
 export const useCreativeChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [contentType, setContentType] = useState<ContentType>('instagram-post');
   const [lastUserMessage, setLastUserMessage] = useState('');
+  const [lastContext, setLastContext] = useState<CreativeContext>({});
   const { toast } = useToast();
 
-  const sendMessage = useCallback(async (userMessage: string) => {
+  const sendMessage = useCallback(async (userMessage: string, context?: CreativeContext) => {
     if (!userMessage.trim()) return;
 
+    const ctx = context || lastContext;
     setLastUserMessage(userMessage);
+    setLastContext(ctx);
+
     const newUserMessage: Message = { role: 'user', content: userMessage };
     setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
@@ -65,6 +90,7 @@ export const useCreativeChat = () => {
           body: JSON.stringify({
             messages: [...messages, newUserMessage],
             contentType,
+            context: ctx,
           }),
         }
       );
@@ -75,12 +101,12 @@ export const useCreativeChat = () => {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
         } catch (e) { /* ignore */ }
-        
+
         if (response.status === 403) errorMessage = 'No tienes acceso a esta funcionalidad. Necesitas un plan Premium, Profesional o Admin activo.';
         else if (response.status === 401) errorMessage = 'Sesión expirada. Por favor, vuelve a iniciar sesión.';
         else if (response.status === 429) errorMessage = 'Límite de uso excedido. Por favor, intenta de nuevo en unos momentos.';
         else if (response.status === 402) errorMessage = 'Créditos insuficientes. Por favor, contacta con soporte.';
-        
+
         throw new Error(errorMessage);
       }
 
@@ -92,30 +118,65 @@ export const useCreativeChat = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
+      let textBuffer = '';
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        textBuffer += decoder.decode(value, { stream: true });
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') break;
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                assistantMessage += content;
-                setMessages(prev => {
-                  const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = { role: 'assistant', content: assistantMessage };
-                  return newMessages;
-                });
-              }
-            } catch (e) { /* ignore parse errors */ }
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              assistantMessage += content;
+              setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = { role: 'assistant', content: assistantMessage };
+                return newMessages;
+              });
+            }
+          } catch (e) {
+            // Put back incomplete JSON
+            textBuffer = line + '\n' + textBuffer;
+            break;
           }
+        }
+      }
+
+      // Final flush
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split('\n')) {
+          if (!raw) continue;
+          if (raw.endsWith('\r')) raw = raw.slice(0, -1);
+          if (!raw.startsWith('data: ')) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              assistantMessage += content;
+              setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = { role: 'assistant', content: assistantMessage };
+                return newMessages;
+              });
+            }
+          } catch { /* ignore */ }
         }
       }
     } catch (error) {
@@ -129,21 +190,19 @@ export const useCreativeChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, contentType, toast]);
+  }, [messages, contentType, toast, lastContext]);
 
   const regenerate = useCallback(() => {
     if (lastUserMessage) {
-      // Remove the last assistant message
-      setMessages(prev => prev.slice(0, -1));
-      // Remove the last user message too (sendMessage will re-add it)
-      setMessages(prev => prev.slice(0, -1));
-      sendMessage(lastUserMessage);
+      setMessages(prev => prev.slice(0, -2));
+      sendMessage(lastUserMessage, lastContext);
     }
-  }, [lastUserMessage, sendMessage]);
+  }, [lastUserMessage, lastContext, sendMessage]);
 
   const clearChat = useCallback(() => {
     setMessages([]);
     setLastUserMessage('');
+    setLastContext({});
   }, []);
 
   return {
