@@ -1180,7 +1180,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_user_points: {
+        Args: { p_points: number; p_user_id: string }
+        Returns: undefined
+      }
+      calculate_quiz_stats: {
+        Args: { p_quiz_id: string }
+        Returns: {
+          avg_score: number
+          pass_rate: number
+          total_attempts: number
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_current_user_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
