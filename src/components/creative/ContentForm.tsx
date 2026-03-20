@@ -4,14 +4,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
-import { ContentType } from '@/hooks/useCreativeChat';
+import { ContentType, CreativeContext } from '@/hooks/useCreativeChat';
 import { useAuth } from '@/hooks/useAuth';
 import { QuickTemplates } from './QuickTemplates';
 
 interface ContentFormProps {
   contentType: ContentType;
   isLoading: boolean;
-  onSubmit: (message: string) => void;
+  onSubmit: (message: string, context: CreativeContext) => void;
 }
 
 export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormProps) => {
@@ -55,24 +55,66 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
     }
   };
 
+  const buildContext = (): CreativeContext => {
+    const ctx: CreativeContext = {
+      pharmacyName,
+      location: city,
+      extraInstructions: extra || undefined,
+    };
+
+    switch (contentType) {
+      case 'instagram-post':
+        ctx.topic = fields.tema;
+        ctx.objective = fields.objetivo;
+        ctx.tone = fields.tono;
+        break;
+      case 'reel-script':
+        ctx.topic = fields.tema;
+        ctx.duration = fields.duracion;
+        ctx.who = fields.quien;
+        break;
+      case 'carousel':
+        ctx.topic = fields.tema;
+        ctx.slides = fields.slides ? parseInt(fields.slides) : undefined;
+        ctx.style = fields.estilo;
+        break;
+      case 'google-business':
+        ctx.postType = fields.tipo;
+        ctx.topic = fields.mensaje;
+        break;
+      case 'blog':
+        ctx.topic = fields.titulo;
+        ctx.keywords = fields.keywords;
+        ctx.length = fields.longitud;
+        break;
+      case 'promotion':
+        ctx.product = fields.producto;
+        ctx.discount = fields.descuento;
+        ctx.deadline = fields.fecha;
+        ctx.channel = fields.canal;
+        break;
+      case 'whatsapp':
+        ctx.messageType = fields.tipo;
+        ctx.topic = fields.mensaje;
+        break;
+    }
+
+    return ctx;
+  };
+
   const buildMessage = (): string => {
     const parts: string[] = [];
-    parts.push(`Tipo de contenido: ${contentType}`);
-    if (pharmacyName) parts.push(`Farmacia: ${pharmacyName}`);
-    if (city) parts.push(`Población: ${city}`);
-
-    Object.entries(fields).forEach(([key, value]) => {
-      if (value) parts.push(`${key}: ${value}`);
-    });
-
-    if (extra) parts.push(`Instrucciones adicionales: ${extra}`);
-    return parts.join('\n');
+    const mainKey = getMainFieldKey();
+    if (mainKey && fields[mainKey]) parts.push(fields[mainKey]);
+    if (extra) parts.push(extra);
+    return parts.join('. ') || 'Genera el contenido';
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const ctx = buildContext();
     const msg = buildMessage();
-    if (msg.trim()) onSubmit(msg);
+    if (msg.trim()) onSubmit(msg, ctx);
   };
 
   const canSubmit = () => {
@@ -194,7 +236,6 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
   );
 };
 
-// Reusable field components
 const Field = ({ label, value, onChange, placeholder }: { label: string; value?: string; onChange: (v: string) => void; placeholder: string }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>

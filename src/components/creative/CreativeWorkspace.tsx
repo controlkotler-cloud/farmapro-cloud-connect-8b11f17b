@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCreativeChat } from '@/hooks/useCreativeChat';
+import { useCreativeChat, CreativeContext } from '@/hooks/useCreativeChat';
 import { ContentTypeGrid } from './ContentTypeGrid';
 import { ContentForm } from './ContentForm';
 import { ResultsArea } from './ResultsArea';
@@ -20,17 +20,18 @@ export const CreativeWorkspace = () => {
 
   const selectedInfo = CONTENT_TYPES.find(t => t.id === contentType);
 
+  const handleSubmit = (message: string, context: CreativeContext) => {
+    sendMessage(message, context);
+  };
+
   return (
     <div className="space-y-8">
-      {/* Content type selector */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 mb-4">¿Qué quieres crear?</h2>
         <ContentTypeGrid selected={contentType} onSelect={setContentType} />
       </section>
 
-      {/* Form + Results */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Form */}
         <motion.div
           className="lg:col-span-2"
           key={contentType}
@@ -47,7 +48,7 @@ export const CreativeWorkspace = () => {
             <ContentForm
               contentType={contentType}
               isLoading={isLoading}
-              onSubmit={sendMessage}
+              onSubmit={handleSubmit}
             />
 
             {messages.length > 0 && (
@@ -64,7 +65,6 @@ export const CreativeWorkspace = () => {
           </div>
         </motion.div>
 
-        {/* Results */}
         <div className="lg:col-span-3">
           <ResultsArea
             messages={messages}
