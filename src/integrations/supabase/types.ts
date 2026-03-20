@@ -115,8 +115,11 @@ export type Database = {
           id: string
           is_active: boolean
           max_completions: number | null
+          name: string | null
           points: number
+          points_reward: number | null
           start_date: string | null
+          target_count: number | null
           title: string
           type: Database["public"]["Enums"]["challenge_type"]
           xp_reward: number
@@ -128,8 +131,11 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_completions?: number | null
+          name?: string | null
           points?: number
+          points_reward?: number | null
           start_date?: string | null
+          target_count?: number | null
           title: string
           type?: Database["public"]["Enums"]["challenge_type"]
           xp_reward?: number
@@ -141,8 +147,11 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_completions?: number | null
+          name?: string | null
           points?: number
+          points_reward?: number | null
           start_date?: string | null
+          target_count?: number | null
           title?: string
           type?: Database["public"]["Enums"]["challenge_type"]
           xp_reward?: number
@@ -158,6 +167,7 @@ export type Database = {
           id: string
           is_completed: boolean
           progress: number
+          started_at: string | null
           user_id: string
         }
         Insert: {
@@ -168,6 +178,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           progress?: number
+          started_at?: string | null
           user_id: string
         }
         Update: {
@@ -178,6 +189,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           progress?: number
+          started_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -299,33 +311,42 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_active: boolean | null
           is_published: boolean
+          max_attempts: number | null
           order_index: number
           passing_score: number
           time_limit_minutes: number | null
           title: string
+          updated_at: string | null
         }
         Insert: {
           course_id: string
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean | null
           is_published?: boolean
+          max_attempts?: number | null
           order_index?: number
           passing_score?: number
           time_limit_minutes?: number | null
           title: string
+          updated_at?: string | null
         }
         Update: {
           course_id?: string
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean | null
           is_published?: boolean
+          max_attempts?: number | null
           order_index?: number
           passing_score?: number
           time_limit_minutes?: number | null
           title?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -340,11 +361,14 @@ export type Database = {
       courses: {
         Row: {
           category: Database["public"]["Enums"]["course_category"]
+          content: string | null
+          course_modules: Json | null
           created_at: string
           description: string | null
           difficulty: string
           duration_hours: number
           duration_minutes: number
+          featured_image_url: string | null
           id: string
           instructor: string
           is_featured: boolean
@@ -361,11 +385,14 @@ export type Database = {
         }
         Insert: {
           category?: Database["public"]["Enums"]["course_category"]
+          content?: string | null
+          course_modules?: Json | null
           created_at?: string
           description?: string | null
           difficulty?: string
           duration_hours?: number
           duration_minutes?: number
+          featured_image_url?: string | null
           id?: string
           instructor?: string
           is_featured?: boolean
@@ -382,11 +409,14 @@ export type Database = {
         }
         Update: {
           category?: Database["public"]["Enums"]["course_category"]
+          content?: string | null
+          course_modules?: Json | null
           created_at?: string
           description?: string | null
           difficulty?: string
           duration_hours?: number
           duration_minutes?: number
+          featured_image_url?: string | null
           id?: string
           instructor?: string
           is_featured?: boolean
@@ -439,12 +469,15 @@ export type Database = {
           end_date: string | null
           event_type: string
           id: string
+          image_url: string | null
+          is_featured: boolean | null
           is_online: boolean
           is_premium: boolean
           is_published: boolean
           location: string | null
           max_attendees: number | null
           meeting_url: string | null
+          registration_url: string | null
           start_date: string
           thumbnail_url: string | null
           title: string
@@ -455,12 +488,15 @@ export type Database = {
           end_date?: string | null
           event_type?: string
           id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
           is_online?: boolean
           is_premium?: boolean
           is_published?: boolean
           location?: string | null
           max_attendees?: number | null
           meeting_url?: string | null
+          registration_url?: string | null
           start_date: string
           thumbnail_url?: string | null
           title: string
@@ -471,12 +507,15 @@ export type Database = {
           end_date?: string | null
           event_type?: string
           id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
           is_online?: boolean
           is_premium?: boolean
           is_published?: boolean
           location?: string | null
           max_attendees?: number | null
           meeting_url?: string | null
+          registration_url?: string | null
           start_date?: string
           thumbnail_url?: string | null
           title?: string
@@ -531,6 +570,7 @@ export type Database = {
           is_solution: boolean
           likes_count: number
           parent_id: string | null
+          parent_reply_id: string | null
           thread_id: string
           updated_at: string
         }
@@ -542,6 +582,7 @@ export type Database = {
           is_solution?: boolean
           likes_count?: number
           parent_id?: string | null
+          parent_reply_id?: string | null
           thread_id: string
           updated_at?: string
         }
@@ -553,6 +594,7 @@ export type Database = {
           is_solution?: boolean
           likes_count?: number
           parent_id?: string | null
+          parent_reply_id?: string | null
           thread_id?: string
           updated_at?: string
         }
@@ -793,6 +835,7 @@ export type Database = {
           job_type: string
           location: string
           posted_by: string | null
+          province: string | null
           requirements: string | null
           salary_range: string | null
           title: string
@@ -813,6 +856,7 @@ export type Database = {
           job_type?: string
           location: string
           posted_by?: string | null
+          province?: string | null
           requirements?: string | null
           salary_range?: string | null
           title: string
@@ -833,6 +877,7 @@ export type Database = {
           job_type?: string
           location?: string
           posted_by?: string | null
+          province?: string | null
           requirements?: string | null
           salary_range?: string | null
           title?: string
@@ -940,6 +985,8 @@ export type Database = {
           is_read: boolean
           link: string | null
           message: string | null
+          target_id: string | null
+          target_url: string | null
           title: string
           type: Database["public"]["Enums"]["notification_type"]
           user_id: string
@@ -950,6 +997,8 @@ export type Database = {
           is_read?: boolean
           link?: string | null
           message?: string | null
+          target_id?: string | null
+          target_url?: string | null
           title: string
           type?: Database["public"]["Enums"]["notification_type"]
           user_id: string
@@ -960,6 +1009,8 @@ export type Database = {
           is_read?: boolean
           link?: string | null
           message?: string | null
+          target_id?: string | null
+          target_url?: string | null
           title?: string
           type?: Database["public"]["Enums"]["notification_type"]
           user_id?: string
@@ -971,6 +1022,7 @@ export type Database = {
           address: string
           annual_revenue: number | null
           city: string
+          contact_email: string | null
           created_at: string
           description: string | null
           email: string | null
@@ -979,9 +1031,11 @@ export type Database = {
           has_lab: boolean
           has_optica: boolean
           id: string
+          images_urls: string[] | null
           is_active: boolean
           is_verified: boolean
           latitude: number | null
+          location: string | null
           logo_url: string | null
           longitude: number | null
           name: string
@@ -990,8 +1044,12 @@ export type Database = {
           phone: string | null
           photos: string[] | null
           postal_code: string | null
+          price: number | null
           province: string | null
+          seller_id: string | null
           services: string[] | null
+          surface_area: number | null
+          title: string | null
           updated_at: string
           views_count: number
           website: string | null
@@ -1000,6 +1058,7 @@ export type Database = {
           address: string
           annual_revenue?: number | null
           city: string
+          contact_email?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
@@ -1008,9 +1067,11 @@ export type Database = {
           has_lab?: boolean
           has_optica?: boolean
           id?: string
+          images_urls?: string[] | null
           is_active?: boolean
           is_verified?: boolean
           latitude?: number | null
+          location?: string | null
           logo_url?: string | null
           longitude?: number | null
           name: string
@@ -1019,8 +1080,12 @@ export type Database = {
           phone?: string | null
           photos?: string[] | null
           postal_code?: string | null
+          price?: number | null
           province?: string | null
+          seller_id?: string | null
           services?: string[] | null
+          surface_area?: number | null
+          title?: string | null
           updated_at?: string
           views_count?: number
           website?: string | null
@@ -1029,6 +1094,7 @@ export type Database = {
           address?: string
           annual_revenue?: number | null
           city?: string
+          contact_email?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
@@ -1037,9 +1103,11 @@ export type Database = {
           has_lab?: boolean
           has_optica?: boolean
           id?: string
+          images_urls?: string[] | null
           is_active?: boolean
           is_verified?: boolean
           latitude?: number | null
+          location?: string | null
           logo_url?: string | null
           longitude?: number | null
           name?: string
@@ -1048,8 +1116,12 @@ export type Database = {
           phone?: string | null
           photos?: string[] | null
           postal_code?: string | null
+          price?: number | null
           province?: string | null
+          seller_id?: string | null
           services?: string[] | null
+          surface_area?: number | null
+          title?: string | null
           updated_at?: string
           views_count?: number
           website?: string | null
@@ -1100,6 +1172,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
           last_activity_date: string | null
@@ -1107,14 +1180,25 @@ export type Database = {
           pharmacy_city: string | null
           pharmacy_name: string | null
           points: number
+          position: string | null
           role: Database["public"]["Enums"]["user_role"]
           streak_days: number
+          stripe_customer_id: string | null
+          student_document_url: string | null
+          student_valid_until: string | null
+          student_verification_status: string | null
+          subscription_role: Database["public"]["Enums"]["user_role"] | null
+          subscription_status:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id: string
           last_activity_date?: string | null
@@ -1122,14 +1206,25 @@ export type Database = {
           pharmacy_city?: string | null
           pharmacy_name?: string | null
           points?: number
+          position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           streak_days?: number
+          stripe_customer_id?: string | null
+          student_document_url?: string | null
+          student_valid_until?: string | null
+          student_verification_status?: string | null
+          subscription_role?: Database["public"]["Enums"]["user_role"] | null
+          subscription_status?:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           last_activity_date?: string | null
@@ -1137,8 +1232,18 @@ export type Database = {
           pharmacy_city?: string | null
           pharmacy_name?: string | null
           points?: number
+          position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           streak_days?: number
+          stripe_customer_id?: string | null
+          student_document_url?: string | null
+          student_valid_until?: string | null
+          student_verification_status?: string | null
+          subscription_role?: Database["public"]["Enums"]["user_role"] | null
+          subscription_status?:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1146,8 +1251,10 @@ export type Database = {
       promotions: {
         Row: {
           company_name: string | null
+          company_type: string | null
           created_at: string
           description: string | null
+          discount_details: string | null
           discount_percentage: number | null
           end_date: string | null
           id: string
@@ -1156,13 +1263,17 @@ export type Database = {
           is_featured: boolean
           promo_code: string | null
           start_date: string | null
+          terms_conditions: string | null
           title: string
+          valid_until: string | null
           views_count: number
         }
         Insert: {
           company_name?: string | null
+          company_type?: string | null
           created_at?: string
           description?: string | null
+          discount_details?: string | null
           discount_percentage?: number | null
           end_date?: string | null
           id?: string
@@ -1171,13 +1282,17 @@ export type Database = {
           is_featured?: boolean
           promo_code?: string | null
           start_date?: string | null
+          terms_conditions?: string | null
           title: string
+          valid_until?: string | null
           views_count?: number
         }
         Update: {
           company_name?: string | null
+          company_type?: string | null
           created_at?: string
           description?: string | null
+          discount_details?: string | null
           discount_percentage?: number | null
           end_date?: string | null
           id?: string
@@ -1186,7 +1301,9 @@ export type Database = {
           is_featured?: boolean
           promo_code?: string | null
           start_date?: string | null
+          terms_conditions?: string | null
           title?: string
+          valid_until?: string | null
           views_count?: number
         }
         Relationships: []
@@ -1249,37 +1366,52 @@ export type Database = {
       quiz_attempts: {
         Row: {
           answers: Json | null
+          attempt_number: number | null
           completed_at: string
           correct_answers: number
           id: string
+          max_score: number | null
           passed: boolean
+          percentage: number | null
           quiz_id: string
           score: number
+          started_at: string | null
           time_spent_seconds: number | null
+          time_taken_seconds: number | null
           total_questions: number
           user_id: string
         }
         Insert: {
           answers?: Json | null
+          attempt_number?: number | null
           completed_at?: string
           correct_answers?: number
           id?: string
+          max_score?: number | null
           passed?: boolean
+          percentage?: number | null
           quiz_id: string
           score?: number
+          started_at?: string | null
           time_spent_seconds?: number | null
+          time_taken_seconds?: number | null
           total_questions?: number
           user_id: string
         }
         Update: {
           answers?: Json | null
+          attempt_number?: number | null
           completed_at?: string
           correct_answers?: number
           id?: string
+          max_score?: number | null
           passed?: boolean
+          percentage?: number | null
           quiz_id?: string
           score?: number
+          started_at?: string | null
           time_spent_seconds?: number | null
+          time_taken_seconds?: number | null
           total_questions?: number
           user_id?: string
         }
@@ -1338,6 +1470,8 @@ export type Database = {
           order_index: number
           points: number
           question: string
+          question_text: string | null
+          question_type: string | null
           quiz_id: string
         }
         Insert: {
@@ -1349,6 +1483,8 @@ export type Database = {
           order_index?: number
           points?: number
           question: string
+          question_text?: string | null
+          question_type?: string | null
           quiz_id: string
         }
         Update: {
@@ -1360,6 +1496,8 @@ export type Database = {
           order_index?: number
           points?: number
           question?: string
+          question_text?: string | null
+          question_type?: string | null
           quiz_id?: string
         }
         Relationships: [
@@ -1437,8 +1575,10 @@ export type Database = {
           category: Database["public"]["Enums"]["resource_category"]
           created_at: string
           description: string | null
+          download_count: number | null
           downloads_count: number
           file_url: string | null
+          format: Database["public"]["Enums"]["resource_format"] | null
           id: string
           is_premium: boolean
           is_published: boolean
@@ -1452,8 +1592,10 @@ export type Database = {
           category?: Database["public"]["Enums"]["resource_category"]
           created_at?: string
           description?: string | null
+          download_count?: number | null
           downloads_count?: number
           file_url?: string | null
+          format?: Database["public"]["Enums"]["resource_format"] | null
           id?: string
           is_premium?: boolean
           is_published?: boolean
@@ -1467,8 +1609,10 @@ export type Database = {
           category?: Database["public"]["Enums"]["resource_category"]
           created_at?: string
           description?: string | null
+          download_count?: number | null
           downloads_count?: number
           file_url?: string | null
+          format?: Database["public"]["Enums"]["resource_format"] | null
           id?: string
           is_premium?: boolean
           is_published?: boolean
@@ -1514,6 +1658,7 @@ export type Database = {
           current_period_start: string | null
           id: string
           plan_id: string | null
+          plan_name: string | null
           status: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -1526,6 +1671,7 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_id?: string | null
+          plan_name?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -1538,6 +1684,7 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_id?: string | null
+          plan_name?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -1548,6 +1695,7 @@ export type Database = {
       }
       system_settings: {
         Row: {
+          category: string | null
           description: string | null
           id: string
           key: string
@@ -1555,6 +1703,7 @@ export type Database = {
           value: Json
         }
         Insert: {
+          category?: string | null
           description?: string | null
           id?: string
           key: string
@@ -1562,6 +1711,7 @@ export type Database = {
           value?: Json
         }
         Update: {
+          category?: string | null
           description?: string | null
           id?: string
           key?: string
@@ -1849,18 +1999,24 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          created_at: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
           user_id: string
         }
         Insert: {
+          created_at?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
           user_id: string
         }
         Update: {
+          created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
