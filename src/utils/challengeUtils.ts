@@ -53,7 +53,7 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
 
       // Use RPC function to update progress securely
       const pointsToAward = willComplete ? challenge.points_reward : 0;
-      const { error: rpcError } = await supabase.rpc('update_challenge_progress', {
+      const { error: rpcError } = await supabase.rpc('update_challenge_progress' as any, {
         challenge_id_param: challenge.id,
         points_earned_param: pointsToAward
       });

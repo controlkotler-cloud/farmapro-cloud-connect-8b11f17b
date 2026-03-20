@@ -25,7 +25,7 @@ export const checkIsAdmin = async (): Promise<boolean> => {
  */
 export const canAccessUserData = async (targetUserId: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('can_access_user_data', { 
+    const { data, error } = await supabase.rpc('can_access_user_data' as any, { 
       target_user_id: targetUserId 
     });
     

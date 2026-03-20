@@ -109,7 +109,7 @@ export const useTeamManagement = () => {
       }
 
       // Check if user is a team member using RPC function
-      const { data: memberCheck, error: memberError } = await supabase.rpc('is_team_member', { 
+      const { data: memberCheck, error: memberError } = await supabase.rpc('is_team_member' as any, { 
         user_id_param: user.id 
       });
 

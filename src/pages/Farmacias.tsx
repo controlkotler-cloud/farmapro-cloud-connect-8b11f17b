@@ -86,7 +86,7 @@ const Farmacias = () => {
     try {
       // Use the secure function to get contact email
       const { data: contactEmail, error } = await supabase.rpc(
-        'get_pharmacy_contact_email', 
+        'get_pharmacy_contact_email' as any, 
         { pharmacy_id: pharmacyId }
       );
 
