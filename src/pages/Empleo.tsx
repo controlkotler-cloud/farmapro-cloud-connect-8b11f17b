@@ -89,10 +89,12 @@ const Empleo = () => {
       }
 
       console.log('Job listings loaded:', data?.length || 0);
-      const jobsWithContactEmail = (data || []).map(job => ({
+      const jobsWithContactEmail = (data || []).map((job: any) => ({
         ...job,
-        contact_email: '', // Will be fetched separately when needed
-        requirements: job.requirements || ''
+        contact_email: '',
+        requirements: job.requirements || '',
+        expires_at: job.expires_at || null,
+        employer_id: job.employer_id || job.posted_by || null
       }));
       setJobs(jobsWithContactEmail);
     } catch (error: any) {
