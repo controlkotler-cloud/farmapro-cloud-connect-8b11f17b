@@ -200,6 +200,13 @@ export type Database = {
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "course_enrollments_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       course_generation_control: {
@@ -600,6 +607,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "forum_replies_author_id_profiles_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "forum_replies_thread_id_fkey"
             columns: ["thread_id"]
             isOneToOne: false
@@ -682,6 +696,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "forum_threads_author_id_profiles_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "forum_threads_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -743,30 +764,48 @@ export type Database = {
       }
       job_applications: {
         Row: {
+          applicant_email: string | null
+          applicant_id: string | null
+          applicant_name: string | null
+          applied_at: string | null
           cover_letter: string | null
           created_at: string
           id: string
           job_id: string
           resume_url: string | null
           status: string
+          summary: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
+          applicant_email?: string | null
+          applicant_id?: string | null
+          applicant_name?: string | null
+          applied_at?: string | null
           cover_letter?: string | null
           created_at?: string
           id?: string
           job_id: string
           resume_url?: string | null
           status?: string
+          summary?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
+          applicant_email?: string | null
+          applicant_id?: string | null
+          applicant_name?: string | null
+          applied_at?: string | null
           cover_letter?: string | null
           created_at?: string
           id?: string
           job_id?: string
           resume_url?: string | null
           status?: string
+          summary?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1015,7 +1054,15 @@ export type Database = {
           type?: Database["public"]["Enums"]["notification_type"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pharmacy_listings: {
         Row: {
@@ -1126,7 +1173,15 @@ export type Database = {
           views_count?: number
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_listings_seller_id_profiles_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pharmacy_listings_public: {
         Row: {
@@ -1691,11 +1746,20 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_settings: {
         Row: {
           category: string | null
+          created_at: string | null
           description: string | null
           id: string
           key: string
@@ -1704,6 +1768,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           key: string
@@ -1712,6 +1777,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           key?: string
@@ -1786,6 +1852,7 @@ export type Database = {
           status: string
           stripe_subscription_id: string | null
           subscription_id: string | null
+          team_name: string | null
           updated_at: string
         }
         Insert: {
@@ -1797,6 +1864,7 @@ export type Database = {
           status?: string
           stripe_subscription_id?: string | null
           subscription_id?: string | null
+          team_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -1808,6 +1876,7 @@ export type Database = {
           status?: string
           stripe_subscription_id?: string | null
           subscription_id?: string | null
+          team_name?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2031,11 +2100,12 @@ export type Database = {
         Returns: undefined
       }
       calculate_quiz_stats: {
-        Args: { p_quiz_id: string }
+        Args: { quiz_id_param: string }
         Returns: {
-          avg_score: number
+          average_score: number
           pass_rate: number
           total_attempts: number
+          total_users: number
         }[]
       }
       has_role: {
