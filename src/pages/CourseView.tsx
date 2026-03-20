@@ -48,8 +48,11 @@ const CourseView = () => {
   } = useCourseNavigation({ modules, isModuleCompleted });
 
   useEffect(() => {
-    // Scroll to top of page when module changes
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll the main scrollable container to top when module changes
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, [currentModuleIndex]);
 
   if (courseLoading || progressLoading) {
