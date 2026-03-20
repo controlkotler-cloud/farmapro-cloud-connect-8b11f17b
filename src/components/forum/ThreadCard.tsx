@@ -67,7 +67,7 @@ export const ThreadCard = ({ thread, index, onClick }: ThreadCardProps) => {
             </div>
           </div>
           <CardDescription className="line-clamp-2 text-gray-600">
-            {thread.content.substring(0, 150)}...
+            {thread.content.substring(0, 150).replace(/[*_~`#>\-]/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\n+/g, ' ')}...
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
