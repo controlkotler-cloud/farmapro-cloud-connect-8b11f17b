@@ -13,119 +13,50 @@ Deno.serve(async (req) => {
 
   try {
     const { messages, contentType } = await req.json();
-    
-    console.log('Received request with contentType:', contentType);
 
-    // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Mensajes inválidos' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Mensajes inválidos' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Extract JWT token from Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('No authorization header');
-      return new Response(
-        JSON.stringify({ error: 'No autorizado' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const token = authHeader.replace('Bearer ', '');
-    console.log('Token extracted, creating Supabase admin client...');
 
-    // Create Supabase client with service role for backend operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false
-        }
-      }
+      { auth: { persistSession: false, autoRefreshToken: false } }
     );
 
-    // Verify JWT token directly with the extracted token
-    console.log('Verifying JWT token...');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
     if (authError || !user) {
-      console.error('JWT verification failed:', authError);
-      return new Response(
-        JSON.stringify({ 
-          error: authError?.message === 'invalid JWT' 
-            ? 'Sesión expirada. Por favor, vuelve a iniciar sesión.' 
-            : 'Usuario no autenticado' 
-        }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Usuario no autenticado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    console.log('User authenticated:', user.id);
-
-    // Check user subscription with admin client
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('subscription_role, subscription_status, full_name, pharmacy_name, position')
+      .select('subscription_role, subscription_status, full_name, pharmacy_name, pharmacy_city, position')
       .eq('id', user.id)
       .single();
 
     if (profileError || !profile) {
-      console.error('Error fetching profile:', profileError);
-      return new Response(
-        JSON.stringify({ error: 'Error al verificar el perfil del usuario' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Error al verificar el perfil' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    console.log('Profile validated for user:', user.id, 'Role:', profile.subscription_role);
-
-    // Validate subscription access
     const allowedRoles = ['premium', 'profesional', 'admin'];
     if (!allowedRoles.includes(profile.subscription_role) || profile.subscription_status !== 'active') {
-      console.error('Access denied - Role:', profile.subscription_role, 'Status:', profile.subscription_status);
-      return new Response(
-        JSON.stringify({ 
-          error: 'No tienes acceso a esta funcionalidad. Necesitas un plan Premium, Profesional o Admin activo.' 
-        }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'No tienes acceso. Necesitas un plan Premium, Profesional o Admin activo.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'Configuración del servidor incompleta' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Configuración del servidor incompleta' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    console.log('Calling Lovable AI for user:', user.id);
-
-    const systemPrompt = getSystemPrompt(contentType || 'blog', profile);
+    const systemPrompt = getSystemPrompt(contentType || 'instagram-post', profile);
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -135,106 +66,125 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ],
+        messages: [{ role: 'system', content: systemPrompt }, ...messages],
         stream: true,
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Lovable AI error:', aiResponse.status, errorText);
-      
-      // Handle specific error codes
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Límite de uso excedido. Por favor, intenta de nuevo en unos momentos.' }),
-          { 
-            status: 429, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Por favor, contacta con soporte.' }),
-          { 
-            status: 402, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      
-      return new Response(
-        JSON.stringify({ error: 'Error al comunicarse con el servicio de IA' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      console.error('AI error:', aiResponse.status, errorText);
+      if (aiResponse.status === 429) return new Response(JSON.stringify({ error: 'Límite excedido. Intenta en unos momentos.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      if (aiResponse.status === 402) return new Response(JSON.stringify({ error: 'Créditos insuficientes.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: 'Error al comunicarse con el servicio de IA' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    console.log('AI response received, streaming to client...');
-
     return new Response(aiResponse.body, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' },
     });
   } catch (error) {
-    console.error('Error in ai-creative-assistant:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Error interno del servidor' }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    console.error('Error:', error);
+    return new Response(JSON.stringify({ error: error.message || 'Error interno' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });
 
 function getSystemPrompt(contentType: string, profile: any) {
   const userName = profile?.full_name || 'profesional';
   const pharmacyName = profile?.pharmacy_name || 'tu farmacia';
+  const city = profile?.pharmacy_city || '';
   const position = profile?.position || 'profesional';
 
-  const formatInstruction = `
-IMPORTANTE: Responde en formato de texto plano, NO uses markdown ni formato especial. El usuario debe poder copiar y pegar tu respuesta directamente sin necesidad de editarla.
-- NO uses asteriscos, almohadillas ni otros caracteres de markdown
+  const base = `Eres un asistente experto en marketing farmacéutico y creación de contenido para farmacias españolas. Usuario: ${userName} (${position} en ${pharmacyName}${city ? `, ${city}` : ''}).
+
+REGLAS GENERALES:
+- Responde en texto plano, sin markdown (sin asteriscos, almohadillas ni formato especial)
+- El contenido debe poder copiarse y pegarse directamente
+- Cumple siempre la normativa farmacéutica española
 - Usa saltos de línea para separar secciones
-- Para énfasis usa MAYÚSCULAS o repite palabras clave
-- Los títulos van en una línea aparte, sin formato especial
+- Para énfasis usa MAYÚSCULAS
+- Integra el nombre de la farmacia y la localidad de forma natural
 `;
 
   switch (contentType) {
+    case 'instagram-post':
+      return `${base}
+Crea un post de Instagram para farmacia:
+- Copy optimizado (máx 2200 caracteres)
+- Incluye emojis relevantes pero sin excederte
+- Call to action claro
+- Sugiere 5-8 hashtags relevantes al final
+- Sugiere brevemente qué tipo de imagen acompañaría el post`;
+
+    case 'reel-script':
+      return `${base}
+Crea un guión de Reel para Instagram con esta estructura:
+
+GANCHO (primeros 3 segundos - lo más importante para captar atención)
+[Texto del gancho + indicación de lo que se ve en pantalla]
+
+DESARROLLO (cuerpo del reel)
+[Contenido paso a paso con indicaciones de lo que aparece en pantalla]
+
+CIERRE (call to action final)
+[CTA + texto en pantalla sugerido]
+
+Incluye al final sugerencias de: audio/música, textos overlay, y hashtags`;
+
+    case 'carousel':
+      return `${base}
+Crea contenido para un carrusel de Instagram. Estructura el contenido slide por slide:
+
+Slide 1: Portada llamativa (título que enganche)
+Slide 2-N: Contenido (un concepto por slide, texto conciso)
+Último slide: Call to action + branding
+
+Para cada slide indica:
+- Texto principal (grande, legible)
+- Texto secundario si aplica
+- Sugerencia visual breve`;
+
+    case 'google-business':
+      return `${base}
+Crea una publicación para Google Business Profile:
+- Máximo 1500 caracteres
+- Tono profesional y local
+- Incluye keywords relevantes para SEO local
+- Call to action claro (Llamar, Visitar web, Pedir cita...)
+- Optimizado para búsquedas locales (menciona la ciudad/zona)`;
+
     case 'blog':
-      return `${formatInstruction}
-
-Asistente creativo de copywritting para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
-Crea contenido profesional para blog farmacéutico de 1000 palabras: título atractivo, introducción clara, desarrollo con datos, conclusión práctica y call to action. Tono profesional pero accesible. Integra de forma natural los datos que te aporto y ten intención seo para la palabras clave relevantes como el nombre de la farmacia la localidad y el tema.`;
-
-    case 'social-media':
-      return `${formatInstruction}
-
-Asistente creativo de comunitat manager para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
-Crea copy para redes sociales de la farmacia (máx. 2200 caracteres): tono cercano, emojis apropiados, call to action claro. Sugiere tipo de imagen ideal. Integra el nombre de la farmacia y la localidad de forma natural en el texto.`;
+      return `${base}
+Crea un artículo para el blog de la web de la farmacia:
+- Título SEO atractivo
+- Introducción que enganche
+- Desarrollo estructurado con subtítulos
+- Datos y consejos prácticos
+- Conclusión con call to action
+- Integra las palabras clave de forma natural para SEO
+- Tono profesional pero accesible`;
 
     case 'promotion':
-      return `${formatInstruction}
+      return `${base}
+Crea copy promocional para farmacia:
+- Mensaje directo y claro
+- Destaca el beneficio principal
+- Genera urgencia si hay fecha límite
+- Call to action potente
+- IMPORTANTE: Cumple la normativa farmacéutica (no prometer curas, no exagerar beneficios)
+- Adapta el formato al canal indicado`;
 
-Asistente creativo para crear promociones en la farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
-Crea copy promocional farmacéutico: mensaje directo, beneficios claros, call to action potente. Cumple normativa farmacéutica y sugiere diseño visual.`;
+    case 'whatsapp':
+      return `${base}
+Crea un mensaje de WhatsApp para enviar a clientes de la farmacia:
+- Breve y directo (máx 500 caracteres)
+- Tono cercano y personal
+- Incluye emoji relevante pero sin excederte (1-3 máximo)
+- Call to action claro
+- No debe parecer spam
+- Cumple normativa de protección de datos (no incluir datos sensibles)`;
 
     default:
-      return `${formatInstruction}
-
-Asistente creativo para farmacia. Usuario: ${userName} (${position} - ${pharmacyName})
-Crea contenido profesional y relevante según las necesidades del usuario.`;
+      return `${base}
+Crea contenido profesional según las necesidades del usuario.`;
   }
 }
