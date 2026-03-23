@@ -107,6 +107,42 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
       challenges: {
         Row: {
           created_at: string
@@ -1241,6 +1277,7 @@ export type Database = {
           id: string
           last_activity_date: string | null
           level: number
+          opt_out_leaderboard: boolean
           pharmacy_city: string | null
           pharmacy_name: string | null
           points: number
@@ -1267,6 +1304,7 @@ export type Database = {
           id: string
           last_activity_date?: string | null
           level?: number
+          opt_out_leaderboard?: boolean
           pharmacy_city?: string | null
           pharmacy_name?: string | null
           points?: number
@@ -1293,6 +1331,7 @@ export type Database = {
           id?: string
           last_activity_date?: string | null
           level?: number
+          opt_out_leaderboard?: boolean
           pharmacy_city?: string | null
           pharmacy_name?: string | null
           points?: number
@@ -1923,6 +1962,35 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
             referencedColumns: ["id"]
           },
         ]

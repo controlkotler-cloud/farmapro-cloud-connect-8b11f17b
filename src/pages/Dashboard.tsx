@@ -5,16 +5,14 @@ import { WelcomeCard } from '@/components/dashboard/WelcomeCard';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { UpcomingChallenges } from '@/components/dashboard/UpcomingChallenges';
+import { RecentBadges } from '@/components/dashboard/RecentBadges';
 
 export const Dashboard = () => {
   const { profile } = useAuth();
   const { stats, recentActivity, getNextLevelProgress, getPointsToNextLevel } = useDashboard();
 
-  console.log('Dashboard stats:', stats);
-
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
       <WelcomeCard
         userName={profile?.full_name || 'Usuario'}
         level={stats.level}
@@ -23,7 +21,6 @@ export const Dashboard = () => {
         getPointsToNextLevel={getPointsToNextLevel}
       />
 
-      {/* Stats Grid */}
       <StatsGrid
         coursesCompleted={stats.coursesCompleted}
         resourcesDownloaded={stats.resourcesDownloaded}
@@ -31,10 +28,12 @@ export const Dashboard = () => {
         challengesCompleted={stats.challengesCompleted}
       />
 
-      {/* Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RecentActivity activities={recentActivity} />
-        <UpcomingChallenges />
+        <div className="space-y-6">
+          <UpcomingChallenges />
+          <RecentBadges />
+        </div>
       </div>
     </div>
   );
