@@ -71,6 +71,8 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
         }
       }
     }
+    // After processing all challenges, check for new badges
+    await checkAndAwardBadges(userId);
   } catch (error) {
     console.error('Error in updateChallengeProgress:', error);
   }
