@@ -7,6 +7,7 @@ import { ChallengeManagement } from '@/components/admin/challenges/ChallengeMana
 import { ChallengeStats } from '@/components/admin/challenges/ChallengeStats';
 import { UserChallengeProgress } from '@/components/admin/challenges/UserChallengeProgress';
 import { BadgeManagement } from '@/components/admin/badges/BadgeManagement';
+import { WeeklyTemplatesManagement } from '@/components/admin/challenges/WeeklyTemplatesManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database } from '@/integrations/supabase/types';
 
