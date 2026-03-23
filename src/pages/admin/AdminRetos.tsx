@@ -7,6 +7,7 @@ import { ChallengeManagement } from '@/components/admin/challenges/ChallengeMana
 import { ChallengeStats } from '@/components/admin/challenges/ChallengeStats';
 import { UserChallengeProgress } from '@/components/admin/challenges/UserChallengeProgress';
 import { BadgeManagement } from '@/components/admin/badges/BadgeManagement';
+import { WeeklyTemplatesManagement } from '@/components/admin/challenges/WeeklyTemplatesManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database } from '@/integrations/supabase/types';
 
@@ -322,9 +323,10 @@ const AdminRetos = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
           <TabsTrigger value="challenges">Retos</TabsTrigger>
+          <TabsTrigger value="weekly">Semanales</TabsTrigger>
           <TabsTrigger value="badges">Badges</TabsTrigger>
           <TabsTrigger value="progress">Progreso</TabsTrigger>
         </TabsList>
@@ -348,6 +350,10 @@ const AdminRetos = () => {
             updating={updateChallengeMutation.isPending}
             deleting={deleteChallengeMutation.isPending}
           />
+        </TabsContent>
+
+        <TabsContent value="weekly" className="space-y-6">
+          <WeeklyTemplatesManagement />
         </TabsContent>
 
         <TabsContent value="badges" className="space-y-6">

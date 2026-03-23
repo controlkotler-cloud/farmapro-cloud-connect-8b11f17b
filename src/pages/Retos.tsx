@@ -1,11 +1,13 @@
 
 import { motion } from 'framer-motion';
 import { useRetosData } from '@/hooks/useRetosData';
+import { useWeeklyChallenges } from '@/hooks/useWeeklyChallenges';
 import { LevelProgressCard } from '@/components/retos/LevelProgressCard';
 import { UserStatsCards } from '@/components/retos/UserStatsCards';
 import { ChallengeCard } from '@/components/retos/ChallengeCard';
 import { BadgesSection } from '@/components/retos/BadgesSection';
 import { LeaderboardSection } from '@/components/retos/LeaderboardSection';
+import { WeeklyChallengesSection } from '@/components/retos/WeeklyChallengesSection';
 import { Target } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -16,6 +18,11 @@ export const Retos = () => {
     loading, 
     getProgressForChallenge 
   } = useRetosData();
+
+  const { weeklyChallenges, loading: weeklyLoading } = useWeeklyChallenges();
+
+  // Filter out weekly challenges from permanent list
+  const permanentChallenges = challenges.filter((c: any) => !c.is_weekly);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,11 +73,16 @@ export const Retos = () => {
         <UserStatsCards userStats={userStats} />
       </motion.div>
 
-      {/* Tabs: Retos | Insignias | Ranking */}
+      {/* Weekly Challenges */}
+      <motion.div variants={itemVariants}>
+        <WeeklyChallengesSection challenges={weeklyChallenges} loading={weeklyLoading} />
+      </motion.div>
+
+      {/* Tabs: Retos Permanentes | Insignias | Ranking */}
       <motion.div variants={itemVariants}>
         <Tabs defaultValue="challenges" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="challenges">Retos</TabsTrigger>
+            <TabsTrigger value="challenges">Retos Permanentes</TabsTrigger>
             <TabsTrigger value="badges">Insignias</TabsTrigger>
             <TabsTrigger value="ranking">Ranking</TabsTrigger>
           </TabsList>
@@ -83,11 +95,14 @@ export const Retos = () => {
                   <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg">
                     <Target className="h-6 w-6 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-foreground">Retos Disponibles</h2>
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground">Retos Permanentes</h2>
+                    <p className="text-sm text-muted-foreground">Estos retos siempre están disponibles</p>
+                  </div>
                 </div>
               </div>
               <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" variants={containerVariants}>
-                {challenges.map((challenge, index) => (
+                {permanentChallenges.map((challenge, index) => (
                   <motion.div key={challenge.id} variants={itemVariants} transition={{ delay: index * 0.1 }}>
                     <ChallengeCard challenge={challenge} progress={getProgressForChallenge(challenge.id)} index={index} />
                   </motion.div>
