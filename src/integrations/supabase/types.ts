@@ -2227,10 +2227,19 @@ export type Database = {
         }
         Returns: string
       }
-      update_challenge_progress: {
-        Args: { challenge_id_param: string; points_earned_param?: number }
-        Returns: undefined
-      }
+      update_challenge_progress:
+        | {
+            Args: { challenge_id_param: string; points_earned_param?: number }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              challenge_id_param: string
+              new_count_param?: number
+              points_earned_param?: number
+            }
+            Returns: undefined
+          }
       update_user_role_admin: {
         Args: {
           new_role: Database["public"]["Enums"]["user_role"]
