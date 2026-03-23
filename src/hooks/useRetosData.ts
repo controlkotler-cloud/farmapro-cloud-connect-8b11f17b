@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { updateChallengeProgress, calculateTotalPointsFromChallenges } from '@/utils/challengeUtils';
+import { calculateStreak } from '@/utils/streakUtils';
 
 interface Challenge {
   id: string;
@@ -26,7 +27,7 @@ interface UserStats {
   totalPoints: number;
   level: number;
   completedChallenges: number;
-  activeStreaks: number;
+  streakDays: number;
 }
 
 export const useRetosData = () => {
