@@ -12,6 +12,9 @@ import { SecurityTab } from '@/components/profile/SecurityTab';
 import { NotificationsTab } from '@/components/profile/NotificationsTab';
 import { TeamManagementTab } from '@/components/profile/TeamManagementTab';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { RotateCcw } from 'lucide-react';
 
 export default function Perfil() {
   const { profile, user, isAdmin } = useAuth();

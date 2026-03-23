@@ -1,4 +1,4 @@
-
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboard } from '@/hooks/useDashboard';
 import { WelcomeCard } from '@/components/dashboard/WelcomeCard';
@@ -8,15 +8,24 @@ import { UpcomingChallenges } from '@/components/dashboard/UpcomingChallenges';
 import { RecentBadges } from '@/components/dashboard/RecentBadges';
 import { EngagementWidget } from '@/components/dashboard/EngagementWidget';
 import { MotivationalBanner } from '@/components/dashboard/MotivationalBanner';
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 
 export const Dashboard = () => {
-  const { profile } = useAuth();
+  const { profile, reloadProfile } = useAuth();
   const { stats, recentActivity, getNextLevelProgress, getPointsToNextLevel } = useDashboard();
+  const [showOnboarding, setShowOnboarding] = useState(
+    profile ? !(profile as any).has_completed_onboarding : false
+  );
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    reloadProfile();
+  };
 
   return (
     <div className="space-y-6">
+      {showOnboarding && <OnboardingWizard onComplete={handleOnboardingComplete} />}
       <MotivationalBanner />
-
       <WelcomeCard
         userName={profile?.full_name || 'Usuario'}
         level={stats.level}
