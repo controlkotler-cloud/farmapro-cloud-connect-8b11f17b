@@ -1274,6 +1274,7 @@ export type Database = {
           created_at: string
           email: string | null
           full_name: string | null
+          has_completed_onboarding: boolean
           id: string
           last_activity_date: string | null
           level: number
@@ -1301,6 +1302,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string | null
+          has_completed_onboarding?: boolean
           id: string
           last_activity_date?: string | null
           level?: number
@@ -1328,6 +1330,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string | null
+          has_completed_onboarding?: boolean
           id?: string
           last_activity_date?: string | null
           level?: number
