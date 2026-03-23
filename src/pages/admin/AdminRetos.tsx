@@ -323,9 +323,10 @@ const AdminRetos = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
           <TabsTrigger value="challenges">Retos</TabsTrigger>
+          <TabsTrigger value="weekly">Semanales</TabsTrigger>
           <TabsTrigger value="badges">Badges</TabsTrigger>
           <TabsTrigger value="progress">Progreso</TabsTrigger>
         </TabsList>
@@ -349,6 +350,10 @@ const AdminRetos = () => {
             updating={updateChallengeMutation.isPending}
             deleting={deleteChallengeMutation.isPending}
           />
+        </TabsContent>
+
+        <TabsContent value="weekly" className="space-y-6">
+          <WeeklyTemplatesManagement />
         </TabsContent>
 
         <TabsContent value="badges" className="space-y-6">
