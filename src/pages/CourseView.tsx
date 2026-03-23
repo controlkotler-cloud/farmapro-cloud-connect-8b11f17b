@@ -5,6 +5,7 @@ import { useModuleProgress } from '@/hooks/useModuleProgress';
 import { useCourseData } from '@/hooks/useCourseData';
 import { useCourseActions } from '@/components/course/CourseActions';
 import { useCourseNavigation } from '@/components/course/CourseNavigation';
+import { useQuiz } from '@/hooks/useQuiz';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { CourseHeader } from '@/components/course/CourseHeader';
@@ -19,13 +20,15 @@ const CourseView = () => {
   const moduleContentRef = useRef<HTMLDivElement>(null);
 
   const { course, enrollment, loading: courseLoading, hasQuiz } = useCourseData(courseSlug);
-  
+
   const {
     isModuleCompleted,
     markModuleAsCompleted,
     getCompletionPercentage,
     loading: progressLoading
   } = useModuleProgress(course?.id || '');
+
+  const { getBestAttempt } = useQuiz(course?.id);
 
   const { handleCompleteModule, handleFinishCourse } = useCourseActions({
     course,
@@ -38,7 +41,7 @@ const CourseView = () => {
   });
 
   const modules = course?.course_modules || [];
-  
+
   const {
     currentModuleIndex,
     handlePreviousModule,
@@ -48,7 +51,6 @@ const CourseView = () => {
   } = useCourseNavigation({ modules, isModuleCompleted });
 
   useEffect(() => {
-    // Scroll the main scrollable container to top when module changes
     const mainEl = document.querySelector('main');
     if (mainEl) {
       mainEl.scrollTo({ top: 0, behavior: 'smooth' });
@@ -72,8 +74,8 @@ const CourseView = () => {
 
   return (
     <div className="space-y-6">
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         onClick={() => window.history.back()}
         className="mb-4"
       >
@@ -84,7 +86,7 @@ const CourseView = () => {
       <CourseHeader course={course} isEnrolled={isEnrolled} isCompleted={isCompleted} />
 
       {isEnrolled && (
-        <CourseProgressBar 
+        <CourseProgressBar
           moduleProgress={moduleProgress}
           completedModulesCount={completedModulesCount}
           totalModules={modules.length}
@@ -97,12 +99,14 @@ const CourseView = () => {
           currentModuleIndex={currentModuleIndex}
           isModuleCompleted={isModuleCompleted}
           onModuleSelect={handleModuleSelect}
+          hasQuiz={hasQuiz}
+          bestQuizAttempt={getBestAttempt}
         />
 
         <div className="lg:col-span-2" ref={moduleContentRef}>
           {currentModule ? (
-            <ModuleContent 
-              module={currentModule} 
+            <ModuleContent
+              module={currentModule}
               moduleIndex={currentModuleIndex}
               totalModules={modules.length}
               isCompleted={isModuleCompleted(currentModule.id)}
@@ -116,7 +120,7 @@ const CourseView = () => {
             />
           ) : (
             <div className="bg-white p-8 rounded-lg shadow text-center">
-              <p className="text-gray-600">No hay módulos disponibles para este curso.</p>
+              <p className="text-muted-foreground">No hay módulos disponibles para este curso.</p>
             </div>
           )}
 
@@ -124,6 +128,8 @@ const CourseView = () => {
             isEnrolled={isEnrolled}
             allModulesCompleted={allModulesCompleted}
             isCompleted={isCompleted}
+            hasQuiz={hasQuiz}
+            courseSlug={courseSlug}
           />
         </div>
       </div>

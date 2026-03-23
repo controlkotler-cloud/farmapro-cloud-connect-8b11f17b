@@ -16,40 +16,37 @@ const CourseQuizView = () => {
   const handleQuizComplete = async (passed: boolean, score: number) => {
     setQuizCompleted(true);
     console.log(`Quiz completed: ${passed ? 'PASSED' : 'FAILED'} with score ${score}%`);
-    
-    // If quiz is passed, mark course as completed
+
     if (passed) {
       try {
         const { supabase } = await import('@/integrations/supabase/client');
-        const { useAuth } = await import('@/hooks/useAuth');
-        
-        // Get user profile
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
-          .eq('email', (await supabase.auth.getUser()).data.user?.email || '')
+          .eq('id', user.id)
           .single();
-        
+
         if (profile) {
-          // Get course by slug
           const { data: course } = await supabase
             .from('courses')
             .select('id')
             .eq('slug', courseSlug)
             .single();
-          
+
           if (course) {
-            // Update course enrollment as completed
             await supabase
               .from('course_enrollments')
-              .update({ 
+              .update({
                 completed_at: new Date().toISOString(),
-                progress: 100 
+                progress: 100
               })
               .eq('course_id', course.id)
               .eq('user_id', profile.id);
-            
-            // Update challenge progress for course completion
+
             const { updateChallengeProgress } = await import('@/utils/challengeUtils');
             await updateChallengeProgress(profile.id, 'course_completed', 1);
           }
@@ -60,17 +57,6 @@ const CourseQuizView = () => {
     }
   };
 
-  // Map course slugs to titles (can be loaded from database in future)
-  const courseTitles: Record<string, string> = {
-    'dafo-para-tu-farmacia': 'DAFO para tu Farmacia',
-    'marketing-digital-para-farmacias': 'Marketing Digital para Farmacias',
-    'liderazgo-en-el-ambito-farmaceutico': 'Liderazgo en el Ámbito Farmacéutico',
-    'atencion-al-cliente-de-excelencia': 'Atención al Cliente de Excelencia',
-    'tecnologia-farmapro-para-farmacias': 'Tecnología farmapro para Farmacias'
-  };
-
-  const courseTitle = courseTitles[courseSlug] || 'Curso';
-
   return (
     <div className="space-y-6">
       <Link to={`/curso/${courseSlug}`}>
@@ -80,9 +66,9 @@ const CourseQuizView = () => {
         </Button>
       </Link>
 
-      <DatabaseQuiz 
+      <DatabaseQuiz
         courseId={courseSlug}
-        courseTitle={courseTitle}
+        courseTitle=""
         onComplete={handleQuizComplete}
       />
     </div>
