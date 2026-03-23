@@ -1,17 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 type ChallengeType = Database['public']['Enums']['challenge_type'];
 
-export const updateChallengeProgress = async (userId: string, challengeType: ChallengeType, incrementBy: number = 1) => {
+export const updateChallengeProgress = async (userId: string, challengeType: ChallengeType, currentCount: number = 1) => {
   try {
-    console.log('Updating challenge progress via RPC:', { userId, challengeType, incrementBy });
+    console.log('Updating challenge progress:', { userId, challengeType, currentCount });
     
     // Get active challenges of this type
     const { data: challenges, error: challengesError } = await supabase
       .from('challenges')
-      .select('id, target_count, points_reward')
+      .select('id, target_count, points_reward, name')
       .eq('type', challengeType)
       .eq('is_active', true);
 
@@ -26,9 +27,7 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
     }
 
     for (const challenge of challenges) {
-      console.log('Processing challenge via RPC:', challenge);
-      
-      // Check current progress to determine if challenge is already completed
+      // Check if already completed
       const { data: existingProgress } = await supabase
         .from('user_challenge_progress')
         .select('current_count, completed_at')
@@ -36,35 +35,39 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
         .eq('challenge_id', challenge.id)
         .maybeSingle();
 
-      const currentCount = existingProgress?.current_count || 0;
-      const newCount = Math.max(currentCount, incrementBy); // Use the higher value to avoid backwards progress
-      const isAlreadyCompleted = existingProgress?.completed_at !== null;
-      const willComplete = newCount >= challenge.target_count && !isAlreadyCompleted;
-      
-      console.log('Challenge progress check:', {
-        challengeId: challenge.id,
-        currentCount,
-        incrementBy,
-        newCount,
-        targetCount: challenge.target_count,
-        isAlreadyCompleted,
-        willComplete
-      });
+      if (existingProgress?.completed_at) {
+        console.log('Challenge already completed:', challenge.id);
+        continue;
+      }
 
-      // Use RPC function to update progress securely
-      const pointsToAward = willComplete ? challenge.points_reward : 0;
+      const prevCount = existingProgress?.current_count || 0;
+      const willComplete = challenge.target_count != null && currentCount >= challenge.target_count && !existingProgress?.completed_at;
+      const pointsToAward = willComplete ? (challenge.points_reward || 0) : 0;
+
+      // Only call RPC if count actually increased
+      if (currentCount <= prevCount) {
+        console.log('Count not increased, skipping:', { prevCount, currentCount });
+        continue;
+      }
+
       const { error: rpcError } = await supabase.rpc('update_challenge_progress' as any, {
         challenge_id_param: challenge.id,
-        points_earned_param: pointsToAward
+        points_earned_param: pointsToAward,
+        new_count_param: currentCount
       });
 
       if (rpcError) {
         console.error('Error updating challenge progress via RPC:', rpcError);
       } else {
-        console.log('Challenge progress updated via RPC successfully:', {
-          challengeId: challenge.id,
-          pointsAwarded: pointsToAward
-        });
+        console.log('Challenge progress updated:', { challengeId: challenge.id, currentCount, pointsToAward });
+        
+        // Show completion toast
+        if (willComplete) {
+          toast.success('🎉 ¡Reto completado!', {
+            description: `${challenge.name || 'Reto'} — +${pointsToAward} puntos`,
+            duration: 5000,
+          });
+        }
       }
     }
   } catch (error) {
@@ -86,14 +89,8 @@ export const calculateTotalPointsFromChallenges = async (userId: string): Promis
       return { totalPoints: 0, level: 1 };
     }
 
-    const totalPoints = (completedChallenges || []).reduce((sum, challenge) => sum + (challenge.points_earned || 0), 0);
+    const totalPoints = (completedChallenges || []).reduce((sum, c) => sum + (c.points_earned || 0), 0);
     const level = Math.floor(totalPoints / 1000) + 1;
-
-    console.log('Calculated points from challenges:', {
-      completedChallenges: completedChallenges?.length || 0,
-      totalPoints,
-      level
-    });
 
     return { totalPoints, level };
   } catch (error) {

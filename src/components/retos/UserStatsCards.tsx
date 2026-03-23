@@ -1,13 +1,13 @@
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Star, CheckCircle, Clock } from 'lucide-react';
+import { Trophy, Star, CheckCircle, Flame } from 'lucide-react';
 
 interface UserStatsCardsProps {
   userStats: {
     totalPoints: number;
     level: number;
     completedChallenges: number;
-    activeStreaks: number;
+    streakDays: number;
   };
 }
 
@@ -56,15 +56,15 @@ export const UserStatsCards = ({ userStats }: UserStatsCardsProps) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+      <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
         <CardContent className="p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <Clock className="h-8 w-8 text-purple-600" />
+            <div className="p-3 bg-orange-100 rounded-lg">
+              <Flame className="h-8 w-8 text-orange-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-purple-700">Rachas Activas</p>
-              <p className="text-2xl font-bold text-purple-900">{userStats.activeStreaks}</p>
+              <p className="text-sm font-medium text-orange-700">🔥 Racha</p>
+              <p className="text-2xl font-bold text-orange-900">{userStats.streakDays} días</p>
             </div>
           </div>
         </CardContent>

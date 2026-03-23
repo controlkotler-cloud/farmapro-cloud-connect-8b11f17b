@@ -34,10 +34,7 @@ export const Dashboard = () => {
       {/* Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RecentActivity activities={recentActivity} />
-        <UpcomingChallenges 
-          coursesCompleted={stats.coursesCompleted}
-          resourcesDownloaded={stats.resourcesDownloaded}
-        />
+        <UpcomingChallenges />
       </div>
     </div>
   );
