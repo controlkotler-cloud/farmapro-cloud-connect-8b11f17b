@@ -2167,6 +2167,39 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_challenge_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          points_reward: number
+          target_count: number
+          type: Database["public"]["Enums"]["challenge_type"]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          points_reward?: number
+          target_count?: number
+          type?: Database["public"]["Enums"]["challenge_type"]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          points_reward?: number
+          target_count?: number
+          type?: Database["public"]["Enums"]["challenge_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
