@@ -38,7 +38,7 @@ export const useRetosData = () => {
     totalPoints: 0,
     level: 1,
     completedChallenges: 0,
-    activeStreaks: 0
+    streakDays: 0
   });
   const [loading, setLoading] = useState(true);
 
