@@ -2337,6 +2337,8 @@ export type Database = {
         | "resource_downloaded"
         | "forum_post"
         | "forum_reply"
+        | "quiz_completed"
+        | "community_engagement"
       course_category:
         | "ventas"
         | "marketing"
@@ -2516,6 +2518,8 @@ export const Constants = {
         "resource_downloaded",
         "forum_post",
         "forum_reply",
+        "quiz_completed",
+        "community_engagement",
       ],
       course_category: [
         "ventas",
