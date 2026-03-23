@@ -15,11 +15,12 @@ export interface CourseQuiz {
 export interface QuizQuestion {
   id: string;
   quiz_id: string;
-  question_text: string;
+  question: string;
+  question_text: string | null;
   question_type: 'multiple_choice' | 'true_false' | 'short_answer';
   points: number;
   order_index: number;
-  explanation?: string;
+  explanation?: string | null;
   created_at: string;
   options?: QuizQuestionOption[];
 }
