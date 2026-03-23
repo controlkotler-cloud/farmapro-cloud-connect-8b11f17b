@@ -12,6 +12,9 @@ import { SecurityTab } from '@/components/profile/SecurityTab';
 import { NotificationsTab } from '@/components/profile/NotificationsTab';
 import { TeamManagementTab } from '@/components/profile/TeamManagementTab';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { RotateCcw } from 'lucide-react';
 
 export default function Perfil() {
   const { profile, user, isAdmin } = useAuth();
@@ -128,6 +131,25 @@ export default function Perfil() {
             <NotificationsTab />
           </TabsContent>
         </Tabs>
+
+        {/* Repetir tour */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={async () => {
+              if (user) {
+                await supabase
+                  .from('profiles')
+                  .update({ has_completed_onboarding: false } as any)
+                  .eq('id', user.id);
+                toast.success('Tour reiniciado. Vuelve al Dashboard para verlo.');
+              }
+            }}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Repetir tour de bienvenida
+          </button>
+        </div>
       </div>
     </div>
   );
