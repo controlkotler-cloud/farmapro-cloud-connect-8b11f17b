@@ -31,34 +31,45 @@ export const useWeeklyChallenges = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      const { data: challenges } = await supabase
+      // Use raw query to access new columns not yet in types
+      const { data: challenges, error } = await supabase
         .from('challenges')
-        .select('id, name, description, type, points_reward, target_count, is_weekly, week_start, week_end')
+        .select('id, name, description, type, points_reward, target_count')
         .eq('is_active', true)
-        .eq('is_weekly', true)
-        .lte('week_start', today)
-        .gte('week_end', today);
+        .filter('is_weekly', 'eq', true)
+        .filter('week_start', 'lte', today)
+        .filter('week_end', 'gte', today) as any;
 
-      if (!challenges || challenges.length === 0) {
+      if (error || !challenges || challenges.length === 0) {
         setWeeklyChallenges([]);
         setLoading(false);
         return;
       }
 
+      const challengeIds = challenges.map((c: any) => c.id);
+
       const { data: progress } = await supabase
         .from('user_challenge_progress')
         .select('challenge_id, current_count, completed_at')
-        .eq('user_id', profile.id);
+        .eq('user_id', profile.id)
+        .in('challenge_id', challengeIds);
 
       const progressMap = new Map(
         (progress || []).map(p => [p.challenge_id, p])
       );
 
-      const mapped: WeeklyChallenge[] = challenges.map(c => {
+      const mapped: WeeklyChallenge[] = challenges.map((c: any) => {
         const p = progressMap.get(c.id);
         return {
-          ...c,
-          is_weekly: c.is_weekly ?? false,
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          type: c.type,
+          points_reward: c.points_reward,
+          target_count: c.target_count,
+          is_weekly: true,
+          week_start: c.week_start || null,
+          week_end: c.week_end || null,
           current_count: p?.current_count || 0,
           completed_at: p?.completed_at || null,
         };

@@ -61,26 +61,28 @@ export const EngagementWidget = () => {
         .from('challenges')
         .select('id, name, target_count')
         .eq('is_active', true)
-        .eq('is_weekly', true)
-        .lte('week_start', today)
-        .gte('week_end', today);
+        .filter('is_weekly', 'eq', true)
+        .filter('week_start', 'lte', today)
+        .filter('week_end', 'gte', today) as any;
 
       if (weeklyChallenges && weeklyChallenges.length > 0) {
+        const challengeIds = weeklyChallenges.map((wc: any) => wc.id);
         const { data: progress } = await supabase
           .from('user_challenge_progress')
           .select('challenge_id, current_count, completed_at')
-          .eq('user_id', profile.id);
+          .eq('user_id', profile.id)
+          .in('challenge_id', challengeIds);
 
         const progressMap = new Map((progress || []).map(p => [p.challenge_id, p]));
         
-        for (const wc of weeklyChallenges) {
+        for (const wc of weeklyChallenges as any[]) {
           const p = progressMap.get(wc.id);
           if (!p?.completed_at) {
             const remaining = (wc.target_count || 1) - (p?.current_count || 0);
             if (remaining > 0) {
               result.push({
-                icon: <Target className="h-4 w-4 text-blue-500" />,
-                text: `🎯 Te faltan ${remaining} para completar el reto semanal '${wc.name}'`,
+                icon: <Target className="h-4 w-4 text-primary" />,
+                text: `🎯 Te faltan ${remaining} para completar '${wc.name}'`,
                 link: '/retos',
               });
               break;
@@ -99,16 +101,16 @@ export const EngagementWidget = () => {
 
       if (enrollments && enrollments.length > 0 && enrollments[0].courses) {
         result.push({
-          icon: <BookOpen className="h-4 w-4 text-blue-600" />,
+          icon: <BookOpen className="h-4 w-4 text-primary" />,
           text: `📚 Tienes 1 curso en progreso — retómalo`,
           link: '/formacion',
         });
       }
 
       // Next badge
-      const { data: badges } = await supabase
+      const { data: allBadges } = await supabase
         .from('badges')
-        .select('name, requirement_type, requirement_value')
+        .select('id, name')
         .eq('is_active', true);
 
       const { data: userBadges } = await supabase
@@ -116,13 +118,12 @@ export const EngagementWidget = () => {
         .select('badge_id')
         .eq('user_id', profile.id);
 
-      if (badges && userBadges) {
+      if (allBadges && userBadges) {
         const earnedIds = new Set(userBadges.map(b => b.badge_id));
-        const unearnedBadges = badges.filter(b => !earnedIds.has((b as any).id));
-        if (unearnedBadges.length > 0) {
-          const next = unearnedBadges[0];
+        const next = allBadges.find(b => !earnedIds.has(b.id));
+        if (next) {
           result.push({
-            icon: <Trophy className="h-4 w-4 text-purple-500" />,
+            icon: <Trophy className="h-4 w-4 text-primary" />,
             text: `🏆 Próximo badge: '${next.name}'`,
             link: '/retos',
           });

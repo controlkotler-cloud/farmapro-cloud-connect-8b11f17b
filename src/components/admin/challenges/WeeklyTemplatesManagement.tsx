@@ -39,30 +39,28 @@ export const WeeklyTemplatesManagement = () => {
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as Template[];
+      return (data || []) as Template[];
     },
   });
 
-  // Active weekly challenges
   const { data: activeChallenges = [] } = useQuery({
     queryKey: ['active-weekly-challenges'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('challenges')
-        .select('id, name, week_start, week_end, target_count, points_reward')
-        .eq('is_weekly', true)
+        .select('*')
         .eq('is_active', true)
-        .order('week_start', { ascending: false });
+        .filter('is_weekly', 'eq', true)
+        .order('created_at', { ascending: false }) as any;
       if (error) throw error;
-      return data || [];
+      return (data || []) as any[];
     },
   });
 
-  // Weekly stats
   const { data: weeklyStats = [] } = useQuery({
     queryKey: ['weekly-challenge-stats'],
     queryFn: async () => {
-      const weeklyIds = activeChallenges.map(c => c.id);
+      const weeklyIds = activeChallenges.map((c: any) => c.id);
       if (weeklyIds.length === 0) return [];
       const { data, error } = await supabase
         .from('user_challenge_progress')
@@ -98,7 +96,7 @@ export const WeeklyTemplatesManagement = () => {
         is_weekly: true,
         week_start: weekStart,
         week_end: weekEnd,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -133,7 +131,6 @@ export const WeeklyTemplatesManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Active weekly challenges */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -146,7 +143,7 @@ export const WeeklyTemplatesManagement = () => {
             <p className="text-muted-foreground text-center py-4">No hay retos semanales activos</p>
           ) : (
             <div className="space-y-3">
-              {activeChallenges.map(c => {
+              {activeChallenges.map((c: any) => {
                 const stats = getStatsForChallenge(c.id);
                 return (
                   <div key={c.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -175,7 +172,6 @@ export const WeeklyTemplatesManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Templates */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Plantillas de Retos Semanales</CardTitle>
