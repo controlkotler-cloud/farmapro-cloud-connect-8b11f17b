@@ -1,5 +1,6 @@
 
-import { Card, CardContent } from '@/components/ui/card';
+ import { useEffect, useRef } from 'react';
+ import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { CourseModule } from '@/types/course';
 import { ModuleContentHeader } from './ModuleContentHeader';
@@ -37,11 +38,20 @@ export const ModuleContent = ({
   canGoPrevious,
   isNextModuleUnlocked
 }: ModuleContentProps) => {
+  const cardRef = useRef<HTMLDivElement>(null);
   const isLastModule = moduleIndex === totalModules - 1;
   const hasContent = module.content || module.video_url || (module.downloadable_resources && module.downloadable_resources.length > 0);
 
+  useEffect(() => {
+    const viewport = cardRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+
+    if (viewport instanceof HTMLElement) {
+      viewport.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+  }, [module.id]);
+
   return (
-    <Card className="h-full">
+    <Card ref={cardRef} className="h-full">
       <ModuleContentHeader 
         module={module}
         moduleIndex={moduleIndex}
@@ -50,7 +60,7 @@ export const ModuleContent = ({
       />
 
       <CardContent className="p-0 h-full">
-        <ScrollArea className="h-[60vh] p-6">
+        <ScrollArea key={module.id} className="h-[60vh] p-6">
           <div className="space-y-8">
             {/* Video del módulo si está disponible */}
             {module.video_url && (
