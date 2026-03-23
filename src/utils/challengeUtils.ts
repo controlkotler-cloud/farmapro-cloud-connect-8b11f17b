@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import { checkAndAwardBadges } from '@/utils/badgeUtils';
 
 type ChallengeType = Database['public']['Enums']['challenge_type'];
 
