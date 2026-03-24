@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Crown, User, CreditCard, Bell, Shield, Users } from 'lucide-react';
+import { Crown, User, CreditCard, Bell, Shield, Users, Award } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PersonalInfoTab } from '@/components/profile/PersonalInfoTab';
 import { PlanTab } from '@/components/profile/PlanTab';
