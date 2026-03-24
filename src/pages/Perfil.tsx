@@ -121,6 +121,10 @@ export default function Perfil() {
             </TabsContent>
           )}
 
+          <TabsContent value="badges" className="space-y-6">
+            <BadgesTab />
+          </TabsContent>
+
           <TabsContent value="billing" className="space-y-6">
             <BillingTab profile={profile} isAdmin={isAdmin} />
           </TabsContent>
