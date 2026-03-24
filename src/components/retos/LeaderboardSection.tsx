@@ -25,20 +25,16 @@ export const LeaderboardSection = () => {
             Ranking
           </CardTitle>
           <div className="flex gap-2">
-            <Badge
-              variant={timeFilter === 'this_month' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setTimeFilter('this_month')}
-            >
-              Este mes
-            </Badge>
-            <Badge
-              variant={timeFilter === 'all_time' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setTimeFilter('all_time')}
-            >
-              Todos los tiempos
-            </Badge>
+            {(['this_week', 'this_month', 'all_time'] as const).map(filter => (
+              <Badge
+                key={filter}
+                variant={timeFilter === filter ? 'default' : 'outline'}
+                className="cursor-pointer"
+                onClick={() => setTimeFilter(filter)}
+              >
+                {filter === 'this_week' ? 'Esta semana' : filter === 'this_month' ? 'Este mes' : 'Todos los tiempos'}
+              </Badge>
+            ))}
           </div>
         </div>
       </CardHeader>
