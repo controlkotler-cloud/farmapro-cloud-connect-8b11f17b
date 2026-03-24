@@ -68,7 +68,7 @@ export const LeaderboardSection = () => {
                     {entry.first_name}
                     {entry.isCurrentUser && <span className="text-green-600 ml-1">(tú)</span>}
                   </p>
-                  <p className="text-xs text-muted-foreground">Nivel {entry.level}</p>
+                  <p className="text-xs text-muted-foreground">{getLevelInfo(entry.total_points).icon} {getLevelInfo(entry.total_points).name}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm">{entry.total_points} pts</p>

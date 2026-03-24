@@ -50,6 +50,7 @@ export const Dashboard = () => {
         <div className="space-y-6">
           <UpcomingChallenges />
           <RecentBadges />
+          <MiniLeaderboard />
         </div>
       </div>
     </div>
