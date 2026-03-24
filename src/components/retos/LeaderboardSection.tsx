@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
+import { getLevelInfo } from '@/services/pointsService';
 
 const RankIcon = ({ rank }: { rank: number }) => {
   if (rank === 1) return <Crown className="h-5 w-5 text-yellow-500" />;
