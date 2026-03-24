@@ -97,7 +97,7 @@ export default function Perfil() {
               </Select>
             </div>
           ) : (
-            <TabsList className={`grid w-full ${isTeamOwner ? 'grid-cols-6' : 'grid-cols-5'}`}>
+            <TabsList className={`grid w-full`} style={{ gridTemplateColumns: `repeat(${tabOptions.length}, minmax(0, 1fr))` }}>
               {tabOptions.map((tab) => (
                 <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
                   <tab.icon className="h-4 w-4" />
