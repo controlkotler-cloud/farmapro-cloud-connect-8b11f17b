@@ -6,6 +6,7 @@ import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { UpcomingChallenges } from '@/components/dashboard/UpcomingChallenges';
 import { RecentBadges } from '@/components/dashboard/RecentBadges';
+import { MiniLeaderboard } from '@/components/dashboard/MiniLeaderboard';
 import { EngagementWidget } from '@/components/dashboard/EngagementWidget';
 import { MotivationalBanner } from '@/components/dashboard/MotivationalBanner';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
