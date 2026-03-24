@@ -49,6 +49,7 @@ export default function Perfil() {
     { value: 'personal', label: 'Personal', icon: User },
     { value: 'plan', label: 'Plan', icon: Crown },
     ...(isTeamOwner && !teamLoading ? [{ value: 'team', label: 'Equipo', icon: Users }] : []),
+    { value: 'badges', label: 'Insignias', icon: Award },
     { value: 'billing', label: 'Facturación', icon: CreditCard },
     { value: 'security', label: 'Seguridad', icon: Shield },
     { value: 'notifications', label: 'Notificaciones', icon: Bell },
