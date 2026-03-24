@@ -11,6 +11,7 @@ import { BillingTab } from '@/components/profile/BillingTab';
 import { SecurityTab } from '@/components/profile/SecurityTab';
 import { NotificationsTab } from '@/components/profile/NotificationsTab';
 import { TeamManagementTab } from '@/components/profile/TeamManagementTab';
+import { BadgesTab } from '@/components/profile/BadgesTab';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
