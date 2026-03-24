@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
+import { getLevelInfo } from '@/services/pointsService';
 
 const RankIcon = ({ rank }: { rank: number }) => {
   if (rank === 1) return <Crown className="h-5 w-5 text-yellow-500" />;
@@ -24,20 +25,16 @@ export const LeaderboardSection = () => {
             Ranking
           </CardTitle>
           <div className="flex gap-2">
-            <Badge
-              variant={timeFilter === 'this_month' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setTimeFilter('this_month')}
-            >
-              Este mes
-            </Badge>
-            <Badge
-              variant={timeFilter === 'all_time' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setTimeFilter('all_time')}
-            >
-              Todos los tiempos
-            </Badge>
+            {(['this_week', 'this_month', 'all_time'] as const).map(filter => (
+              <Badge
+                key={filter}
+                variant={timeFilter === filter ? 'default' : 'outline'}
+                className="cursor-pointer"
+                onClick={() => setTimeFilter(filter)}
+              >
+                {filter === 'this_week' ? 'Esta semana' : filter === 'this_month' ? 'Este mes' : 'Todos los tiempos'}
+              </Badge>
+            ))}
           </div>
         </div>
       </CardHeader>
@@ -71,7 +68,7 @@ export const LeaderboardSection = () => {
                     {entry.first_name}
                     {entry.isCurrentUser && <span className="text-green-600 ml-1">(tú)</span>}
                   </p>
-                  <p className="text-xs text-muted-foreground">Nivel {entry.level}</p>
+                  <p className="text-xs text-muted-foreground">{getLevelInfo(entry.total_points).icon} {getLevelInfo(entry.total_points).name}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm">{entry.total_points} pts</p>

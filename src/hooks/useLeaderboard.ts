@@ -19,7 +19,7 @@ export const useLeaderboard = () => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState<'all_time' | 'this_month'>('this_month');
+  const [timeFilter, setTimeFilter] = useState<'all_time' | 'this_month' | 'this_week'>('this_month');
 
   useEffect(() => {
     loadLeaderboard();
