@@ -36,12 +36,27 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
       {/* Imagen del curso */}
-      <div className="aspect-video overflow-hidden rounded-t-lg">
-        <img 
-          src={course.featured_image_url || course.thumbnail_url} 
-          alt={course.title}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-        />
+      <div className="aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+        {course.featured_image_url || course.thumbnail_url ? (
+          <img
+            src={course.featured_image_url || course.thumbnail_url}
+            alt={course.title}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent && !parent.querySelector('.fallback-icon')) {
+                const fallback = document.createElement('div');
+                fallback.className = 'fallback-icon text-white text-5xl';
+                fallback.textContent = '📚';
+                parent.appendChild(fallback);
+              }
+            }}
+          />
+        ) : (
+          <BookOpen className="h-16 w-16 text-white/80" />
+        )}
       </div>
 
       <CardHeader className="flex-grow">
