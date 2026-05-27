@@ -45,24 +45,37 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
         <CardHeader className="relative bg-gradient-to-r from-gray-50/80 to-purple-50/60 pb-8">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Course Image */}
-            {course.thumbnail_url && (
-              <div className="relative flex-shrink-0">
-                <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20">
-                  <img 
-                    src={course.thumbnail_url} 
+            <div className="relative flex-shrink-0">
+              <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                {course.thumbnail_url || course.featured_image_url ? (
+                  <img
+                    src={course.thumbnail_url || course.featured_image_url}
                     alt={course.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const t = e.currentTarget;
+                      t.style.display = 'none';
+                      const p = t.parentElement;
+                      if (p && !p.querySelector('.fallback-emoji')) {
+                        const f = document.createElement('div');
+                        f.className = 'fallback-emoji text-4xl';
+                        f.textContent = getCategoryEmoji(course.category);
+                        p.appendChild(f);
+                      }
+                    }}
                   />
-                </div>
-                {isCompleted && (
-                  <div className="absolute -top-2 -right-2">
-                    <div className="bg-green-500 text-white p-2 rounded-full shadow-lg">
-                      <CheckCircle className="h-5 w-5" />
-                    </div>
-                  </div>
+                ) : (
+                  <span className="text-4xl">{getCategoryEmoji(course.category)}</span>
                 )}
               </div>
-            )}
+              {isCompleted && (
+                <div className="absolute -top-2 -right-2">
+                  <div className="bg-green-500 text-white p-2 rounded-full shadow-lg">
+                    <CheckCircle className="h-5 w-5" />
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Course Info */}
             <div className="flex-1 space-y-4">
