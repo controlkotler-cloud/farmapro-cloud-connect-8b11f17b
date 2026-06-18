@@ -2443,6 +2443,7 @@ export type Database = {
         | "otros"
         | "finanzas"
         | "digital"
+        | "impulso"
       resource_format: "pdf" | "docs" | "url" | "xls" | "video"
       resource_type:
         | "pdf"
@@ -2627,6 +2628,7 @@ export const Constants = {
         "otros",
         "finanzas",
         "digital",
+        "impulso",
       ],
       resource_format: ["pdf", "docs", "url", "xls", "video"],
       resource_type: [
