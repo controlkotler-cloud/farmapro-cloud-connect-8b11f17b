@@ -27,7 +27,7 @@ export const Recursos = () => {
   const { resources, loading, selectedCategory, setSelectedCategory } = useResources();
   
 
-  const handleDownload = async (resource: Resource) => {
+  const handleDownload = (resource: Resource) => {
     if (resource.is_premium && (!profile?.subscription_role || profile.subscription_role === 'freemium')) {
       toast({
         title: "Recurso Premium",
@@ -37,50 +37,46 @@ export const Recursos = () => {
       return;
     }
 
-    try {
-      if (profile?.id) {
-        // Record the download in resource_downloads table
-        await supabase
-          .from('resource_downloads')
-          .insert([{
-            user_id: profile.id,
-            resource_id: resource.id,
-            downloaded_at: new Date().toISOString()
-          }]);
-
-        // Update challenge progress for resource download
-        const { updateChallengeProgress } = await import('@/utils/challengeUtils');
-        await updateChallengeProgress(profile.id, 'resource_downloaded', 1);
-      }
-
-      // Secure file download using signed URLs for private storage
-      if (resource.is_premium) {
-        // For premium resources, generate a signed URL for secure access
-        const { data: signedUrl, error } = await supabase.storage
-          .from('recursos')
-          .createSignedUrl(resource.file_url.replace('/storage/v1/object/public/recursos/', ''), 60); // 1 minute expiry
-
-        if (error) {
-          console.error('Error creating signed URL:', error);
-          toast({
-            title: "Error",
-            description: "Error al generar enlace de descarga seguro",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        window.open(signedUrl.signedUrl, '_blank');
-      } else {
-        // For non-premium resources, use direct URL
-        window.open(resource.file_url, '_blank');
-      }
-    } catch (error) {
-      console.error('Error recording download:', error);
-      // Still allow download even if recording fails
-      window.open(resource.file_url, '_blank');
+    // 1) Lanzar la descarga DENTRO del gesto del clic (sin await antes), o Safari
+    //    y los bloqueadores de pop-ups la bloquean.
+    if (resource.is_premium) {
+      // Premium: la ventana se abre ya en el gesto y se rellena al firmar la URL.
+      const win = window.open('', '_blank');
+      const path = resource.file_url.replace('/storage/v1/object/public/recursos/', '');
+      supabase.storage
+        .from('recursos')
+        .createSignedUrl(path, 60)
+        .then(({ data, error }) => {
+          if (error || !data?.signedUrl) {
+            win?.close();
+            toast({ title: "Error", description: "No se pudo generar el enlace de descarga.", variant: "destructive" });
+            return;
+          }
+          if (win) win.location.href = data.signedUrl;
+          else window.location.href = data.signedUrl;
+        });
+    } else {
+      // Recurso abierto: descarga directa del archivo (mismo origen) sin pop-up.
+      const a = document.createElement('a');
+      a.href = resource.file_url;
+      a.download = resource.file_url.split('/').pop() || resource.title;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     }
-    
+
+    // 2) Registrar la descarga y el progreso del reto EN SEGUNDO PLANO (no bloquea).
+    if (profile?.id) {
+      supabase
+        .from('resource_downloads')
+        .insert([{ user_id: profile.id, resource_id: resource.id, downloaded_at: new Date().toISOString() }])
+        .then(({ error }) => { if (error) console.error('Error registrando descarga:', error); });
+      import('@/utils/challengeUtils')
+        .then(({ updateChallengeProgress }) => updateChallengeProgress(profile.id, 'resource_downloaded', 1))
+        .catch((e) => console.error('Error progreso reto:', e));
+    }
+
     toast({
       title: "Descarga iniciada",
       description: `Has descargado ${resource.title}`,
