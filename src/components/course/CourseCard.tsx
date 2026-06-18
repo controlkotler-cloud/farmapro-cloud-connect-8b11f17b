@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Award, BookOpen, Users, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getCourseCover } from '@/lib/courseCover';
 import type { Course, CourseEnrollment } from '@/types/course';
 
 interface CourseCardProps {
@@ -23,7 +24,8 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
     enrollment.course_id === course.id && enrollment.completed_at !== null
   );
   const canAccess = canAccessCourse(course);
-  
+  const cover = getCourseCover(course.category);
+
   const totalModules = course.course_modules?.length || 0;
   const totalDuration = course.course_modules?.reduce((sum, module) => sum + module.duration, 0) || course.duration_minutes;
 
@@ -37,8 +39,8 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
 
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
-      {/* Imagen del curso */}
-      <div className="aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+      {/* Portada: foto si existe; si no, portada por categoría (color + icono) */}
+      <div className={`relative aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br ${cover.gradient} flex items-center justify-center`}>
         {(course.featured_image_url || course.thumbnail_url) && !imgError ? (
           <img
             src={course.featured_image_url || course.thumbnail_url}
@@ -47,7 +49,12 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
             onError={() => setImgError(true)}
           />
         ) : (
-          <BookOpen className="h-16 w-16 text-white" />
+          <>
+            <cover.Icon className="h-14 w-14 text-white/90" strokeWidth={1.5} />
+            <span className="absolute bottom-2 left-3 text-xs font-semibold uppercase tracking-wide text-white/85">
+              {cover.label}
+            </span>
+          </>
         )}
       </div>
 

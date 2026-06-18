@@ -1,53 +1,56 @@
-
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Briefcase, Target, Trophy, Heart, Users } from 'lucide-react';
+import { FileText, type LucideIcon } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { RESOURCE_CATEGORIES, getResourceStyle } from '@/lib/resourceCategory';
 
 interface ResourcesCategoryTabsProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
 }
 
+interface CatOption {
+  value: string;
+  label: string;
+  gradient: string;
+  Icon: LucideIcon;
+}
+
+// 'Todos' + categorías reales del enum (incluida 'impulso'). Antes apuntaban a
+// valores inexistentes (atencion_cliente, tecnologia) y filtraban a vacío.
+const CATS: CatOption[] = [
+  { value: 'all', label: 'Todos', gradient: 'from-slate-500 to-slate-600', Icon: FileText },
+  ...RESOURCE_CATEGORIES.map((c): CatOption => {
+    const s = getResourceStyle(c);
+    return { value: c, label: s.label, gradient: s.gradient, Icon: s.Icon };
+  }),
+];
+
 export const ResourcesCategoryTabs = ({ selectedCategory, onCategoryChange }: ResourcesCategoryTabsProps) => {
   const isMobile = useIsMobile();
-  
-  const categories = [
-    { value: 'all', label: 'Todos', icon: FileText, color: 'from-gray-500 to-gray-600' },
-    { value: 'gestion', label: 'Gestión', icon: Briefcase, color: 'from-blue-500 to-blue-600' },
-    { value: 'marketing', label: 'Marketing', icon: Target, color: 'from-green-500 to-green-600' },
-    { value: 'liderazgo', label: 'Liderazgo', icon: Trophy, color: 'from-purple-500 to-purple-600' },
-    { value: 'atencion_cliente', label: 'Atención al Cliente', icon: Heart, color: 'from-pink-500 to-pink-600' },
-    { value: 'tecnologia', label: 'Tecnología', icon: Users, color: 'from-orange-500 to-orange-600' }
-  ];
-
-  const selectedCategoryData = categories.find(cat => cat.value === selectedCategory);
+  const selected = CATS.find(c => c.value === selectedCategory) || CATS[0];
 
   if (isMobile) {
     return (
-      <motion.div 
-        className="w-full"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <motion.div className="w-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <Select value={selectedCategory} onValueChange={onCategoryChange}>
           <SelectTrigger className="w-full">
             <SelectValue>
               <div className="flex items-center">
-                <div className={`p-2 rounded-lg bg-gradient-to-r ${selectedCategoryData?.color} shadow-lg mr-3`}>
-                  {selectedCategoryData?.icon && <selectedCategoryData.icon className="h-4 w-4 text-white" />}
+                <div className={`p-2 rounded-lg bg-gradient-to-r ${selected.gradient} shadow mr-3`}>
+                  <selected.Icon className="h-4 w-4 text-white" />
                 </div>
-                <span>{selectedCategoryData?.label}</span>
+                <span>{selected.label}</span>
               </div>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
+            {CATS.map(category => (
               <SelectItem key={category.value} value={category.value}>
                 <div className="flex items-center">
-                  <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-3`}>
-                    <category.icon className="h-4 w-4 text-white" />
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${category.gradient} shadow mr-3`}>
+                    <category.Icon className="h-4 w-4 text-white" />
                   </div>
                   {category.label}
                 </div>
@@ -60,28 +63,21 @@ export const ResourcesCategoryTabs = ({ selectedCategory, onCategoryChange }: Re
   }
 
   return (
-    <motion.div 
-      className="flex flex-wrap gap-2"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      {categories.map((category) => (
-        <Button
-          key={category.value}
-          variant={selectedCategory === category.value ? "default" : "outline"}
-          onClick={() => onCategoryChange(category.value)}
-          className={`relative group transition-all duration-300 transform hover:scale-105 ${
-            selectedCategory === category.value
-              ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
-              : 'hover:shadow-md hover:bg-green-600 hover:text-white'
-          }`}
-        >
-          <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
-            <category.icon className="h-4 w-4 text-white" />
-          </div>
-          {category.label}
-        </Button>
-      ))}
+    <motion.div className="flex flex-wrap gap-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      {CATS.map(category => {
+        const active = selectedCategory === category.value;
+        return (
+          <Button
+            key={category.value}
+            variant={active ? 'default' : 'outline'}
+            onClick={() => onCategoryChange(category.value)}
+            className={`gap-2 transition-all ${active ? `bg-gradient-to-r ${category.gradient} text-white border-0 shadow` : ''}`}
+          >
+            <category.Icon className="h-4 w-4" />
+            {category.label}
+          </Button>
+        );
+      })}
     </motion.div>
   );
 };

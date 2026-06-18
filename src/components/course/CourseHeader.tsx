@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Users, BookOpen, CheckCircle, Lock, BarChart3, TrendingUp, Crown, Handshake, Wallet, Laptop } from 'lucide-react';
+import { getCourseCover } from '@/lib/courseCover';
 import type { Course } from '@/types/course';
 
 interface CourseHeaderProps {
@@ -46,7 +47,7 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
           <div className="flex flex-col md:flex-row gap-6">
             {/* Course Image */}
             <div className="relative flex-shrink-0">
-              <div className="relative w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+              <div className={`relative w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 bg-gradient-to-br ${getCourseCover(course.category).gradient} flex items-center justify-center`}>
                 <div className="absolute inset-0 flex items-center justify-center text-white">
                   {getCategoryIcon(course.category, 'h-12 w-12')}
                 </div>
