@@ -30,15 +30,6 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
   const progressPercentage = Math.min((currentCount / challenge.target_count) * 100, 100);
   const hasProgress = currentCount > 0;
 
-  console.log('Challenge progress debug:', {
-    challengeName: challenge.name,
-    currentCount,
-    targetCount: challenge.target_count,
-    completedAt: progress?.completed_at,
-    completed,
-    progressPercentage
-  });
-
   const getChallengeIcon = (type: string) => {
     switch (type) {
       case 'course_completed':
@@ -73,25 +64,25 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
     }
   };
 
-  const getChallengeEmoji = (type: string) => {
+  const getChallengeTitleIcon = (type: string) => {
     switch (type) {
       case 'course_completed':
       case 'course_started':
-        return '📚';
+        return <BookOpen className="h-4 w-4" />;
       case 'forum_post':
       case 'forum_reply':
-        return '💬';
+        return <MessageSquare className="h-4 w-4" />;
       case 'resource_downloaded':
-        return '📁';
+        return <Gift className="h-4 w-4" />;
       case 'community_engagement':
-        return '👥';
+        return <Users className="h-4 w-4" />;
       default:
-        return '🏆';
+        return <Trophy className="h-4 w-4" />;
     }
   };
 
   const getProgressMessage = () => {
-    if (completed) return '¡Reto completado! 🎉';
+    if (completed) return '¡Reto completado!';
     if (!hasProgress) return 'Comienza este reto participando en las actividades relacionadas';
     
     const remaining = challenge.target_count - currentCount;
@@ -130,7 +121,7 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
             </div>
             <div>
               <CardTitle className="text-lg flex items-center space-x-2">
-                <span>{getChallengeEmoji(challenge.type)}</span>
+                <span>{getChallengeTitleIcon(challenge.type)}</span>
                 <span>{challenge.name}</span>
               </CardTitle>
               <div className="flex items-center space-x-2 mt-1">

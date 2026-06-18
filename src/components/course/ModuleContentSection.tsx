@@ -14,8 +14,8 @@ export const ModuleContentSection = ({ content }: ModuleContentSectionProps) => 
         <div className="p-2 bg-blue-100 rounded-lg">
           <BookOpen className="h-5 w-5 text-blue-600" />
         </div>
-        <h4 className="text-lg font-semibold text-gray-800">
-          📚 Contenido del módulo
+        <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <BookOpen className="h-5 w-5" /> Contenido del módulo
         </h4>
       </div>
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">

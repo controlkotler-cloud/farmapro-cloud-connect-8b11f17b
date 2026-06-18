@@ -138,7 +138,7 @@ export const ForumStats = ({
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Target className="h-5 w-5 text-orange-600" />
-              <span>🎯 Retos del Foro</span>
+              <span>Retos del Foro</span>
             </CardTitle>
             <CardDescription>
               Completa estos retos para ganar puntos extra

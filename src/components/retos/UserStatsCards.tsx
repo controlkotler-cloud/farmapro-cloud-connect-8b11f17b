@@ -63,7 +63,7 @@ export const UserStatsCards = ({ userStats }: UserStatsCardsProps) => {
               <Flame className="h-8 w-8 text-orange-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-orange-700">🔥 Racha</p>
+              <p className="text-sm font-medium text-orange-700 flex items-center gap-1"><Flame className="h-4 w-4" /> Racha</p>
               <p className="text-2xl font-bold text-orange-900">{userStats.streakDays} días</p>
             </div>
           </div>

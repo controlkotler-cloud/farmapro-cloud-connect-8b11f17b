@@ -1,6 +1,6 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star } from 'lucide-react';
+import { Star, LayoutList, MessageSquare, AlertTriangle, Stethoscope, BarChart3, Pill, MessagesSquare } from 'lucide-react';
 
 interface ForumCategory {
   id: string;
@@ -8,6 +8,23 @@ interface ForumCategory {
   description: string;
   is_premium: boolean;
 }
+
+const getCategoryIcon = (name: string) => {
+  switch (name) {
+    case 'Consultas Generales':
+      return <MessageSquare className="h-4 w-4" />;
+    case 'Farmacovigilancia':
+      return <AlertTriangle className="h-4 w-4" />;
+    case 'Atención Farmacéutica':
+      return <Stethoscope className="h-4 w-4" />;
+    case 'Gestión Farmacéutica':
+      return <BarChart3 className="h-4 w-4" />;
+    case 'Nuevos Medicamentos':
+      return <Pill className="h-4 w-4" />;
+    default:
+      return <MessagesSquare className="h-4 w-4" />;
+  }
+};
 
 interface ForumFiltersProps {
   categories: ForumCategory[];
@@ -28,24 +45,21 @@ export const ForumFilters = ({
     <Tabs value={selectedCategory} onValueChange={onCategoryChange}>
       <TabsList className="grid w-full grid-cols-auto bg-white border">
         <TabsTrigger value="all" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
-          📋 Todos
+          <div className="flex items-center space-x-1">
+            <LayoutList className="h-4 w-4" />
+            <span>Todos</span>
+          </div>
         </TabsTrigger>
         {categories.map((category) => (
-          <TabsTrigger 
-            key={category.id} 
+          <TabsTrigger
+            key={category.id}
             value={category.id}
             disabled={!canAccessCategory(category)}
             className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700"
           >
             <div className="flex items-center space-x-1">
-              <span>
-                {category.name === 'Consultas Generales' && '💬'}
-                {category.name === 'Farmacovigilancia' && '⚠️'}
-                {category.name === 'Atención Farmacéutica' && '👨‍⚕️'}
-                {category.name === 'Gestión Farmacéutica' && '📊'}
-                {category.name === 'Nuevos Medicamentos' && '💊'}
-                {' '}{category.name}
-              </span>
+              {getCategoryIcon(category.name)}
+              <span>{category.name}</span>
               {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
             </div>
           </TabsTrigger>

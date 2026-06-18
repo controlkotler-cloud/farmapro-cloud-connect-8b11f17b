@@ -5,13 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Search, 
+import {
+  Search,
   RotateCcw,
   CheckCircle,
   Clock,
   Trophy,
-  User
+  User,
+  BookOpen,
+  MessageSquare,
+  Gift
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -95,18 +98,18 @@ export const UserChallengeProgress = ({
     }
   };
 
-  const getChallengeTypeEmoji = (type: ChallengeType) => {
+  const getChallengeTypeIcon = (type: ChallengeType) => {
     switch (type) {
       case 'course_completed':
       case 'course_started':
-        return '📚';
+        return <BookOpen className="h-5 w-5" />;
       case 'forum_post':
       case 'forum_reply':
-        return '💬';
+        return <MessageSquare className="h-5 w-5" />;
       case 'resource_downloaded':
-        return '📁';
+        return <Gift className="h-5 w-5" />;
       default:
-        return '🏆';
+        return <Trophy className="h-5 w-5" />;
     }
   };
 
@@ -195,8 +198,8 @@ export const UserChallengeProgress = ({
                         
                         <div className="mb-4">
                           <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-lg">
-                              {getChallengeTypeEmoji(progress.challenges?.type || 'course_started')}
+                            <span className="text-muted-foreground">
+                              {getChallengeTypeIcon(progress.challenges?.type || 'course_started')}
                             </span>
                             <h5 className="font-medium">{progress.challenges?.name}</h5>
                             <Badge variant="outline">

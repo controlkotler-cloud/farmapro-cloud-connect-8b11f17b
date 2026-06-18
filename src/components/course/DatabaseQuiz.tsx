@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, XCircle, RotateCcw, Clock, Trophy, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, RotateCcw, Clock, Trophy, AlertCircle, ArrowRight, Loader2, PartyPopper, Dumbbell, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuiz } from '@/hooks/useQuiz';
 import type { QuizAttempt } from '@/types/quiz';
@@ -154,7 +154,16 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader className="text-center pb-2">
-          <div className="text-5xl mb-3">{passed ? '🎉' : '💪'}</div>
+          <motion.div
+            initial={{ scale: 0, rotate: -15 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+            className="mx-auto mb-3 w-fit"
+          >
+            {passed
+              ? <PartyPopper className="h-14 w-14 text-yellow-500" />
+              : <Dumbbell className="h-14 w-14 text-orange-500" />}
+          </motion.div>
           <CardTitle className="text-2xl">
             {passed
               ? '¡Enhorabuena! Has completado la evaluación del curso'
@@ -203,8 +212,9 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
                         </p>
                       )}
                       {question.explanation && (
-                        <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-2 rounded">
-                          💡 {question.explanation}
+                        <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-2 rounded flex items-start gap-1.5">
+                          <Lightbulb className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
+                          <span>{question.explanation}</span>
                         </p>
                       )}
                     </div>

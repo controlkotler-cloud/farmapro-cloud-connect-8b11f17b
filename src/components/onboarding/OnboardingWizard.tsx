@@ -18,7 +18,7 @@ interface OnboardingStep {
 
 const steps: OnboardingStep[] = [
   {
-    title: '¡Bienvenido a Farmapro!',
+    title: '¡Bienvenido a farmapro!',
     subtitle: 'Tu plataforma de formación y herramientas para farmacia',
     text: 'Vamos a enseñarte en 1 minuto todo lo que puedes hacer aquí. ¿Empezamos?',
     icons: <Pill className="h-20 w-20" />,
@@ -28,30 +28,30 @@ const steps: OnboardingStep[] = [
   {
     title: 'Cursos prácticos para tu farmacia',
     text: 'Desde Instagram y Google hasta gestión financiera y normativa. Cada curso tiene módulos con contenido real, no teoría vacía. Los cursos Premium son exclusivos para titulares.',
-    highlight: '10 cursos disponibles · Desde 100 hasta 180 minutos · Con quiz al final',
+    highlight: 'Cursos por niveles · Módulos con contenido real · Con cuestionario al final',
     icons: <GraduationCap className="h-20 w-20" />,
-    bgClass: 'from-blue-50 to-blue-100/50',
+    bgClass: 'from-emerald-50 to-emerald-100/50',
     cta: 'Ver cursos',
   },
   {
     title: 'Conecta con otros profesionales',
-    text: 'El foro de Farmapro es tu espacio para preguntar, compartir experiencias y aprender de otros compañeros. Marketing, gestión, normativa, atención farmacéutica... todo tiene su categoría.',
-    highlight: '7 categorías · 24 hilos activos · Pregunta lo que quieras',
+    text: 'El foro de farmapro es tu espacio para preguntar, compartir experiencias y aprender de otros compañeros. Marketing, gestión, normativa, atención farmacéutica... todo tiene su categoría.',
+    highlight: 'Varias categorías · Comparte experiencias · Aprende de otros compañeros',
     icons: <Users className="h-20 w-20" />,
-    bgClass: 'from-amber-50 to-amber-100/50',
+    bgClass: 'from-emerald-50 to-emerald-100/50',
     cta: 'Explorar el foro',
   },
   {
     title: 'Descargables y herramientas listas para usar',
     text: 'Checklists, plantillas, protocolos y calculadoras que puedes usar hoy mismo en tu farmacia. Y con IAFarma, genera contenido para redes sociales en segundos.',
-    highlight: '9 recursos descargables · IAFarma con IA · Todo incluido en tu suscripción',
+    highlight: 'Plantillas y checklists listas para usar · Asistente con IA · Incluido en tu plan',
     icons: (
       <div className="flex gap-3">
         <Download className="h-16 w-16" />
         <Sparkles className="h-16 w-16" />
       </div>
     ),
-    bgClass: 'from-purple-50 to-purple-100/50',
+    bgClass: 'from-emerald-50 to-emerald-100/50',
     cta: 'Ver recursos',
   },
   {

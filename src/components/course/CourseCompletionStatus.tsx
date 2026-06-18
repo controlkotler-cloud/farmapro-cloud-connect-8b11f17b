@@ -1,5 +1,5 @@
 
-import { Award, ClipboardCheck } from 'lucide-react';
+import { Award, ClipboardCheck, PartyPopper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -47,7 +47,7 @@ export const CourseCompletionStatus = ({
         <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4 justify-center">
           <Award className="h-6 w-6 text-green-600" />
           <div>
-            <p className="font-semibold text-green-800">🎉 ¡Curso completado!</p>
+            <p className="font-semibold text-green-800 flex items-center gap-1.5"><PartyPopper className="h-4 w-4" /> ¡Curso completado!</p>
             <p className="text-sm text-green-600">Has finalizado exitosamente este curso</p>
           </div>
         </div>

@@ -2,14 +2,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Trophy, 
-  Target, 
-  CheckCircle, 
+import {
+  Trophy,
+  Target,
+  CheckCircle,
   Award,
   TrendingUp,
   Users,
-  Star
+  Star,
+  BookOpen,
+  MessageSquare,
+  Gift
 } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
@@ -107,18 +110,18 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
     }
   };
 
-  const getChallengeTypeEmoji = (type: ChallengeType) => {
+  const getChallengeTypeIcon = (type: ChallengeType) => {
     switch (type) {
       case 'course_completed':
       case 'course_started':
-        return '📚';
+        return <BookOpen className="h-5 w-5" />;
       case 'forum_post':
       case 'forum_reply':
-        return '💬';
+        return <MessageSquare className="h-5 w-5" />;
       case 'resource_downloaded':
-        return '📁';
+        return <Gift className="h-5 w-5" />;
       default:
-        return '🏆';
+        return <Trophy className="h-5 w-5" />;
     }
   };
 
@@ -191,7 +194,7 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
               <div key={typeStat.name} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg">{getChallengeTypeEmoji(typeStat.name as ChallengeType)}</span>
+                    <span className="text-muted-foreground">{getChallengeTypeIcon(typeStat.name as ChallengeType)}</span>
                     <span className="font-medium">{getChallengeTypeLabel(typeStat.name as ChallengeType)}</span>
                   </div>
                   <div className="text-sm text-gray-600">

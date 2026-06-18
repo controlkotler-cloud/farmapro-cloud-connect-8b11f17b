@@ -48,9 +48,9 @@ export const Dashboard = () => {
           <EngagementWidget />
         </div>
         <div className="space-y-6">
+          <MiniLeaderboard />
           <UpcomingChallenges />
           <RecentBadges />
-          <MiniLeaderboard />
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Users, BookOpen, CheckCircle, Lock } from 'lucide-react';
+import { Clock, Users, BookOpen, CheckCircle, Lock, BarChart3, TrendingUp, Crown, Handshake, Wallet, Laptop } from 'lucide-react';
 import type { Course } from '@/types/course';
 
 interface CourseHeaderProps {
@@ -12,15 +12,15 @@ interface CourseHeaderProps {
 }
 
 export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderProps) => {
-  const getCategoryEmoji = (category: string) => {
+  const getCategoryIcon = (category: string, className = 'h-4 w-4') => {
     switch (category) {
-      case 'gestion': return '📊';
-      case 'marketing': return '📈';
-      case 'liderazgo': return '👑';
-      case 'atencion': return '🤝';
-      case 'finanzas': return '💰';
-      case 'digital': return '💻';
-      default: return '📚';
+      case 'gestion': return <BarChart3 className={className} />;
+      case 'marketing': return <TrendingUp className={className} />;
+      case 'liderazgo': return <Crown className={className} />;
+      case 'atencion': return <Handshake className={className} />;
+      case 'finanzas': return <Wallet className={className} />;
+      case 'digital': return <Laptop className={className} />;
+      default: return <BookOpen className={className} />;
     }
   };
 
@@ -46,26 +46,19 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
           <div className="flex flex-col md:flex-row gap-6">
             {/* Course Image */}
             <div className="relative flex-shrink-0">
-              <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
-                {course.thumbnail_url || course.featured_image_url ? (
+              <div className="relative w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center text-white">
+                  {getCategoryIcon(course.category, 'h-12 w-12')}
+                </div>
+                {(course.thumbnail_url || course.featured_image_url) && (
                   <img
                     src={course.thumbnail_url || course.featured_image_url}
                     alt={course.title}
-                    className="w-full h-full object-cover"
+                    className="relative w-full h-full object-cover"
                     onError={(e) => {
-                      const t = e.currentTarget;
-                      t.style.display = 'none';
-                      const p = t.parentElement;
-                      if (p && !p.querySelector('.fallback-emoji')) {
-                        const f = document.createElement('div');
-                        f.className = 'fallback-emoji text-4xl';
-                        f.textContent = getCategoryEmoji(course.category);
-                        p.appendChild(f);
-                      }
+                      e.currentTarget.style.display = 'none';
                     }}
                   />
-                ) : (
-                  <span className="text-4xl">{getCategoryEmoji(course.category)}</span>
                 )}
               </div>
               {isCompleted && (
@@ -82,8 +75,8 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
               <div className="flex items-start justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <Badge className="bg-gradient-to-r from-purple-500 to-blue-600 text-white px-3 py-1">
-                      <span className="mr-1">{getCategoryEmoji(course.category)}</span>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-blue-600 text-white px-3 py-1 inline-flex items-center gap-1">
+                      {getCategoryIcon(course.category, 'h-3.5 w-3.5')}
                       {getCategoryLabel(course.category)}
                     </Badge>
                     {course.is_premium && (

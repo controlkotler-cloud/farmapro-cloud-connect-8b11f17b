@@ -76,11 +76,11 @@ interface ChallengeManagementProps {
 }
 
 const challengeTypes = [
-  { value: 'course_started' as ChallengeType, label: 'Curso Iniciado', icon: BookOpen, emoji: '📚' },
-  { value: 'course_completed' as ChallengeType, label: 'Curso Completado', icon: BookOpen, emoji: '🎓' },
-  { value: 'forum_post' as ChallengeType, label: 'Post en Foro', icon: MessageSquare, emoji: '💬' },
-  { value: 'forum_reply' as ChallengeType, label: 'Respuesta en Foro', icon: MessageSquare, emoji: '💭' },
-  { value: 'resource_downloaded' as ChallengeType, label: 'Recurso Descargado', icon: Gift, emoji: '📁' }
+  { value: 'course_started' as ChallengeType, label: 'Curso Iniciado', icon: BookOpen },
+  { value: 'course_completed' as ChallengeType, label: 'Curso Completado', icon: BookOpen },
+  { value: 'forum_post' as ChallengeType, label: 'Post en Foro', icon: MessageSquare },
+  { value: 'forum_reply' as ChallengeType, label: 'Respuesta en Foro', icon: MessageSquare },
+  { value: 'resource_downloaded' as ChallengeType, label: 'Recurso Descargado', icon: Gift }
 ];
 
 export const ChallengeManagement = ({ 
@@ -170,10 +170,9 @@ export const ChallengeManagement = ({
   };
 
   const getChallengeTypeInfo = (type: ChallengeType) => {
-    return challengeTypes.find(ct => ct.value === type) || { 
-      label: type, 
-      icon: Trophy, 
-      emoji: '🏆' 
+    return challengeTypes.find(ct => ct.value === type) || {
+      label: type,
+      icon: Trophy
     };
   };
 
@@ -223,7 +222,6 @@ export const ChallengeManagement = ({
                           </div>
                           <div>
                             <h4 className="font-semibold text-lg flex items-center space-x-2">
-                              <span>{typeInfo.emoji}</span>
                               <span>{challenge.name}</span>
                             </h4>
                             <div className="flex items-center space-x-2 mt-1">
@@ -350,14 +348,17 @@ export const ChallengeManagement = ({
                   <SelectValue placeholder="Selecciona el tipo de reto" />
                 </SelectTrigger>
                 <SelectContent>
-                  {challengeTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div className="flex items-center space-x-2">
-                        <span>{type.emoji}</span>
-                        <span>{type.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {challengeTypes.map((type) => {
+                    const TypeIcon = type.icon;
+                    return (
+                      <SelectItem key={type.value} value={type.value}>
+                        <div className="flex items-center space-x-2">
+                          <TypeIcon className="h-4 w-4" />
+                          <span>{type.label}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

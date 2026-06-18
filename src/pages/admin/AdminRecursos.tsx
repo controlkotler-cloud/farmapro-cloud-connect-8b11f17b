@@ -381,7 +381,7 @@ const AdminRecursos = () => {
                 <DialogDescription>
                   Especifica un tema y categoría personalizados o deja vacío para usar el sistema automático.
                   <br />
-                  <span className="text-green-600 font-medium">✨ Genera archivos descargables reales (PDF, Excel, Word)</span>
+                  <span className="text-green-600 font-medium inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> Genera archivos descargables reales (PDF, Excel, Word)</span>
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">

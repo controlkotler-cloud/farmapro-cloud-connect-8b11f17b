@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,13 +5,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateStreak } from '@/utils/streakUtils';
 import { Link } from 'react-router-dom';
-import { Flame, Star, Target, BookOpen, Trophy } from 'lucide-react';
+import { Flame, Star, Target, BookOpen, Trophy, GraduationCap, User } from 'lucide-react';
 
 interface EngagementItem {
   icon: React.ReactNode;
   text: string;
   link: string;
 }
+
+// Sugerencias de activación para cuando el usuario aún no tiene actividad.
+const ACTIVATION_ITEMS: EngagementItem[] = [
+  { icon: <GraduationCap className="h-4 w-4 text-primary" />, text: 'Empieza tu primer curso', link: '/formacion' },
+  { icon: <Target className="h-4 w-4 text-primary" />, text: 'Completa un reto y entra en el ranking', link: '/retos' },
+  { icon: <User className="h-4 w-4 text-primary" />, text: 'Completa tu perfil', link: '/perfil' },
+];
 
 export const EngagementWidget = () => {
   const { profile } = useAuth();
@@ -33,7 +39,7 @@ export const EngagementWidget = () => {
       if (streak > 0) {
         result.push({
           icon: <Flame className="h-4 w-4 text-orange-500" />,
-          text: `🔥 Racha actual: ${streak} días — ¡No la pierdas!`,
+          text: `Racha actual: ${streak} días — ¡No la pierdas!`,
           link: '/retos',
         });
       }
@@ -43,13 +49,13 @@ export const EngagementWidget = () => {
         .from('user_points')
         .select('user_id, total_points')
         .order('total_points', { ascending: false });
-      
+
       if (allPoints) {
         const pos = allPoints.findIndex(p => p.user_id === profile.id) + 1;
         if (pos > 0) {
           result.push({
             icon: <Star className="h-4 w-4 text-yellow-500" />,
-            text: `⭐ Estás en el puesto #${pos} del ranking`,
+            text: `Estás en el puesto #${pos} del ranking`,
             link: '/retos',
           });
         }
@@ -74,7 +80,7 @@ export const EngagementWidget = () => {
           .in('challenge_id', challengeIds);
 
         const progressMap = new Map((progress || []).map(p => [p.challenge_id, p]));
-        
+
         for (const wc of weeklyChallenges as any[]) {
           const p = progressMap.get(wc.id);
           if (!p?.completed_at) {
@@ -82,7 +88,7 @@ export const EngagementWidget = () => {
             if (remaining > 0) {
               result.push({
                 icon: <Target className="h-4 w-4 text-primary" />,
-                text: `🎯 Te faltan ${remaining} para completar '${wc.name}'`,
+                text: `Te faltan ${remaining} para completar '${wc.name}'`,
                 link: '/retos',
               });
               break;
@@ -102,7 +108,7 @@ export const EngagementWidget = () => {
       if (enrollments && enrollments.length > 0 && enrollments[0].courses) {
         result.push({
           icon: <BookOpen className="h-4 w-4 text-primary" />,
-          text: `📚 Tienes 1 curso en progreso — retómalo`,
+          text: `Tienes 1 curso en progreso — retómalo`,
           link: '/formacion',
         });
       }
@@ -124,7 +130,7 @@ export const EngagementWidget = () => {
         if (next) {
           result.push({
             icon: <Trophy className="h-4 w-4 text-primary" />,
-            text: `🏆 Próximo badge: '${next.name}'`,
+            text: `Próximo badge: '${next.name}'`,
             link: '/retos',
           });
         }
@@ -137,7 +143,11 @@ export const EngagementWidget = () => {
     setLoading(false);
   };
 
-  if (loading || items.length === 0) return null;
+  if (loading) return null;
+
+  // Si aún no hay actividad real, mostramos sugerencias de activación (en vez de ocultar el widget).
+  const visibleItems = items.length > 0 ? items : ACTIVATION_ITEMS;
+  const title = items.length > 0 ? 'Tu actividad' : 'Empieza por aquí';
 
   return (
     <motion.div
@@ -147,11 +157,11 @@ export const EngagementWidget = () => {
     >
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Tu actividad</CardTitle>
+          <CardTitle className="text-lg">{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {items.map((item, i) => (
+            {visibleItems.map((item, i) => (
               <Link
                 key={i}
                 to={item.link}

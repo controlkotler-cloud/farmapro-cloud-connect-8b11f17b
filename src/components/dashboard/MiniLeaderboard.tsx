@@ -4,7 +4,6 @@ import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Crown, Medal } from 'lucide-react';
-import { getLevelInfo } from '@/services/pointsService';
 import { motion } from 'framer-motion';
 
 const RankIcon = ({ rank }: { rank: number }) => {
@@ -36,45 +35,55 @@ export const MiniLeaderboard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {top5.map(entry => {
-              const level = getLevelInfo(entry.total_points);
-              return (
-                <div
-                  key={entry.user_id}
-                  className={`flex items-center gap-2 p-2 rounded-lg text-sm ${
-                    entry.isCurrentUser ? 'bg-green-50 ring-1 ring-green-200' : ''
-                  }`}
-                >
-                  <div className="w-6 flex justify-center"><RankIcon rank={entry.rank} /></div>
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={entry.avatar_url || undefined} />
-                    <AvatarFallback className="text-xs">{entry.first_name[0]}</AvatarFallback>
-                  </Avatar>
-                  <span className="flex-1 truncate font-medium">
-                    {entry.first_name}
-                    {entry.isCurrentUser && <span className="text-green-600 ml-1">(tú)</span>}
-                  </span>
-                  <span className="text-xs">{level.icon}</span>
-                  <span className="font-bold text-xs">{entry.total_points}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {currentUserRank && (
-            <div className="border-t mt-2 pt-2">
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50 ring-1 ring-green-200 text-sm">
-                <span className="text-xs font-bold w-6 text-center">#{currentUserRank.rank}</span>
-                <span className="flex-1 font-medium">{currentUserRank.first_name} (tú)</span>
-                <span className="font-bold text-xs">{currentUserRank.total_points}</span>
-              </div>
+          {top5.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-3">
+                El ranking está a punto de empezar. Completa un curso o un reto y serás de los
+                primeros en aparecer.
+              </p>
+              <Button variant="link" className="p-0 h-auto text-sm" onClick={() => navigate('/retos')}>
+                Ver los retos
+              </Button>
             </div>
-          )}
+          ) : (
+            <>
+              <div className="space-y-2">
+                {top5.map(entry => (
+                  <div
+                    key={entry.user_id}
+                    className={`flex items-center gap-2 p-2 rounded-lg text-sm ${
+                      entry.isCurrentUser ? 'bg-green-50 ring-1 ring-green-200' : ''
+                    }`}
+                  >
+                    <div className="w-6 flex justify-center"><RankIcon rank={entry.rank} /></div>
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={entry.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs">{entry.first_name[0]}</AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 truncate font-medium">
+                      {entry.first_name}
+                      {entry.isCurrentUser && <span className="text-green-600 ml-1">(tú)</span>}
+                    </span>
+                    <span className="font-bold text-xs">{entry.total_points}</span>
+                  </div>
+                ))}
+              </div>
 
-          <Button variant="link" className="p-0 h-auto text-sm mt-2" onClick={() => navigate('/retos')}>
-            Ver ranking completo →
-          </Button>
+              {currentUserRank && (
+                <div className="border-t mt-2 pt-2">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50 ring-1 ring-green-200 text-sm">
+                    <span className="text-xs font-bold w-6 text-center">#{currentUserRank.rank}</span>
+                    <span className="flex-1 font-medium">{currentUserRank.first_name} (tú)</span>
+                    <span className="font-bold text-xs">{currentUserRank.total_points}</span>
+                  </div>
+                </div>
+              )}
+
+              <Button variant="link" className="p-0 h-auto text-sm mt-2" onClick={() => navigate('/retos')}>
+                Ver ranking completo
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </motion.div>

@@ -57,7 +57,7 @@ export const LeaderboardSection = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm">{entry.total_points} pts</p>
-                  <p className="text-xs text-muted-foreground">{entry.badge_count} 🏅</p>
+                  <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">{entry.badge_count} <Medal className="h-3 w-3" /></p>
                 </div>
               </div>
             ))}

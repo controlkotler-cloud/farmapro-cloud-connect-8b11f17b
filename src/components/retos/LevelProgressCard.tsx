@@ -1,7 +1,12 @@
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp } from 'lucide-react';
+import {
+  getLevelInfo,
+  getNextLevelInfo,
+  getNextLevelProgress,
+  getPointsToNextLevel,
+} from '@/services/pointsService';
 
 interface LevelProgressCardProps {
   userStats: {
@@ -11,16 +16,13 @@ interface LevelProgressCardProps {
 }
 
 export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
-  // Calcular progreso al siguiente nivel
-  const getNextLevelProgress = () => {
-    const pointsInCurrentLevel = userStats.totalPoints % 1000;
-    return (pointsInCurrentLevel / 1000) * 100;
-  };
-
-  const getPointsToNextLevel = () => {
-    const pointsInCurrentLevel = userStats.totalPoints % 1000;
-    return 1000 - pointsInCurrentLevel;
-  };
+  // Usar el modelo de niveles canónico (pointsService) para que coincida con el
+  // resto de la app (antes este componente calculaba con % 1000, incoherente).
+  const points = userStats.totalPoints;
+  const current = getLevelInfo(points);
+  const next = getNextLevelInfo(points);
+  const progress = getNextLevelProgress(points);
+  const toNext = getPointsToNextLevel(points);
 
   return (
     <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
@@ -32,23 +34,29 @@ export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
             </div>
             <div>
               <h3 className="text-xl font-bold text-indigo-900">Progreso de Nivel</h3>
-              <p className="text-indigo-700">Nivel {userStats.level}</p>
+              <p className="text-indigo-700">Nivel {current.level} · {current.name}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm text-indigo-600">Faltan {getPointsToNextLevel()} puntos</p>
-            <p className="text-lg font-bold text-indigo-900">para Nivel {userStats.level + 1}</p>
+            {next ? (
+              <>
+                <p className="text-sm text-indigo-600">Faltan {toNext} puntos</p>
+                <p className="text-lg font-bold text-indigo-900">para Nivel {next.level}</p>
+              </>
+            ) : (
+              <p className="text-lg font-bold text-indigo-900">¡Nivel máximo!</p>
+            )}
           </div>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-indigo-700">
-            <span>Nivel {userStats.level}</span>
-            <span>Nivel {userStats.level + 1}</span>
+            <span>Nivel {current.level}</span>
+            <span>{next ? `Nivel ${next.level}` : '—'}</span>
           </div>
-          <Progress value={getNextLevelProgress()} className="h-3" />
+          <Progress value={progress} className="h-3" />
           <div className="flex justify-between text-xs text-indigo-600">
-            <span>{userStats.totalPoints} pts actuales</span>
-            <span>{userStats.level * 1000} pts objetivo</span>
+            <span>{points} pts actuales</span>
+            <span>{next ? `${next.minPoints} pts objetivo` : 'Máximo'}</span>
           </div>
         </div>
       </CardContent>
