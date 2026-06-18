@@ -8,6 +8,7 @@ import { ContentType } from '@/hooks/useCreativeChat';
 import { useState } from 'react';
 
 interface Message {
+  id?: string;
   role: 'user' | 'assistant';
   content: string;
 }
@@ -64,8 +65,8 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
         {parts[0]?.trim() && (
           <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700 mb-4">{parts[0].trim()}</pre>
         )}
-        {slides.map((slide, i) => (
-          <div key={i} className="rounded-lg bg-green-50 ring-1 ring-green-200 p-4">
+        {slides.map((slide) => (
+          <div key={`slide-${slide.number}`} className="rounded-lg bg-green-50 ring-1 ring-green-200 p-4">
             <div className="text-xs font-bold text-green-600 mb-2">SLIDE {slide.number}</div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{slide.content}</pre>
           </div>
@@ -101,8 +102,8 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
         {parts[0]?.trim() && (
           <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700 mb-4">{parts[0].trim()}</pre>
         )}
-        {result.map((section, i) => (
-          <div key={i} className={`rounded-lg ring-1 p-4 ${colors[section.label] || 'bg-gray-50 ring-gray-200 text-gray-700'}`}>
+        {result.map((section) => (
+          <div key={section.label} className={`rounded-lg ring-1 p-4 ${colors[section.label] || 'bg-gray-50 ring-gray-200 text-gray-700'}`}>
             <div className="text-xs font-bold mb-2">{section.label}</div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{section.text}</pre>
           </div>
@@ -127,7 +128,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
         <AnimatePresence mode="popLayout">
           {messages.map((message, index) => (
             <motion.div
-              key={index}
+              key={message.id ?? `msg-${index}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -140,7 +141,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
                 </div>
               ) : (
                 <div className="rounded-xl ring-1 ring-green-100 bg-white p-5 shadow-sm">
-                  <span className="text-xs font-semibold text-green-600 block mb-3">✨ Contenido generado</span>
+                  <span className="text-xs font-semibold text-green-600 block mb-3">Contenido generado</span>
                   {renderContent(message.content)}
                 </div>
               )}

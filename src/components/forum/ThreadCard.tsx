@@ -12,6 +12,7 @@ interface ThreadCardProps {
     author_id: string;
     category_id: string;
     replies_count: number;
+    views_count?: number;
     is_pinned: boolean;
     last_reply_at: string;
     created_at: string;
@@ -84,7 +85,7 @@ export const ThreadCard = ({ thread, index, onClick }: ThreadCardProps) => {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Eye className="h-4 w-4" />
-                  <span>{Math.floor(Math.random() * 100) + 20} vistas</span>
+                  <span>{thread.views_count ?? 0} vistas</span>
                 </div>
               </div>
             </div>

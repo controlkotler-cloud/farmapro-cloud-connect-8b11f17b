@@ -99,13 +99,13 @@ export const useRetosData = () => {
     // Contar hilos creados por el usuario
     const { count: threadCount } = await supabase
       .from('forum_threads')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('author_id', profile.id);
 
     // Contar respuestas del usuario
     const { count: replyCount } = await supabase
       .from('forum_replies')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('author_id', profile.id);
 
     console.log('Forum stats:', { threadCount, replyCount });

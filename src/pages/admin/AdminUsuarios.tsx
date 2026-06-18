@@ -83,13 +83,14 @@ const AdminUsuarios = () => {
     });
     
     // Determine subscription status based on role
-    const subscriptionStatus = ['premium', 'profesional', 'estudiante', 'admin'].includes(newRole) 
-      ? 'active' 
-      : 'trialing';
-    
+    const subscriptionStatus: Database['public']['Enums']['subscription_status'] =
+      ['premium', 'profesional', 'estudiante', 'admin'].includes(newRole)
+        ? 'active'
+        : 'trialing';
+
     try {
       // Use the secure RPC function
-      const { data, error } = await supabase.rpc('update_user_role_admin' as any, {
+      const { data, error } = await supabase.rpc('update_user_role_admin', {
         target_user_id: userId,
         new_role: newRole,
         new_status: subscriptionStatus
@@ -428,9 +429,15 @@ const AdminUsuarios = () => {
                     Registrado: {new Date(user.created_at).toLocaleDateString()}
                   </div>
                   <div className="pt-2">
-                    <Select 
-                      value={user.subscription_role} 
-                      onValueChange={(value: UserRole) => updateUserRole(user.id, value)}
+                    <Select
+                      value={user.subscription_role}
+                      onValueChange={(value: UserRole) => {
+                        if (value === user.subscription_role) return;
+                        const userLabel = user.full_name || user.email;
+                        if (window.confirm(`¿Seguro que quieres cambiar el rol de ${userLabel} a ${value}?`)) {
+                          updateUserRole(user.id, value);
+                        }
+                      }}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue />

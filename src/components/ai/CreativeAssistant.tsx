@@ -90,6 +90,7 @@ export const CreativeAssistant = () => {
                   variant="ghost"
                   size="icon"
                   onClick={clearChat}
+                  aria-label="Limpiar conversación"
                   className="h-8 w-8 text-secondary-foreground hover:bg-secondary-foreground/20"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -99,6 +100,7 @@ export const CreativeAssistant = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
+                aria-label="Cerrar"
                 className="h-8 w-8 text-secondary-foreground hover:bg-secondary-foreground/20"
               >
                 <X className="h-4 w-4" />
@@ -139,9 +141,9 @@ export const CreativeAssistant = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((message, index) => (
+                {messages.map((message) => (
                   <div
-                    key={index}
+                    key={message.id}
                     className={cn(
                       'flex flex-col gap-2',
                       message.role === 'user' ? 'items-end' : 'items-start'
@@ -196,7 +198,7 @@ export const CreativeAssistant = () => {
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+              <Button type="submit" size="icon" aria-label="Enviar" disabled={isLoading || !input.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             </div>

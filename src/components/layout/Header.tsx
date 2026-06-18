@@ -1,5 +1,5 @@
 
-import { Bell, User, LogOut, Menu } from 'lucide-react';
+import { Bell, User, LogOut, Menu, BookOpen, Download, MessageSquare, Trophy } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,18 @@ export const Header = () => {
 
   const getNotificationIcon = (type: string) => {
     // Podríamos usar diferentes iconos según el tipo
-    return '🔔';
+    switch (type) {
+      case 'course':
+        return <BookOpen className="h-4 w-4 text-blue-600" />;
+      case 'resource':
+        return <Download className="h-4 w-4 text-green-600" />;
+      case 'forum':
+        return <MessageSquare className="h-4 w-4 text-purple-600" />;
+      case 'challenge':
+        return <Trophy className="h-4 w-4 text-yellow-600" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-600" />;
+    }
   };
 
   return (
@@ -61,7 +72,7 @@ export const Header = () => {
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative">
+              <Button variant="ghost" size="sm" className="relative" aria-label="Notificaciones">
                 <Bell className="h-5 w-5" />
                 {notifications.length > 0 && (
                   <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
@@ -103,7 +114,7 @@ export const Header = () => {
                             })}
                           </p>
                         </div>
-                        <span className="text-lg ml-2">
+                        <span className="ml-2 flex-shrink-0">
                           {getNotificationIcon(notification.type)}
                         </span>
                       </div>

@@ -48,6 +48,20 @@ serve(async (req) => {
 
     logStep("Processing event", { type: event.type, id: event.id });
 
+    // C-SEG4: idempotencia — si ya procesamos este event.id, salir sin reprocesar.
+    const { data: priorEvent } = await supabaseClient
+      .from('stripe_events')
+      .select('id')
+      .eq('id', event.id)
+      .maybeSingle();
+    if (priorEvent) {
+      logStep("Duplicate event ignored", { id: event.id });
+      return new Response(JSON.stringify({ received: true, duplicate: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
@@ -183,6 +197,19 @@ serve(async (req) => {
           }
 
           logStep("Team setup completed", { teamId: teamSub.id, totalMembers });
+        } else if (session.metadata?.plan && session.metadata?.user_id) {
+          // C-SEG4: plan individual — antes el webhook NO actualizaba el perfil.
+          const individualUserId = session.metadata.user_id;
+          const plan = session.metadata.plan; // 'estudiante' | 'profesional' | 'premium'
+          const { error: indErr } = await supabaseClient
+            .from('profiles')
+            .update({ subscription_role: plan, subscription_status: 'active', updated_at: new Date().toISOString() })
+            .eq('id', individualUserId);
+          if (indErr) {
+            logStep("Error updating individual profile", { error: indErr });
+          } else {
+            logStep("Individual subscription activated", { userId: individualUserId, plan });
+          }
         }
         break;
 
@@ -205,11 +232,32 @@ serve(async (req) => {
         } else {
           logStep("Team subscription cancelled", { subscriptionId: subscription.id });
         }
+
+        // C-SEG4: degradar también las suscripciones individuales.
+        const { data: subRow } = await supabaseClient
+          .from('subscriptions')
+          .select('user_id')
+          .eq('stripe_subscription_id', subscription.id)
+          .maybeSingle();
+        if (subRow?.user_id) {
+          await supabaseClient.from('subscriptions')
+            .update({ status: 'canceled', updated_at: new Date().toISOString() })
+            .eq('stripe_subscription_id', subscription.id);
+          await supabaseClient.from('profiles')
+            .update({ subscription_role: 'freemium', subscription_status: 'canceled', updated_at: new Date().toISOString() })
+            .eq('id', subRow.user_id);
+          logStep("Individual subscription downgraded", { userId: subRow.user_id });
+        }
         break;
 
       default:
         logStep("Unhandled event type", { type: event.type });
     }
+
+    // C-SEG4: marcar el evento como procesado (idempotencia).
+    await supabaseClient
+      .from('stripe_events')
+      .insert({ id: event.id, type: event.type });
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

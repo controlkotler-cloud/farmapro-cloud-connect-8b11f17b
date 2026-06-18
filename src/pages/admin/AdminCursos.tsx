@@ -81,49 +81,38 @@ const AdminCursos = () => {
     }
 
     setSubmitting(true);
-    console.log('Enviando datos del curso:', formData);
-    console.log('Editando curso:', editingCourse);
 
     try {
-      // DEBUG: Verificar el usuario actual y sus permisos
+      // Verificar el usuario actual y sus permisos
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('Usuario actual:', user);
-      
+
       if (userError) {
-        console.error('Error obteniendo usuario:', userError);
         throw new Error('Error de autenticación: ' + userError.message);
       }
 
       if (!user) {
-        console.error('No hay usuario autenticado');
         throw new Error('Usuario no autenticado');
       }
 
-      // DEBUG: Verificar el perfil del usuario
-      const { data: profile, error: profileError } = await supabase
+      // Verificar el perfil del usuario
+      const { error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      console.log('Perfil del usuario:', profile);
-      
       if (profileError) {
-        console.error('Error obteniendo perfil:', profileError);
         throw new Error('Error obteniendo perfil: ' + profileError.message);
       }
 
-      // DEBUG: Verificar si es admin usando la función de base de datos correcta
+      // Verificar si es admin usando la función de base de datos correcta
       const { data: isAdminResult, error: adminError } = await supabase.rpc('is_current_user_admin');
-      console.log('¿Es admin?:', isAdminResult);
-      
+
       if (adminError) {
-        console.error('Error verificando admin:', adminError);
         throw new Error('Error verificando permisos de admin: ' + adminError.message);
       }
 
       if (!isAdminResult) {
-        console.error('Usuario no es admin');
         throw new Error('No tienes permisos de administrador');
       }
 
@@ -146,11 +135,7 @@ const AdminCursos = () => {
         course_modules: processedModules
       };
 
-      console.log('Datos procesados a enviar a Supabase:', courseData);
-
       if (editingCourse) {
-        console.log('Actualizando curso con ID:', editingCourse.id);
-        
         const { data, error } = await supabase
           .from('courses')
           .update(courseData)
@@ -159,13 +144,10 @@ const AdminCursos = () => {
           .single();
 
         if (error) {
-          console.error('Error al actualizar curso:', error);
           throw error;
         }
 
-        console.log('Curso actualizado exitosamente:', data);
-        
-        setCourses(prevCourses => 
+        setCourses(prevCourses =>
           prevCourses.map(course => 
             course.id === editingCourse.id ? data : course
           )
@@ -176,8 +158,6 @@ const AdminCursos = () => {
           description: `Curso "${data.title}" actualizado correctamente`
         });
       } else {
-        console.log('Creando nuevo curso...');
-        
         const { data, error } = await supabase
           .from('courses')
           .insert([courseData])
@@ -185,16 +165,9 @@ const AdminCursos = () => {
           .single();
 
         if (error) {
-          console.error('Error al crear curso - Detalles completos:', error);
-          console.error('Error code:', error.code);
-          console.error('Error message:', error.message);
-          console.error('Error details:', error.details);
-          console.error('Error hint:', error.hint);
           throw error;
         }
 
-        console.log('Curso creado exitosamente:', data);
-        
         setCourses(prevCourses => [data, ...prevCourses]);
         
         toast({

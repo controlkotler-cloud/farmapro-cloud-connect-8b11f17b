@@ -14,8 +14,21 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
+
+    // Validación de entrada (C-SEG5)
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return new Response(JSON.stringify({ error: 'Mensajes inválidos' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (messages.length > 50) {
+      return new Response(JSON.stringify({ error: 'Conversación demasiado larga' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    
+
     if (!openAIApiKey) {
       throw new Error('OPENAI_API_KEY not configured');
     }
@@ -38,6 +51,22 @@ serve(async (req) => {
     if (!user) {
       throw new Error('User not authenticated');
     }
+
+    // Rate-limit diario por usuario (C-SEG5)
+    const DAILY_LIMIT = 100;
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    const { count: usageToday } = await supabaseClient
+      .from('ai_chat_usage')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', since.toISOString());
+    if ((usageToday ?? 0) >= DAILY_LIMIT) {
+      return new Response(JSON.stringify({ error: 'Has alcanzado el límite diario del asistente. Inténtalo mañana.' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    await supabaseClient.from('ai_chat_usage').insert({ user_id: user.id });
 
     // Get user profile
     const { data: profile } = await supabaseClient

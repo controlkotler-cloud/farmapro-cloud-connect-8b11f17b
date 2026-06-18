@@ -19,11 +19,10 @@ export const useLeaderboard = () => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState<'all_time' | 'this_month' | 'this_week'>('this_month');
 
   useEffect(() => {
     loadLeaderboard();
-  }, [profile?.id, timeFilter]);
+  }, [profile?.id]);
 
   const loadLeaderboard = async () => {
     setLoading(true);
@@ -46,10 +45,11 @@ export const useLeaderboard = () => {
         .select('id, full_name, avatar_url, opt_out_leaderboard')
         .in('id', userIds);
 
-      // Get badge counts
+      // Get badge counts (only for users on the board)
       const { data: badgeCounts } = await supabase
         .from('user_badges')
-        .select('user_id');
+        .select('user_id')
+        .in('user_id', userIds);
 
       const badgeCountMap = new Map<string, number>();
       (badgeCounts || []).forEach(b => {
@@ -98,7 +98,5 @@ export const useLeaderboard = () => {
     entries,
     currentUserRank,
     loading,
-    timeFilter,
-    setTimeFilter,
   };
 };

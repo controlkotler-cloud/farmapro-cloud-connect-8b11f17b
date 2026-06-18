@@ -61,21 +61,33 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
       console.log('Using enrollment count:', coursesCompleted);
     }
 
-    const { data: resources } = await supabase
+    const { data: resources, error: resourcesError } = await supabase
       .from('resource_downloads')
       .select('id')
       .eq('user_id', userId);
 
-    const { data: posts } = await supabase
+    if (resourcesError) {
+      console.error('[dashboardStats] Error fetching resource_downloads:', resourcesError);
+    }
+
+    const { data: posts, error: postsError } = await supabase
       .from('forum_threads')
       .select('id')
       .eq('author_id', userId);
 
-    const { data: challengesData } = await supabase
+    if (postsError) {
+      console.error('[dashboardStats] Error fetching forum_threads:', postsError);
+    }
+
+    const { data: challengesData, error: challengesDataError } = await supabase
       .from('user_challenge_progress')
       .select('id')
       .eq('user_id', userId)
       .not('completed_at', 'is', null);
+
+    if (challengesDataError) {
+      console.error('[dashboardStats] Error fetching user_challenge_progress:', challengesDataError);
+    }
 
     const stats = {
       totalPoints,
@@ -119,6 +131,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
             type: 'course',
             title: `Completaste "${enrollment.courses.title}"`,
             date: new Date(enrollment.completed_at).toLocaleDateString('es-ES'),
+            sortDate: enrollment.completed_at,
             points: 100
           });
         }
@@ -143,6 +156,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
             type: 'resource',
             title: `Descargaste "${download.resources.title}"`,
             date: new Date(download.downloaded_at).toLocaleDateString('es-ES'),
+            sortDate: download.downloaded_at,
             points: 50
           });
         }
@@ -163,6 +177,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
           type: 'forum',
           title: `Creaste el hilo "${post.title}"`,
           date: new Date(post.created_at).toLocaleDateString('es-ES'),
+          sortDate: post.created_at,
           points: 100
         });
       });
@@ -188,6 +203,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
             type: 'challenge',
             title: `Completaste el reto "${challenge.challenges.name}"`,
             date: new Date(challenge.completed_at).toLocaleDateString('es-ES'),
+            sortDate: challenge.completed_at,
             points: challenge.points_earned || 0
           });
         }
@@ -196,7 +212,7 @@ export const loadRecentActivity = async (userId: string): Promise<ActivityItem[]
 
     // Ordenar todas las actividades por fecha más reciente y limitar a las 3 más recientes
     const sortedActivities = activities
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
       .slice(0, 3);
 
     console.log('Loaded recent activities:', sortedActivities);

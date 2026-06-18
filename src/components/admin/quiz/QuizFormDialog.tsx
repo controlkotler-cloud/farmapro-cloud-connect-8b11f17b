@@ -98,7 +98,8 @@ export const QuizFormDialog: React.FC<QuizFormDialogProps> = ({
         passing_score: formData.passing_score,
         time_limit_minutes: formData.time_limit_minutes > 0 ? formData.time_limit_minutes : null,
         max_attempts: formData.max_attempts,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        is_published: formData.is_active
       };
 
       if (editingQuiz) {

@@ -50,8 +50,8 @@ export const RecentActivity = ({ activities }: RecentActivityProps) => {
                 <p className="text-sm mt-2">¡Empieza completando un curso o descargando recursos!</p>
               </div>
             ) : (
-              activities.map((activity, index) => (
-                <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-50">
+              activities.map((activity) => (
+                <div key={`${activity.type}-${activity.date}-${activity.title}`} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-50">
                   <div className="flex-shrink-0">
                     {getActivityIcon(activity.type)}
                   </div>

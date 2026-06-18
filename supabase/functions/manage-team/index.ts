@@ -206,6 +206,21 @@ serve(async (req) => {
 
         if (removeError) throw removeError;
 
+        // C-SEG8: degradar el perfil del miembro retirado (pierde el acceso del equipo).
+        // Si tuviera una suscripción individual propia, check-subscription la re-sincroniza.
+        const { data: removedMember } = await supabaseClient
+          .from('team_members')
+          .select('user_id')
+          .eq('email', email)
+          .eq('team_id', teamId)
+          .maybeSingle();
+        if (removedMember?.user_id) {
+          await supabaseClient
+            .from('profiles')
+            .update({ subscription_role: 'freemium', subscription_status: 'trialing' })
+            .eq('id', removedMember.user_id);
+        }
+
         logStep("Member removed", { email, teamId });
         return new Response(JSON.stringify({ 
           success: true, 

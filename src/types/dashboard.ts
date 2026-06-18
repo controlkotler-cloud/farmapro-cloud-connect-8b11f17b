@@ -12,5 +12,6 @@ export interface ActivityItem {
   type: string;
   title: string;
   date: string;
+  sortDate: string;
   points: number;
 }

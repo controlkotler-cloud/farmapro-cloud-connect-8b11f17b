@@ -46,7 +46,7 @@ export const useCourseData = (courseSlug?: string) => {
           .select('id')
           .eq('course_id', transformedCourse.id)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
 
         setHasQuiz(!!quizData);
 

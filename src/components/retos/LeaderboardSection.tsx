@@ -1,7 +1,6 @@
 
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
 import { getLevelInfo } from '@/services/pointsService';
@@ -14,29 +13,15 @@ const RankIcon = ({ rank }: { rank: number }) => {
 };
 
 export const LeaderboardSection = () => {
-  const { entries, currentUserRank, loading, timeFilter, setTimeFilter } = useLeaderboard();
+  const { entries, currentUserRank, loading } = useLeaderboard();
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5" />
-            Ranking
-          </CardTitle>
-          <div className="flex gap-2">
-            {(['this_week', 'this_month', 'all_time'] as const).map(filter => (
-              <Badge
-                key={filter}
-                variant={timeFilter === filter ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => setTimeFilter(filter)}
-              >
-                {filter === 'this_week' ? 'Esta semana' : filter === 'this_month' ? 'Este mes' : 'Todos los tiempos'}
-              </Badge>
-            ))}
-          </div>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Award className="h-5 w-5" />
+          Ranking
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (

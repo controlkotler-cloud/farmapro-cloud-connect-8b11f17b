@@ -61,7 +61,7 @@ const Login = () => {
               <Pill className="w-7 h-7 text-primary-foreground" />
             </div>
             <h1 className="text-3xl font-display font-bold text-foreground">
-              Farma<span className="text-primary">Pro</span>
+              farma<span className="text-primary">pro</span>
             </h1>
           </div>
           <p className="text-muted-foreground">

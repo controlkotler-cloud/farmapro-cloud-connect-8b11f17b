@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
 }
@@ -69,7 +70,7 @@ export const useCreativeChat = () => {
     setLastUserMessage(userMessage);
     setLastContext(ctx);
 
-    const newUserMessage: Message = { role: 'user', content: userMessage };
+    const newUserMessage: Message = { id: crypto.randomUUID(), role: 'user', content: userMessage };
     setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
 
@@ -88,7 +89,7 @@ export const useCreativeChat = () => {
             'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
-            messages: [...messages, newUserMessage],
+            messages: [...messages, newUserMessage].map(({ role, content }) => ({ role, content })),
             contentType,
             context: ctx,
           }),
@@ -116,7 +117,8 @@ export const useCreativeChat = () => {
 
       if (!reader) throw new Error('No se pudo leer la respuesta');
 
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      const assistantId = crypto.randomUUID();
+      setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
 
       let textBuffer = '';
 
@@ -145,7 +147,7 @@ export const useCreativeChat = () => {
               assistantMessage += content;
               setMessages(prev => {
                 const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = { role: 'assistant', content: assistantMessage };
+                newMessages[newMessages.length - 1] = { id: assistantId, role: 'assistant', content: assistantMessage };
                 return newMessages;
               });
             }
@@ -172,7 +174,7 @@ export const useCreativeChat = () => {
               assistantMessage += content;
               setMessages(prev => {
                 const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = { role: 'assistant', content: assistantMessage };
+                newMessages[newMessages.length - 1] = { id: assistantId, role: 'assistant', content: assistantMessage };
                 return newMessages;
               });
             }

@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ interface CourseCardProps {
 
 export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnroll }: CourseCardProps) => {
   const navigate = useNavigate();
+  const [imgError, setImgError] = useState(false);
   const isEnrolled = enrollments.some(enrollment => enrollment.course_id === course.id);
   const isCompleted = enrollments.some(enrollment => 
     enrollment.course_id === course.id && enrollment.completed_at !== null
@@ -37,25 +39,15 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
       {/* Imagen del curso */}
       <div className="aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-        {course.featured_image_url || course.thumbnail_url ? (
+        {(course.featured_image_url || course.thumbnail_url) && !imgError ? (
           <img
             src={course.featured_image_url || course.thumbnail_url}
             alt={course.title}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-            onError={(e) => {
-              const target = e.currentTarget;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent && !parent.querySelector('.fallback-icon')) {
-                const fallback = document.createElement('div');
-                fallback.className = 'fallback-icon text-white text-5xl';
-                fallback.textContent = '📚';
-                parent.appendChild(fallback);
-              }
-            }}
+            onError={() => setImgError(true)}
           />
         ) : (
-          <BookOpen className="h-16 w-16 text-white/80" />
+          <BookOpen className="h-16 w-16 text-white" />
         )}
       </div>
 

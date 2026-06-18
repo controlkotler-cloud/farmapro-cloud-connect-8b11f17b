@@ -44,7 +44,7 @@ export const useQuiz = (courseIdOrSlug?: string) => {
         .select('*')
         .eq('course_id', courseUUID)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (quizError || !quizData) {
         console.log('No quiz found for course:', courseUUID);
