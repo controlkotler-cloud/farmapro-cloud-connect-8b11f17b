@@ -2341,6 +2341,7 @@ export type Database = {
         Args: { job_id_param: string }
         Returns: boolean
       }
+      level_for_points: { Args: { p: number }; Returns: number }
       log_security_event: {
         Args: { details: Json; event_type: string; user_id_param?: string }
         Returns: undefined
@@ -2349,6 +2350,7 @@ export type Database = {
         Args: { conversation_id_param: string }
         Returns: undefined
       }
+      recompute_user_points: { Args: { _user_id: string }; Returns: undefined }
       revoke_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
