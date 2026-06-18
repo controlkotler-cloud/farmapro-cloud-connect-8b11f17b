@@ -107,6 +107,24 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_chat_usage: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           category: string
@@ -1757,6 +1775,24 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_events: {
+        Row: {
+          id: string
+          processed_at: string
+          type: string | null
+        }
+        Insert: {
+          id: string
+          processed_at?: string
+          type?: string | null
+        }
+        Update: {
+          id?: string
+          processed_at?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -2228,6 +2264,7 @@ export type Database = {
         Returns: number
       }
       can_access_contact_info: { Args: never; Returns: boolean }
+      can_access_lesson: { Args: { _module_id: string }; Returns: boolean }
       can_access_user_data: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -2246,6 +2283,10 @@ export type Database = {
           user_id_param: string
         }
         Returns: undefined
+      }
+      current_subscription_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
       }
       get_job_contact_email: { Args: { job_id: string }; Returns: string }
       get_job_contact_email_rpc: { Args: { job_id: string }; Returns: string }
