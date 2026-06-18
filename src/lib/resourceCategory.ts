@@ -31,12 +31,12 @@ export const RESOURCE_CATEGORIES = [
 ] as const;
 
 const STYLES: Record<string, ResourceStyle> = {
-  ventas: { label: 'Ventas', gradient: 'from-emerald-500 to-green-600', Icon: TrendingUp },
+  ventas: { label: 'Ventas', gradient: 'from-fuchsia-500 to-purple-600', Icon: TrendingUp },
   marketing: { label: 'Marketing', gradient: 'from-sky-500 to-blue-600', Icon: Megaphone },
   gestion: { label: 'Gestión', gradient: 'from-indigo-500 to-violet-600', Icon: Briefcase },
   liderazgo: { label: 'Liderazgo', gradient: 'from-amber-500 to-orange-600', Icon: Users },
   atencion: { label: 'Atención', gradient: 'from-rose-500 to-pink-600', Icon: HeartHandshake },
-  impulso: { label: 'Impulso', gradient: 'from-fuchsia-500 to-purple-600', Icon: Sparkles },
+  impulso: { label: 'Impulso', gradient: 'from-lime-500 to-neutral-900', Icon: Sparkles },
   otros: { label: 'Recursos', gradient: 'from-slate-500 to-slate-700', Icon: FileText },
 };
 
