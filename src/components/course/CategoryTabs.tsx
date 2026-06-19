@@ -1,50 +1,70 @@
 import { motion } from 'framer-motion';
+import { LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, Award, Users, Target, Briefcase, Heart } from 'lucide-react';
+import { getCourseCover } from '@/lib/courseCover';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+// Categorías reales del catálogo (enum course_category canónico).
+// El color/icono/etiqueta se toma de getCourseCover para mantener una
+// sola fuente de verdad visual con las tarjetas y las secciones.
+const CATEGORY_ORDER = ['ventas', 'marketing', 'gestion', 'liderazgo', 'atencion', 'otros'] as const;
 
 interface CategoryTabsProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  /** Número de cursos por categoría (clave = valor de categoría). */
+  counts: Record<string, number>;
+  /** Total de cursos (para la pestaña "Todos"). */
+  totalCount: number;
 }
 
-export const CategoryTabs = ({ selectedCategory, onCategoryChange }: CategoryTabsProps) => {
+export const CategoryTabs = ({
+  selectedCategory,
+  onCategoryChange,
+  counts,
+  totalCount,
+}: CategoryTabsProps) => {
   const isMobile = useIsMobile();
-  
-  const categories = [
-    { value: 'all', label: 'Todos los Cursos', icon: BookOpen, color: 'from-gray-500 to-gray-600' },
-    { value: 'gestion', label: 'Gestión', icon: Briefcase, color: 'from-blue-500 to-blue-600' },
-    { value: 'marketing', label: 'Marketing', icon: Target, color: 'from-green-500 to-green-600' },
-    { value: 'liderazgo', label: 'Liderazgo', icon: Award, color: 'from-purple-500 to-purple-600' },
-    { value: 'atencion_cliente', label: 'Atención al Cliente', icon: Heart, color: 'from-pink-500 to-pink-600' },
-    { value: 'tecnologia', label: 'Tecnología', icon: Users, color: 'from-orange-500 to-orange-600' }
+
+  // Solo mostramos categorías con al menos un curso, más "Todos".
+  const visibleCategories = CATEGORY_ORDER.filter((value) => (counts[value] || 0) > 0);
+
+  const tabs = [
+    { value: 'all', label: 'Todos', cover: null, count: totalCount },
+    ...visibleCategories.map((value) => ({
+      value,
+      label: getCourseCover(value).label,
+      cover: getCourseCover(value),
+      count: counts[value] || 0,
+    })),
   ];
 
-  const selectedCategoryData = categories.find(cat => cat.value === selectedCategory);
+  const selectedTab = tabs.find((tab) => tab.value === selectedCategory) ?? tabs[0];
 
   if (isMobile) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <Select value={selectedCategory} onValueChange={onCategoryChange}>
           <SelectTrigger className="w-full">
             <SelectValue>
-              <div className="flex items-center">
-                <div className={`p-2 rounded-lg bg-gradient-to-r ${selectedCategoryData?.color} shadow-lg mr-3`}>
-                  {selectedCategoryData?.icon && <selectedCategoryData.icon className="h-4 w-4 text-white" />}
-                </div>
-                <span className="font-semibold">{selectedCategoryData?.label}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{selectedTab.label}</span>
+                <span className="text-xs text-gray-500">({selectedTab.count})</span>
               </div>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category.value} value={category.value}>
-                <div className="flex items-center">
-                  <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-3`}>
-                    <category.icon className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="font-semibold">{category.label}</span>
+            {tabs.map((tab) => (
+              <SelectItem key={tab.value} value={tab.value}>
+                <div className="flex items-center gap-2">
+                  {tab.cover ? (
+                    <tab.cover.Icon className="h-4 w-4 text-gray-500" strokeWidth={1.75} />
+                  ) : (
+                    <LayoutGrid className="h-4 w-4 text-gray-500" strokeWidth={1.75} />
+                  )}
+                  <span className="font-medium">{tab.label}</span>
+                  <span className="text-xs text-gray-500">({tab.count})</span>
                 </div>
               </SelectItem>
             ))}
@@ -55,39 +75,40 @@ export const CategoryTabs = ({ selectedCategory, onCategoryChange }: CategoryTab
   }
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-      <div className="flex flex-wrap gap-3">
-        {categories.map((category, index) => (
-          <motion.div
-            key={category.value}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Button
-              variant={selectedCategory === category.value ? "default" : "outline"}
-              onClick={() => onCategoryChange(category.value)}
-              className={`relative group transition-all duration-300 transform hover:scale-105 ${
-                selectedCategory === category.value
-                  ? `bg-gradient-to-r ${category.color} text-white shadow-lg ring-1 ring-opacity-50`
-                  : 'hover:shadow-md hover:bg-green-600 hover:text-white'
-              }`}
+    <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+      <div className="flex flex-wrap gap-2">
+        {tabs.map((tab, index) => {
+          const isActive = selectedCategory === tab.value;
+          const Icon = tab.cover ? tab.cover.Icon : LayoutGrid;
+          return (
+            <motion.div
+              key={tab.value}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04 }}
             >
-              {selectedCategory === category.value && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/30 rounded-r-full"></div>
-              )}
-              
-              <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-3 transition-transform group-hover:scale-110`}>
-                <category.icon className="h-4 w-4 text-white" />
-                {selectedCategory === category.value && (
-                  <div className="absolute inset-0 rounded-lg bg-white/20 animate-pulse"></div>
-                )}
-              </div>
-              
-              <span className="font-semibold tracking-wide">{category.label}</span>
-            </Button>
-          </motion.div>
-        ))}
+              <Button
+                variant={isActive ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onCategoryChange(tab.value)}
+                aria-pressed={isActive}
+                className={`gap-2 transition-colors ${
+                  isActive ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-gray-700'
+                }`}
+              >
+                <Icon className="h-4 w-4" strokeWidth={1.75} />
+                <span className="font-medium">{tab.label}</span>
+                <span
+                  className={`ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </Button>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );

@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Download, Lock } from 'lucide-react';
-import { getResourceStyle, getFormatIcon } from '@/lib/resourceCategory';
+import { getResourceStyle, getFormatIcon, getResourceTypeStyle } from '@/lib/resourceCategory';
 
 interface Resource {
   id: string;
   title: string;
   description: string;
   category: string;
+  type: string;
   file_url: string;
   format: string;
   is_premium: boolean;
@@ -24,13 +25,14 @@ interface ResourceCardProps {
 
 export const ResourceCard = ({ resource, index, onDownload }: ResourceCardProps) => {
   const style = getResourceStyle(resource.category);
+  const typeStyle = getResourceTypeStyle(resource.type);
   const FormatIcon = getFormatIcon(resource.format);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      transition={{ delay: Math.min(index, 8) * 0.05 }}
       whileHover={{ scale: 1.02 }}
       className="h-full"
     >
@@ -41,15 +43,26 @@ export const ResourceCard = ({ resource, index, onDownload }: ResourceCardProps)
             <style.Icon className="h-4 w-4" />
             <span className="text-xs font-semibold uppercase tracking-wide">{style.label}</span>
           </div>
-          {resource.is_premium && (
+          {resource.is_premium ? (
             <Badge className="bg-white/20 text-white border-0 text-[10px] gap-1">
               <Lock className="h-3 w-3" />
               Premium
+            </Badge>
+          ) : (
+            <Badge className="bg-white/20 text-white border-0 text-[10px]">
+              Gratis
             </Badge>
           )}
         </div>
 
         <CardHeader className="pb-2">
+          {/* Badge principal: el TIPO de recurso (plantilla, checklist, calculadora…) */}
+          <div className="mb-2">
+            <Badge variant="secondary" className="gap-1.5 text-xs font-medium">
+              <typeStyle.Icon className="h-3.5 w-3.5" />
+              {typeStyle.label}
+            </Badge>
+          </div>
           <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
           <CardDescription className="line-clamp-3">{resource.description}</CardDescription>
         </CardHeader>

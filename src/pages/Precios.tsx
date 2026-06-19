@@ -1,250 +1,253 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, GraduationCap, Briefcase, Crown, Sparkles } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Check, ImageIcon, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  PLANS,
+  LAUNCH_SPOTS,
+  IMAGE_ADDONS,
+  FREE_LIMITS,
+  type Plan,
+} from "@/lib/plans";
 
-interface PaymentLinks {
-  student: string;
-  professional: string;
-  premium: string;
+type BillingCycle = "monthly" | "yearly";
+
+/** Formatea un importe en euros con el estilo español (coma decimal, sin decimales si es entero). */
+function formatPrice(value: number): string {
+  return value.toLocaleString("es-ES", {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 export default function Precios() {
-  const [paymentLinks, setPaymentLinks] = useState<PaymentLinks>({
-    student: '',
-    professional: '',
-    premium: ''
-  });
+  const { toast } = useToast();
+  const [billing, setBilling] = useState<BillingCycle>("monthly");
 
-  useEffect(() => {
-    const fetchPaymentLinks = async () => {
-      const { data } = await supabase
-        .from('system_settings')
-        .select('key, value')
-        .in('key', ['stripe_student_payment_link', 'stripe_professional_payment_link', 'stripe_premium_payment_link']);
-
-      if (data) {
-        const links: PaymentLinks = {
-          student: '',
-          professional: '',
-          premium: ''
-        };
-        
-        data.forEach(setting => {
-          const value = typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
-          if (setting.key === 'stripe_student_payment_link') links.student = value;
-          if (setting.key === 'stripe_professional_payment_link') links.professional = value;
-          if (setting.key === 'stripe_premium_payment_link') links.premium = value;
-        });
-        
-        setPaymentLinks(links);
-      }
-    };
-
-    fetchPaymentLinks();
-  }, []);
-
-  const handlePlanSelect = (link: string) => {
-    if (link) {
-      window.open(link, '_blank');
-    }
+  const handleReserve = () => {
+    toast({
+      title: "Pronto podrás suscribirte",
+      description:
+        "Estamos activando el pago. Te avisaremos en cuanto tu plaza esté lista para reservar.",
+    });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
+        {/* Cabecera */}
+        <div className="text-center mb-10">
+          <Badge variant="secondary" className="mb-4 gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            Precio de lanzamiento · primeras {LAUNCH_SPOTS} plazas
+          </Badge>
           <h1 className="text-4xl font-bold mb-4">Planes de farmapro</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Elige el plan que mejor se adapte a tus necesidades profesionales
+            Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu
+            plaza al precio de lanzamiento y consérvalo para siempre.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          {/* Plan Freemium */}
-          <Card className="relative overflow-hidden">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Freemium</CardTitle>
-              <CardDescription>
-                <span className="text-3xl font-bold">Gratis</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Acceso a 1 curso</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Máximo 2 descargas</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Ver comunidad (solo lectura)</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Retos básicos</span>
-                </li>
-              </ul>
-              <Button asChild className="w-full" variant="outline">
-                <Link to="/login">
-                  Empezar Gratis
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-          {/* Plan Estudiante */}
-          <Card className="relative overflow-hidden">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Estudiante</CardTitle>
-              <CardDescription>
-                <span className="text-3xl font-bold">5€</span>
-                <span className="text-muted-foreground">/mes</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>1 curso al mes</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>2 descargas al mes</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Acceso a bolsa de trabajo</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Farmacias en venta</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Verificación de matrícula requerida</span>
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => handlePlanSelect(paymentLinks.student)}
-                disabled={!paymentLinks.student}
-              >
-                Suscribirse
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Toggle Mensual / Anual */}
+        <div className="flex items-center justify-center gap-3 mb-12">
+          <span
+            className={`text-sm font-medium ${
+              billing === "monthly" ? "text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            Mensual
+          </span>
+          <Switch
+            checked={billing === "yearly"}
+            onCheckedChange={(checked) =>
+              setBilling(checked ? "yearly" : "monthly")
+            }
+            aria-label="Cambiar entre facturación mensual y anual"
+          />
+          <span
+            className={`text-sm font-medium ${
+              billing === "yearly" ? "text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            Anual
+          </span>
+          <Badge variant="secondary" className="text-primary border-primary/30">
+            2 meses gratis
+          </Badge>
+        </div>
 
-          {/* Plan Profesional */}
-          <Card className="relative overflow-hidden border-primary">
-            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 text-sm font-medium">
-              Más Popular
-            </div>
-            <CardHeader className="text-center pt-12">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Profesional</CardTitle>
-              <CardDescription>
-                <span className="text-3xl font-bold">29€</span>
-                <span className="text-muted-foreground">/mes</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Acceso completo a formación</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Descargas ilimitadas</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Comunidad completa</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Retos avanzados</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Eventos exclusivos</span>
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => handlePlanSelect(paymentLinks.professional)}
-                disabled={!paymentLinks.professional}
-              >
-                Suscribirse
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Tarjetas de planes */}
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+          {PLANS.map((plan) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              billing={billing}
+              onReserve={handleReserve}
+            />
+          ))}
+        </div>
 
-          {/* Plan Premium */}
-          <Card className="relative overflow-hidden">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Premium</CardTitle>
-              <CardDescription>
-                <span className="text-3xl font-bold">39€</span>
-                <span className="text-muted-foreground">/mes</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Todo lo anterior</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Promociones exclusivas</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Publicar ofertas de empleo</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Formaciones premium</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Soporte prioritario</span>
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => handlePlanSelect(paymentLinks.premium)}
-                disabled={!paymentLinks.premium}
-              >
-                Suscribirse
-              </Button>
+        {/* Cómo funciona el plan gratis */}
+        <div className="max-w-3xl mx-auto mt-12">
+          <Card className="bg-muted/40 border-dashed">
+            <CardContent className="p-6 text-center">
+              <h3 className="font-semibold mb-2">Cómo funciona el plan gratis</h3>
+              <p className="text-sm text-muted-foreground">
+                Durante los primeros {FREE_LIMITS.trialDays} días disfrutas de un
+                acceso limitado: unos cuantos cursos y recursos, la comunidad en
+                modo lectura y unas primeras pruebas de IAFarma. Pasados los{" "}
+                {FREE_LIMITS.trialDays} días tu cuenta queda en modo solo-ver: lo
+                sigues viendo todo, pero para usarlo necesitas un plan de pago.
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="text-center mt-16">
+        {/* Add-ons de imágenes IAFarma */}
+        <div className="max-w-3xl mx-auto mt-10">
+          <div className="text-center mb-5">
+            <h3 className="text-lg font-semibold flex items-center justify-center gap-2">
+              <ImageIcon className="h-5 w-5 text-primary" />
+              Packs de imágenes IAFarma
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              ¿Necesitas más imágenes? Recarga cuando quieras, pago único sobre
+              cualquier plan de pago.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {IMAGE_ADDONS.map((addon) => (
+              <Card key={addon.credits} className="text-center">
+                <CardContent className="p-5">
+                  <p className="text-2xl font-bold">+{addon.credits}</p>
+                  <p className="text-sm text-muted-foreground mb-2">imágenes</p>
+                  <p className="text-lg font-semibold text-primary">
+                    {formatPrice(addon.price)} €
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Soporte */}
+        <div className="text-center mt-14">
           <p className="text-muted-foreground">
-            ¿Necesitas ayuda? <a href="mailto:soporte@farmapro.es" className="text-primary hover:underline">Contacta con nosotros</a>
+            ¿Necesitas ayuda?{" "}
+            <a
+              href="mailto:soporte@farmapro.es"
+              className="text-primary hover:underline"
+            >
+              Contacta con nosotros
+            </a>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+interface PlanCardProps {
+  plan: Plan;
+  billing: BillingCycle;
+  onReserve: () => void;
+}
+
+function PlanCard({ plan, billing, onReserve }: PlanCardProps) {
+  const isFree = plan.id === "gratis";
+  const isHighlighted = Boolean(plan.highlight);
+
+  // Precio vigente según el ciclo de facturación.
+  const launchPrice =
+    billing === "yearly" ? plan.priceYearlyLaunch : plan.priceMonthlyLaunch;
+  const period = billing === "yearly" ? "/año" : "/mes";
+
+  return (
+    <Card
+      className={`relative flex flex-col h-full overflow-hidden transition-shadow ${
+        isHighlighted
+          ? "border-primary border-2 shadow-lg ring-1 ring-primary/20"
+          : ""
+      }`}
+    >
+      {isHighlighted && (
+        <div className="absolute top-0 inset-x-0 bg-primary text-primary-foreground text-center py-1.5 text-xs font-semibold tracking-wide">
+          El más elegido
+        </div>
+      )}
+
+      <CardHeader className={`text-center ${isHighlighted ? "pt-10" : "pt-6"}`}>
+        <h2 className="text-2xl font-bold">{plan.name}</h2>
+        <p className="text-sm text-muted-foreground">{plan.tagline}</p>
+
+        {/* Bloque de precio */}
+        <div className="mt-4 min-h-[7rem] flex flex-col items-center justify-center">
+          {isFree ? (
+            <span className="text-4xl font-bold">Gratis</span>
+          ) : (
+            <>
+              {/* Precio regular tachado */}
+              <span className="text-sm text-muted-foreground line-through">
+                Antes {formatPrice(plan.priceMonthly)} €/mes
+              </span>
+              {/* Precio de lanzamiento */}
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-bold text-primary">
+                  {launchPrice !== undefined ? formatPrice(launchPrice) : "—"} €
+                </span>
+                <span className="text-muted-foreground">{period}</span>
+              </div>
+              <span className="mt-2 text-xs font-medium text-primary">
+                Precio de lanzamiento · primeras {LAUNCH_SPOTS} plazas, para siempre
+              </span>
+              {billing === "yearly" && (
+                <span className="text-xs text-muted-foreground mt-1">
+                  Equivale a 2 meses gratis
+                </span>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Plazas incluidas */}
+        <p className="mt-3 text-sm text-muted-foreground">
+          {plan.seats === 1
+            ? "1 usuario incluido"
+            : `Hasta ${plan.seats} usuarios`}
+        </p>
+      </CardHeader>
+
+      <CardContent className="flex flex-col flex-1">
+        <ul className="space-y-3 flex-1">
+          {plan.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2">
+              <Check className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
+              <span className="text-sm text-foreground">{feature}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-6">
+          {isFree ? (
+            <Button asChild className="w-full" variant="outline">
+              <Link to="/login">{plan.cta}</Link>
+            </Button>
+          ) : (
+            <Button
+              className="w-full"
+              variant={isHighlighted ? "default" : "outline"}
+              onClick={onReserve}
+            >
+              {plan.cta}
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

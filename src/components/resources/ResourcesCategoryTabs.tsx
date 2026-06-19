@@ -8,6 +8,9 @@ import { RESOURCE_CATEGORIES, getResourceStyle } from '@/lib/resourceCategory';
 interface ResourcesCategoryTabsProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  // Contador de recursos por categoría (clave = valor de categoría, p.ej. 'ventas').
+  // El total de "Todos" se recibe en la clave 'all'.
+  counts?: Record<string, number>;
 }
 
 interface CatOption {
@@ -27,9 +30,12 @@ const CATS: CatOption[] = [
   }),
 ];
 
-export const ResourcesCategoryTabs = ({ selectedCategory, onCategoryChange }: ResourcesCategoryTabsProps) => {
+export const ResourcesCategoryTabs = ({ selectedCategory, onCategoryChange, counts }: ResourcesCategoryTabsProps) => {
   const isMobile = useIsMobile();
-  const selected = CATS.find(c => c.value === selectedCategory) || CATS[0];
+  // Solo mostramos categorías con recursos (más la opción 'Todos').
+  const visibleCats = CATS.filter(c => c.value === 'all' || (counts?.[c.value] ?? 0) > 0);
+  const selected = visibleCats.find(c => c.value === selectedCategory) || visibleCats[0];
+  const countFor = (value: string) => (value === 'all' ? counts?.all : counts?.[value]) ?? 0;
 
   if (isMobile) {
     return (
@@ -41,18 +47,22 @@ export const ResourcesCategoryTabs = ({ selectedCategory, onCategoryChange }: Re
                 <div className={`p-2 rounded-lg bg-gradient-to-r ${selected.gradient} shadow mr-3`}>
                   <selected.Icon className="h-4 w-4 text-white" />
                 </div>
-                <span>{selected.label}</span>
+                <span>
+                  {selected.label}
+                  {counts ? ` (${countFor(selected.value)})` : ''}
+                </span>
               </div>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {CATS.map(category => (
+            {visibleCats.map(category => (
               <SelectItem key={category.value} value={category.value}>
                 <div className="flex items-center">
                   <div className={`p-2 rounded-lg bg-gradient-to-r ${category.gradient} shadow mr-3`}>
                     <category.Icon className="h-4 w-4 text-white" />
                   </div>
                   {category.label}
+                  {counts ? ` (${countFor(category.value)})` : ''}
                 </div>
               </SelectItem>
             ))}
@@ -64,7 +74,7 @@ export const ResourcesCategoryTabs = ({ selectedCategory, onCategoryChange }: Re
 
   return (
     <motion.div className="flex flex-wrap gap-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      {CATS.map(category => {
+      {visibleCats.map(category => {
         const active = selectedCategory === category.value;
         return (
           <Button
@@ -75,6 +85,15 @@ export const ResourcesCategoryTabs = ({ selectedCategory, onCategoryChange }: Re
           >
             <category.Icon className="h-4 w-4" />
             {category.label}
+            {counts ? (
+              <span
+                className={`ml-0.5 rounded-full px-1.5 text-xs font-semibold ${
+                  active ? 'bg-white/25 text-white' : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {countFor(category.value)}
+              </span>
+            ) : null}
           </Button>
         );
       })}

@@ -10,6 +10,13 @@ import {
   Image,
   Video,
   Link as LinkIcon,
+  LayoutTemplate,
+  ListChecks,
+  Calculator,
+  BookOpen,
+  ClipboardList,
+  Wrench,
+  BookMarked,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -61,3 +68,44 @@ export const getFormatIcon = (format?: string | null): LucideIcon => {
       return FileText; // pdf, docs, etc.
   }
 };
+
+export interface ResourceTypeStyle {
+  label: string;
+  Icon: LucideIcon;
+}
+
+// Tipos reales del enum resource_type. El "tipo" es el QUÉ ES (plantilla,
+// checklist, calculadora…); el "formato" es CÓMO viene (pdf, xls, url…).
+export const RESOURCE_TYPES = [
+  'pdf',
+  'video',
+  'infografia',
+  'plantilla',
+  'guia',
+  'protocolo',
+  'calculadora',
+  'checklist',
+  'manual',
+  'herramienta',
+  'otro',
+] as const;
+
+const TYPE_STYLES: Record<string, ResourceTypeStyle> = {
+  pdf: { label: 'PDF', Icon: FileText },
+  video: { label: 'Vídeo', Icon: Video },
+  infografia: { label: 'Infografía', Icon: Image },
+  plantilla: { label: 'Plantilla', Icon: LayoutTemplate },
+  guia: { label: 'Guía', Icon: BookOpen },
+  protocolo: { label: 'Protocolo', Icon: ClipboardList },
+  calculadora: { label: 'Calculadora', Icon: Calculator },
+  checklist: { label: 'Checklist', Icon: ListChecks },
+  manual: { label: 'Manual', Icon: BookMarked },
+  herramienta: { label: 'Herramienta', Icon: Wrench },
+  otro: { label: 'Recurso', Icon: FileText },
+};
+
+export const getResourceTypeStyle = (type?: string | null): ResourceTypeStyle =>
+  (type && TYPE_STYLES[type]) || TYPE_STYLES.otro;
+
+export const getResourceTypeLabel = (type?: string | null): string =>
+  getResourceTypeStyle(type).label;

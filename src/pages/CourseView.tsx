@@ -1,13 +1,15 @@
 
 import { useEffect, useRef } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useModuleProgress } from '@/hooks/useModuleProgress';
 import { useCourseData } from '@/hooks/useCourseData';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { useCourseActions } from '@/components/course/CourseActions';
 import { useCourseNavigation } from '@/components/course/CourseNavigation';
 import { useQuiz } from '@/hooks/useQuiz';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { AccessLockedCard } from '@/components/access/AccessLockedCard';
 import { CourseHeader } from '@/components/course/CourseHeader';
 import { ModuleContent } from '@/components/course/ModuleContent';
 import { CourseViewLoading } from '@/components/course/CourseViewLoading';
@@ -17,7 +19,9 @@ import { CourseCompletionStatus } from '@/components/course/CourseCompletionStat
 
 const CourseView = () => {
   const { courseSlug } = useParams();
+  const navigate = useNavigate();
   const moduleContentRef = useRef<HTMLDivElement>(null);
+  const { isLocked } = useEntitlements();
 
   const { course, enrollment, loading: courseLoading, hasQuiz } = useCourseData(courseSlug);
 
@@ -63,6 +67,29 @@ const CourseView = () => {
 
   if (!course) {
     return <Navigate to="/formacion" replace />;
+  }
+
+  // Control de acceso del plan gratis: si el periodo de prueba ha caducado
+  // (free_locked), el usuario puede ver la ficha/catálogo pero NO el contenido
+  // del curso. Mostramos bloqueo + CTA a Precios. Los planes de pago y la
+  // prueba en vigor pasan de largo (su tope se controla al inscribirse).
+  if (isLocked) {
+    return (
+      <div className="space-y-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/formacion')}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver a Formación
+        </Button>
+        <AccessLockedCard
+          title="Tu acceso gratuito ha caducado"
+          description="Ya puedes ver todo el catálogo, pero para entrar en los cursos necesitas el plan Plus. Desbloquéalo y sigue formándote sin límites."
+        />
+      </div>
+    );
   }
 
   const isEnrolled = !!enrollment;

@@ -14,6 +14,14 @@ export interface Course {
   is_premium: boolean;
   created_at: string;
   slug: string;
+  difficulty: string;
+  is_featured?: boolean;
+  is_published?: boolean;
+  total_lessons?: number;
+  students_count?: number;
+  rating?: number;
+  instructor?: string;
+  order_index?: number;
   course_modules?: CourseModule[];
 }
 
