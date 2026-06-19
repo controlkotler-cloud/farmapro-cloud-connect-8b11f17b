@@ -25,7 +25,7 @@ const TEMPLATES: Record<ContentType, string[]> = {
     'Oferta de la semana',
   ],
   blog: [
-    'Guía de protección solar 2026',
+    'Guía de protección solar',
     'Cómo elegir tu crema hidratante',
     'Servicios de tu farmacia que no conocías',
   ],
@@ -39,6 +39,7 @@ const TEMPLATES: Record<ContentType, string[]> = {
     'Nuevo servicio disponible',
     'Promoción semanal',
   ],
+  'responder-resena': [],
 };
 
 interface QuickTemplatesProps {

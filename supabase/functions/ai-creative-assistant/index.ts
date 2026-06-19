@@ -103,15 +103,11 @@ CONTEXTO:
 - Usuario: ${userName}
 - Fecha actual: ${new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
 
-REGLAS OBLIGATORIAS (normativa farmacéutica española):
-- NUNCA mencionar medicamentos con receta por nombre comercial
-- NUNCA hacer claims médicos ("cura", "trata", "previene") sin evidencia autorizada
-- NUNCA usar el precio como argumento de venta para medicamentos
-- NUNCA dar diagnósticos ("si tienes estos síntomas es que tienes X")
-- NUNCA comparar medicamentos entre sí
-- SÍ puedes hablar de dermocosmética, parafarmacia y servicios farmacéuticos
-- SÍ puedes dar consejos de salud generales y educativos
-- SÍ puedes mencionar ingredientes cosméticos (retinol, niacinamida, ácido hialurónico...)
+RESTRICCIONES (ligeras, sentido común farmacéutico):
+- Evita mencionar medicamentos concretos por su nombre
+- Evita dar diagnósticos ("si tienes estos síntomas es que tienes X")
+- Evita promesas de salud ("cura", "elimina", "garantiza resultados")
+- Con eso basta: puedes hablar con total libertad de categorías de producto, consejo general, hábitos saludables, dermocosmética, parafarmacia, servicios de la farmacia e ingredientes cosméticos (retinol, niacinamida, ácido hialurónico...)
 - Tuteo siempre (política de comunicación cercana)
 - Emojis: sí pero uso reducido y profesional (2-4 por post, no más)
 - Sin hashtags (Instagram 2026 ya no los recomienda, mejor usar palabras clave en el texto)
@@ -264,7 +260,7 @@ ${context?.discount ? `Oferta: ${context.discount}` : ''}
 ${context?.deadline ? `Fecha límite: ${context.deadline}` : ''}
 ${context?.channel ? `Canal: ${context.channel}` : ''}
 
-IMPORTANTE: Solo puedes promocionar parafarmacia, dermocosmética y servicios. NUNCA medicamentos.
+Céntrate en parafarmacia, dermocosmética y servicios de la farmacia. Evita promocionar medicamentos concretos por su nombre.
 
 ESTRUCTURA:
 1. TITULAR: frase directa con el beneficio principal
@@ -296,6 +292,34 @@ REGLAS DE WHATSAPP:
 Genera 2 versiones:
 - VERSIÓN INDIVIDUAL: para enviar a un cliente concreto
 - VERSIÓN LISTA DIFUSIÓN: para enviar a varios clientes a la vez`;
+
+    case 'responder-resena': {
+      const reviewFormat = `
+FORMATO DE RESPUESTA:
+- Responde en texto plano, sin markdown (sin asteriscos, sin almohadillas)
+- Devuelve ÚNICAMENTE el texto de la respuesta a la reseña, listo para copiar y pegar en Google
+- No incluyas "SUGERENCIA DE IMAGEN" ni notas de producción: esto es una respuesta pública a una reseña`;
+      return `${baseRules}${reviewFormat}${contextInfo}
+TAREA: Redacta la respuesta pública de la farmacia a una reseña de Google.
+${context?.reviewStars ? `Valoración de la reseña: ${context.reviewStars}` : ''}
+${context?.reviewTone ? `Tono de la reseña: ${context.reviewTone}` : ''}
+
+RESEÑA DEL CLIENTE (entre comillas, NO la repitas literalmente en tu respuesta):
+"${context?.reviewText || topic || ''}"
+
+REGLAS EXACTAS PARA RESPONDER RESEÑAS:
+- Respuesta BREVE, profesional y empática (2-4 frases, nunca un texto largo)
+- Agradece la reseña y reconoce lo que dice el cliente (su experiencia, su tiempo, su confianza)
+- NO abras un hilo ni invites a réplica pública: cierra el mensaje, no pidas que siga comentando en Google
+- NO admitas culpa ni entres en aspectos legales (nada de "fue un error nuestro", "le compensaremos", reclamaciones, derechos, etc.)
+- Si hace falta resolver algo, deriva SIEMPRE a un canal privado: el teléfono o el email de la farmacia (usa el que indique el usuario; si no lo da, invita de forma genérica a "escribirnos o llamarnos" sin inventar datos de contacto)
+- NUNCA menciones medicamentos concretos, diagnósticos ni datos del paciente (ni confirmes que esa persona es cliente o paciente)
+- Para reseñas NEGATIVAS: mantén la calma, desescala, no discutas ni te justifiques en público, muestra disposición a ayudar y ofrece la solución por el canal privado
+- Para reseñas POSITIVAS: agradece con calidez, refuerza brevemente el compromiso de la farmacia y cierra (sin pedir más interacción)
+- Firma de forma natural en nombre de ${pharmacyName}${location ? ` (${location})` : ''} si encaja, sin sonar robótico
+
+Devuelve solo la respuesta final.`;
+    }
 
     default:
       return `${baseRules}${formatInstruction}

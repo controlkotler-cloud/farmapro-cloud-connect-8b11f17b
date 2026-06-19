@@ -35,9 +35,9 @@ export const PLANS: Plan[] = [
     tagline: 'Pruébalo sin tarjeta',
     cta: 'Empezar gratis',
     features: [
-      'Acceso a 1-2 cursos y 2-3 recursos (primeros 30 días)',
+      'Acceso hasta 2 cursos y 3 recursos',
       'Leer la comunidad',
-      '2 textos y 1 imagen con IAFarma al mes',
+      '2 textos y 1 imagen con IAFarma',
       'Ver los eventos del sector',
       'A los 30 días lo ves todo, pero queda bloqueado',
     ],
@@ -51,7 +51,7 @@ export const PLANS: Plan[] = [
     seats: 1,
     highlight: true,
     tagline: 'Para ti, todo incluido',
-    cta: 'Reservar plaza',
+    cta: 'Hazte Plus',
     features: [
       'TODO el contenido: cursos y recursos sin límite',
       'Comunidad completa + retos y ranking',
@@ -68,7 +68,7 @@ export const PLANS: Plan[] = [
     priceYearlyLaunch: 490,
     seats: 10,
     tagline: 'Forma a toda tu farmacia',
-    cta: 'Reservar plaza',
+    cta: 'Activar Equipo',
     features: [
       'Todo lo de Plus para hasta 10 personas',
       'Una sola cuota para toda la farmacia',

@@ -5,26 +5,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import { ContentType, CreativeContext } from '@/hooks/useCreativeChat';
-import { useAuth } from '@/hooks/useAuth';
+import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 import { QuickTemplates } from './QuickTemplates';
 
 interface ContentFormProps {
   contentType: ContentType;
   isLoading: boolean;
+  defaults: IAFarmaDefaults;
   onSubmit: (message: string, context: CreativeContext) => void;
 }
 
-export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormProps) => {
-  const { profile } = useAuth();
-  const [pharmacyName, setPharmacyName] = useState('');
-  const [city, setCity] = useState('');
+export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: ContentFormProps) => {
   const [fields, setFields] = useState<Record<string, string>>({});
   const [extra, setExtra] = useState('');
-
-  useEffect(() => {
-    if (profile?.pharmacy_name) setPharmacyName(profile.pharmacy_name);
-    if (profile?.pharmacy_city) setCity(profile.pharmacy_city);
-  }, [profile]);
 
   useEffect(() => {
     setFields({});
@@ -51,14 +44,16 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
       case 'blog': return 'titulo';
       case 'promotion': return 'producto';
       case 'whatsapp': return 'mensaje';
+      case 'responder-resena': return 'resena';
       default: return null;
     }
   };
 
   const buildContext = (): CreativeContext => {
     const ctx: CreativeContext = {
-      pharmacyName,
-      location: city,
+      pharmacyName: defaults.farmacia || undefined,
+      location: defaults.localidad || undefined,
+      tone: defaults.tono || undefined,
       extraInstructions: extra || undefined,
     };
 
@@ -66,7 +61,6 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
       case 'instagram-post':
         ctx.topic = fields.tema;
         ctx.objective = fields.objetivo;
-        ctx.tone = fields.tono;
         break;
       case 'reel-script':
         ctx.topic = fields.tema;
@@ -96,6 +90,11 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
       case 'whatsapp':
         ctx.messageType = fields.tipo;
         ctx.topic = fields.mensaje;
+        break;
+      case 'responder-resena':
+        ctx.reviewText = fields.resena;
+        ctx.reviewStars = fields.estrellas;
+        ctx.reviewTone = fields.tonoResena;
         break;
     }
 
@@ -129,7 +128,6 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
           <>
             <Field label="Tema o producto *" value={fields.tema} onChange={v => setField('tema', v)} placeholder="ej: Protección solar, nuevo sérum de niacinamida..." />
             <SelectField label="Objetivo del post" value={fields.objetivo} onChange={v => setField('objetivo', v)} options={['Educar', 'Promocionar servicio', 'Mostrar equipo', 'Engagement']} />
-            <SelectField label="Tono" value={fields.tono} onChange={v => setField('tono', v)} options={['Cercano y profesional', 'Divertido', 'Serio/científico']} />
           </>
         );
       case 'reel-script':
@@ -182,23 +180,30 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
             <Field label="Mensaje principal *" value={fields.mensaje} onChange={v => setField('mensaje', v)} placeholder="ej: Recordatorio de recogida de medicación" />
           </>
         );
+      case 'responder-resena':
+        return (
+          <>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Reseña del cliente *</label>
+              <Textarea
+                value={fields.resena || ''}
+                onChange={e => setField('resena', e.target.value)}
+                placeholder="Pega aquí la reseña tal cual la escribió el cliente..."
+                className="min-h-[110px] resize-none"
+              />
+            </div>
+            <SelectField label="Valoración (estrellas)" value={fields.estrellas} onChange={v => setField('estrellas', v)} options={['1 estrella', '2 estrellas', '3 estrellas', '4 estrellas', '5 estrellas']} />
+            <SelectField label="Tono de la reseña" value={fields.tonoResena} onChange={v => setField('tonoResena', v)} options={['Positiva', 'Neutra', 'Negativa', 'Mixta']} />
+          </>
+        );
     }
   };
+
+  const isReview = contentType === 'responder-resena';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <QuickTemplates contentType={contentType} onSelect={handleQuickTemplate} />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de tu farmacia</label>
-          <Input value={pharmacyName} onChange={e => setPharmacyName(e.target.value)} placeholder="Farmacia..." />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Población</label>
-          <Input value={city} onChange={e => setCity(e.target.value)} placeholder="Ciudad o pueblo..." />
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {renderTypeFields()}
@@ -209,7 +214,9 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
         <Textarea
           value={extra}
           onChange={e => setExtra(e.target.value)}
-          placeholder="Añade cualquier detalle extra: público objetivo, productos específicos, contexto..."
+          placeholder={isReview
+            ? 'Añade contexto: canal privado al que derivar (teléfono/email), detalles que quieras matizar...'
+            : 'Añade cualquier detalle extra: público objetivo, productos específicos, contexto...'}
           className="min-h-[80px] resize-none"
         />
       </div>
@@ -228,7 +235,7 @@ export const ContentForm = ({ contentType, isLoading, onSubmit }: ContentFormPro
         ) : (
           <>
             <Send className="h-4 w-4 mr-2" />
-            Generar contenido
+            {isReview ? 'Generar respuesta' : 'Generar contenido'}
           </>
         )}
       </Button>

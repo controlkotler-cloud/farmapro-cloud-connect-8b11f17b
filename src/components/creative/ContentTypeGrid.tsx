@@ -25,7 +25,10 @@ export const ContentTypeGrid = ({ selected, onSelect }: ContentTypeGridProps) =>
               : 'bg-white ring-gray-150 hover:ring-gray-200'
           )}
         >
-          <div className="text-2xl mb-2">{type.icon}</div>
+          <div className={cn(
+            'text-2xl mb-2',
+            selected === type.id ? 'text-green-600' : 'text-gray-600'
+          )}>{type.icon}</div>
           <div className={cn(
             'font-semibold text-sm mb-1',
             selected === type.id ? 'text-green-700' : 'text-gray-800'

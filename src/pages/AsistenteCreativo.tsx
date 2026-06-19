@@ -16,7 +16,7 @@ export default function AsistenteCreativo() {
         <CreativeHeader />
         <AccessLockedCard
           title="Tu acceso gratuito ha caducado"
-          description="Hazte Plus para seguir creando contenido con IAFarma: 7 tipos de pieza optimizados para farmacia y adaptados a la normativa."
+          description="Hazte Plus para seguir creando contenido con IAFarma: varios tipos de pieza pensados para tu farmacia y listos para publicar."
           ctaLabel="Hazte Plus"
         />
       </div>

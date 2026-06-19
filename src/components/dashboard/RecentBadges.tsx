@@ -9,7 +9,25 @@ export const RecentBadges = () => {
   const { recentBadges, earnedCount, loading } = useBadges();
   const navigate = useNavigate();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Award className="h-5 w-5 text-yellow-500" />
+            Insignias
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="h-12 w-12 rounded-full bg-muted animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <motion.div

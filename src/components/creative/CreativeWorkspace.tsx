@@ -1,9 +1,11 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCreativeChat, CreativeContext } from '@/hooks/useCreativeChat';
+import { useIAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 import { ContentTypeGrid } from './ContentTypeGrid';
 import { ContentForm } from './ContentForm';
+import { PharmacyDefaults } from './PharmacyDefaults';
 import { ResultsArea } from './ResultsArea';
 import { CONTENT_TYPES } from '@/hooks/useCreativeChat';
 
@@ -18,6 +20,8 @@ export const CreativeWorkspace = () => {
     clearChat,
   } = useCreativeChat();
 
+  const { defaults, updateDefault } = useIAFarmaDefaults();
+
   const selectedInfo = CONTENT_TYPES.find(t => t.id === contentType);
 
   const handleSubmit = (message: string, context: CreativeContext) => {
@@ -26,6 +30,8 @@ export const CreativeWorkspace = () => {
 
   return (
     <div className="space-y-8">
+      <PharmacyDefaults defaults={defaults} onChange={updateDefault} />
+
       <section>
         <h2 className="text-lg font-semibold text-gray-800 mb-4">¿Qué quieres crear?</h2>
         <ContentTypeGrid selected={contentType} onSelect={setContentType} />
@@ -48,6 +54,7 @@ export const CreativeWorkspace = () => {
             <ContentForm
               contentType={contentType}
               isLoading={isLoading}
+              defaults={defaults}
               onSubmit={handleSubmit}
             />
 

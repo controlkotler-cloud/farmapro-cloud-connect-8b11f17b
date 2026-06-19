@@ -80,24 +80,33 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
 
 // Calculate total points from completed challenges
 export const calculateTotalPointsFromChallenges = async (userId: string): Promise<{ totalPoints: number; level: number }> => {
+  // Lee el total CANÓNICO de user_points (lo mantiene la BD desde TODA la actividad:
+  // retos, cursos completados, quizzes aprobados, foro y descargas). Antes sumaba solo
+  // los retos, por eso el total visible salía descuadrado (0) aunque hubiera puntos.
   try {
-    const { data: completedChallenges, error } = await supabase
-      .from('user_challenge_progress')
-      .select('points_earned')
+    const { data, error } = await supabase
+      .from('user_points')
+      .select('total_points')
       .eq('user_id', userId)
-      .not('completed_at', 'is', null);
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching completed challenges:', error);
+      console.error('Error fetching user points:', error);
       return { totalPoints: 0, level: 1 };
     }
 
-    const totalPoints = (completedChallenges || []).reduce((sum, c) => sum + (c.points_earned || 0), 0);
-    const level = Math.floor(totalPoints / 1000) + 1;
+    const totalPoints = data?.total_points ?? 0;
+    // Nivel coherente con pointsService (mismos tramos en toda la app).
+    const level =
+      totalPoints >= 2000 ? 6 :
+      totalPoints >= 1000 ? 5 :
+      totalPoints >= 600 ? 4 :
+      totalPoints >= 300 ? 3 :
+      totalPoints >= 100 ? 2 : 1;
 
     return { totalPoints, level };
   } catch (error) {
-    console.error('Error calculating points from challenges:', error);
+    console.error('Error calculating user points:', error);
     return { totalPoints: 0, level: 1 };
   }
 };

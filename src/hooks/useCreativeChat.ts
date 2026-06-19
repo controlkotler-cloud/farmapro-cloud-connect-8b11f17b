@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, createElement, type ReactNode } from 'react';
+import { MessageSquareReply } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,11 +16,12 @@ export type ContentType =
   | 'google-business'
   | 'blog'
   | 'promotion'
-  | 'whatsapp';
+  | 'whatsapp'
+  | 'responder-resena';
 
 export interface ContentTypeInfo {
   id: ContentType;
-  icon: string;
+  icon: ReactNode;
   label: string;
   description: string;
 }
@@ -30,8 +32,9 @@ export const CONTENT_TYPES: ContentTypeInfo[] = [
   { id: 'carousel', icon: '📖', label: 'Carrusel Instagram', description: 'Contenido slide por slide para carruseles educativos' },
   { id: 'google-business', icon: '📍', label: 'Post Google Business', description: 'Publicación para tu perfil de Google que mejora tu SEO local' },
   { id: 'blog', icon: '📝', label: 'Artículo Blog', description: 'Artículo SEO de ~800 palabras para la web de tu farmacia' },
-  { id: 'promotion', icon: '🎯', label: 'Promoción', description: 'Copy promocional que cumple la normativa farmacéutica' },
+  { id: 'promotion', icon: '🎯', label: 'Promoción', description: 'Copy promocional para parafarmacia, dermo y servicios' },
   { id: 'whatsapp', icon: '💬', label: 'Mensaje WhatsApp', description: 'Mensaje para enviar a tus clientes (recordatorios, novedades)' },
+  { id: 'responder-resena', icon: createElement(MessageSquareReply, { className: 'h-6 w-6' }), label: 'Responder reseña', description: 'Respuesta profesional y empática a una reseña de Google' },
 ];
 
 export interface CreativeContext {
@@ -52,6 +55,9 @@ export interface CreativeContext {
   deadline?: string;
   channel?: string;
   messageType?: string;
+  reviewText?: string;
+  reviewStars?: string;
+  reviewTone?: string;
   extraInstructions?: string;
 }
 

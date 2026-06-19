@@ -3,8 +3,8 @@ import { Sparkles, ShieldCheck, TrendingUp, CheckCircle } from 'lucide-react';
 
 export const CreativeHeader = () => {
   const badges = [
-    { icon: ShieldCheck, text: 'Cumple normativa farmacéutica' },
-    { icon: TrendingUp, text: 'Adaptado al algoritmo 2026' },
+    { icon: ShieldCheck, text: 'Pensado para tu farmacia' },
+    { icon: TrendingUp, text: 'Adaptado al algoritmo actual' },
     { icon: CheckCircle, text: 'Contenido listo para publicar' },
   ];
 

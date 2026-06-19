@@ -50,6 +50,7 @@ export default function Precios() {
             Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu
             plaza al precio de lanzamiento y consérvalo para siempre.
           </p>
+          <p className="text-sm text-muted-foreground mt-3">Todos los precios con IVA incluido.</p>
         </div>
 
         {/* Toggle Mensual / Anual */}

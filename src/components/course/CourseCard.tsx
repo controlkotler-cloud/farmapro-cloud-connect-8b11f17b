@@ -66,7 +66,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
       {/* Portada: foto si existe; si no, portada por categoría (color + icono) */}
-      <div className={`relative aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br ${cover.gradient} flex items-center justify-center`}>
+      <div className={`relative h-28 overflow-hidden rounded-t-lg bg-gradient-to-br ${cover.gradient} flex items-center justify-center`}>
         {(course.featured_image_url || course.thumbnail_url) && !imgError ? (
           <img
             src={course.featured_image_url || course.thumbnail_url}
@@ -76,7 +76,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
           />
         ) : (
           <>
-            <cover.Icon className="h-14 w-14 text-white/90" strokeWidth={1.5} />
+            <cover.Icon className="h-10 w-10 text-white/90" strokeWidth={1.5} />
             <span className="absolute bottom-2 left-3 text-xs font-semibold uppercase tracking-wide text-white/85">
               {cover.label}
             </span>
