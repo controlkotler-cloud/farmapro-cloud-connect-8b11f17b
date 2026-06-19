@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { usePasswordReset } from '@/hooks/usePasswordReset';
 import { z } from 'zod';
+import { isValidFiscalId } from '@/lib/cif';
 
 // Security: Strong validation schema for authentication
 const authSchema = z.object({
@@ -43,6 +44,7 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
   const [fullName, setFullName] = useState('');
   const [pharmacyName, setPharmacyName] = useState('');
   const [position, setPosition] = useState('');
+  const [cif, setCif] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const { handlePasswordReset } = usePasswordReset();
@@ -71,7 +73,19 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
       }
 
       if (isRegistering) {
-        const { error } = await signUp(email, password, fullName, pharmacyName, position);
+        // Anti-pillaje: el CIF/NIF de la farmacia es obligatorio y debe ser válido
+        // (1 prueba gratis por farmacia; la verificación de existencia se hará en el alta).
+        if (!isValidFiscalId(cif)) {
+          toast({
+            title: 'Revisa el CIF/NIF',
+            description: 'Introduce el CIF o NIF de tu farmacia (formato válido).',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await signUp(email, password, fullName, pharmacyName, position, cif);
 
         if (error) {
           // Security: Don't expose internal error details
@@ -95,6 +109,7 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
           setFullName('');
           setPharmacyName('');
           setPosition('');
+          setCif('');
         }
       } else {
         const { error } = await signIn(email, password);
@@ -135,6 +150,7 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
     setFullName('');
     setPharmacyName('');
     setPosition('');
+    setCif('');
   };
 
   const handleToggle = () => {
@@ -193,6 +209,22 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
 
         {isRegistering && (
           <>
+            <div>
+              <Label htmlFor="cif">CIF / NIF de la farmacia *</Label>
+              <Input
+                id="cif"
+                type="text"
+                value={cif}
+                onChange={(e) => setCif(e.target.value)}
+                required
+                className="mt-1"
+                placeholder="Ej. B12345674"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Lo usamos para validar tu farmacia. Incluye 1 prueba gratis por farmacia.
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="pharmacyName">Farmacia (opcional)</Label>
               <Input

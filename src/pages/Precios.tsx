@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Check, ImageIcon, Sparkles } from "lucide-react";
+import { Check, ImageIcon, Sparkles, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
   PLANS,
-  LAUNCH_SPOTS,
+  LAUNCH,
+  getLaunchStatus,
   IMAGE_ADDONS,
   FREE_LIMITS,
   type Plan,
@@ -27,12 +28,19 @@ function formatPrice(value: number): string {
 export default function Precios() {
   const { toast } = useToast();
   const [billing, setBilling] = useState<BillingCycle>("monthly");
+  // Estado del lanzamiento: decide si rige el precio de lanzamiento o el normal,
+  // y alimenta el aviso de urgencia (plazas restantes + cuenta atrás).
+  const launch = getLaunchStatus();
+  const takenPct = Math.min(
+    100,
+    Math.round(((LAUNCH.spots - launch.spotsLeft) / LAUNCH.spots) * 100),
+  );
 
   const handleReserve = () => {
     toast({
       title: "Pronto podrás suscribirte",
       description:
-        "Estamos activando el pago. Te avisaremos en cuanto tu plaza esté lista para reservar.",
+        "Estamos activando el pago. Te avisaremos en cuanto tu plaza esté lista.",
     });
   };
 
@@ -41,14 +49,44 @@ export default function Precios() {
       <div className="container mx-auto px-4 py-16">
         {/* Cabecera */}
         <div className="text-center mb-10">
-          <Badge variant="secondary" className="mb-4 gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            Precio de lanzamiento · primeras {LAUNCH_SPOTS} plazas
-          </Badge>
+          {launch.active ? (
+            <div className="mx-auto mb-5 max-w-xl rounded-xl border bg-card p-4 shadow-sm">
+              <div className="flex items-center justify-center gap-2 text-sm font-semibold">
+                {launch.almostGone ? (
+                  <Flame className="h-4 w-4 text-destructive" />
+                ) : (
+                  <Sparkles className="h-4 w-4 text-primary" />
+                )}
+                <span className={launch.almostGone ? "text-destructive" : "text-primary"}>
+                  {launch.almostGone
+                    ? "¡Últimas plazas a este precio!"
+                    : "Precio de lanzamiento"}
+                </span>
+              </div>
+              <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    launch.almostGone ? "bg-destructive" : "bg-primary"
+                  }`}
+                  style={{ width: `${takenPct}%` }}
+                />
+              </div>
+              <div className="mt-2.5 text-center text-xs text-muted-foreground">
+                Solo quedan <strong className="text-foreground">{launch.spotsLeft}</strong> de{" "}
+                {LAUNCH.spots} plazas a este precio
+              </div>
+            </div>
+          ) : (
+            <Badge variant="secondary" className="mb-4 gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Planes de farmapro
+            </Badge>
+          )}
           <h1 className="text-4xl font-bold mb-4">Planes de farmapro</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu
-            plaza al precio de lanzamiento y consérvalo para siempre.
+            {launch.active
+              ? "Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu plaza al precio de lanzamiento y consérvalo para siempre."
+              : "Todo el contenido, la comunidad y IAFarma en un único sitio, por una cuota mensual."}
           </p>
           <p className="text-sm text-muted-foreground mt-3">Todos los precios con IVA incluido.</p>
         </div>
@@ -64,9 +102,7 @@ export default function Precios() {
           </span>
           <Switch
             checked={billing === "yearly"}
-            onCheckedChange={(checked) =>
-              setBilling(checked ? "yearly" : "monthly")
-            }
+            onCheckedChange={(checked) => setBilling(checked ? "yearly" : "monthly")}
             aria-label="Cambiar entre facturación mensual y anual"
           />
           <span
@@ -88,6 +124,7 @@ export default function Precios() {
               key={plan.id}
               plan={plan}
               billing={billing}
+              launchActive={launch.active}
               onReserve={handleReserve}
             />
           ))}
@@ -99,11 +136,11 @@ export default function Precios() {
             <CardContent className="p-6 text-center">
               <h3 className="font-semibold mb-2">Cómo funciona el plan gratis</h3>
               <p className="text-sm text-muted-foreground">
-                Durante los primeros {FREE_LIMITS.trialDays} días disfrutas de un
-                acceso limitado: unos cuantos cursos y recursos, la comunidad en
-                modo lectura y unas primeras pruebas de IAFarma. Pasados los{" "}
-                {FREE_LIMITS.trialDays} días tu cuenta queda en modo solo-ver: lo
-                sigues viendo todo, pero para usarlo necesitas un plan de pago.
+                Durante los primeros {FREE_LIMITS.trialDays} días disfrutas de un acceso
+                limitado: unos cuantos cursos y recursos, la comunidad en modo lectura y
+                unas primeras pruebas de IAFarma. Pasados los {FREE_LIMITS.trialDays} días
+                tu cuenta queda en modo solo-ver: lo sigues viendo todo, pero para usarlo
+                necesitas un plan de pago.
               </p>
             </CardContent>
           </Card>
@@ -117,8 +154,8 @@ export default function Precios() {
               Packs de imágenes IAFarma
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              ¿Necesitas más imágenes? Recarga cuando quieras, pago único sobre
-              cualquier plan de pago.
+              ¿Necesitas más imágenes? Recarga cuando quieras, pago único sobre cualquier
+              plan de pago.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -140,10 +177,7 @@ export default function Precios() {
         <div className="text-center mt-14">
           <p className="text-muted-foreground">
             ¿Necesitas ayuda?{" "}
-            <a
-              href="mailto:soporte@farmapro.es"
-              className="text-primary hover:underline"
-            >
+            <a href="mailto:soporte@farmapro.es" className="text-primary hover:underline">
               Contacta con nosotros
             </a>
           </p>
@@ -156,24 +190,27 @@ export default function Precios() {
 interface PlanCardProps {
   plan: Plan;
   billing: BillingCycle;
+  /** Si el lanzamiento sigue activo, se muestra el precio de lanzamiento; si no, el normal. */
+  launchActive: boolean;
   onReserve: () => void;
 }
 
-function PlanCard({ plan, billing, onReserve }: PlanCardProps) {
+function PlanCard({ plan, billing, launchActive, onReserve }: PlanCardProps) {
   const isFree = plan.id === "gratis";
   const isHighlighted = Boolean(plan.highlight);
+  const period = billing === "yearly" ? "/año" : "/mes";
 
-  // Precio vigente según el ciclo de facturación.
+  // Precio regular vigente (sin lanzamiento). Anual = 10x mensual (2 meses gratis).
+  const regularPrice = billing === "yearly" ? plan.priceMonthly * 10 : plan.priceMonthly;
   const launchPrice =
     billing === "yearly" ? plan.priceYearlyLaunch : plan.priceMonthlyLaunch;
-  const period = billing === "yearly" ? "/año" : "/mes";
+  // Precio que se cobra realmente ahora mismo.
+  const currentPrice = launchActive ? launchPrice : regularPrice;
 
   return (
     <Card
       className={`relative flex flex-col h-full overflow-hidden transition-shadow ${
-        isHighlighted
-          ? "border-primary border-2 shadow-lg ring-1 ring-primary/20"
-          : ""
+        isHighlighted ? "border-primary border-2 shadow-lg ring-1 ring-primary/20" : ""
       }`}
     >
       {isHighlighted && (
@@ -192,20 +229,24 @@ function PlanCard({ plan, billing, onReserve }: PlanCardProps) {
             <span className="text-4xl font-bold">Gratis</span>
           ) : (
             <>
-              {/* Precio regular tachado */}
-              <span className="text-sm text-muted-foreground line-through">
-                Antes {formatPrice(plan.priceMonthly)} €/mes
-              </span>
-              {/* Precio de lanzamiento */}
+              {/* Precio regular tachado (solo durante el lanzamiento) */}
+              {launchActive && (
+                <span className="text-sm text-muted-foreground line-through">
+                  Antes {formatPrice(regularPrice)} €{period}
+                </span>
+              )}
+              {/* Precio vigente */}
               <div className="flex items-baseline gap-1">
                 <span className="text-5xl font-bold text-primary">
-                  {launchPrice !== undefined ? formatPrice(launchPrice) : "—"} €
+                  {currentPrice !== undefined ? formatPrice(currentPrice) : "—"} €
                 </span>
                 <span className="text-muted-foreground">{period}</span>
               </div>
-              <span className="mt-2 text-xs font-medium text-primary">
-                Precio de lanzamiento · primeras {LAUNCH_SPOTS} plazas, para siempre
-              </span>
+              {launchActive && (
+                <span className="mt-2 text-xs font-medium text-primary">
+                  Precio de lanzamiento · {LAUNCH.spots} primeras plazas, para siempre
+                </span>
+              )}
               {billing === "yearly" && (
                 <span className="text-xs text-muted-foreground mt-1">
                   Equivale a 2 meses gratis
@@ -217,9 +258,7 @@ function PlanCard({ plan, billing, onReserve }: PlanCardProps) {
 
         {/* Plazas incluidas */}
         <p className="mt-3 text-sm text-muted-foreground">
-          {plan.seats === 1
-            ? "1 usuario incluido"
-            : `Hasta ${plan.seats} usuarios`}
+          {plan.seats === 1 ? "1 usuario incluido" : `Hasta ${plan.seats} usuarios`}
         </p>
       </CardHeader>
 

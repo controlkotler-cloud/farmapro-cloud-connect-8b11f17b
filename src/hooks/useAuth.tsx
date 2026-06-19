@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { validateFiscalId } from '@/lib/cif';
 
 interface AuthContextType {
   user: User | null;
@@ -9,7 +10,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, pharmacyName?: string, position?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, pharmacyName?: string, position?: string, cif?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
 }
@@ -136,8 +137,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, pharmacyName?: string, position?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, pharmacyName?: string, position?: string, cif?: string) => {
     try {
+      // CIF/NIF normalizado (anti-pillaje: 1 prueba gratis por farmacia).
+      const cifNormalized = cif ? validateFiscalId(cif).normalized : undefined;
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -146,6 +149,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             full_name: fullName,
             pharmacy_name: pharmacyName,
             position: position,
+            cif: cifNormalized,
           },
         },
       });

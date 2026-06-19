@@ -26,6 +26,41 @@ export interface Plan {
 /** Plazas con precio de lanzamiento bloqueado de por vida. */
 export const LAUNCH_SPOTS = 100;
 
+/**
+ * Configuración del lanzamiento. El precio de lanzamiento rige hasta cubrir las
+ * primeras `spots` plazas: ése es el ÚNICO cierre. La fecha NO cierra nada.
+ *  - startISO: inicio del lanzamiento (referencia interna).
+ *  - windowDays: objetivo interno de captación (NO visible, NO cierra nada; si
+ *    pasan los días y aún no hay 100, se continúa hasta llegar a 100).
+ *  - spots: plazas a precio de lanzamiento (100).
+ *  - spotsTaken: plazas YA ocupadas. Mientras no esté Stripe, súbelo a mano (o
+ *    conéctalo al recuento real de altas). Cuando spotsTaken >= spots, se cierra
+ *    y rige el precio normal.
+ *    OJO legal: el "quedan X plazas" debería reflejar la realidad (o al menos no
+ *    contradecirla) para no incurrir en publicidad engañosa.
+ */
+export const LAUNCH = {
+  startISO: '2026-07-01T09:00:00+02:00',
+  windowDays: 15,
+  spots: LAUNCH_SPOTS,
+  spotsTaken: 95, // muestra "quedan 5 de 100 plazas". Súbelo/bájalo cuando quieras.
+};
+
+export interface LaunchStatus {
+  /** ¿Sigue vigente el precio de lanzamiento? Depende SOLO de que queden plazas. */
+  active: boolean;
+  /** Plazas que quedan a precio de lanzamiento. */
+  spotsLeft: number;
+  /** true cuando quedan pocas (<=15): dispara el aviso "últimas plazas". */
+  almostGone: boolean;
+}
+
+/** Estado del lanzamiento: se cierra al cubrir las primeras `spots` plazas. */
+export function getLaunchStatus(): LaunchStatus {
+  const spotsLeft = Math.max(0, LAUNCH.spots - LAUNCH.spotsTaken);
+  return { active: spotsLeft > 0, spotsLeft, almostGone: spotsLeft > 0 && spotsLeft <= 15 };
+}
+
 export const PLANS: Plan[] = [
   {
     id: 'gratis',
@@ -72,7 +107,7 @@ export const PLANS: Plan[] = [
     features: [
       'Todo lo de Plus para hasta 10 personas',
       'Una sola cuota para toda la farmacia',
-      'Panel del titular y seguimiento del equipo',
+      'Gestiona las plazas de tu equipo',
       'IAFarma texto ilimitado para el equipo',
     ],
   },
