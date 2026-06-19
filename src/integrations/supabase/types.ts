@@ -212,6 +212,81 @@ export type Database = {
         }
         Relationships: []
       }
+      coaching_reservas: {
+        Row: {
+          acceso_reserva_url: string | null
+          aviso_grupo_enviado_at: string | null
+          aviso_resto_enviado_at: string | null
+          aviso_salida_enviado: boolean
+          created_at: string
+          email: string
+          estado: string
+          farmacia: string | null
+          fecha_senal: string | null
+          fechas_sesiones: Json | null
+          grupo_id: string | null
+          id: string
+          importe_pagado: number | null
+          modalidad: string
+          nombre: string | null
+          notas: string | null
+          provincia: string | null
+          senal_pagada: boolean
+          stripe_customer_id: string | null
+          stripe_session_id: string | null
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          acceso_reserva_url?: string | null
+          aviso_grupo_enviado_at?: string | null
+          aviso_resto_enviado_at?: string | null
+          aviso_salida_enviado?: boolean
+          created_at?: string
+          email: string
+          estado?: string
+          farmacia?: string | null
+          fecha_senal?: string | null
+          fechas_sesiones?: Json | null
+          grupo_id?: string | null
+          id?: string
+          importe_pagado?: number | null
+          modalidad: string
+          nombre?: string | null
+          notas?: string | null
+          provincia?: string | null
+          senal_pagada?: boolean
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acceso_reserva_url?: string | null
+          aviso_grupo_enviado_at?: string | null
+          aviso_resto_enviado_at?: string | null
+          aviso_salida_enviado?: boolean
+          created_at?: string
+          email?: string
+          estado?: string
+          farmacia?: string | null
+          fecha_senal?: string | null
+          fechas_sesiones?: Json | null
+          grupo_id?: string | null
+          id?: string
+          importe_pagado?: number | null
+          modalidad?: string
+          nombre?: string | null
+          notas?: string | null
+          provincia?: string | null
+          senal_pagada?: boolean
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       course_enrollments: {
         Row: {
           completed_at: string | null
