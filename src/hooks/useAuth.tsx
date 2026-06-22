@@ -68,16 +68,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    console.log('Initializing auth...');
-    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
       if (!mounted) return;
-      
+
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         // Use setTimeout to avoid potential callback loops
         setTimeout(async () => {
@@ -90,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setProfile(null);
         setIsAdmin(false);
       }
-      
+
       // Set loading to false after first auth state change
       if (mounted) {
         setLoading(false);
@@ -100,15 +96,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Error getting session:', error);
+        console.error('Error getting session:', error.message);
         if (mounted) {
           setLoading(false);
         }
         return;
       }
 
-      console.log('Initial session:', session?.user?.email);
-      
       if (mounted && !session) {
         // If no initial session, set loading to false
         setLoading(false);
@@ -123,7 +117,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Signing in user:', email);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     } catch (error) {
