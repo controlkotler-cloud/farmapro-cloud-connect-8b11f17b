@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { RotateCcw } from 'lucide-react';
 
 export default function Perfil() {
-  const { profile, user, isAdmin } = useAuth();
+  const { profile, user, isAdmin, reloadProfile } = useAuth();
   const { isTeamOwner, loading: teamLoading } = useTeamManagement();
   const isMobile = useIsMobile();
   const [selectedTab, setSelectedTab] = useState('personal');
@@ -143,10 +143,15 @@ export default function Perfil() {
           <button
             onClick={async () => {
               if (user) {
-                await supabase
+                const { error } = await supabase
                   .from('profiles')
                   .update({ has_completed_onboarding: false } as any)
                   .eq('id', user.id);
+                if (error) {
+                  toast.error('No se pudo reiniciar el tour.');
+                  return;
+                }
+                await reloadProfile();
                 toast.success('Tour reiniciado. Vuelve al Dashboard para verlo.');
               }
             }}
