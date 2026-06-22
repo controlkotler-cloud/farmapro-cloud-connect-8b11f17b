@@ -60,7 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const reloadProfile = async () => {
     if (user) {
-      console.log('Reloading profile for user:', user.id);
       await loadProfile(user.id);
       await checkAdminStatus();
     }
