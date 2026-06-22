@@ -18,6 +18,7 @@ import { JobApplicationDialog } from '@/components/empleo/JobApplicationDialog';
 import { JobListing } from '@/types/job';
 import { useSectionVisibility } from '@/hooks/useSectionVisibility';
 import { AlertCircle } from 'lucide-react';
+import { PAID_ROLES } from '@/lib/plans';
 
 const Empleo = () => {
   const { profile, isAdmin: userIsAdmin } = useAuth();
