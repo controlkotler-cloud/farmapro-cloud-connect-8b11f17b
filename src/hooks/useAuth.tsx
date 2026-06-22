@@ -150,7 +150,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      console.log('Signing out user');
       // Clear state immediately to prevent UI issues
       setUser(null);
       setProfile(null);
