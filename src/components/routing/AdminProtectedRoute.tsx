@@ -11,8 +11,6 @@ interface AdminProtectedRouteProps {
 export const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
-  console.log('AdminProtectedRoute - user:', user?.email, 'loading:', loading);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -25,7 +23,6 @@ export const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   }
 
   if (!user) {
-    console.log('AdminProtectedRoute - No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
