@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboard } from '@/hooks/useDashboard';
 import { WelcomeCard } from '@/components/dashboard/WelcomeCard';
@@ -14,11 +14,18 @@ import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 export const Dashboard = () => {
   const { profile, reloadProfile } = useAuth();
   const { stats, recentActivity, getNextLevelProgress, getPointsToNextLevel } = useDashboard();
-  const [showOnboarding, setShowOnboarding] = useState(
-    profile ? !(profile as any).has_completed_onboarding : false
-  );
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+
+  // Sincroniza cuando el profile llega (puede ser null en el primer render
+  // porque se carga de forma asíncrona tras onAuthStateChange).
+  useEffect(() => {
+    if (!profile || dismissed) return;
+    setShowOnboarding(!(profile as any).has_completed_onboarding);
+  }, [profile, dismissed]);
 
   const handleOnboardingComplete = () => {
+    setDismissed(true);
     setShowOnboarding(false);
     reloadProfile();
   };
