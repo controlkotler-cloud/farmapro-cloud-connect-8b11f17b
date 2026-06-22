@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { RotateCcw } from 'lucide-react';
 
 export default function Perfil() {
-  const { profile, user, isAdmin } = useAuth();
+  const { profile, user, isAdmin, reloadProfile } = useAuth();
   const { isTeamOwner, loading: teamLoading } = useTeamManagement();
   const isMobile = useIsMobile();
   const [selectedTab, setSelectedTab] = useState('personal');
