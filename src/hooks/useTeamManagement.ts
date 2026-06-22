@@ -46,26 +46,21 @@ export const useTeamManagement = () => {
   }, []);
 
   const loadTeamData = async () => {
-    if (!user) {
-      console.log('[TEAM DEBUG] No user, returning');
-      return;
-    }
+    if (!user) return;
 
-    console.log('[TEAM DEBUG] Starting loadTeamData for user:', user.id);
     setLoading(true);
     try {
       // Check if user owns a team using RPC function
-      const { data: ownerCheck, error: ownerError } = await supabase.rpc('is_team_owner' as any, { 
-        user_id_param: user.id 
+      const { data: ownerCheck, error: ownerError } = await supabase.rpc('is_team_owner' as any, {
+        user_id_param: user.id
       });
 
       if (ownerError) {
-        console.error('[TEAM DEBUG] Error checking team ownership:', ownerError);
+        console.error('Error checking team ownership:', ownerError.message);
         setIsTeamOwner(false);
       } else {
-        console.log('[TEAM DEBUG] Owner check result:', ownerCheck);
         setIsTeamOwner(!!ownerCheck);
-        
+
         if (ownerCheck) {
           // Load team subscription details (most recent one)
           const { data: ownedTeams, error: teamError } = await supabase
@@ -75,19 +70,13 @@ export const useTeamManagement = () => {
             .eq('status', 'active')
             .order('created_at', { ascending: false });
 
-          console.log('[TEAM DEBUG] Query result - data:', ownedTeams, 'error:', teamError);
-          
           const ownedTeam = ownedTeams?.[0]; // Take the most recent team
-          
-          console.log('[TEAM DEBUG] Found teams:', ownedTeams);
-          console.log('[TEAM DEBUG] Selected team:', ownedTeam);
 
           if (teamError) {
-            console.error('[TEAM DEBUG] Error loading team:', teamError);
+            console.error('Error loading team:', teamError.message);
           } else if (ownedTeam) {
-            console.log('[TEAM DEBUG] Setting team subscription:', ownedTeam);
             setTeamSubscription(ownedTeam);
-            
+
             // Load team members
             const { data: members, error: membersError } = await supabase
               .from('team_members')
@@ -96,7 +85,7 @@ export const useTeamManagement = () => {
               .order('invited_at', { ascending: true });
 
             if (membersError) {
-              console.error('Error loading team members:', membersError);
+              console.error('Error loading team members:', membersError.message);
             } else {
               const typedMembers = members?.map(member => ({
                 ...member,
@@ -109,21 +98,20 @@ export const useTeamManagement = () => {
       }
 
       // Check if user is a team member using RPC function
-      const { data: memberCheck, error: memberError } = await supabase.rpc('is_team_member' as any, { 
-        user_id_param: user.id 
+      const { data: memberCheck, error: memberError } = await supabase.rpc('is_team_member' as any, {
+        user_id_param: user.id
       });
 
       if (memberError) {
-        console.error('Error checking team membership:', memberError);
+        console.error('Error checking team membership:', memberError.message);
         setIsTeamMember(false);
       } else {
         setIsTeamMember(!!memberCheck);
       }
 
     } catch (error) {
-      console.error('[TEAM DEBUG] Error in loadTeamData:', error);
+      console.error('Error in loadTeamData:', error);
     } finally {
-      console.log('[TEAM DEBUG] Final state - isTeamOwner:', isTeamOwner, 'teamSubscription:', teamSubscription);
       setLoading(false);
     }
   };

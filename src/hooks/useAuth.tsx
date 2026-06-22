@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loadProfile = async (userId: string) => {
     try {
-      console.log('Loading profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -33,11 +32,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
       
       if (error) {
-        console.error('Error loading profile:', error);
+        console.error('Error loading profile:', error.message);
         return;
       }
       
-      console.log('Profile loaded:', data);
       setProfile(data);
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -46,14 +44,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkAdminStatus = async () => {
     try {
-      console.log('Checking admin status...');
       const { data: isAdminResult, error } = await supabase.rpc('is_current_user_admin');
       
       if (error) {
-        console.error('Error checking admin status:', error);
+        console.error('Error checking admin status:', error.message);
         setIsAdmin(false);
       } else {
-        console.log('Admin status result:', isAdminResult);
         setIsAdmin(!!isAdminResult);
       }
     } catch (error) {
@@ -64,7 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const reloadProfile = async () => {
     if (user) {
-      console.log('Reloading profile for user:', user.id);
       await loadProfile(user.id);
       await checkAdminStatus();
     }
@@ -73,16 +68,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    console.log('Initializing auth...');
-    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
       if (!mounted) return;
-      
+
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         // Use setTimeout to avoid potential callback loops
         setTimeout(async () => {
@@ -95,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setProfile(null);
         setIsAdmin(false);
       }
-      
+
       // Set loading to false after first auth state change
       if (mounted) {
         setLoading(false);
@@ -105,15 +96,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Error getting session:', error);
+        console.error('Error getting session:', error.message);
         if (mounted) {
           setLoading(false);
         }
         return;
       }
 
-      console.log('Initial session:', session?.user?.email);
-      
       if (mounted && !session) {
         // If no initial session, set loading to false
         setLoading(false);
@@ -128,7 +117,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Signing in user:', email);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     } catch (error) {
@@ -162,7 +150,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      console.log('Signing out user');
       // Clear state immediately to prevent UI issues
       setUser(null);
       setProfile(null);

@@ -24,14 +24,10 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
 
   // Redirect to login if not authenticated
   if (!user) {
-    console.log('AdminRoute - No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   if (!isAdmin) {
-    console.log('AdminRoute - User is not admin, showing access denied');
-    console.log('User email:', user.email);
-    console.log('Is admin:', isAdmin);
     
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -74,6 +70,5 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     );
   }
 
-  console.log('AdminRoute - Access granted to admin user');
   return <>{children}</>;
 };

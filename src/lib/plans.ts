@@ -88,7 +88,7 @@ export const PLANS: Plan[] = [
     tagline: 'Para ti, todo incluido',
     cta: 'Hazte Plus',
     features: [
-      'TODO el contenido: cursos y recursos sin límite',
+      'Todo el contenido: cursos y recursos sin límite',
       'Comunidad completa + retos y ranking',
       'IAFarma texto ILIMITADO',
       '1 imagen IAFarma/mes (+ packs de recarga)',

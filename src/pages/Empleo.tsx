@@ -18,6 +18,7 @@ import { JobApplicationDialog } from '@/components/empleo/JobApplicationDialog';
 import { JobListing } from '@/types/job';
 import { useSectionVisibility } from '@/hooks/useSectionVisibility';
 import { AlertCircle } from 'lucide-react';
+import { PAID_ROLES } from '@/lib/plans';
 
 const Empleo = () => {
   const { profile, isAdmin: userIsAdmin } = useAuth();
@@ -203,11 +204,11 @@ const Empleo = () => {
   };
 
   const canPostJobs = () => {
-    return profile?.subscription_role === 'premium' || profile?.subscription_role === 'admin';
+    return !!profile?.subscription_role && PAID_ROLES.includes(profile.subscription_role);
   };
 
   const isPremium = () => {
-    return profile?.subscription_role === 'premium';
+    return !!profile?.subscription_role && PAID_ROLES.includes(profile.subscription_role);
   };
 
   const checkIsAdmin = () => {
