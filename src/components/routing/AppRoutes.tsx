@@ -8,6 +8,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 import { Formacion } from "@/pages/Formacion";
 import { Recursos } from "@/pages/Recursos";
+import { PAID_ROLES } from "@/lib/plans";
 import Comunidad from "@/pages/Comunidad";
 import { Retos } from "@/pages/Retos";
 import Empleo from "@/pages/Empleo";
