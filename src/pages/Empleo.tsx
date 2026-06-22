@@ -203,11 +203,11 @@ const Empleo = () => {
   };
 
   const canPostJobs = () => {
-    return profile?.subscription_role === 'premium' || profile?.subscription_role === 'admin';
+    return !!profile?.subscription_role && PAID_ROLES.includes(profile.subscription_role);
   };
 
   const isPremium = () => {
-    return profile?.subscription_role === 'premium';
+    return !!profile?.subscription_role && PAID_ROLES.includes(profile.subscription_role);
   };
 
   const checkIsAdmin = () => {
