@@ -143,10 +143,15 @@ export default function Perfil() {
           <button
             onClick={async () => {
               if (user) {
-                await supabase
+                const { error } = await supabase
                   .from('profiles')
                   .update({ has_completed_onboarding: false } as any)
                   .eq('id', user.id);
+                if (error) {
+                  toast.error('No se pudo reiniciar el tour.');
+                  return;
+                }
+                await reloadProfile();
                 toast.success('Tour reiniciado. Vuelve al Dashboard para verlo.');
               }
             }}
