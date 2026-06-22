@@ -70,6 +70,5 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     );
   }
 
-  console.log('AdminRoute - Access granted to admin user');
   return <>{children}</>;
 };
