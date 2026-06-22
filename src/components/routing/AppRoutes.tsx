@@ -38,8 +38,6 @@ export const AppRoutes = () => {
   const { user, profile, loading } = useAuth();
   const { getSettingsByCategory, isLoading: settingsLoading } = useSystemSettings();
 
-  console.log('AppRoutes - user:', user?.email, 'loading:', loading);
-
   // Get system settings
   const systemSettings = getSettingsByCategory('system');
   const validationMode = systemSettings?.validation_mode || 'beta';
@@ -65,10 +63,11 @@ export const AppRoutes = () => {
     profile?.student_valid_until &&
     new Date(profile.student_valid_until) < new Date();
 
-  // Only redirect when validation_mode is 'active' and user is expired freemium/student (not admin/premium/profesional)
+  // Solo redirigimos a /precios cuando validation_mode='active' y el usuario
+  // gratuito/estudiante caducó. Cualquier rol de pago (PAID_ROLES) queda fuera.
   const shouldRedirectToPrecios = validationMode === 'active' && 
     (isTrialExpired || isStudentExpired) && 
-    !['admin', 'premium', 'profesional'].includes(profile?.subscription_role || '');
+    !PAID_ROLES.includes(profile?.subscription_role || '');
 
   return (
     <Routes>
