@@ -7,121 +7,197 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Planes con acceso a generación de imágenes (coherente con ai-creative-assistant)
-const ALLOWED_ROLES = ['premium', 'profesional', 'admin'];
+// Mantener sincronizado con src/lib/plans.ts
+const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
+const TRIAL_DAYS = 30;
+const IMAGES_PER_MONTH = 1; // FREE_LIMITS.aiImagePerMonth (paid y trial)
+const BUCKET = 'iafarma-images';
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    // --- C-SEG3: autenticación + autorización (antes NO había ninguna) ---
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No autorizado' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    if (!authHeader) return json({ error: 'No autorizado' }, 401);
     const token = authHeader.replace('Bearer ', '');
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const admin = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Usuario no autenticado' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const { data: { user }, error: authError } = await admin.auth.getUser(token);
+    if (authError || !user) return json({ error: 'Sesión inválida' }, 401);
 
-    const { data: profile, error: profileError } = await supabaseAdmin
+    // Cliente con el JWT del usuario para invocar la RPC con auth.uid()
+    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    // Estado de acceso (getAccessState)
+    const { data: profile, error: profileError } = await admin
       .from('profiles')
-      .select('subscription_role, subscription_status')
+      .select('subscription_role, created_at')
       .eq('id', user.id)
       .single();
+    if (profileError || !profile) return json({ error: 'Perfil no encontrado' }, 500);
 
-    if (profileError || !profile) {
-      return new Response(JSON.stringify({ error: 'Error al verificar el perfil' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const role = profile.subscription_role as string | null;
+    let access: 'paid' | 'free_trial' | 'free_locked';
+    if (role && PAID_ROLES.includes(role)) {
+      access = 'paid';
+    } else if (!profile.created_at) {
+      access = 'free_trial';
+    } else {
+      const days = (Date.now() - new Date(profile.created_at).getTime()) / 86_400_000;
+      access = days <= TRIAL_DAYS ? 'free_trial' : 'free_locked';
     }
 
-    if (!ALLOWED_ROLES.includes(profile.subscription_role) || profile.subscription_status !== 'active') {
-      return new Response(JSON.stringify({ error: 'No tienes acceso. Necesitas un plan Premium, Profesional o Admin activo.' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (access === 'free_locked') {
+      return json({ error: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir generando imágenes.' }, 403);
     }
-    // --- fin gating ---
 
-    const { prompt, size = '1024x1024', style = 'vivid' } = await req.json();
-
-    // Validación de entrada
-    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
-      return new Response(JSON.stringify({ error: 'Prompt requerido' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Validar input
+    const body = await req.json().catch(() => ({}));
+    const { prompt, size = '1024x1024', style = 'vivid' } = body ?? {};
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+      return json({ error: 'Prompt requerido' }, 400);
     }
     if (prompt.length > 1000) {
-      return new Response(JSON.stringify({ error: 'Prompt demasiado largo (máx. 1000 caracteres)' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Prompt demasiado largo (máx. 1000 caracteres)' }, 400);
     }
+
+    // Consumir crédito atómico (limit = IMAGES_PER_MONTH)
+    const { data: remainingData, error: creditError } = await userClient.rpc('consume_image_credit', {
+      p_limit: IMAGES_PER_MONTH,
+    });
+    if (creditError) {
+      const msg = (creditError.message || '').toLowerCase();
+      if (msg.includes('quota')) {
+        return json({ error: 'Has alcanzado el límite mensual de imágenes IAFarma.' }, 402);
+      }
+      console.error('consume_image_credit error:', creditError);
+      return json({ error: 'No se pudo verificar la cuota' }, 500);
+    }
+    const remaining = Number(remainingData ?? 0);
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY not configured');
+      // refund
+      await refundCredit(admin, user.id);
+      return json({ error: 'OPENAI_API_KEY no configurada' }, 500);
     }
 
-    // Enhance prompt for pharmacy/medical context
-    const enhancedPrompt = `Professional pharmaceutical/medical context: ${prompt}.
-Style: Clean, modern, trustworthy. Suitable for healthcare communication.`;
+    // Reglas farma + prompt
+    const enhancedPrompt =
+      `Professional pharmaceutical/medical context: ${prompt}. ` +
+      `Style: Clean, modern, trustworthy. Suitable for healthcare communication. ` +
+      `Strict rules: no embedded text or typography, no brand logos, no real medication boxes or trademarked packaging.`;
 
-    console.log('Generating image for user:', user.id);
-
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
+    const dalleRes = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        Authorization: `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'dall-e-3',
         prompt: enhancedPrompt,
         n: 1,
-        size: size,
+        size,
         quality: 'standard',
-        style: style,
+        style,
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI DALL-E error:', error);
-      throw new Error('Failed to generate image');
+    if (!dalleRes.ok) {
+      const errText = await dalleRes.text();
+      console.error('OpenAI DALL-E error:', errText);
+      await refundCredit(admin, user.id);
+      return json({ error: 'No se pudo generar la imagen' }, 502);
     }
 
-    const data = await response.json();
-    const imageUrl = data.data[0].url;
+    const dalleData = await dalleRes.json();
+    const openaiUrl: string = dalleData?.data?.[0]?.url;
+    const revisedPrompt: string | undefined = dalleData?.data?.[0]?.revised_prompt;
+    if (!openaiUrl) {
+      await refundCredit(admin, user.id);
+      return json({ error: 'Respuesta de imagen vacía' }, 502);
+    }
 
-    console.log('Image generated successfully');
+    // Descargar binario y subir a Storage (bucket privado)
+    const imgRes = await fetch(openaiUrl);
+    if (!imgRes.ok) {
+      await refundCredit(admin, user.id);
+      return json({ error: 'No se pudo descargar la imagen generada' }, 502);
+    }
+    const bytes = new Uint8Array(await imgRes.arrayBuffer());
+    const fileId = crypto.randomUUID();
+    const path = `${user.id}/${fileId}.png`;
 
-    return new Response(
-      JSON.stringify({ imageUrl, revisedPrompt: data.data[0].revised_prompt }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    const { error: uploadError } = await admin.storage.from(BUCKET).upload(path, bytes, {
+      contentType: 'image/png',
+      upsert: false,
+    });
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      await refundCredit(admin, user.id);
+      return json({ error: 'No se pudo guardar la imagen' }, 500);
+    }
 
+    // URL firmada de larga duración (10 años) — bucket privado por política de workspace
+    const { data: signed, error: signError } = await admin.storage
+      .from(BUCKET)
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    if (signError || !signed?.signedUrl) {
+      console.error('Sign URL error:', signError);
+      await refundCredit(admin, user.id);
+      return json({ error: 'No se pudo generar la URL de la imagen' }, 500);
+    }
+    const imageUrl = signed.signedUrl;
+
+    // Guardar en galería (best-effort)
+    await admin.from('generated_images').insert({
+      user_id: user.id,
+      prompt,
+      revised_prompt: revisedPrompt ?? null,
+      storage_path: path,
+      image_url: imageUrl,
+    });
+
+    return json({ imageUrl, revisedPrompt, remaining });
   } catch (error) {
     console.error('Error in ai-generate-image:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    return json({ error: (error as Error).message ?? 'Error interno' }, 500);
   }
 });
+
+async function refundCredit(admin: ReturnType<typeof createClient>, userId: string) {
+  try {
+    const period = new Date().toISOString().slice(0, 7);
+    const { data } = await admin
+      .from('ai_image_usage')
+      .select('used')
+      .eq('user_id', userId)
+      .eq('period', period)
+      .maybeSingle();
+    if (data && typeof data.used === 'number' && data.used > 0) {
+      await admin
+        .from('ai_image_usage')
+        .update({ used: data.used - 1, updated_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('period', period);
+    }
+  } catch (e) {
+    console.error('Refund failed:', e);
+  }
+}
