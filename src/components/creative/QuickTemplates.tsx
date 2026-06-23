@@ -40,6 +40,7 @@ const TEMPLATES: Record<ContentType, string[]> = {
     'Promoción semanal',
   ],
   'responder-resena': [],
+  imagen: [],
 };
 
 interface QuickTemplatesProps {

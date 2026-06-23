@@ -1,5 +1,5 @@
 import { useState, useCallback, createElement, type ReactNode } from 'react';
-import { MessageSquareReply } from 'lucide-react';
+import { MessageSquareReply, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +17,8 @@ export type ContentType =
   | 'blog'
   | 'promotion'
   | 'whatsapp'
-  | 'responder-resena';
+  | 'responder-resena'
+  | 'imagen';
 
 export interface ContentTypeInfo {
   id: ContentType;
@@ -35,6 +36,7 @@ export const CONTENT_TYPES: ContentTypeInfo[] = [
   { id: 'promotion', icon: '🎯', label: 'Promoción', description: 'Copy promocional para parafarmacia, dermo y servicios' },
   { id: 'whatsapp', icon: '💬', label: 'Mensaje WhatsApp', description: 'Mensaje para enviar a tus clientes (recordatorios, novedades)' },
   { id: 'responder-resena', icon: createElement(MessageSquareReply, { className: 'h-6 w-6' }), label: 'Responder reseña', description: 'Respuesta profesional y empática a una reseña de Google' },
+  { id: 'imagen', icon: createElement(Image, { className: 'h-6 w-6' }), label: 'Imagen', description: 'Genera una imagen para tus publicaciones' },
 ];
 
 export interface CreativeContext {
