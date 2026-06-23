@@ -125,6 +125,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_image_usage: {
+        Row: {
+          period: string
+          updated_at: string
+          used: number
+          user_id: string
+        }
+        Insert: {
+          period: string
+          updated_at?: string
+          used?: number
+          user_id: string
+        }
+        Update: {
+          period?: string
+          updated_at?: string
+          used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           category: string
@@ -885,6 +906,36 @@ export type Database = {
           id?: string
           status?: string | null
           topic?: string | null
+        }
+        Relationships: []
+      }
+      generated_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          prompt: string
+          revised_prompt: string | null
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          prompt: string
+          revised_prompt?: string | null
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          prompt?: string
+          revised_prompt?: string | null
+          storage_path?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2440,6 +2491,7 @@ export type Database = {
         Args: { thread_author_id: string }
         Returns: boolean
       }
+      consume_image_credit: { Args: { p_limit: number }; Returns: number }
       create_notification_for_user: {
         Args: {
           message_param: string
