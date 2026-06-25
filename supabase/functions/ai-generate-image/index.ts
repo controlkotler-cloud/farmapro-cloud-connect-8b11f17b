@@ -10,8 +10,12 @@ const corsHeaders = {
 // Mantener sincronizado con src/lib/plans.ts
 const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
 const TRIAL_DAYS = 30;
-const IMAGES_PER_MONTH = 1; // FREE_LIMITS.aiImagePerMonth (paid y trial)
+const IMAGES_PER_MONTH = 1;
 const BUCKET = 'iafarma-images';
+
+// Modelo de generación de imagen. Cambia a 'openai/gpt-image-2' si lo prefieres.
+const IMAGE_MODEL = 'google/gemini-3.1-flash-image';
+// const IMAGE_MODEL = 'openai/gpt-image-2';
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -37,7 +41,6 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await admin.auth.getUser(token);
     if (authError || !user) return json({ error: 'Sesión inválida' }, 401);
 
-    // Cliente con el JWT del usuario para invocar la RPC con auth.uid()
     const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false, autoRefreshToken: false },
@@ -66,7 +69,6 @@ serve(async (req) => {
       return json({ error: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir generando imágenes.' }, 403);
     }
 
-    // Validar input
     const body = await req.json().catch(() => ({}));
     const { prompt, size = '1024x1024', style = 'vivid' } = body ?? {};
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
@@ -76,7 +78,7 @@ serve(async (req) => {
       return json({ error: 'Prompt demasiado largo (máx. 1000 caracteres)' }, 400);
     }
 
-    // Consumir crédito atómico (limit = IMAGES_PER_MONTH)
+    // Consumir crédito atómico
     const { data: remainingData, error: creditError } = await userClient.rpc('consume_image_credit', {
       p_limit: IMAGES_PER_MONTH,
     });
@@ -90,57 +92,73 @@ serve(async (req) => {
     }
     const remaining = Number(remainingData ?? 0);
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      // refund
+    const lovableKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableKey) {
       await refundCredit(admin, user.id);
-      return json({ error: 'OPENAI_API_KEY no configurada' }, 500);
+      return json({ error: 'LOVABLE_API_KEY no configurada' }, 500);
     }
 
     // Reglas farma + prompt
     const enhancedPrompt =
       `Professional pharmaceutical/medical context: ${prompt}. ` +
-      `Style: Clean, modern, trustworthy. Suitable for healthcare communication. ` +
+      `Style: Clean, modern, trustworthy (${style}). Suitable for healthcare communication. ` +
+      `Target size: ${size}. ` +
       `Strict rules: no embedded text or typography, no brand logos, no real medication boxes or trademarked packaging.`;
 
-    const dalleRes = await fetch('https://api.openai.com/v1/images/generations', {
+    // Construir body según familia de modelo
+    const isGemini = IMAGE_MODEL.startsWith('google/');
+    const requestBody: Record<string, unknown> = isGemini
+      ? {
+          model: IMAGE_MODEL,
+          messages: [{ role: 'user', content: enhancedPrompt }],
+          modalities: ['image', 'text'],
+        }
+      : {
+          model: IMAGE_MODEL,
+          prompt: enhancedPrompt,
+          n: 1,
+          size,
+          quality: 'low',
+        };
+
+    const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/images/generations', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${openAIApiKey}`,
+        Authorization: `Bearer ${lovableKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: enhancedPrompt,
-        n: 1,
-        size,
-        quality: 'standard',
-        style,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
-    if (!dalleRes.ok) {
-      const errText = await dalleRes.text();
-      console.error('OpenAI DALL-E error:', errText);
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      console.error('Lovable AI image error:', aiRes.status, errText);
       await refundCredit(admin, user.id);
+      if (aiRes.status === 429) {
+        return json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo en unos minutos.' }, 429);
+      }
+      if (aiRes.status === 402) {
+        return json({ error: 'Créditos de IA agotados en el espacio de trabajo.' }, 402);
+      }
       return json({ error: 'No se pudo generar la imagen' }, 502);
     }
 
-    const dalleData = await dalleRes.json();
-    const openaiUrl: string = dalleData?.data?.[0]?.url;
-    const revisedPrompt: string | undefined = dalleData?.data?.[0]?.revised_prompt;
-    if (!openaiUrl) {
+    const aiData = await aiRes.json();
+    const b64: string | undefined = aiData?.data?.[0]?.b64_json;
+    const revisedPrompt: string | undefined =
+      aiData?.data?.[0]?.revised_prompt ?? undefined;
+
+    if (!b64) {
+      console.error('Empty image payload:', JSON.stringify(aiData).slice(0, 500));
       await refundCredit(admin, user.id);
       return json({ error: 'Respuesta de imagen vacía' }, 502);
     }
 
-    // Descargar binario y subir a Storage (bucket privado)
-    const imgRes = await fetch(openaiUrl);
-    if (!imgRes.ok) {
-      await refundCredit(admin, user.id);
-      return json({ error: 'No se pudo descargar la imagen generada' }, 502);
-    }
-    const bytes = new Uint8Array(await imgRes.arrayBuffer());
+    // Decodificar base64 -> bytes
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
     const fileId = crypto.randomUUID();
     const path = `${user.id}/${fileId}.png`;
 
@@ -154,7 +172,6 @@ serve(async (req) => {
       return json({ error: 'No se pudo guardar la imagen' }, 500);
     }
 
-    // URL firmada de larga duración (10 años) — bucket privado por política de workspace
     const { data: signed, error: signError } = await admin.storage
       .from(BUCKET)
       .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
@@ -165,7 +182,6 @@ serve(async (req) => {
     }
     const imageUrl = signed.signedUrl;
 
-    // Guardar en galería (best-effort)
     await admin.from('generated_images').insert({
       user_id: user.id,
       prompt,
