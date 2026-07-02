@@ -33,6 +33,8 @@ import AdminPromociones from "@/pages/admin/AdminPromociones";
 import AdminComunidad from "@/pages/admin/AdminComunidad";
 import AdminRetos from "@/pages/admin/AdminRetos";
 import AdminConfiguracion from "@/pages/admin/AdminConfiguracion";
+import Invitation from "@/pages/Invitation";
+
 
 export const AppRoutes = () => {
   const { user, profile, loading } = useAuth();
@@ -66,6 +68,9 @@ export const AppRoutes = () => {
     <Routes>
       {/* Public pricing page */}
       <Route path="/precios" element={<Precios />} />
+      {/* Team invitation acceptance (public — inner logic requires auth) */}
+      <Route path="/invitation" element={<Invitation />} />
+      
       
       {/* Redirect expired users to precios when they try to access protected routes */}
       {shouldRedirectToPrecios && (

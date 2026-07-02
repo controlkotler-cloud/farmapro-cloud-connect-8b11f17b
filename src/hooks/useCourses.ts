@@ -29,27 +29,20 @@ export const useCourses = () => {
 
   const loadCourses = async () => {
     setLoading(true);
+    // Catálogo: NO se pide course_modules (columna revocada al cliente por seguridad).
+    // El contenido se sirve por RPC get_course_modules dentro de la ficha del curso.
     const { data, error } = await supabase
       .from('courses')
-      .select('*')
+      .select('id, slug, title, description, category, difficulty, duration_minutes, duration_hours, thumbnail_url, featured_image_url, is_premium, is_published, is_featured, order_index, students_count, rating, total_lessons, instructor, content, created_at, updated_at')
       .eq('is_published', true)
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error loading courses:', error);
     } else if (data) {
-      // Transformar los datos recibidos para convertir course_modules de Json a CourseModule[]
       const transformedCourses: Course[] = data.map(course => ({
-        ...course,
-        // Si course_modules es null o undefined, establecer como array vacío
-        course_modules: course.course_modules ?
-          (Array.isArray(course.course_modules) ?
-            course.course_modules as unknown as CourseModule[] :
-            // Si es un string JSON, intentar parsearlo
-            typeof course.course_modules === 'string' ?
-              JSON.parse(course.course_modules) :
-              []
-          ) : []
+        ...(course as any),
+        course_modules: [],
       }));
       setCourses(transformedCourses);
     }

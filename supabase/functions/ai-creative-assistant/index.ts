@@ -6,54 +6,87 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// Alineado con src/lib/plans.ts y ai-generate-image.
+const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
+const TRIAL_DAYS = 30;
+const TEXTS_PER_MONTH_TRIAL = 2;
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
     const { messages, contentType, context } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return new Response(JSON.stringify({ error: 'Mensajes inválidos' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return json({ error: 'Mensajes inválidos' }, 400);
     }
 
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
+    if (!authHeader) return json({ error: 'No autorizado' }, 401);
     const token = authHeader.replace('Bearer ', '');
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const admin = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Usuario no autenticado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    const { data: { user }, error: authError } = await admin.auth.getUser(token);
+    if (authError || !user) return json({ error: 'Usuario no autenticado' }, 401);
 
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const { data: profile, error: profileError } = await admin
       .from('profiles')
-      .select('subscription_role, subscription_status, full_name, pharmacy_name, pharmacy_city, position')
+      .select('subscription_role, created_at, full_name, pharmacy_name, pharmacy_city, position')
       .eq('id', user.id)
       .single();
+    if (profileError || !profile) return json({ error: 'Error al verificar el perfil' }, 500);
 
-    if (profileError || !profile) {
-      return new Response(JSON.stringify({ error: 'Error al verificar el perfil' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const role = profile.subscription_role as string | null;
+    let access: 'paid' | 'free_trial' | 'free_locked';
+    if (role && PAID_ROLES.includes(role)) {
+      access = 'paid';
+    } else if (!profile.created_at) {
+      access = 'free_trial';
+    } else {
+      const days = (Date.now() - new Date(profile.created_at).getTime()) / 86_400_000;
+      access = days <= TRIAL_DAYS ? 'free_trial' : 'free_locked';
     }
 
-    const allowedRoles = ['premium', 'profesional', 'admin'];
-    if (!allowedRoles.includes(profile.subscription_role) || profile.subscription_status !== 'active') {
-      return new Response(JSON.stringify({ error: 'No tienes acceso. Necesitas un plan Premium, Profesional o Admin activo.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (access === 'free_locked') {
+      return json({ error: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir generando contenido.' }, 403);
+    }
+
+    // Consumo atómico solo para free_trial. Los planes de pago son ilimitados.
+    if (access === 'free_trial') {
+      const { error: creditError } = await userClient.rpc('consume_text_credit', {
+        p_limit: TEXTS_PER_MONTH_TRIAL,
+      });
+      if (creditError) {
+        const msg = (creditError.message || '').toLowerCase();
+        if (msg.includes('quota')) {
+          return json({ error: 'Has alcanzado el límite de 2 textos mensuales de tu prueba. Hazte Plus para generar sin límite.' }, 402);
+        }
+        console.error('consume_text_credit error:', creditError);
+        return json({ error: 'No se pudo verificar la cuota' }, 500);
+      }
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'Configuración del servidor incompleta' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      await refundTextCredit(admin, user.id, access);
+      return json({ error: 'Configuración del servidor incompleta' }, 500);
     }
 
     const systemPrompt = getSystemPrompt(contentType || 'instagram-post', profile, context || {});
@@ -74,9 +107,10 @@ Deno.serve(async (req) => {
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error('AI error:', aiResponse.status, errorText);
-      if (aiResponse.status === 429) return new Response(JSON.stringify({ error: 'Límite excedido. Intenta en unos momentos.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      if (aiResponse.status === 402) return new Response(JSON.stringify({ error: 'Créditos insuficientes.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      return new Response(JSON.stringify({ error: 'Error al comunicarse con el servicio de IA' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      await refundTextCredit(admin, user.id, access);
+      if (aiResponse.status === 429) return json({ error: 'Límite excedido. Intenta en unos momentos.' }, 429);
+      if (aiResponse.status === 402) return json({ error: 'Créditos insuficientes.' }, 402);
+      return json({ error: 'Error al comunicarse con el servicio de IA' }, 500);
     }
 
     return new Response(aiResponse.body, {
@@ -84,9 +118,31 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Error interno' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return json({ error: (error as Error).message || 'Error interno' }, 500);
   }
 });
+
+async function refundTextCredit(admin: ReturnType<typeof createClient>, userId: string, access: string) {
+  if (access !== 'free_trial') return;
+  try {
+    const period = new Date().toISOString().slice(0, 7);
+    const { data } = await admin
+      .from('ai_text_usage')
+      .select('used')
+      .eq('user_id', userId)
+      .eq('period', period)
+      .maybeSingle();
+    if (data && typeof data.used === 'number' && data.used > 0) {
+      await admin
+        .from('ai_text_usage')
+        .update({ used: data.used - 1, updated_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('period', period);
+    }
+  } catch (e) {
+    console.error('Text refund failed:', e);
+  }
+}
 
 function getSystemPrompt(contentType: string, profile: any, context: any) {
   const userName = profile?.full_name || 'profesional';
@@ -107,222 +163,60 @@ RESTRICCIONES (ligeras, sentido común farmacéutico):
 - Evita mencionar medicamentos concretos por su nombre
 - Evita dar diagnósticos ("si tienes estos síntomas es que tienes X")
 - Evita promesas de salud ("cura", "elimina", "garantiza resultados")
-- Con eso basta: puedes hablar con total libertad de categorías de producto, consejo general, hábitos saludables, dermocosmética, parafarmacia, servicios de la farmacia e ingredientes cosméticos (retinol, niacinamida, ácido hialurónico...)
-- Tuteo siempre (política de comunicación cercana)
+- Puedes hablar con libertad de categorías de producto, consejo general, hábitos saludables, dermocosmética, parafarmacia, servicios de la farmacia e ingredientes cosméticos (retinol, niacinamida, ácido hialurónico...)
+- Tuteo siempre
 - Emojis: sí pero uso reducido y profesional (2-4 por post, no más)
-- Sin hashtags (Instagram 2026 ya no los recomienda, mejor usar palabras clave en el texto)
-- Tono: cercano, profesional, de confianza — como hablaría un farmacéutico a su cliente habitual
-
-ALGORITMO INSTAGRAM 2026 (aplica a post, reel y carrusel):
-- Las "Visualizaciones" (Views) son la métrica unificada
-- Los DMs/envíos son la señal más fuerte del algoritmo — crea contenido que la gente quiera compartir
-- SEO > hashtags: usa palabras clave naturales en el texto
-- Audio original en Reels tiene más valor algorítmico que audios de tendencia (Originality Score)
-- Carruseles con música se distribuyen como Reels (mayor alcance)
-- Los primeros 3 segundos de un Reel son críticos para retener
-- Cuentas pequeñas tienen MEJOR engagement que las grandes en Reels
-
-ESTACIONALIDAD (adapta el contenido al mes actual):
-- Enero-Febrero: inmunidad, vitaminas, propósitos saludables, piel de invierno
-- Marzo-Abril: alergias, protección solar temprana, Día de la Salud (7 abril)
-- Mayo-Junio: preparación verano, protección solar plena, hidratación
-- Julio-Agosto: after-sun, botiquín viaje, picaduras, piernas cansadas
-- Septiembre-Octubre: vuelta rutina, caída capilar, Octubre Rosa, gripe
-- Noviembre-Diciembre: Movember, Día Diabetes, regalos saludables, piel invierno
+- Sin hashtags
+- Tono: cercano, profesional, de confianza
 `;
 
   const formatInstruction = `
 FORMATO DE RESPUESTA:
-- Responde en texto plano, sin markdown (sin asteriscos, sin almohadillas)
+- Responde en texto plano, sin markdown
 - Usa saltos de línea para separar secciones
 - Para énfasis usa MAYÚSCULAS puntuales
-- El contenido debe ser directamente copiable y pegable
-- Siempre incluye al final una sección "SUGERENCIA DE IMAGEN:" describiendo qué tipo de foto o visual acompañaría este contenido
+- Siempre incluye al final una sección "SUGERENCIA DE IMAGEN:" describiendo qué visual acompañaría este contenido
 `;
 
   const contextInfo = extraInstructions ? `\nINSTRUCCIONES ADICIONALES DEL USUARIO: ${extraInstructions}\n` : '';
 
   switch (contentType) {
-    case 'instagram-post':
-      return `${baseRules}${formatInstruction}${contextInfo}
-TAREA: Genera un post para Instagram (feed).
-${topic ? `Tema: ${topic}` : ''}
-${context?.objective ? `Objetivo: ${context.objective}` : ''}
-${context?.tone ? `Tono preferido: ${context.tone}` : ''}
-
-ESTRUCTURA DEL POST:
-1. GANCHO (primera línea): frase que detenga el scroll. Pregunta directa, dato impactante o afirmación provocadora
-2. DESARROLLO (5-8 líneas): contenido de valor, educativo o informativo
-3. CTA (última línea): llamada a la acción clara (guardar, compartir, comentar, visitar la farmacia)
-4. SUGERENCIA DE IMAGEN: describe la foto ideal
-
-Máximo 2200 caracteres. Integra el nombre de la farmacia de forma natural. Sin hashtags.`;
-
     case 'reel-script':
       return `${baseRules}${formatInstruction}${contextInfo}
 TAREA: Genera un guión completo para un Reel de Instagram.
 ${topic ? `Tema: ${topic}` : ''}
-${context?.duration ? `Duración objetivo: ${context.duration}` : 'Duración: 30-60 segundos'}
-${context?.who ? `Quién sale: ${context.who}` : ''}
-
-ESTRUCTURA DEL GUIÓN:
-
-GANCHO (segundos 0-3):
-- Lo que se dice a cámara o texto en pantalla para detener el scroll
-- Debe ser una pregunta directa, un dato sorprendente o una afirmación bold
-
-DESARROLLO (cuerpo del reel):
-- Contenido principal dividido en puntos claros
-- Para cada punto indica:
-  > Lo que se DICE (voz / voz en off)
-  > Lo que se VE (acción, producto, gesto)
-  > TEXTO EN PANTALLA (el 80% ve sin sonido)
-
-CIERRE (últimos 3-5 segundos):
-- Resumen en una frase
-- CTA: "Guarda este reel" / "Comparte con alguien que..." / "Síguenos para más"
-
-NOTAS DE PRODUCCIÓN:
-- Música sugerida (tipo, no canción específica)
-- Transiciones recomendadas
-- Tips de grabación`;
-
+${context?.duration ? `Duración objetivo: ${context.duration}` : 'Duración: 30-60 segundos'}`;
     case 'carousel':
       return `${baseRules}${formatInstruction}${contextInfo}
 TAREA: Genera el contenido completo de un carrusel de Instagram.
-${topic ? `Tema: ${topic}` : ''}
-${context?.slides ? `Número de slides: ${context.slides}` : 'Número de slides: 5'}
-${context?.style ? `Estilo: ${context.style}` : ''}
-
-ESTRUCTURA:
-
-Slide 1 (PORTADA):
-- Título grande y llamativo que genere curiosidad
-- Subtítulo corto que complete la idea
-- Debe hacer que la gente quiera pasar al siguiente slide
-
-Slides 2 a ${(context?.slides || 5) - 1} (CONTENIDO):
-- Cada slide tiene: TÍTULO + TEXTO PRINCIPAL (2-3 líneas máximo)
-- Un concepto por slide, claro y directo
-- Progresión lógica de la información
-- Usa datos, ejemplos o comparaciones cuando sea posible
-
-Slide ${context?.slides || 5} (CIERRE):
-- Resumen o conclusión principal
-- CTA claro: guardar, compartir, visitar la farmacia
-- Mención natural de la farmacia
-
-Para cada slide indica también una NOTA VISUAL (qué imagen o fondo sugiere).
-
-PIE DE FOTO:
-- Texto para acompañar el carrusel en el caption (máx 500 caracteres)
-- Sin hashtags, con palabras clave naturales`;
-
+${topic ? `Tema: ${topic}` : ''}`;
     case 'google-business':
       return `${baseRules}${formatInstruction}${contextInfo}
 TAREA: Genera una publicación para Google Business Profile.
-${context?.postType ? `Tipo: ${context.postType}` : ''}
 ${topic ? `Mensaje: ${topic}` : ''}
-
-REGLAS ESPECÍFICAS DE GOOGLE BUSINESS:
-- Máximo 1500 caracteres (ideal 300-500)
-- Tono profesional y local
-- Incluye la ubicación de forma natural
-- Si es oferta: incluir fechas y condiciones claras
-- Si es novedad: destacar el beneficio para el cliente
-- Si es evento: fecha, hora, lugar y cómo apuntarse
-- Termina con una acción: "Visítanos en...", "Llámanos al...", "Pide tu cita en..."
-
-Google usa esta información para responder preguntas con IA, así que incluye palabras clave relevantes (servicios, especialidades, zona).`;
-
+Máximo 1500 caracteres.`;
     case 'blog':
       return `${baseRules}${formatInstruction}${contextInfo}
-TAREA: Genera un artículo para el blog/web de la farmacia.
-${topic ? `Tema: ${topic}` : ''}
-${context?.keywords ? `Palabras clave SEO: ${context.keywords}` : ''}
-${context?.length === 'Corto (~400 palabras)' ? 'Longitud: ~400 palabras' : context?.length === 'Largo (~1200 palabras)' ? 'Longitud: ~1200 palabras' : 'Longitud: ~800 palabras'}
-
-ESTRUCTURA:
-1. TÍTULO SEO: incluye la palabra clave principal y la localidad si es relevante
-2. INTRODUCCIÓN (1 párrafo): presenta el problema o tema, engancha al lector
-3. DESARROLLO (3-5 secciones con subtítulo cada una): contenido de valor con datos reales
-4. CONCLUSIÓN: resumen práctico + invitación a visitar la farmacia
-5. META DESCRIPCIÓN: 155 caracteres para Google
-
-Integra de forma natural: nombre de la farmacia, localidad, servicios y palabras clave SEO.
-Tono: profesional pero accesible. Como si un farmacéutico explicara a un vecino.`;
-
+TAREA: Genera un artículo para el blog de la farmacia.
+${topic ? `Tema: ${topic}` : ''}`;
     case 'promotion':
       return `${baseRules}${formatInstruction}${contextInfo}
 TAREA: Genera copy promocional para la farmacia.
-${context?.product ? `Producto/servicio: ${context.product}` : ''}
-${context?.discount ? `Oferta: ${context.discount}` : ''}
-${context?.deadline ? `Fecha límite: ${context.deadline}` : ''}
-${context?.channel ? `Canal: ${context.channel}` : ''}
-
-Céntrate en parafarmacia, dermocosmética y servicios de la farmacia. Evita promocionar medicamentos concretos por su nombre.
-
-ESTRUCTURA:
-1. TITULAR: frase directa con el beneficio principal
-2. CUERPO: qué es, por qué le interesa al cliente, qué incluye la oferta
-3. CONDICIONES: fechas, limitaciones (breve)
-4. CTA: cómo aprovechar la oferta (visitar, llamar, reservar)
-
-Si el canal es Instagram: formato post con emojis reducidos
-Si el canal es WhatsApp: formato mensaje directo y personal
-Si el canal es Escaparate: formato cartel con texto grande y poco texto
-Si es Todos: genera versión para cada canal`;
-
+${context?.product ? `Producto/servicio: ${context.product}` : ''}`;
     case 'whatsapp':
       return `${baseRules}${formatInstruction}${contextInfo}
-TAREA: Genera un mensaje de WhatsApp profesional para enviar a clientes de la farmacia.
-${context?.messageType ? `Tipo: ${context.messageType}` : ''}
-${topic ? `Mensaje: ${topic}` : ''}
-
-REGLAS DE WHATSAPP:
-- Mensaje corto y directo (máx 300 caracteres ideal, nunca más de 500)
-- Tono personal y cercano (como un mensaje de alguien que conoces)
-- Empieza con saludo: "Hola [nombre]" o "Buenos días"
-- Un solo tema por mensaje
-- CTA claro al final
-- Si es recordatorio: fecha, hora y qué hacer si no puede asistir
-- Si es promoción: necesitas consentimiento previo del cliente (mencionar esto como nota)
-- NO enviar datos de salud sensibles por WhatsApp
-
-Genera 2 versiones:
-- VERSIÓN INDIVIDUAL: para enviar a un cliente concreto
-- VERSIÓN LISTA DIFUSIÓN: para enviar a varios clientes a la vez`;
-
-    case 'responder-resena': {
-      const reviewFormat = `
-FORMATO DE RESPUESTA:
-- Responde en texto plano, sin markdown (sin asteriscos, sin almohadillas)
-- Devuelve ÚNICAMENTE el texto de la respuesta a la reseña, listo para copiar y pegar en Google
-- No incluyas "SUGERENCIA DE IMAGEN" ni notas de producción: esto es una respuesta pública a una reseña`;
-      return `${baseRules}${reviewFormat}${contextInfo}
-TAREA: Redacta la respuesta pública de la farmacia a una reseña de Google.
-${context?.reviewStars ? `Valoración de la reseña: ${context.reviewStars}` : ''}
-${context?.reviewTone ? `Tono de la reseña: ${context.reviewTone}` : ''}
-
-RESEÑA DEL CLIENTE (entre comillas, NO la repitas literalmente en tu respuesta):
-"${context?.reviewText || topic || ''}"
-
-REGLAS EXACTAS PARA RESPONDER RESEÑAS:
-- Respuesta BREVE, profesional y empática (2-4 frases, nunca un texto largo)
-- Agradece la reseña y reconoce lo que dice el cliente (su experiencia, su tiempo, su confianza)
-- NO abras un hilo ni invites a réplica pública: cierra el mensaje, no pidas que siga comentando en Google
-- NO admitas culpa ni entres en aspectos legales (nada de "fue un error nuestro", "le compensaremos", reclamaciones, derechos, etc.)
-- Si hace falta resolver algo, deriva SIEMPRE a un canal privado: el teléfono o el email de la farmacia (usa el que indique el usuario; si no lo da, invita de forma genérica a "escribirnos o llamarnos" sin inventar datos de contacto)
-- NUNCA menciones medicamentos concretos, diagnósticos ni datos del paciente (ni confirmes que esa persona es cliente o paciente)
-- Para reseñas NEGATIVAS: mantén la calma, desescala, no discutas ni te justifiques en público, muestra disposición a ayudar y ofrece la solución por el canal privado
-- Para reseñas POSITIVAS: agradece con calidez, refuerza brevemente el compromiso de la farmacia y cierra (sin pedir más interacción)
-- Firma de forma natural en nombre de ${pharmacyName}${location ? ` (${location})` : ''} si encaja, sin sonar robótico
-
-Devuelve solo la respuesta final.`;
-    }
-
+TAREA: Genera un mensaje de WhatsApp profesional para clientes.
+${topic ? `Mensaje: ${topic}` : ''}`;
+    case 'responder-resena':
+      return `${baseRules}${contextInfo}
+TAREA: Redacta la respuesta pública a una reseña de Google.
+RESEÑA: "${context?.reviewText || topic || ''}"
+Devuelve solo el texto, breve y empático, sin markdown ni sugerencia de imagen.`;
+    case 'instagram-post':
     default:
-      return `${baseRules}${formatInstruction}
-Genera contenido profesional y relevante para la farmacia según las instrucciones del usuario.`;
+      return `${baseRules}${formatInstruction}${contextInfo}
+TAREA: Genera un post para Instagram (feed).
+${topic ? `Tema: ${topic}` : ''}
+Máximo 2200 caracteres. Sin hashtags.`;
   }
 }

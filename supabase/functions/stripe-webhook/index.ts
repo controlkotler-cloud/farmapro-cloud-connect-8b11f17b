@@ -175,17 +175,22 @@ serve(async (req) => {
                 professionalInvites: professionalMemberEmails.length 
               });
 
-              // Send invitation emails via clientify-sync
+              // Send invitation emails via clientify-sync (internal shared-secret auth).
+              const internalKey = Deno.env.get('INTERNAL_FUNCTION_KEY') ?? '';
               for (const member of teamMembers) {
                 try {
                   await supabaseClient.functions.invoke('clientify-sync', {
+                    headers: { 'x-internal-key': internalKey },
                     body: {
-                      action: 'send_team_invitation',
-                      email: member.email,
-                      team_name: teamName,
-                      invitation_token: member.invitation_token,
-                      inviter_name: 'Team Owner',
-                      member_role: member.member_role
+                      action: 'team_invitation',
+                      data: {
+                        team_id: teamSub.id,
+                        email: member.email,
+                        team_name: teamName,
+                        invitation_token: member.invitation_token,
+                        inviter_name: 'Team Owner',
+                        member_role: member.member_role
+                      }
                     }
                   });
                   logStep("Invitation email sent", { email: member.email, role: member.member_role });
