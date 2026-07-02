@@ -12,8 +12,27 @@ const TRIAL_DAYS = 30;
 const IMAGES_PER_MONTH = 1;
 const BUCKET = 'iafarma-images';
 
-// Modelo de generación. Cambia a 'openai/gpt-image-2' para alternar.
-const IMAGE_MODEL = 'google/gemini-3.1-flash-image';
+// Modelo de generación. Cambia a 'google/gemini-3.1-flash-image' para alternar.
+const IMAGE_MODEL = 'openai/gpt-image-2';
+const IMAGE_QUALITY = 'medium';
+
+// GPT Image only accepts 1024x1024, 1024x1536, 1536x1024. Map client size to nearest supported.
+function mapSizeForGptImage(size: string): string {
+  const s = (size || '').toLowerCase().trim();
+  if (s === '1024x1024') return '1024x1024';
+  if (s === '1024x1536' || s === '1080x1350' || s === '1080x1920' || s === '1200x1800') return '1024x1536';
+  if (s === '1536x1024' || s === '1920x1080') return '1536x1024';
+  // Fallback: parse and decide by aspect ratio
+  const m = /^(\d+)x(\d+)$/.exec(s);
+  if (m) {
+    const w = Number(m[1]);
+    const h = Number(m[2]);
+    if (w > h * 1.15) return '1536x1024';
+    if (h > w * 1.15) return '1024x1536';
+    return '1024x1024';
+  }
+  return '1024x1024';
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -183,6 +202,8 @@ serve(async (req) => {
     const pieceType = ['promo', 'cartel', 'post', 'story'].includes(body?.pieceType) ? body.pieceType : 'post';
     const briefRaw = typeof body?.brief === 'string' ? body.brief.trim() : '';
     const brief = briefRaw ? briefRaw.slice(0, 200) : '';
+    const pharmacyName = typeof body?.pharmacyName === 'string' ? body.pharmacyName.trim().slice(0, 60) : '';
+    const locality = typeof body?.locality === 'string' ? body.locality.trim().slice(0, 60) : '';
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return json({ error: 'Prompt requerido' }, 400);
@@ -225,7 +246,16 @@ serve(async (req) => {
     const guardrails =
       'Guardrails: no real medication packaging or medical brand logos; ' +
       'no health claims or therapeutic promises; no recognizable people or faces. ' +
-      'Generic product categories are fine (sun care, skincare/dermocosmetics, vitamins, baby care, oral care).';
+      'Generic product categories are fine (sun care, skincare/dermocosmetics, vitamins, baby care, oral care). ' +
+      'STRICTLY FORBIDDEN: do NOT invent, draw, imagine or render any logo, brand mark, wordmark, isotype, symbol, URL, website address, domain, "www.", ".com", ".es", email address, phone number, QR code, social media handle (@...), Instagram/Facebook/TikTok/Twitter/X icons, or any social media username. No fictional pharmacy logo. If a signature is provided below, render ONLY that exact text — nothing else.';
+
+    const signatureText =
+      pharmacyName && locality ? `${pharmacyName} · ${locality}` :
+      pharmacyName ? pharmacyName :
+      locality ? locality : '';
+    const signatureBlock = signatureText
+      ? ` At the very bottom of the piece, render this exact small signature line, spelled EXACTLY as written, in small clean sans-serif text, single line, no icons, no logo: "${signatureText}".`
+      : '';
 
     let textBlock: string;
     if (effectiveHeadline && effectiveLines.length > 0) {
@@ -234,14 +264,14 @@ serve(async (req) => {
         ` The image MUST render the following Spanish text EXACTLY as written, with perfect spelling and accents, no paraphrasing, no translation, no autocorrect, no truncation. ` +
         `Main large headline at the top: "${effectiveHeadline}". ` +
         `Below the headline, a vertical list with ${effectiveLines.length} short items, each with its own small illustrated icon on the left: ${linesEnum}. ` +
-        `Use one single clean sans-serif typography, high contrast, generous spacing between items, infographic style. Do not add any other text.`;
+        `Use one single clean sans-serif typography, high contrast, generous spacing between items, infographic style. Do not add any other text besides the headline, the listed lines${signatureText ? ' and the signature' : ''}.`;
     } else if (effectiveHeadline) {
       textBlock =
         ` The image MUST include this exact headline, rendered legibly and spelled EXACTLY as written, ` +
         `as the main typographic title in the composition: "${effectiveHeadline}". ` +
-        `Do not paraphrase, translate, autocorrect or truncate it. Elegant, editorial sans-serif type; high contrast; no other text.`;
+        `Do not paraphrase, translate, autocorrect or truncate it. Elegant, editorial sans-serif type; high contrast; no other text${signatureText ? ' besides the signature' : ''}.`;
     } else {
-      textBlock = ' Do not include any text or typography in the image.';
+      textBlock = signatureText ? '' : ' Do not include any text or typography in the image.';
     }
 
     const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
@@ -251,7 +281,7 @@ serve(async (req) => {
       `Commercial, bright, professional aesthetic; clean composition with space for a headline; ` +
       `suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${textBlock} ${guardrails}`;
+      `${textBlock}${signatureBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)
@@ -272,10 +302,11 @@ serve(async (req) => {
         model: IMAGE_MODEL,
         prompt: enhancedPrompt,
         n: 1,
-        size,
-        quality: 'low',
+        size: mapSizeForGptImage(size),
+        quality: IMAGE_QUALITY,
       };
     }
+
 
     const aiRes = await fetch(endpoint, {
       method: 'POST',
