@@ -51,7 +51,7 @@ const CourseCard = ({ course, categories, onEdit, onDelete }: CourseCardProps) =
           <span>{new Date(course.created_at).toLocaleDateString()}</span>
         </div>
         <div className="text-xs text-gray-500 mb-4">
-          <div>Módulos: {Array.isArray(course.course_modules) ? course.course_modules.length : 0}</div>
+          <div>Módulos: {course.total_lessons ?? '—'}</div>
           <div>Slug: {course.slug}</div>
           <div>ID: {course.id}</div>
         </div>
