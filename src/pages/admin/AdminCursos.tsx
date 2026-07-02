@@ -134,11 +134,12 @@ const AdminCursos = () => {
       };
 
       if (editingCourse) {
+        // No incluimos course_modules en RETURNING (columna revocada al cliente).
         const { data, error } = await supabase
           .from('courses')
           .update(courseData)
           .eq('id', editingCourse.id)
-          .select()
+          .select('id, slug, title, description, category, difficulty, duration_minutes, duration_hours, thumbnail_url, featured_image_url, is_premium, is_published, is_featured, order_index, students_count, rating, total_lessons, instructor, content, created_at, updated_at')
           .single();
 
         if (error) {
@@ -146,11 +147,11 @@ const AdminCursos = () => {
         }
 
         setCourses(prevCourses =>
-          prevCourses.map(course => 
-            course.id === editingCourse.id ? data : course
+          prevCourses.map(course =>
+            course.id === editingCourse.id ? (data as any) : course
           )
         );
-        
+
         toast({
           title: "Éxito",
           description: `Curso "${data.title}" actualizado correctamente`
@@ -159,15 +160,15 @@ const AdminCursos = () => {
         const { data, error } = await supabase
           .from('courses')
           .insert([courseData])
-          .select()
+          .select('id, slug, title, description, category, difficulty, duration_minutes, duration_hours, thumbnail_url, featured_image_url, is_premium, is_published, is_featured, order_index, students_count, rating, total_lessons, instructor, content, created_at, updated_at')
           .single();
 
         if (error) {
           throw error;
         }
 
-        setCourses(prevCourses => [data, ...prevCourses]);
-        
+        setCourses(prevCourses => [(data as any), ...prevCourses]);
+
         toast({
           title: "Éxito",
           description: `Curso "${data.title}" creado correctamente`
@@ -204,25 +205,19 @@ const AdminCursos = () => {
     setIsCreateDialogOpen(false);
   };
 
-  const handleEdit = (course: Course) => {
-    
-    let modules = [];
-    if (course.course_modules) {
-      if (Array.isArray(course.course_modules)) {
-        modules = course.course_modules;
-      } else if (typeof course.course_modules === 'string') {
-        try {
-          modules = JSON.parse(course.course_modules);
-        } catch (e) {
-          console.error('Error parsing course_modules:', e);
-          modules = [];
-        }
-      } else if (typeof course.course_modules === 'object') {
-        modules = [course.course_modules];
+  const handleEdit = async (course: Course) => {
+    // course.course_modules ya no viene en el listado (columna revocada al cliente).
+    // Se solicita por RPC que autoriza a admins.
+    let modules: any[] = [];
+    try {
+      const { data, error } = await supabase.rpc('get_course_modules', { p_course_id: course.id });
+      if (!error && data) {
+        modules = Array.isArray(data) ? (data as any[]) : (typeof data === 'string' ? JSON.parse(data) : []);
       }
+    } catch (e) {
+      console.error('Error loading course modules:', e);
     }
-    
-    
+
     setFormData({
       title: course.title || '',
       description: course.description || '',
