@@ -7,7 +7,7 @@ import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 // =====================================================================
 
 export type PieceTypeId = 'promo' | 'cartel' | 'post' | 'story';
-export type FormatId = 'cuadrado' | 'vertical' | 'horizontal';
+export type FormatId = 'feed' | 'cuadrado' | 'vertical' | 'a4' | 'horizontal';
 
 /** Longitud máxima del titular que se rotula en la imagen (contrato con el backend). */
 export const HEADLINE_MAX = 60;
@@ -16,14 +16,21 @@ export interface ImageFormat {
   id: FormatId;
   label: string;
   hint: string;
-  /** Tamaño que se envía a la edge function (campo `size`). */
+  /** Tamaño que se envía a la edge function (campo `size`). Marca la PROPORCIÓN. */
   size: string;
 }
 
+/**
+ * Formatos disponibles. El feed de Instagram/Facebook actual es VERTICAL 4:5
+ * (1080x1350), no cuadrado; el cuadrado se mantiene para carruseles y usos
+ * clásicos. El cartel para imprimir usa la proporción DIN A4 vertical (1:1,41).
+ */
 export const IMAGE_FORMATS: ImageFormat[] = [
-  { id: 'cuadrado', label: 'Cuadrado 1:1', hint: 'Instagram y Facebook', size: '1024x1024' },
-  { id: 'vertical', label: 'Vertical 9:16', hint: 'Stories y carteles', size: '1024x1792' },
-  { id: 'horizontal', label: 'Horizontal 16:9', hint: 'Portadas y pantallas', size: '1792x1024' },
+  { id: 'feed', label: 'Feed 4:5', hint: 'Post de Instagram y Facebook', size: '1080x1350' },
+  { id: 'cuadrado', label: 'Cuadrado 1:1', hint: 'Carruseles y catálogo', size: '1080x1080' },
+  { id: 'vertical', label: 'Vertical 9:16', hint: 'Stories y reels', size: '1080x1920' },
+  { id: 'a4', label: 'Cartel A4', hint: 'Para imprimir en DIN A4', size: '1240x1754' },
+  { id: 'horizontal', label: 'Horizontal 16:9', hint: 'Portadas y pantallas', size: '1920x1080' },
 ];
 
 export interface PieceType {
@@ -47,7 +54,7 @@ export const PIECE_TYPES: PieceType[] = [
     id: 'promo',
     label: 'Promo de producto',
     hint: 'Oferta o producto destacado',
-    defaultFormat: 'cuadrado',
+    defaultFormat: 'feed',
     headlineExample: 'Protección solar -20%',
     buildPrompt: (d) => {
       const { lugar, tono } = contexto(d);
@@ -58,7 +65,7 @@ export const PIECE_TYPES: PieceType[] = [
     id: 'cartel',
     label: 'Cartel',
     hint: 'Escaparate o interior',
-    defaultFormat: 'vertical',
+    defaultFormat: 'a4',
     headlineExample: 'Campaña solar: te asesoramos',
     buildPrompt: (d) => {
       const { lugar, tono } = contexto(d);
@@ -69,7 +76,7 @@ export const PIECE_TYPES: PieceType[] = [
     id: 'post',
     label: 'Post para redes',
     hint: 'Instagram o Facebook',
-    defaultFormat: 'cuadrado',
+    defaultFormat: 'feed',
     headlineExample: '5 consejos para tu piel este verano',
     buildPrompt: (d) => {
       const { lugar, tono } = contexto(d);
