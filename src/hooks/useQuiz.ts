@@ -55,15 +55,9 @@ export const useQuiz = (courseIdOrSlug?: string) => {
 
       setQuiz(quizData);
 
-      // Load questions with options
+      // Load questions with options via safe RPC (excludes correct_answer/is_correct)
       const { data: questionsData, error: questionsError } = await supabase
-        .from('quiz_questions')
-        .select(`
-          *,
-          quiz_question_options (*)
-        `)
-        .eq('quiz_id', quizData.id)
-        .order('order_index');
+        .rpc('get_active_quiz_questions', { p_quiz_id: quizData.id });
 
       if (questionsError) {
         console.error('Error loading questions:', questionsError);
@@ -71,11 +65,11 @@ export const useQuiz = (courseIdOrSlug?: string) => {
         return;
       }
 
-      const questionsWithOptions = questionsData?.map(question => ({
+      const questionsWithOptions = (Array.isArray(questionsData) ? questionsData : []).map((question: any) => ({
         ...question,
         question_type: question.question_type as 'multiple_choice' | 'true_false' | 'short_answer',
-        options: question.quiz_question_options?.sort((a: any, b: any) => a.order_index - b.order_index) || []
-      })) || [];
+        options: (question.options || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      }));
 
       setQuestions(questionsWithOptions);
     } catch (error) {
@@ -150,7 +144,7 @@ export const useQuiz = (courseIdOrSlug?: string) => {
     }
   };
 
-  // Save answer and return correctness info
+  // Save answer via SECURITY DEFINER RPC (scoring happens server-side)
   const saveAnswer = async (
     attemptId: string,
     questionId: string,
@@ -158,41 +152,23 @@ export const useQuiz = (courseIdOrSlug?: string) => {
     answerText?: string
   ): Promise<{ isCorrect: boolean; correctOptionId: string | null } | null> => {
     try {
-      const question = questions.find(q => q.id === questionId);
-      if (!question) return null;
-
-      let isCorrect = false;
-      let pointsEarned = 0;
-      let correctOptionId: string | null = null;
-
-      if (question.options) {
-        const correctOption = question.options.find(opt => opt.is_correct);
-        correctOptionId = correctOption?.id || null;
-      }
-
-      if (question.question_type === 'multiple_choice' && selectedOptionId) {
-        const selectedOption = question.options?.find(opt => opt.id === selectedOptionId);
-        isCorrect = selectedOption?.is_correct || false;
-        pointsEarned = isCorrect ? question.points : 0;
-      }
-
-      const { error } = await supabase
-        .from('quiz_answers')
-        .upsert([{
-          attempt_id: attemptId,
-          question_id: questionId,
-          selected_option_id: selectedOptionId,
-          answer_text: answerText,
-          is_correct: isCorrect,
-          points_earned: pointsEarned
-        }]);
+      const { data, error } = await supabase.rpc('submit_quiz_answer', {
+        p_attempt_id: attemptId,
+        p_question_id: questionId,
+        p_selected_option_id: selectedOptionId ?? null,
+        p_answer_text: answerText ?? null,
+      });
 
       if (error) {
         console.error('Error saving answer:', error);
         return null;
       }
 
-      return { isCorrect, correctOptionId };
+      const result = (data ?? {}) as { is_correct?: boolean; correct_option_id?: string | null };
+      return {
+        isCorrect: !!result.is_correct,
+        correctOptionId: result.correct_option_id ?? null,
+      };
     } catch (error) {
       console.error('Error saving answer:', error);
       return null;

@@ -2507,6 +2507,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_active_quiz_questions: { Args: { p_quiz_id: string }; Returns: Json }
       get_job_contact_email: { Args: { job_id: string }; Returns: string }
       get_job_contact_email_rpc: { Args: { job_id: string }; Returns: string }
       get_job_contact_email_secure: {
@@ -2592,6 +2593,15 @@ export type Database = {
           summary_param: string
         }
         Returns: string
+      }
+      submit_quiz_answer: {
+        Args: {
+          p_answer_text?: string
+          p_attempt_id: string
+          p_question_id: string
+          p_selected_option_id?: string
+        }
+        Returns: Json
       }
       update_challenge_progress:
         | {

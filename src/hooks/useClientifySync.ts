@@ -5,8 +5,6 @@ import { toast } from 'sonner';
 
 interface ClientifySyncOptions {
   action: 'sync_user' | 'send_email' | 'team_invitation' | 'add_to_automation';
-  userId?: string;
-  email?: string;
   data?: any;
 }
 
@@ -25,10 +23,8 @@ export const useClientifySync = () => {
       const { data, error } = await supabase.functions.invoke('clientify-sync', {
         body: {
           action: options.action,
-          userId: options.userId || user.id,
-          email: options.email || user.email,
-          data: options.data
-        }
+          data: options.data,
+        },
       });
 
       if (error) {
@@ -48,31 +44,26 @@ export const useClientifySync = () => {
   };
 
   const syncCurrentUser = async () => {
-    return await syncWithClientify({
-      action: 'sync_user'
-    });
+    return await syncWithClientify({ action: 'sync_user' });
   };
 
-  const sendEmail = async (email: string, subject: string, content: string, templateId?: string, personalization?: any) => {
+  const sendEmail = async (
+    email: string,
+    subject: string,
+    content: string,
+    templateId?: string,
+    personalization?: any,
+  ) => {
     return await syncWithClientify({
       action: 'send_email',
-      email,
-      data: {
-        subject,
-        content,
-        template_id: templateId,
-        personalization
-      }
+      data: { to: email, subject, content, template_id: templateId, personalization },
     });
   };
 
   const addToAutomation = async (email: string, automationId: string) => {
     return await syncWithClientify({
       action: 'add_to_automation',
-      email,
-      data: {
-        automationId
-      }
+      data: { email, automationId },
     });
   };
 

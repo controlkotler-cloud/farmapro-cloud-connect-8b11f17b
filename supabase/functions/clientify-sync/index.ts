@@ -169,35 +169,48 @@ serve(async (req) => {
   try {
     logStep("Clientify sync function started");
 
-    const { action, userId, email, data } = await req.json();
-    logStep("Request data", { action, userId, email, data });
+    const { action, data } = await req.json();
+    logStep("Request data", { action });
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
-    const { data: user } = await supabaseClient.auth.getUser(token);
-    
-    if (!user?.user?.email) {
+    const { data: userData } = await supabaseClient.auth.getUser(token);
+    const authUser = userData?.user;
+
+    if (!authUser?.email) {
       throw new Error("User not authenticated");
     }
+
+    // Only these actions accept a target email; sync_user is always self.
+    // Always derive the acting user from the verified JWT, never from client body.
+    const userId = authUser.id;
+    const email = authUser.email;
+
+    // Admin check for privileged actions
+    const { data: isAdminRow } = await supabaseClient
+      .from('admin_users')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const isAdmin = !!isAdminRow;
 
     const clientifyAPI = new ClientifyAPI(Deno.env.get("CLIENTIFY_API_KEY")!);
 
     switch (action) {
-      case 'sync_user':
-        // Sincronizar usuario con Clientify
+      case 'sync_user': {
+        // IDOR-safe: always use the authenticated user id from the verified JWT.
         const { data: profile, error: profileError } = await supabaseClient
           .from('profiles')
           .select('*')
-          .eq('id', userId || user.user.id)
+          .eq('id', userId)
           .single();
 
         if (profileError) throw profileError;
 
-        // Obtener puntos del usuario
         const { data: userPoints } = await supabaseClient
           .from('user_points')
           .select('*')
-          .eq('user_id', userId || user.user.id)
+          .eq('user_id', userId)
           .single();
 
         const contact: ClientifyContact = {
@@ -217,108 +230,115 @@ serve(async (req) => {
         };
 
         const syncResult = await clientifyAPI.createOrUpdateContact(contact);
-        logStep("User synced to Clientify", { userId: profile.id, clientifyId: syncResult.id });
+        logStep("User synced to Clientify", { userId: profile.id });
 
-        return new Response(JSON.stringify({ 
-          success: true, 
+        return new Response(JSON.stringify({
+          success: true,
           message: 'Usuario sincronizado con Clientify',
-          clientifyContact: syncResult
+          clientifyContactId: syncResult?.id,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
+      }
 
-      case 'send_email':
-        // Enviar email personalizado
+      case 'send_email': {
+        // Restricted to admins only. Free-form subject/content by regular
+        // users would allow arbitrary email relay from the platform's Clientify.
+        if (!isAdmin) {
+          return new Response(JSON.stringify({ error: 'Forbidden' }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 403,
+          });
+        }
+        const to = typeof data?.to === 'string' ? data.to : email;
         const emailResult = await clientifyAPI.sendEmail({
-          to: email || user.user.email,
+          to,
           subject: data.subject,
           content: data.content,
           template_id: data.template_id,
           personalization: data.personalization,
         });
-
-        logStep("Email sent via Clientify", { to: email, subject: data.subject });
-
-        return new Response(JSON.stringify({ 
-          success: true, 
+        logStep("Email sent via Clientify (admin)", { adminId: userId });
+        return new Response(JSON.stringify({
+          success: true,
           message: 'Email enviado via Clientify',
-          emailId: emailResult.id
+          emailId: emailResult?.id,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
+      }
 
-      case 'team_invitation':
-        // Enviar invitación de equipo con plantilla personalizada
+      case 'team_invitation': {
+        // Must be admin OR strict owner of the target team.
+        const targetTeamId = data?.teamId as string | undefined;
+        const targetEmail = data?.email as string | undefined;
+        if (!targetTeamId || !targetEmail) {
+          return new Response(JSON.stringify({ error: 'Missing teamId or email' }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
+        let authorized = isAdmin;
+        if (!authorized) {
+          const { data: ownerCheck } = await supabaseClient
+            .rpc('is_team_owner_strict', { team_id_param: targetTeamId, user_id_param: userId });
+          authorized = !!ownerCheck;
+        }
+        if (!authorized) {
+          return new Response(JSON.stringify({ error: 'Forbidden: not team owner' }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 403,
+          });
+        }
+
         const invitationUrl = `${Deno.env.get("SUPABASE_URL")}/invitation?token=${data.invitationToken}`;
-        
         const invitationEmail = await clientifyAPI.sendEmail({
-          to: email,
+          to: targetEmail,
           subject: "Invitación al equipo farmapro",
-          content: `
-            <h1>¡Te han invitado a unirte al equipo farmapro!</h1>
-            <p>Hola,</p>
-            <p>Has sido invitado/a a formar parte del plan Team de farmapro.</p>
-            <p>Con esta invitación tendrás acceso completo a:</p>
-            <ul>
-              <li>📚 Todos los cursos y formaciones premium</li>
-              <li>🎯 Retos y gamificación avanzada</li>
-              <li>💬 Comunidad profesional exclusiva</li>
-              <li>📊 Herramientas de gestión farmacéutica</li>
-              <li>🎁 Promociones y descuentos especiales</li>
-            </ul>
-            <p><a href="${invitationUrl}" style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Aceptar Invitación</a></p>
-            <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
-            <p>¡Bienvenido/a al equipo!</p>
-            <br>
-            <p>El equipo de farmapro</p>
-          `,
-          personalization: {
-            invitation_url: invitationUrl,
-            team_name: data.teamName || 'farmapro Team',
-          }
+          content: `<h1>Te han invitado al equipo farmapro</h1>
+            <p><a href="${invitationUrl}">Aceptar invitación</a></p>`,
         });
 
-        // Sincronizar también el contacto invitado
         await clientifyAPI.createOrUpdateContact({
-          email: email,
+          email: targetEmail,
           custom_fields: {
             invitation_status: 'pending',
             invitation_token: data.invitationToken,
-            team_id: data.teamId,
-          }
+            team_id: targetTeamId,
+          },
         });
 
-        logStep("Team invitation sent via Clientify", { email, invitationToken: data.invitationToken });
-
-        return new Response(JSON.stringify({ 
-          success: true, 
-          message: `Invitación enviada a ${email} via Clientify`,
-          invitationUrl,
-          emailId: invitationEmail.id
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Invitación enviada',
+          emailId: invitationEmail?.id,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
+      }
 
-      case 'add_to_automation':
-        // Agregar usuario a automatización específica
-        const automationResult = await clientifyAPI.addToAutomation(
-          email || user.user.email, 
-          data.automationId
-        );
-
-        logStep("User added to automation", { email, automationId: data.automationId });
-
-        return new Response(JSON.stringify({ 
-          success: true, 
+      case 'add_to_automation': {
+        // Admin only.
+        if (!isAdmin) {
+          return new Response(JSON.stringify({ error: 'Forbidden' }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 403,
+          });
+        }
+        const targetEmail = typeof data?.email === 'string' ? data.email : email;
+        const automationResult = await clientifyAPI.addToAutomation(targetEmail, data.automationId);
+        return new Response(JSON.stringify({
+          success: true,
           message: 'Usuario agregado a automatización',
-          automationResult
+          automationResult,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
+      }
 
       default:
         throw new Error("Invalid action");
