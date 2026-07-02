@@ -43,6 +43,96 @@ function pieceGuidance(pieceType: string | null): string {
   }
 }
 
+// Modelo de texto para generar el copy (mismo que ai-creative-assistant).
+const COPY_MODEL = 'google/gemini-3-flash-preview';
+
+type PieceCopy = { headline: string; lines: string[] };
+
+function stripJsonFences(raw: string): string {
+  let s = raw.trim();
+  if (s.startsWith('```')) {
+    s = s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  }
+  const first = s.indexOf('{');
+  const last = s.lastIndexOf('}');
+  if (first >= 0 && last > first) s = s.slice(first, last + 1);
+  return s;
+}
+
+function normalizeCopy(parsed: unknown, forcedHeadline: string | null): PieceCopy | null {
+  if (!parsed || typeof parsed !== 'object') return null;
+  const p = parsed as Record<string, unknown>;
+  const headline = forcedHeadline
+    ?? (typeof p.headline === 'string' ? p.headline.trim().slice(0, 60) : '');
+  const linesRaw = Array.isArray(p.lines) ? p.lines : [];
+  const lines = linesRaw
+    .filter((l): l is string => typeof l === 'string')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+  if (!headline) return null;
+  return { headline, lines };
+}
+
+async function generateCopy(
+  lovableKey: string,
+  brief: string,
+  pieceType: string,
+  forcedHeadline: string | null,
+): Promise<PieceCopy | null> {
+  const systemPrompt =
+    'Eres redactor publicitario de una farmacia comunitaria en España. Escribes copy corto para piezas de marketing (posts, carteles, stories, promos). ' +
+    'Reglas OBLIGATORIAS: castellano de España, ortografía y tildes perfectas, sin emojis, sin nombres de medicamentos ni marcas concretas, ' +
+    'sin promesas de salud, curación, adelgazamiento ni afirmaciones sanitarias (código deontológico farmacéutico), tono cercano y profesional. ' +
+    'Devuelves SOLO un objeto JSON válido con esta forma exacta: {"headline": string, "lines": string[]}. ' +
+    'headline: gancho comercial máximo 8 palabras. ' +
+    'lines: entre 3 y 5 elementos, cada uno máximo 6 palabras, útiles y concretos (consejos, argumentos o pasos según el tipo de pieza). ' +
+    'Nada de texto adicional fuera del JSON, sin markdown.';
+
+  const userPrompt = forcedHeadline
+    ? `Tipo de pieza: ${pieceType}. Tema: ${brief}. El headline ya está decidido: "${forcedHeadline}". Genera SOLO las lines (3-5), coherentes con ese headline. Devuelve el JSON con ese mismo headline y las lines.`
+    : `Tipo de pieza: ${pieceType}. Tema: ${brief}. Genera headline y lines siguiendo las reglas.`;
+
+  const call = async () => {
+    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: COPY_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        response_format: { type: 'json_object' },
+      }),
+    });
+    if (!res.ok) {
+      console.error('Copy gen HTTP error:', res.status, await res.text().catch(() => ''));
+      return null;
+    }
+    const data = await res.json();
+    const content: string = data?.choices?.[0]?.message?.content ?? '';
+    if (!content) return null;
+    try {
+      return normalizeCopy(JSON.parse(stripJsonFences(content)), forcedHeadline);
+    } catch (e) {
+      console.error('Copy parse error:', e, 'content:', content.slice(0, 400));
+      return null;
+    }
+  };
+
+  const first = await call();
+  if (first) return first;
+  const retry = await call();
+  if (retry) return retry;
+  // Fallback: solo headline (si venía forzado o si el brief se puede usar como titular corto).
+  if (forcedHeadline) return { headline: forcedHeadline, lines: [] };
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
