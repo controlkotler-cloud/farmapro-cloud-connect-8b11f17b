@@ -87,8 +87,8 @@ serve(async (req) => {
         const { data: clientifyResponse, error: clientifyError } = await supabaseClient.functions.invoke('clientify-sync', {
           body: {
             action: 'team_invitation',
-            email: email,
             data: {
+              email: email,
               invitationToken: inviteToken,
               teamId: teamId,
               teamName: 'farmapro Team'

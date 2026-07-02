@@ -60,7 +60,13 @@ export const GlobalSearch = () => {
     return () => clearTimeout(searchWithDelay);
   }, [searchQuery]);
 
-  const performSearch = async (query: string) => {
+  // Escape characters that have meaning in PostgREST filter strings to prevent injection
+  const escapePostgrest = (s: string) =>
+    s.replace(/[\\,()%*"]/g, ' ').trim();
+
+  const performSearch = async (rawQuery: string) => {
+    const query = escapePostgrest(rawQuery);
+    if (!query) { setResults([]); setIsLoading(false); return; }
     setIsLoading(true);
     try {
       const searchResults: SearchResult[] = [];
