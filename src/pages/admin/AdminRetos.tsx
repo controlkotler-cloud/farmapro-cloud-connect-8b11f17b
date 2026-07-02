@@ -59,7 +59,6 @@ const AdminRetos = () => {
   const { data: challenges = [], isLoading: challengesLoading } = useQuery({
     queryKey: ['admin-challenges'],
     queryFn: async () => {
-      console.log('Fetching challenges...');
       const { data, error } = await supabase
         .from('challenges')
         .select('*')
@@ -70,7 +69,6 @@ const AdminRetos = () => {
         throw error;
       }
 
-      console.log('Challenges fetched:', data);
       return data as Challenge[];
     }
   });
@@ -79,7 +77,6 @@ const AdminRetos = () => {
   const { data: challengeProgress = [], isLoading: progressLoading } = useQuery({
     queryKey: ['admin-challenge-progress'],
     queryFn: async () => {
-      console.log('Fetching challenge progress...');
       const { data, error } = await supabase
         .from('user_challenge_progress')
         .select(`
@@ -102,7 +99,6 @@ const AdminRetos = () => {
         throw error;
       }
 
-      console.log('Challenge progress fetched:', data);
       return data as ChallengeProgress[];
     }
   });
@@ -125,10 +121,19 @@ const AdminRetos = () => {
       target_count: number;
       is_active: boolean;
     }) => {
-      console.log('Creating challenge:', challengeData);
+      // La tabla `challenges` tiene `title` (NOT NULL) y `name` (nullable) por
+      // legado de migraciones: rellenamos ambas desde el formulario (name).
       const { data, error } = await supabase
         .from('challenges')
-        .insert({ ...challengeData, title: challengeData.name } as any)
+        .insert({
+          name: challengeData.name,
+          title: challengeData.name,
+          description: challengeData.description ?? null,
+          type: challengeData.type,
+          points_reward: challengeData.points_reward,
+          target_count: challengeData.target_count,
+          is_active: challengeData.is_active,
+        })
         .select()
         .single();
 
@@ -167,7 +172,6 @@ const AdminRetos = () => {
       target_count?: number;
       is_active?: boolean;
     }) => {
-      console.log('Updating challenge:', id, challengeData);
       const { data, error } = await supabase
         .from('challenges')
         .update(challengeData)
@@ -202,7 +206,6 @@ const AdminRetos = () => {
   // Delete challenge mutation
   const deleteChallengeMutation = useMutation({
     mutationFn: async (challengeId: string) => {
-      console.log('Deleting challenge:', challengeId);
       
       // First delete all user progress for this challenge
       const { error: progressError } = await supabase
@@ -249,7 +252,6 @@ const AdminRetos = () => {
   // Reset user progress mutation
   const resetProgressMutation = useMutation({
     mutationFn: async (progressId: string) => {
-      console.log('Resetting progress:', progressId);
       const { error } = await supabase
         .from('user_challenge_progress')
         .update({
@@ -291,7 +293,6 @@ const AdminRetos = () => {
     target_count: number;
     is_active: boolean;
   }) => {
-    console.log('handleCreateChallenge called with:', challengeData);
     await createChallengeMutation.mutateAsync(challengeData);
   };
 
@@ -303,7 +304,6 @@ const AdminRetos = () => {
     target_count?: number;
     is_active?: boolean;
   }) => {
-    console.log('handleUpdateChallenge called with:', id, challengeData);
     await updateChallengeMutation.mutateAsync({ id, ...challengeData });
   };
 

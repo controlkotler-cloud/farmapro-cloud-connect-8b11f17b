@@ -43,22 +43,44 @@ export const LAUNCH = {
   startISO: '2026-07-01T09:00:00+02:00',
   windowDays: 15,
   spots: LAUNCH_SPOTS,
-  spotsTaken: 95, // muestra "quedan 5 de 100 plazas". Súbelo/bájalo cuando quieras.
+  /**
+   * Plazas YA ocupadas por altas de pago REALES. Empieza en 0 y se actualiza a
+   * mano (o se conecta al recuento real cuando esté Stripe). SOLO cuentan pagos
+   * reales: inflarlo sería publicidad engañosa (Ley 3/1991).
+   */
+  spotsTaken: 0,
+  /**
+   * El contador público no se muestra hasta alcanzar este número de plazas
+   * ocupadas reales: un contador casi vacío el primer día resta, no suma.
+   * Fases: < showCounterFrom → solo "100 plazas fundador", sin cifra;
+   * >= showCounterFrom → "X de 100 plazas ocupadas"; quedan <=15 → "quedan X".
+   */
+  showCounterFrom: 20,
 };
 
 export interface LaunchStatus {
   /** ¿Sigue vigente el precio de lanzamiento? Depende SOLO de que queden plazas. */
   active: boolean;
+  /** Plazas ocupadas (altas de pago reales). */
+  spotsTaken: number;
   /** Plazas que quedan a precio de lanzamiento. */
   spotsLeft: number;
   /** true cuando quedan pocas (<=15): dispara el aviso "últimas plazas". */
   almostGone: boolean;
+  /** true cuando ya hay altas reales suficientes para enseñar el contador. */
+  showCounter: boolean;
 }
 
 /** Estado del lanzamiento: se cierra al cubrir las primeras `spots` plazas. */
 export function getLaunchStatus(): LaunchStatus {
   const spotsLeft = Math.max(0, LAUNCH.spots - LAUNCH.spotsTaken);
-  return { active: spotsLeft > 0, spotsLeft, almostGone: spotsLeft > 0 && spotsLeft <= 15 };
+  return {
+    active: spotsLeft > 0,
+    spotsTaken: LAUNCH.spotsTaken,
+    spotsLeft,
+    almostGone: spotsLeft > 0 && spotsLeft <= 15,
+    showCounter: LAUNCH.spotsTaken >= LAUNCH.showCounterFrom,
+  };
 }
 
 export const PLANS: Plan[] = [

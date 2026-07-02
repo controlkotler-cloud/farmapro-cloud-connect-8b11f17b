@@ -198,10 +198,15 @@ export const Recursos = () => {
     //    y los bloqueadores de pop-ups la bloquean.
     if (resource.is_premium) {
       // Premium: la ventana se abre ya en el gesto y se rellena al firmar la URL.
+      // El bucket y la ruta se extraen de file_url para soportar tanto el bucket
+      // público 'recursos' actual como el bucket privado de premium cuando los
+      // ficheros premium se muevan allí (la firma pasa por las políticas de Storage).
       const win = window.open('', '_blank');
-      const path = resource.file_url.replace('/storage/v1/object/public/recursos/', '');
+      const match = resource.file_url.match(/\/storage\/v1\/object\/(?:public\/|sign\/|authenticated\/)?([^/]+)\/(.+)$/);
+      const bucket = match?.[1] ?? 'recursos';
+      const path = match?.[2] ?? resource.file_url;
       supabase.storage
-        .from('recursos')
+        .from(bucket)
         .createSignedUrl(path, 60)
         .then(({ data, error }) => {
           if (error || !data?.signedUrl) {

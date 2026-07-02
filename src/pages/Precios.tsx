@@ -63,17 +63,34 @@ export default function Precios() {
                     : "Precio de lanzamiento"}
                 </span>
               </div>
-              <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    launch.almostGone ? "bg-destructive" : "bg-primary"
-                  }`}
-                  style={{ width: `${takenPct}%` }}
-                />
-              </div>
+              {/* El contador solo se enseña con altas reales suficientes (fases en plans.ts). */}
+              {launch.showCounter && (
+                <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      launch.almostGone ? "bg-destructive" : "bg-primary"
+                    }`}
+                    style={{ width: `${takenPct}%` }}
+                  />
+                </div>
+              )}
               <div className="mt-2.5 text-center text-xs text-muted-foreground">
-                Solo quedan <strong className="text-foreground">{launch.spotsLeft}</strong> de{" "}
-                {LAUNCH.spots} plazas a este precio
+                {launch.almostGone ? (
+                  <>
+                    Solo quedan <strong className="text-foreground">{launch.spotsLeft}</strong> de{" "}
+                    {LAUNCH.spots} plazas a este precio
+                  </>
+                ) : launch.showCounter ? (
+                  <>
+                    <strong className="text-foreground">{launch.spotsTaken}</strong> de {LAUNCH.spots}{" "}
+                    plazas fundador ya ocupadas
+                  </>
+                ) : (
+                  <>
+                    Las primeras <strong className="text-foreground">{LAUNCH.spots} plazas</strong>{" "}
+                    conservan este precio para siempre
+                  </>
+                )}
               </div>
             </div>
           ) : (

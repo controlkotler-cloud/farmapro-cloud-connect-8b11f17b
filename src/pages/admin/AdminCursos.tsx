@@ -47,7 +47,6 @@ const AdminCursos = () => {
 
   const loadCourses = async () => {
     setLoading(true);
-    console.log('Cargando cursos...');
     
     const { data, error } = await supabase
       .from('courses')
@@ -62,7 +61,6 @@ const AdminCursos = () => {
         variant: "destructive"
       });
     } else {
-      console.log('Cursos cargados:', data);
       setCourses(data || []);
     }
     setLoading(false);
@@ -207,8 +205,6 @@ const AdminCursos = () => {
   };
 
   const handleEdit = (course: Course) => {
-    console.log('Preparando edición de curso:', course);
-    console.log('Módulos del curso a editar:', course.course_modules);
     
     let modules = [];
     if (course.course_modules) {
@@ -226,7 +222,6 @@ const AdminCursos = () => {
       }
     }
     
-    console.log('Módulos procesados para edición:', modules);
     
     setFormData({
       title: course.title || '',
@@ -247,7 +242,6 @@ const AdminCursos = () => {
   const handleDelete = async (courseId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este curso? Esta acción no se puede deshacer.')) return;
 
-    console.log('Eliminando curso:', courseId);
 
     try {
       const { error } = await supabase
@@ -260,7 +254,6 @@ const AdminCursos = () => {
         throw error;
       }
 
-      console.log('Curso eliminado correctamente');
       
       setCourses(prevCourses => prevCourses.filter(course => course.id !== courseId));
       

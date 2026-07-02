@@ -2,217 +2,130 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, Star, Users, ExternalLink } from 'lucide-react';
+import { CheckCircle, Star, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
-import { TeamPlanCard } from '@/components/subscription/TeamPlanCard';
-import { planConfig } from '@/components/profile/config/PlanConfig';
+import { PLANS, FREE_LIMITS, getAccessState, getLaunchStatus } from '@/lib/plans';
 
 interface PlanTabProps {
   profile: any;
   isAdmin: boolean;
 }
 
+/**
+ * Pestaña "Plan" del Perfil. Fuente única: src/lib/plans.ts + getAccessState.
+ * El checkout del modelo antiguo (SubscriptionPlans/TeamPlanCard/planConfig)
+ * se retiró: la contratación vive en /precios y se conecta con Stripe.
+ */
 export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
+  const role: string | null = isAdmin ? 'admin' : (profile?.subscription_role ?? null);
+  const access = isAdmin ? 'paid' : getAccessState(role, profile?.created_at ?? null);
+  const launch = getLaunchStatus();
 
-  const getCurrentPlan = () => {
-    if (isAdmin) return 'admin';
-    return profile?.subscription_role || 'freemium';
+  // Nombre visible del plan actual (roles antiguos incluidos hasta la migración Stripe).
+  const roleLabels: Record<string, string> = {
+    admin: 'Administrador',
+    equipo: 'Equipo',
+    plus: 'Plus',
+    premium: 'Premium',
+    profesional: 'Profesional',
+    estudiante: 'Estudiante',
+    freemium: 'Gratis',
   };
+  const planName = roleLabels[role ?? 'freemium'] ?? 'Gratis';
 
-  const currentPlan = getCurrentPlan();
-  const config = planConfig[currentPlan as keyof typeof planConfig] || planConfig.freemium;
-  const PlanIcon = config.icon;
+  // Días restantes de la prueba gratis (solo informativo).
+  const trialDaysLeft = (() => {
+    if (access !== 'free_trial' || !profile?.created_at) return null;
+    const used = (Date.now() - new Date(profile.created_at).getTime()) / 86_400_000;
+    return Math.max(0, Math.ceil(FREE_LIMITS.trialDays - used));
+  })();
 
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  const freePlan = PLANS.find((p) => p.id === 'gratis');
+  const isPaid = access === 'paid';
 
   return (
     <div className="space-y-6">
       {/* Plan actual */}
       <Card>
         <CardHeader>
-          <CardTitle>Tu Plan Actual</CardTitle>
-          <CardDescription>
-            Detalles de tu suscripción actual y beneficios incluidos
-          </CardDescription>
+          <CardTitle>Tu plan actual</CardTitle>
+          <CardDescription>Detalles de tu suscripción y beneficios incluidos</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className={`${config.bgColor} rounded-lg p-6 border-2`}>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${config.color} flex items-center justify-center`}>
-                  <PlanIcon className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Plan {config.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={`${config.bgColor} ${config.textColor}`}>
-                      {config.name}
+          <div className="rounded-lg border-2 bg-muted/40 p-6">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
+                <ShieldCheck className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold">Plan {planName}</h3>
+                <div className="mt-1 flex items-center gap-2">
+                  {isAdmin && <Badge variant="destructive">Sin caducidad</Badge>}
+                  {!isAdmin && isPaid && <Badge>Activo</Badge>}
+                  {access === 'free_trial' && (
+                    <Badge variant="secondary">
+                      Prueba gratis{trialDaysLeft !== null ? ` · ${trialDaysLeft} días restantes` : ''}
                     </Badge>
-                    {currentPlan === 'admin' && (
-                      <Badge variant="destructive">Sin caducidad</Badge>
-                    )}
-                    {currentPlan !== 'admin' && profile?.subscription_status === 'active' && (
-                      <Badge variant="default">Activo</Badge>
-                    )}
-                    {currentPlan !== 'admin' && profile?.subscription_status === 'trialing' && (
-                      <Badge variant="secondary">Periodo de prueba</Badge>
-                    )}
-                  </div>
+                  )}
+                  {access === 'free_locked' && <Badge variant="destructive">Prueba finalizada</Badge>}
                 </div>
               </div>
             </div>
-            
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Características incluidas:</h4>
+
+            {!isPaid && freePlan && (
               <ul className="space-y-2">
-                {config.features.map((feature, index) => (
-                  <li key={index} className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-600 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">{feature}</span>
+                {freePlan.features.map((feature) => (
+                  <li key={feature} className="flex items-center text-sm text-muted-foreground">
+                    <CheckCircle className="mr-3 h-4 w-4 flex-shrink-0 text-primary" />
+                    {feature}
                   </li>
                 ))}
               </ul>
-            </div>
-
-            {currentPlan === 'admin' && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <p className="text-red-800 text-sm">
-                  <strong>Cuenta de Administrador:</strong> Tienes acceso completo y permanente a todas las funcionalidades de farmapro.
-                </p>
-              </div>
             )}
 
-            {currentPlan !== 'admin' && profile?.trial_ends_at && profile.subscription_status === 'trialing' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-blue-800 text-sm">
-                  <strong>Periodo de prueba activo</strong> - Termina el {formatDate(profile.trial_ends_at)}
-                </p>
-              </div>
+            {isAdmin && (
+              <p className="text-sm text-muted-foreground">
+                Cuenta de administrador: acceso completo y permanente a todo el portal.
+              </p>
             )}
-
+            {!isAdmin && isPaid && (
+              <p className="text-sm text-muted-foreground">
+                Acceso completo: cursos y recursos sin límite, comunidad, retos e IAFarma.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Recomendación y opciones de planes - Solo mostrar si no es admin */}
-      {currentPlan !== 'admin' && (
-        <>
-          {/* Recomendación */}
-          {currentPlan === 'freemium' && (
-            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                    <Star className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      ¿Listo para dar el siguiente paso?
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      El plan <strong>Profesional</strong> es el más equilibrado: acceso completo a formación, recursos ilimitados y comunidad activa.
-                    </p>
-                  </div>
-                  <Button asChild>
-                    <Link to="/precios" className="flex items-center gap-2">
-                      Ver todos los planes
-                      <ExternalLink className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {currentPlan === 'estudiante' && (
-            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
-                    <Star className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Mejora tu experiencia
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      Considera el plan <strong>Profesional</strong> para acceso ilimitado o <strong>Premium</strong> si necesitas funcionalidades de negocio.
-                    </p>
-                  </div>
-                  <Button asChild variant="outline">
-                    <Link to="/precios" className="flex items-center gap-2">
-                      Comparar planes
-                      <ExternalLink className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Sección de planes con tabs */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Actualizar Suscripción</CardTitle>
-              <CardDescription>
-                Explora otros planes o gestiona tu equipo
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="individual" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="individual" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Planes Individuales
-                  </TabsTrigger>
-                  <TabsTrigger value="team" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Plan de Equipo
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="individual" className="mt-6">
-                  <SubscriptionPlans 
-                    variant="compact" 
-                    currentPlan={currentPlan}
-                    userRole={currentPlan}
-                  />
-                  <div className="mt-4 text-center">
-                    <Button asChild variant="outline" size="sm">
-                      <Link to="/precios" className="flex items-center gap-2">
-                        Ver comparativa completa
-                        <ExternalLink className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="team" className="mt-6">
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Gestiona las suscripciones de tu farmacia
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-4">
-                        Facturación centralizada, descuentos por volumen y acceso Premium para todo tu equipo
-                      </p>
-                    </div>
-                    <TeamPlanCard />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </>
+      {/* CTA a Precios (la contratación vive allí) */}
+      {!isAdmin && !isPaid && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
+                <Star className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="mb-1 text-lg font-semibold">
+                  {access === 'free_locked'
+                    ? 'Recupera tu acceso con el plan Plus'
+                    : '¿Listo para dar el siguiente paso?'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {launch.active
+                    ? 'Precio de lanzamiento para las 100 primeras plazas, para siempre. Sin permanencia: cancela cuando quieras.'
+                    : 'Todo el contenido, la comunidad e IAFarma por una cuota mensual. Sin permanencia.'}
+                </p>
+              </div>
+              <Button asChild>
+                <Link to="/precios" className="flex items-center gap-2">
+                  Ver planes
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

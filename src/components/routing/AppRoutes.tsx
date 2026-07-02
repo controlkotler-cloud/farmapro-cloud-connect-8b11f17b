@@ -8,7 +8,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 import { Formacion } from "@/pages/Formacion";
 import { Recursos } from "@/pages/Recursos";
-import { PAID_ROLES } from "@/lib/plans";
+import { getAccessState } from "@/lib/plans";
 import Comunidad from "@/pages/Comunidad";
 import { Retos } from "@/pages/Retos";
 import Empleo from "@/pages/Empleo";
@@ -53,21 +53,14 @@ export const AppRoutes = () => {
     );
   }
 
-  // Check if trial has expired and redirect to precios  
-  const isTrialExpired = user && profile?.subscription_role === 'freemium' && 
-    profile?.trial_ends_at && 
-    new Date(profile.trial_ends_at) < new Date();
-
-  // Check if student plan has expired
-  const isStudentExpired = user && profile?.subscription_role === 'estudiante' &&
-    profile?.student_valid_until &&
-    new Date(profile.student_valid_until) < new Date();
-
-  // Solo redirigimos a /precios cuando validation_mode='active' y el usuario
-  // gratuito/estudiante caducó. Cualquier rol de pago (PAID_ROLES) queda fuera.
-  const shouldRedirectToPrecios = validationMode === 'active' && 
-    (isTrialExpired || isStudentExpired) && 
-    !PAID_ROLES.includes(profile?.subscription_role || '');
+  // Expiración del gratis: fuente ÚNICA = getAccessState (created_at + 30 días).
+  // (Antes se miraba trial_ends_at/student_valid_until, columnas que nadie escribe.)
+  // Solo redirigimos a /precios cuando validation_mode='active' y el acceso está
+  // bloqueado; los roles de pago nunca entran aquí (getAccessState devuelve 'paid').
+  const accessState = user
+    ? getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null)
+    : null;
+  const shouldRedirectToPrecios = validationMode === 'active' && accessState === 'free_locked';
 
   return (
     <Routes>
