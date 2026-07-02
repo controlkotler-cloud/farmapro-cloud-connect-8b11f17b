@@ -7,7 +7,31 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { usePasswordReset } from '@/hooks/usePasswordReset';
 import { z } from 'zod';
-import { isValidFiscalId } from '@/lib/cif';
+import { isValidFiscalId, validateFiscalId } from '@/lib/cif';
+import { supabase } from '@/integrations/supabase/client';
+
+/** Aviso amable cuando el CIF ya tiene una cuenta (1 prueba gratis por farmacia). */
+const CIF_DUPLICADO_TOAST = {
+  title: 'Este CIF ya tiene cuenta',
+  description:
+    'La prueba gratuita es una por farmacia y este CIF ya la ha usado. Inicia sesión con la cuenta original o hazte Plus. Si crees que es un error, escríbenos a somos@farmapro.es.',
+  variant: 'destructive' as const,
+};
+
+/**
+ * Pre-check de disponibilidad del CIF vía RPC `cif_disponible` (SECURITY DEFINER).
+ * Si la RPC aún no existe o falla, devolvemos true y dejamos que el registro siga:
+ * la última red es el índice único de profiles (el error se mapea abajo).
+ */
+const checkCifDisponible = async (cifNormalized: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.rpc('cif_disponible', { p_cif: cifNormalized });
+    if (error) return true;
+    return data !== false;
+  } catch {
+    return true;
+  }
+};
 
 // Security: Strong validation schema for authentication
 const authSchema = z.object({
@@ -85,16 +109,34 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
           return;
         }
 
+        // Anti-pillaje: si el CIF ya gastó su prueba, avisamos ANTES de crear nada.
+        const cifNormalized = validateFiscalId(cif).normalized;
+        const disponible = await checkCifDisponible(cifNormalized);
+        if (!disponible) {
+          toast(CIF_DUPLICADO_TOAST);
+          setLoading(false);
+          return;
+        }
+
         const { error } = await signUp(email, password, fullName, pharmacyName, position, cif);
 
         if (error) {
+          // El índice único de profiles hace fallar el trigger handle_new_user con
+          // "Database error saving new user": a esta altura del formulario, la causa
+          // realista es el CIF duplicado (carrera con el pre-check o RPC ausente).
+          const isDbTriggerError = error.message?.toLowerCase().includes('database error');
+          if (isDbTriggerError) {
+            toast(CIF_DUPLICADO_TOAST);
+            setLoading(false);
+            return;
+          }
           // Security: Don't expose internal error details
           const errorMessage = error.message.includes('already registered')
             ? 'Este email ya está registrado'
             : error.message.includes('invalid')
             ? 'Datos inválidos. Por favor, verifica la información'
             : 'Error al registrarse. Intenta de nuevo';
-          
+
           toast({
             title: "Error de registro",
             description: errorMessage,
