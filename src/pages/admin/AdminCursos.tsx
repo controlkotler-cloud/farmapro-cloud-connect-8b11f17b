@@ -47,10 +47,10 @@ const AdminCursos = () => {
 
   const loadCourses = async () => {
     setLoading(true);
-    
+    // course_modules está revocada al cliente por seguridad — no la pedimos aquí.
     const { data, error } = await supabase
       .from('courses')
-      .select('*')
+      .select('id, slug, title, description, category, difficulty, duration_minutes, duration_hours, thumbnail_url, featured_image_url, is_premium, is_published, is_featured, order_index, students_count, rating, total_lessons, instructor, content, created_at, updated_at')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -61,7 +61,7 @@ const AdminCursos = () => {
         variant: "destructive"
       });
     } else {
-      setCourses(data || []);
+      setCourses((data as any) || []);
     }
     setLoading(false);
   };
