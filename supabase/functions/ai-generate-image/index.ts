@@ -361,7 +361,12 @@ serve(async (req) => {
       image_url: imageUrl,
     });
 
-    return json({ imageUrl, revisedPrompt, remaining });
+    return json({
+      imageUrl,
+      revisedPrompt,
+      remaining,
+      copy: copy ?? (effectiveHeadline ? { headline: effectiveHeadline, lines: effectiveLines } : null),
+    });
   } catch (error) {
     console.error('Error in ai-generate-image:', error);
     return json({ error: (error as Error).message ?? 'Error interno' }, 500);
