@@ -211,24 +211,47 @@ serve(async (req) => {
       return json({ error: 'LOVABLE_API_KEY no configurada' }, 500);
     }
 
+    // PASO 1: si hay brief, generar copy antes de la imagen.
+    let copy: PieceCopy | null = null;
+    if (brief) {
+      copy = await generateCopy(lovableKey, brief, pieceType, headline);
+    }
+
+    // El headline efectivo: el del copy si se generó, o el que envió el cliente.
+    const effectiveHeadline = copy?.headline ?? headline;
+    const effectiveLines = copy?.lines ?? [];
+
     // Prompt de marketing retail de farmacia + guardrails.
     const guardrails =
       'Guardrails: no real medication packaging or medical brand logos; ' +
       'no health claims or therapeutic promises; no recognizable people or faces. ' +
       'Generic product categories are fine (sun care, skincare/dermocosmetics, vitamins, baby care, oral care).';
 
-    const headlineBlock = headline
-      ? ` The image MUST include this exact headline, rendered legibly and spelled EXACTLY as written, ` +
-        `as the main typographic title in the composition: "${headline}". ` +
-        `Do not paraphrase, translate, autocorrect or truncate it. Elegant, editorial sans-serif type; high contrast; no other text.`
-      : ' Do not include any text or typography in the image.';
+    let textBlock: string;
+    if (effectiveHeadline && effectiveLines.length > 0) {
+      const linesEnum = effectiveLines.map((l, i) => `${i + 1}. "${l}"`).join(' ');
+      textBlock =
+        ` The image MUST render the following Spanish text EXACTLY as written, with perfect spelling and accents, no paraphrasing, no translation, no autocorrect, no truncation. ` +
+        `Main large headline at the top: "${effectiveHeadline}". ` +
+        `Below the headline, a vertical list with ${effectiveLines.length} short items, each with its own small illustrated icon on the left: ${linesEnum}. ` +
+        `Use one single clean sans-serif typography, high contrast, generous spacing between items, infographic style. Do not add any other text.`;
+    } else if (effectiveHeadline) {
+      textBlock =
+        ` The image MUST include this exact headline, rendered legibly and spelled EXACTLY as written, ` +
+        `as the main typographic title in the composition: "${effectiveHeadline}". ` +
+        `Do not paraphrase, translate, autocorrect or truncate it. Elegant, editorial sans-serif type; high contrast; no other text.`;
+    } else {
+      textBlock = ' Do not include any text or typography in the image.';
+    }
+
+    const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
 
     const enhancedPrompt =
-      `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}. ` +
+      `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}.${briefBlock} ` +
       `Commercial, bright, professional aesthetic; clean composition with space for a headline; ` +
       `suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${headlineBlock} ${guardrails}`;
+      `${textBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)
