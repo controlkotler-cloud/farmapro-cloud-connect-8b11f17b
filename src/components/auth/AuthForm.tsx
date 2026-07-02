@@ -9,6 +9,7 @@ import { usePasswordReset } from '@/hooks/usePasswordReset';
 import { z } from 'zod';
 import { isValidFiscalId, validateFiscalId } from '@/lib/cif';
 import { supabase } from '@/integrations/supabase/client';
+import { trackRegistration } from '@/lib/analytics';
 
 /** Aviso amable cuando el CIF ya tiene una cuenta (1 prueba gratis por farmacia). */
 const CIF_DUPLICADO_TOAST = {
@@ -143,6 +144,8 @@ export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
             variant: "destructive",
           });
         } else {
+          // Conversión del lanzamiento: registro completado (GA4 + píxel Meta).
+          trackRegistration();
           toast({
             title: "¡Registro exitoso!",
             description: "Tu cuenta ha sido creada correctamente. Puedes iniciar sesión ahora.",

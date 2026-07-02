@@ -1,5 +1,6 @@
 
 import * as React from 'react';
+import { applyConsent } from '@/lib/analytics';
 
 export interface CookiePreferences {
   necessary: boolean;
@@ -43,7 +44,6 @@ export const useCookieConsent = () => {
   }, []);
 
   const acceptAll = () => {
-    console.log('useCookieConsent - acceptAll called');
     const allAccepted: CookiePreferences = {
       necessary: true,
       analytics: true,
@@ -53,13 +53,12 @@ export const useCookieConsent = () => {
     setPreferences(allAccepted);
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(allAccepted));
+    applyConsent({ analytics: true, marketing: true });
     setShowBanner(false);
     setForceShow(false);
-    console.log('useCookieConsent - acceptAll completed');
   };
 
   const acceptNecessary = () => {
-    console.log('useCookieConsent - acceptNecessary called');
     const necessaryOnly: CookiePreferences = {
       necessary: true,
       analytics: false,
@@ -69,20 +68,22 @@ export const useCookieConsent = () => {
     setPreferences(necessaryOnly);
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(necessaryOnly));
+    applyConsent({ analytics: false, marketing: false });
     setShowBanner(false);
     setForceShow(false);
-    console.log('useCookieConsent - acceptNecessary completed');
   };
 
   const savePreferences = (newPreferences: CookiePreferences) => {
-    console.log('useCookieConsent - savePreferences called with:', newPreferences);
     const finalPreferences = { ...newPreferences, necessary: true };
     setPreferences(finalPreferences);
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(finalPreferences));
+    applyConsent({
+      analytics: finalPreferences.analytics,
+      marketing: finalPreferences.marketing,
+    });
     setShowBanner(false);
     setForceShow(false);
-    console.log('useCookieConsent - savePreferences completed');
   };
 
   const openSettings = () => {

@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { validateFiscalId } from '@/lib/cif';
+import { getStoredUtms } from '@/lib/analytics';
 
 interface AuthContextType {
   user: User | null;
@@ -129,6 +130,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // CIF/NIF normalizado (anti-pillaje: 1 prueba gratis por farmacia).
       const cifNormalized = cif ? validateFiscalId(cif).normalized : undefined;
+      // Atribución: qué canal trajo este registro (UTMs capturados al aterrizar).
+      const utms = getStoredUtms();
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -138,6 +141,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             pharmacy_name: pharmacyName,
             position: position,
             cif: cifNormalized,
+            ...(utms?.utm_source ? { utm_source: utms.utm_source } : {}),
+            ...(utms?.utm_medium ? { utm_medium: utms.utm_medium } : {}),
+            ...(utms?.utm_campaign ? { utm_campaign: utms.utm_campaign } : {}),
+            ...(utms?.utm_term ? { utm_term: utms.utm_term } : {}),
+            ...(utms?.utm_content ? { utm_content: utms.utm_content } : {}),
+            ...(utms?.landing_page ? { landing_page: utms.landing_page } : {}),
           },
         },
       });
