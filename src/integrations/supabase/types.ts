@@ -2515,6 +2515,7 @@ export type Database = {
         Args: { thread_author_id: string }
         Returns: boolean
       }
+      cif_disponible: { Args: { p_cif: string }; Returns: boolean }
       consume_image_credit: { Args: { p_limit: number }; Returns: number }
       consume_text_credit: { Args: { p_limit: number }; Returns: number }
       create_notification_for_user: {
