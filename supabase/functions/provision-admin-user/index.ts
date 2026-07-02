@@ -103,6 +103,14 @@ serve(async (req) => {
       // Don't throw, this is secondary
     }
 
+    // CRÍTICO: insertar en user_roles ya que is_current_user_admin() lee de aquí.
+    const { error: userRoleError } = await supabaseAdmin
+      .from('user_roles')
+      .insert({ user_id: authData.user.id, role: 'admin' });
+    if (userRoleError && !String(userRoleError.message).includes('duplicate')) {
+      console.error('user_roles insert error:', userRoleError);
+    }
+
     console.log('Admin user provisioned successfully');
 
     return new Response(

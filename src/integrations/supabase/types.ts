@@ -146,6 +146,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_text_usage: {
+        Row: {
+          period: string
+          updated_at: string
+          used: number
+          user_id: string
+        }
+        Insert: {
+          period: string
+          updated_at?: string
+          used?: number
+          user_id: string
+        }
+        Update: {
+          period?: string
+          updated_at?: string
+          used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           category: string
@@ -1450,6 +1471,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          cif: string | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -1478,6 +1500,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          cif?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -1506,6 +1529,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          cif?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -2492,6 +2516,7 @@ export type Database = {
         Returns: boolean
       }
       consume_image_credit: { Args: { p_limit: number }; Returns: number }
+      consume_text_credit: { Args: { p_limit: number }; Returns: number }
       create_notification_for_user: {
         Args: {
           message_param: string
@@ -2508,6 +2533,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       get_active_quiz_questions: { Args: { p_quiz_id: string }; Returns: Json }
+      get_course_modules: { Args: { p_course_id: string }; Returns: Json }
       get_job_contact_email: { Args: { job_id: string }; Returns: string }
       get_job_contact_email_rpc: { Args: { job_id: string }; Returns: string }
       get_job_contact_email_secure: {
@@ -2688,7 +2714,14 @@ export type Database = {
         | "herramienta"
       subscription_status: "active" | "canceled" | "expired" | "trialing"
       team_member_role: "premium" | "profesional"
-      user_role: "freemium" | "estudiante" | "profesional" | "premium" | "admin"
+      user_role:
+        | "freemium"
+        | "estudiante"
+        | "profesional"
+        | "premium"
+        | "admin"
+        | "plus"
+        | "equipo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2875,7 +2908,15 @@ export const Constants = {
       ],
       subscription_status: ["active", "canceled", "expired", "trialing"],
       team_member_role: ["premium", "profesional"],
-      user_role: ["freemium", "estudiante", "profesional", "premium", "admin"],
+      user_role: [
+        "freemium",
+        "estudiante",
+        "profesional",
+        "premium",
+        "admin",
+        "plus",
+        "equipo",
+      ],
     },
   },
 } as const

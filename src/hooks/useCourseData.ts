@@ -15,9 +15,10 @@ export const useCourseData = (courseSlug?: string) => {
     if (!courseSlug) return;
 
     try {
+      // Ficha del curso (sin course_modules — la columna está revocada al cliente).
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
-        .select('*')
+        .select('id, slug, title, description, category, difficulty, duration_minutes, duration_hours, thumbnail_url, featured_image_url, is_premium, is_published, is_featured, order_index, students_count, rating, total_lessons, instructor, content, created_at, updated_at')
         .eq('slug', courseSlug)
         .single();
 
@@ -28,15 +29,21 @@ export const useCourseData = (courseSlug?: string) => {
       }
 
       if (courseData) {
+        // Contenido protegido: se solicita por RPC que aplica el gating por plan.
+        const { data: modulesData, error: modulesError } = await supabase
+          .rpc('get_course_modules', { p_course_id: courseData.id });
+        if (modulesError) {
+          console.error('Error loading course modules:', modulesError);
+        }
+        const modules: CourseModule[] = Array.isArray(modulesData)
+          ? (modulesData as unknown as CourseModule[])
+          : typeof modulesData === 'string'
+            ? JSON.parse(modulesData)
+            : [];
+
         const transformedCourse: Course = {
-          ...courseData,
-          course_modules: courseData.course_modules ? 
-            (Array.isArray(courseData.course_modules) ? 
-              courseData.course_modules as unknown as CourseModule[] : 
-              typeof courseData.course_modules === 'string' ? 
-                JSON.parse(courseData.course_modules) : 
-                []
-            ) : []
+          ...(courseData as any),
+          course_modules: modules,
         };
         setCourse(transformedCourse);
 

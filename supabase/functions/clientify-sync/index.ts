@@ -169,30 +169,43 @@ serve(async (req) => {
   try {
     logStep("Clientify sync function started");
 
-    const { action, data } = await req.json();
-    logStep("Request data", { action });
+    const bodyRaw = await req.json();
+    // Alias: stripe-webhook envía 'send_team_invitation', el switch usa 'team_invitation'.
+    const rawAction = bodyRaw?.action;
+    const action = rawAction === 'send_team_invitation' ? 'team_invitation' : rawAction;
+    const data = bodyRaw?.data ?? bodyRaw; // Compat: webhook envía fields al nivel raíz.
+    logStep("Request data", { action, hasInternalKey: !!req.headers.get('x-internal-key') });
 
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData } = await supabaseClient.auth.getUser(token);
-    const authUser = userData?.user;
+    // Autenticación: llamadas internas (edge->edge) con secreto compartido,
+    // o llamadas de usuario con JWT verificado.
+    const internalKey = req.headers.get('x-internal-key');
+    const expectedInternalKey = Deno.env.get('INTERNAL_FUNCTION_KEY');
+    const isInternal = !!(internalKey && expectedInternalKey && internalKey === expectedInternalKey);
 
-    if (!authUser?.email) {
-      throw new Error("User not authenticated");
+    let userId = '';
+    let email = '';
+    let isAdmin = false;
+
+    if (!isInternal) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) throw new Error("User not authenticated");
+      const token = authHeader.replace("Bearer ", "");
+      const { data: userData } = await supabaseClient.auth.getUser(token);
+      const authUser = userData?.user;
+      if (!authUser?.email) throw new Error("User not authenticated");
+      userId = authUser.id;
+      email = authUser.email;
+
+      const { data: isAdminRow } = await supabaseClient
+        .from('admin_users')
+        .select('user_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      isAdmin = !!isAdminRow;
+    } else {
+      // Peticiones internas se tratan como privilegiadas.
+      isAdmin = true;
     }
-
-    // Only these actions accept a target email; sync_user is always self.
-    // Always derive the acting user from the verified JWT, never from client body.
-    const userId = authUser.id;
-    const email = authUser.email;
-
-    // Admin check for privileged actions
-    const { data: isAdminRow } = await supabaseClient
-      .from('admin_users')
-      .select('user_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    const isAdmin = !!isAdminRow;
 
     const clientifyAPI = new ClientifyAPI(Deno.env.get("CLIENTIFY_API_KEY")!);
 
@@ -271,17 +284,23 @@ serve(async (req) => {
       }
 
       case 'team_invitation': {
-        // Must be admin OR strict owner of the target team.
-        const targetTeamId = data?.teamId as string | undefined;
+        // Acepta ambos formatos: { teamId, email, invitationToken } (usuario) o
+        // { team_id, email, invitation_token } (webhook interno).
+        const targetTeamId = (data?.teamId ?? data?.team_id) as string | undefined;
         const targetEmail = data?.email as string | undefined;
-        if (!targetTeamId || !targetEmail) {
-          return new Response(JSON.stringify({ error: 'Missing teamId or email' }), {
+        const invitationToken = (data?.invitationToken ?? data?.invitation_token) as string | undefined;
+        const teamName = (data?.teamName ?? data?.team_name ?? 'farmapro') as string;
+
+        if (!targetTeamId || !targetEmail || !invitationToken) {
+          return new Response(JSON.stringify({ error: 'Missing teamId, email or token' }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
           });
         }
+
+        // Autorización: internos o admin o strict owner.
         let authorized = isAdmin;
-        if (!authorized) {
+        if (!authorized && userId) {
           const { data: ownerCheck } = await supabaseClient
             .rpc('is_team_owner_strict', { team_id_param: targetTeamId, user_id_param: userId });
           authorized = !!ownerCheck;
@@ -293,19 +312,24 @@ serve(async (req) => {
           });
         }
 
-        const invitationUrl = `${Deno.env.get("SUPABASE_URL")}/invitation?token=${data.invitationToken}`;
+        // URL pública del portal (no la de Supabase).
+        const appUrl = Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
+        const invitationUrl = `${appUrl.replace(/\/$/, '')}/invitation?token=${encodeURIComponent(invitationToken)}`;
+
         const invitationEmail = await clientifyAPI.sendEmail({
           to: targetEmail,
-          subject: "Invitación al equipo farmapro",
-          content: `<h1>Te han invitado al equipo farmapro</h1>
-            <p><a href="${invitationUrl}">Aceptar invitación</a></p>`,
+          subject: `Invitación al equipo ${teamName} en farmapro`,
+          content: `<h1>Te han invitado al equipo ${teamName}</h1>
+            <p>Acepta la invitación desde el portal:</p>
+            <p><a href="${invitationUrl}">${invitationUrl}</a></p>
+            <p>Este enlace caduca en 7 días.</p>`,
         });
 
         await clientifyAPI.createOrUpdateContact({
           email: targetEmail,
           custom_fields: {
             invitation_status: 'pending',
-            invitation_token: data.invitationToken,
+            invitation_token: invitationToken,
             team_id: targetTeamId,
           },
         });
