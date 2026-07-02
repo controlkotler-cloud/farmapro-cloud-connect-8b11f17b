@@ -22,10 +22,13 @@ import {
   FormatId,
   HEADLINE_MAX,
   IMAGE_FORMATS,
+  IMAGE_STYLES,
   PIECE_TYPES,
   PieceTypeId,
+  StyleId,
   getFormat,
   getPieceType,
+  getStyle,
 } from './pieceTypes';
 
 interface ImageWorkspaceProps {
@@ -54,6 +57,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
   const { generate, loading, imageUrl, revisedPrompt, remaining, error, reset } = useImageGeneration();
   const [piece, setPiece] = useState<PieceTypeId>('promo');
   const [format, setFormat] = useState<FormatId>(getPieceType('promo').defaultFormat);
+  const [style, setStyle] = useState<StyleId>('diseno');
   const [headline, setHeadline] = useState('');
   const [prompt, setPrompt] = useState('');
   const [touched, setTouched] = useState(false);
@@ -79,6 +83,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
     if (!prompt.trim()) return;
     generate(prompt, {
       size: getFormat(format).size,
+      style: getStyle(style).promptStyle,
       headline,
       pieceType: piece,
     });
@@ -194,6 +199,34 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Estilo</label>
+              <div className="flex flex-wrap gap-2">
+                {IMAGE_STYLES.map((s) => {
+                  const selected = s.id === style;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setStyle(s.id)}
+                      aria-pressed={selected}
+                      title={s.hint}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                        selected
+                          ? 'border-green-500 bg-green-500 text-white'
+                          : 'border-gray-200 text-gray-600 hover:border-green-300'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Diseño gráfico crea una pieza con titular e iconos; Fotografía crea una escena realista.
+              </p>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Formato</label>
               <div className="flex flex-wrap gap-2">
                 {IMAGE_FORMATS.map((f) => {
@@ -230,8 +263,8 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                 className="min-h-[120px] resize-none"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Hemos rellenado una descripción con tu tipo de pieza y los datos de tu farmacia.
-                Edítala como quieras.
+                Describe la PIEZA, no tu farmacia. Los textos que deban salir escritos (consejos,
+                precios, ofertas) ponlos aquí literales, además del titular.
               </p>
             </div>
 
