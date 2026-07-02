@@ -181,6 +181,8 @@ serve(async (req) => {
     const { prompt, size = '1024x1024', style = 'vivid' } = body ?? {};
     const headline = sanitizeHeadline(body?.headline);
     const pieceType = ['promo', 'cartel', 'post', 'story'].includes(body?.pieceType) ? body.pieceType : 'post';
+    const briefRaw = typeof body?.brief === 'string' ? body.brief.trim() : '';
+    const brief = briefRaw ? briefRaw.slice(0, 200) : '';
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return json({ error: 'Prompt requerido' }, 400);
