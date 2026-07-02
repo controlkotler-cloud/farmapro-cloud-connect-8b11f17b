@@ -12,8 +12,27 @@ const TRIAL_DAYS = 30;
 const IMAGES_PER_MONTH = 1;
 const BUCKET = 'iafarma-images';
 
-// Modelo de generación. Cambia a 'openai/gpt-image-2' para alternar.
-const IMAGE_MODEL = 'google/gemini-3.1-flash-image';
+// Modelo de generación. Cambia a 'google/gemini-3.1-flash-image' para alternar.
+const IMAGE_MODEL = 'openai/gpt-image-2';
+const IMAGE_QUALITY = 'medium';
+
+// GPT Image only accepts 1024x1024, 1024x1536, 1536x1024. Map client size to nearest supported.
+function mapSizeForGptImage(size: string): string {
+  const s = (size || '').toLowerCase().trim();
+  if (s === '1024x1024') return '1024x1024';
+  if (s === '1024x1536' || s === '1080x1350' || s === '1080x1920' || s === '1200x1800') return '1024x1536';
+  if (s === '1536x1024' || s === '1920x1080') return '1536x1024';
+  // Fallback: parse and decide by aspect ratio
+  const m = /^(\d+)x(\d+)$/.exec(s);
+  if (m) {
+    const w = Number(m[1]);
+    const h = Number(m[2]);
+    if (w > h * 1.15) return '1536x1024';
+    if (h > w * 1.15) return '1024x1536';
+    return '1024x1024';
+  }
+  return '1024x1024';
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
