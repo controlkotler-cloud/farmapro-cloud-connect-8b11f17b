@@ -7,7 +7,7 @@ import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 // =====================================================================
 
 export type PieceTypeId = 'promo' | 'cartel' | 'post' | 'story';
-export type FormatId = 'feed' | 'cuadrado' | 'vertical' | 'a4' | 'horizontal';
+export type FormatId = 'feed' | 'vertical' | 'a4' | 'horizontal';
 
 /** Longitud máxima del titular que se rotula en la imagen (contrato con el backend). */
 export const HEADLINE_MAX = 60;
@@ -21,15 +21,18 @@ export interface ImageFormat {
 }
 
 /**
- * Formatos disponibles. El feed de Instagram/Facebook actual es VERTICAL 4:5
- * (1080x1350), no cuadrado; el cuadrado se mantiene para carruseles y usos
- * clásicos. El cartel para imprimir usa la proporción DIN A4 vertical (1:1,41).
+ * Formatos disponibles. Todas las proporciones son de la lista que SOPORTA el
+ * modelo de imagen de Gemini (imageConfig.aspectRatio): 1:1, 2:3, 3:2, 3:4,
+ * 4:3, 4:5, 5:4, 9:16, 16:9, 21:9.
+ *  - Feed y carrusel de Instagram/Facebook = 4:5 vertical (1080x1350).
+ *  - El DIN A4 (1:1,41) NO está soportado: el cartel se genera en 2:3, la
+ *    proporción soportada más cercana; al imprimir en A4 queda un margen
+ *    lateral pequeño (o un recorte mínimo arriba/abajo).
  */
 export const IMAGE_FORMATS: ImageFormat[] = [
-  { id: 'feed', label: 'Feed 4:5', hint: 'Post de Instagram y Facebook', size: '1080x1350' },
-  { id: 'cuadrado', label: 'Cuadrado 1:1', hint: 'Carruseles y catálogo', size: '1080x1080' },
+  { id: 'feed', label: 'Feed 4:5', hint: 'Post y carrusel de Instagram/Facebook', size: '1080x1350' },
   { id: 'vertical', label: 'Vertical 9:16', hint: 'Stories y reels', size: '1080x1920' },
-  { id: 'a4', label: 'Cartel A4', hint: 'Para imprimir en DIN A4', size: '1240x1754' },
+  { id: 'a4', label: 'Cartel A4', hint: 'Imprimir en A4 (se genera en 2:3)', size: '1200x1800' },
   { id: 'horizontal', label: 'Horizontal 16:9', hint: 'Portadas y pantallas', size: '1920x1080' },
 ];
 
