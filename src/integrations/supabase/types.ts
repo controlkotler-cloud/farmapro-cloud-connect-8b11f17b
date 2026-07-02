@@ -1477,6 +1477,7 @@ export type Database = {
           full_name: string | null
           has_completed_onboarding: boolean
           id: string
+          landing_page: string | null
           last_activity_date: string | null
           level: number
           opt_out_leaderboard: boolean
@@ -1496,6 +1497,11 @@ export type Database = {
             | null
           trial_ends_at: string | null
           updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1506,6 +1512,7 @@ export type Database = {
           full_name?: string | null
           has_completed_onboarding?: boolean
           id: string
+          landing_page?: string | null
           last_activity_date?: string | null
           level?: number
           opt_out_leaderboard?: boolean
@@ -1525,6 +1532,11 @@ export type Database = {
             | null
           trial_ends_at?: string | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -1535,6 +1547,7 @@ export type Database = {
           full_name?: string | null
           has_completed_onboarding?: boolean
           id?: string
+          landing_page?: string | null
           last_activity_date?: string | null
           level?: number
           opt_out_leaderboard?: boolean
@@ -1554,6 +1567,11 @@ export type Database = {
             | null
           trial_ends_at?: string | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
