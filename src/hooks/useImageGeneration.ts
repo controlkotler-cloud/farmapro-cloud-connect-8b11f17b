@@ -10,10 +10,13 @@ import { useToast } from '@/hooks/use-toast';
  * puntual que devuelve una URL pública permanente de Supabase Storage.
  *
  * Contrato con el backend:
- *  - Petición: { prompt, size, style }
+ *  - Petición: { prompt, size, style, headline?, pieceType? }
+ *    `headline` (máx. 60 caracteres) se rotula LITERAL en la imagen y `pieceType`
+ *    ('promo'|'cartel'|'post'|'story') ajusta la descripción. El backend anterior
+ *    al punto 6 del prompt Lovable nº 1 ignora ambos campos sin romper.
  *  - Respuesta OK: { imageUrl, revisedPrompt?, remaining? }
  *  - Errores por código HTTP:
- *      402 → cuota mensual agotada
+ *      402 → créditos de imagen agotados
  *      403 → sin acceso (free_locked)
  *      401 → sesión expirada
  */
@@ -21,6 +24,10 @@ import { useToast } from '@/hooks/use-toast';
 export interface ImageGenerationOptions {
   size?: string;
   style?: string;
+  /** Titular que debe aparecer rotulado tal cual en la imagen (máx. 60 caracteres). */
+  headline?: string;
+  /** Tipo de pieza: 'promo' | 'cartel' | 'post' | 'story'. */
+  pieceType?: string;
 }
 
 /** Código de error normalizado para que la UI pueda reaccionar (p. ej. 402 → /precios). */
@@ -70,7 +77,7 @@ const extractBodyMessage = async (error: unknown): Promise<string | undefined> =
 const messageForStatus = (status: number | undefined, fallback?: string): ImageGenerationError => {
   switch (status) {
     case 402:
-      return { code: 'quota', message: 'Has agotado tu imagen de este mes' };
+      return { code: 'quota', message: 'Has gastado tus créditos de imagen de este mes' };
     case 403:
       return {
         code: 'forbidden',
@@ -109,11 +116,14 @@ export const useImageGeneration = () => {
       setRevisedPrompt(null);
 
       try {
+        const headline = opts?.headline?.trim();
         const { data, error: invokeError } = await supabase.functions.invoke('ai-generate-image', {
           body: {
             prompt: trimmed,
             size: opts?.size ?? DEFAULT_SIZE,
             style: opts?.style ?? DEFAULT_STYLE,
+            ...(headline ? { headline } : {}),
+            ...(opts?.pieceType ? { pieceType: opts.pieceType } : {}),
           },
         });
 

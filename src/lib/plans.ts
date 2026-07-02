@@ -94,7 +94,7 @@ export const PLANS: Plan[] = [
     features: [
       'Acceso hasta 2 cursos y 3 recursos',
       'Leer la comunidad',
-      '2 textos y 1 imagen con IAFarma',
+      '2 textos y 1 crédito de imagen con IAFarma',
       'Ver los eventos del sector',
       'A los 30 días lo ves todo, pero queda bloqueado',
     ],
@@ -113,7 +113,7 @@ export const PLANS: Plan[] = [
       'Todo el contenido: cursos y recursos sin límite',
       'Comunidad completa + retos y ranking',
       'IAFarma texto ILIMITADO',
-      '1 imagen IAFarma/mes (+ packs de recarga)',
+      '1 crédito de imagen IAFarma al mes (+ packs de recarga)',
       'Eventos exclusivos farmapro',
     ],
   },
@@ -141,6 +141,14 @@ export const IMAGE_ADDONS = [
   { credits: 50, price: 9.99 },
   { credits: 100, price: 16.99 },
 ];
+
+/**
+ * Palanca de la recarga a 1 clic de packs de imágenes. Ponla a true cuando la
+ * tanda de Stripe (prompt Lovable nº 2) conecte create-checkout con los packs
+ * (body { pack: credits }). Mientras esté a false, la UI muestra los packs pero
+ * el botón informa de que la recarga instantánea llega con el pago online.
+ */
+export const PACKS_CHECKOUT_READY = false;
 
 /** Límites del plan Gratis. */
 export const FREE_LIMITS = {
