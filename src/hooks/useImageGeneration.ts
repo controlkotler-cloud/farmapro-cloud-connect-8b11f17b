@@ -28,6 +28,18 @@ export interface ImageGenerationOptions {
   headline?: string;
   /** Tipo de pieza: 'promo' | 'cartel' | 'post' | 'story'. */
   pieceType?: string;
+  /** TEMA de la pieza (máx. 200 chars): dispara el copy automático en el backend. */
+  brief?: string;
+  /** Nombre de la farmacia para la firma al pie de la imagen. */
+  pharmacyName?: string;
+  /** Localidad para la firma al pie de la imagen. */
+  locality?: string;
+}
+
+/** Copy generado por el backend (titular + líneas) e incluido en la imagen. */
+export interface GeneratedCopy {
+  headline: string;
+  lines: string[];
 }
 
 /** Código de error normalizado para que la UI pueda reaccionar (p. ej. 402 → /precios). */
@@ -95,6 +107,7 @@ export const useImageGeneration = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [revisedPrompt, setRevisedPrompt] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [copy, setCopy] = useState<GeneratedCopy | null>(null);
   const [error, setError] = useState<ImageGenerationError | null>(null);
   const { toast } = useToast();
 
@@ -102,6 +115,7 @@ export const useImageGeneration = () => {
     setImageUrl(null);
     setRevisedPrompt(null);
     setRemaining(null);
+    setCopy(null);
     setError(null);
   }, []);
 
@@ -117,6 +131,9 @@ export const useImageGeneration = () => {
 
       try {
         const headline = opts?.headline?.trim();
+        const brief = opts?.brief?.trim();
+        const pharmacyName = opts?.pharmacyName?.trim();
+        const locality = opts?.locality?.trim();
         const { data, error: invokeError } = await supabase.functions.invoke('ai-generate-image', {
           body: {
             prompt: trimmed,
@@ -124,6 +141,9 @@ export const useImageGeneration = () => {
             style: opts?.style ?? DEFAULT_STYLE,
             ...(headline ? { headline } : {}),
             ...(opts?.pieceType ? { pieceType: opts.pieceType } : {}),
+            ...(brief ? { brief } : {}),
+            ...(pharmacyName ? { pharmacyName } : {}),
+            ...(locality ? { locality } : {}),
           },
         });
 
@@ -147,6 +167,7 @@ export const useImageGeneration = () => {
           imageUrl?: string;
           revisedPrompt?: string;
           remaining?: number;
+          copy?: GeneratedCopy | null;
         };
 
         if (!result.imageUrl) {
@@ -159,6 +180,11 @@ export const useImageGeneration = () => {
         setImageUrl(result.imageUrl);
         setRevisedPrompt(result.revisedPrompt ?? null);
         setRemaining(typeof result.remaining === 'number' ? result.remaining : null);
+        setCopy(
+          result.copy && typeof result.copy.headline === 'string'
+            ? { headline: result.copy.headline, lines: Array.isArray(result.copy.lines) ? result.copy.lines : [] }
+            : null,
+        );
       } catch (err) {
         const normalized = messageForStatus(
           undefined,
@@ -173,5 +199,5 @@ export const useImageGeneration = () => {
     [toast],
   );
 
-  return { generate, loading, imageUrl, revisedPrompt, remaining, error, reset };
+  return { generate, loading, imageUrl, revisedPrompt, remaining, copy, error, reset };
 };

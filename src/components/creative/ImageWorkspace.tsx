@@ -54,13 +54,15 @@ const formatPrice = (price: number): string => `${price.toFixed(2).replace('.', 
 
 export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
   const { toast } = useToast();
-  const { generate, loading, imageUrl, revisedPrompt, remaining, error, reset } = useImageGeneration();
+  const { generate, loading, imageUrl, revisedPrompt, remaining, copy, error, reset } = useImageGeneration();
   const [piece, setPiece] = useState<PieceTypeId>('promo');
   const [format, setFormat] = useState<FormatId>(getPieceType('promo').defaultFormat);
   const [style, setStyle] = useState<StyleId>('diseno');
+  const [brief, setBrief] = useState('');
   const [headline, setHeadline] = useState('');
   const [prompt, setPrompt] = useState('');
   const [touched, setTouched] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   const pieceInfo = getPieceType(piece);
@@ -78,20 +80,26 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
     setFormat(getPieceType(id).defaultFormat);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
+  const canSubmit = Boolean(brief.trim() || prompt.trim());
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!canSubmit || loading) return;
     generate(prompt, {
       size: getFormat(format).size,
       style: getStyle(style).promptStyle,
       headline,
       pieceType: piece,
+      brief,
+      pharmacyName: defaults.farmacia,
+      locality: defaults.localidad,
     });
   };
 
   const handleReset = () => {
     reset();
     setTouched(false);
+    setBrief('');
     setHeadline('');
     setPrompt(pieceInfo.buildPrompt(defaults));
   };
@@ -149,6 +157,26 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="iafarma-brief" className="block text-sm font-medium text-gray-700">
+                  ¿Qué quieres comunicar?
+                </label>
+                <span className="text-xs text-gray-400">{brief.length}/200</span>
+              </div>
+              <Textarea
+                id="iafarma-brief"
+                value={brief}
+                maxLength={200}
+                onChange={(e) => setBrief(e.target.value)}
+                placeholder="ej: consejos para tomar el sol este verano"
+                className="min-h-[72px] resize-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Escribe solo el tema: IAFarma redacta el titular y los textos de la pieza por ti.
+              </p>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de pieza</label>
               <div className="grid grid-cols-2 gap-2">
                 {PIECE_TYPES.map((p) => {
@@ -194,7 +222,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                 placeholder={`ej: ${pieceInfo.headlineExample}`}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Se rotula tal cual en la imagen. Déjalo vacío si no quieres texto.
+                Se rotula tal cual en la imagen. Si lo dejas vacío, IAFarma lo escribe por ti.
               </p>
             </div>
 
@@ -252,25 +280,36 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Describe la imagen</label>
-              <Textarea
-                value={prompt}
-                onChange={(e) => {
-                  setTouched(true);
-                  setPrompt(e.target.value);
-                }}
-                placeholder="ej: Promoción de protección solar en una farmacia, producto destacado, tono profesional"
-                className="min-h-[120px] resize-none"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Describe la PIEZA, no tu farmacia. Los textos que deban salir escritos (consejos,
-                precios, ofertas) ponlos aquí literales, además del titular.
-              </p>
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="text-xs font-medium text-gray-500 hover:text-green-700 underline underline-offset-2"
+              >
+                {showAdvanced ? 'Ocultar ajustes avanzados' : 'Ajustes avanzados: describe tú la pieza'}
+              </button>
+              {showAdvanced && (
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Describe la imagen</label>
+                  <Textarea
+                    value={prompt}
+                    onChange={(e) => {
+                      setTouched(true);
+                      setPrompt(e.target.value);
+                    }}
+                    placeholder="ej: Promoción de protección solar, producto destacado, tono profesional"
+                    className="min-h-[120px] resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Describe la PIEZA (composición, elementos, colores), no tu farmacia. Los textos
+                    que deban salir escritos ponlos literales.
+                  </p>
+                </div>
+              )}
             </div>
 
             <Button
               type="submit"
-              disabled={loading || !prompt.trim()}
+              disabled={loading || !canSubmit}
               className="w-full bg-green-500 hover:bg-green-600 text-white"
               size="lg"
             >
@@ -309,9 +348,11 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
           revisedPrompt={revisedPrompt}
           remainingLabel={remainingLabel}
           remaining={remaining}
+          copy={copy}
           error={error}
           downloading={downloading}
           onDownload={handleDownload}
+          onRegenerate={() => handleSubmit()}
         />
       </div>
     </div>
@@ -386,9 +427,11 @@ interface ImageResultProps {
   revisedPrompt: string | null;
   remainingLabel: string | null;
   remaining: number | null;
+  copy: ReturnType<typeof useImageGeneration>['copy'];
   error: ReturnType<typeof useImageGeneration>['error'];
   downloading: boolean;
   onDownload: () => void;
+  onRegenerate: () => void;
 }
 
 const ImageResult = ({
@@ -397,9 +440,11 @@ const ImageResult = ({
   revisedPrompt,
   remainingLabel,
   remaining,
+  copy,
   error,
   downloading,
   onDownload,
+  onRegenerate,
 }: ImageResultProps) => {
   if (loading) {
     return (
@@ -465,6 +510,30 @@ const ImageResult = ({
           alt="Imagen generada por IAFarma"
           className="w-full rounded-lg ring-1 ring-gray-100"
         />
+        {copy && (
+          <div className="mt-4 rounded-lg bg-green-50/60 ring-1 ring-green-100 p-4">
+            <span className="text-xs font-semibold text-green-700 block mb-2">
+              Texto de la pieza (escrito por IAFarma)
+            </span>
+            <p className="text-sm font-semibold text-gray-800">{copy.headline}</p>
+            {copy.lines.length > 0 && (
+              <ul className="mt-1.5 space-y-0.5">
+                {copy.lines.map((line, i) => (
+                  <li key={i} className="text-sm text-gray-600">
+                    · {line}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button
+              type="button"
+              onClick={onRegenerate}
+              className="mt-3 text-xs font-medium text-green-700 hover:text-green-800 underline underline-offset-2"
+            >
+              ¿No te convence? Regenerar pieza (gasta 1 crédito)
+            </button>
+          </div>
+        )}
         {revisedPrompt && (
           <p className="text-xs text-gray-400 mt-3 leading-relaxed">
             <span className="font-medium text-gray-500">Descripción usada: </span>
