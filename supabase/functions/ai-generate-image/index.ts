@@ -104,7 +104,8 @@ function normalizeCopy(parsed: unknown, forcedHeadline: string | null): PieceCop
     .filter(Boolean)
     .slice(0, 5);
   if (!headline) return null;
-  return { headline, lines };
+  const art = typeof p.art === 'string' && p.art.trim() ? p.art.trim().slice(0, 400) : undefined;
+  return { headline, lines, art };
 }
 
 async function generateCopy(
@@ -114,12 +115,16 @@ async function generateCopy(
   forcedHeadline: string | null,
 ): Promise<PieceCopy | null> {
   const systemPrompt =
-    'Eres redactor publicitario de una farmacia comunitaria en España. Escribes copy corto para piezas de marketing (posts, carteles, stories, promos). ' +
-    'Reglas OBLIGATORIAS: castellano de España, ortografía y tildes perfectas, sin emojis, sin nombres de medicamentos ni marcas concretas, ' +
+    'Eres director creativo y redactor publicitario de una farmacia comunitaria en España. Escribes copy corto y defines la dirección de arte visual de piezas de marketing (posts, carteles, stories, promos). ' +
+    'Reglas OBLIGATORIAS del copy: castellano de España, ortografía y tildes perfectas, sin emojis, sin nombres de medicamentos ni marcas concretas, ' +
     'sin promesas de salud, curación, adelgazamiento ni afirmaciones sanitarias (código deontológico farmacéutico), tono cercano y profesional. ' +
-    'Devuelves SOLO un objeto JSON válido con esta forma exacta: {"headline": string, "lines": string[]}. ' +
+    'Devuelves SOLO un objeto JSON válido con esta forma exacta: {"headline": string, "lines": string[], "art": string}. ' +
     'headline: gancho comercial máximo 8 palabras. ' +
     'lines: entre 3 y 5 elementos, cada uno máximo 6 palabras, útiles y concretos (consejos, argumentos o pasos según el tipo de pieza). ' +
+    'art: dirección de arte de ESTA pieza concreta, EN INGLÉS, 1 o 2 frases, describe composición, paleta y estilo visual. ' +
+    'VARIEDAD OBLIGATORIA en art: elige cada vez una composición distinta de un abanico amplio (título central gigante con elementos alrededor; foto a sangre con banda inferior de texto; split vertical o diagonal; lista con numerales grandes sin iconos; estilo etiqueta o sticker de oferta; producto flotante sobre fondo de color plano con sombra dura; retícula editorial tipo revista; primer plano macro con texto superpuesto). ' +
+    'PROHIBIDO usar por defecto la composición "titular arriba a la izquierda + lista con iconos + producto a la derecha": es la que sale siempre y hay que evitarla salvo excepciones muy justificadas. ' +
+    'La paleta también debe variar según el tema (verano cálido, invierno frío, infantil suave, dermocosmética elegante, promoción vibrante, etc.), NO uses siempre azul marino con naranja. ' +
     'Nada de texto adicional fuera del JSON, sin markdown.';
 
   const userPrompt = forcedHeadline
