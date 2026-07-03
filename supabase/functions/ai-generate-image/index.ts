@@ -65,7 +65,21 @@ function pieceGuidance(pieceType: string | null): string {
 // Modelo de texto para generar el copy (mismo que ai-creative-assistant).
 const COPY_MODEL = 'google/gemini-3-flash-preview';
 
-type PieceCopy = { headline: string; lines: string[] };
+type PieceCopy = { headline: string; lines: string[]; art?: string };
+
+// Direcciones de arte de fallback (en inglés, para el modelo de imagen).
+const FALLBACK_ART_DIRECTIONS = [
+  'Giant centered typographic headline as the hero, small supporting elements orbiting around it, soft pastel background with a single accent color, editorial minimal look.',
+  'Full-bleed close-up photographic background with a solid color band at the bottom containing all text, bold sans-serif, high contrast, magazine cover feel.',
+  'Diagonal split composition, one half a flat vibrant color, the other half a product-category still life, text sitting on the color half, playful and modern.',
+  'Numbered list with oversized numerals (01, 02, 03) as the main visual, no icons, warm neutral palette (cream, terracotta, sage), swiss editorial grid.',
+  'Sticker/label style promo badge as the hero with radial burst shapes, retro supermarket poster vibe, saturated primary colors, chunky rounded typography.',
+  'Floating product silhouette on a flat pastel color background with a hard drop shadow, minimal text placed asymmetrically, contemporary e-commerce aesthetic.',
+];
+
+function pickFallbackArt(): string {
+  return FALLBACK_ART_DIRECTIONS[Math.floor(Math.random() * FALLBACK_ART_DIRECTIONS.length)];
+}
 
 function stripJsonFences(raw: string): string {
   let s = raw.trim();
