@@ -417,7 +417,7 @@ serve(async (req) => {
       imageUrl,
       revisedPrompt,
       remaining,
-      copy: copy ?? (effectiveHeadline ? { headline: effectiveHeadline, lines: effectiveLines } : null),
+      copy: copy ?? (effectiveHeadline ? { headline: effectiveHeadline, lines: effectiveLines, art: effectiveArt } : { headline: '', lines: [], art: effectiveArt }),
     });
   } catch (error) {
     console.error('Error in ai-generate-image:', error);
