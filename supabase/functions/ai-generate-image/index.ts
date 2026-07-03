@@ -260,6 +260,8 @@ serve(async (req) => {
     // El headline efectivo: el del copy si se generó, o el que envió el cliente.
     const effectiveHeadline = copy?.headline ?? headline;
     const effectiveLines = copy?.lines ?? [];
+    const effectiveArt = copy?.art ?? pickFallbackArt();
+    if (copy && !copy.art) copy.art = effectiveArt;
 
     // Prompt de marketing retail de farmacia + guardrails.
     const guardrails =
@@ -281,26 +283,26 @@ serve(async (req) => {
       const linesEnum = effectiveLines.map((l, i) => `${i + 1}. "${l}"`).join(' ');
       textBlock =
         ` The image MUST render the following Spanish text EXACTLY as written, with perfect spelling and accents, no paraphrasing, no translation, no autocorrect, no truncation. ` +
-        `Main large headline at the top: "${effectiveHeadline}". ` +
-        `Below the headline, a vertical list with ${effectiveLines.length} short items, each with its own small illustrated icon on the left: ${linesEnum}. ` +
-        `Use one single clean sans-serif typography, high contrast, generous spacing between items, infographic style. Do not add any other text besides the headline, the listed lines${signatureText ? ' and the signature' : ''}.`;
+        `Main headline (place, size and weight it according to the art direction): "${effectiveHeadline}". ` +
+        `Also include these ${effectiveLines.length} short supporting items, laid out according to the art direction: ${linesEnum}. ` +
+        `All rendered text must be perfectly legible with a single clean sans-serif typography and high contrast. Do not add any other text besides the headline, these items${signatureText ? ' and the signature' : ''}.`;
     } else if (effectiveHeadline) {
       textBlock =
         ` The image MUST include this exact headline, rendered legibly and spelled EXACTLY as written, ` +
-        `as the main typographic title in the composition: "${effectiveHeadline}". ` +
-        `Do not paraphrase, translate, autocorrect or truncate it. Elegant, editorial sans-serif type; high contrast; no other text${signatureText ? ' besides the signature' : ''}.`;
+        `as the main typographic title, placed and sized according to the art direction: "${effectiveHeadline}". ` +
+        `Do not paraphrase, translate, autocorrect or truncate it. High contrast; no other text${signatureText ? ' besides the signature' : ''}.`;
     } else {
       textBlock = signatureText ? '' : ' Do not include any text or typography in the image.';
     }
 
     const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
+    const artBlock = ` Art direction: ${effectiveArt}`;
 
     const enhancedPrompt =
       `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}.${briefBlock} ` +
-      `Commercial, bright, professional aesthetic; clean composition with space for a headline; ` +
-      `suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
+      `Commercial, bright, professional aesthetic; suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${textBlock}${signatureBlock} ${guardrails}`;
+      `${artBlock}${textBlock}${signatureBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)
