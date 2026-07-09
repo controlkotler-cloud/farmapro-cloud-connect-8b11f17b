@@ -14,8 +14,14 @@ const Footer = () => {
         </div>
         
         <div className="flex flex-wrap items-center gap-4 text-xs">
-          <Link 
-            to="/politica-cookies" 
+          <a
+            href="https://farmapro.es"
+            className="hover:text-gray-700 transition-colors"
+          >
+            farmapro.es
+          </a>
+          <Link
+            to="/politica-cookies"
             className="hover:text-gray-700 transition-colors"
           >
             Política de Cookies
