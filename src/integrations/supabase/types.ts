@@ -329,6 +329,42 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_ledger: {
+        Row: {
+          accepted_at: string
+          created_at: string
+          email: string
+          id: string
+          ip: unknown
+          source: string
+          texto_version: string
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          created_at?: string
+          email: string
+          id?: string
+          ip?: unknown
+          source: string
+          texto_version: string
+          tipo: string
+          user_id?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          created_at?: string
+          email?: string
+          id?: string
+          ip?: unknown
+          source?: string
+          texto_version?: string
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       course_enrollments: {
         Row: {
           completed_at: string | null
@@ -1837,6 +1873,229 @@ export type Database = {
           },
         ]
       }
+      rebotica_campaigns: {
+        Row: {
+          created_at: string
+          email_campaign_ref: string | null
+          estado: string
+          id: string
+          nombre: string
+          partner_id: string | null
+          quincena_fin: string
+          quincena_inicio: string
+          skin: string
+          tema: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_campaign_ref?: string | null
+          estado?: string
+          id?: string
+          nombre: string
+          partner_id?: string | null
+          quincena_fin: string
+          quincena_inicio: string
+          skin?: string
+          tema?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_campaign_ref?: string | null
+          estado?: string
+          id?: string
+          nombre?: string
+          partner_id?: string | null
+          quincena_fin?: string
+          quincena_inicio?: string
+          skin?: string
+          tema?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebotica_campaigns_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rebotica_openings: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          email_ref: string | null
+          expires_at: string
+          id: string
+          opened_at: string
+          prize_id: string
+          redeemed_at: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          email_ref?: string | null
+          expires_at: string
+          id?: string
+          opened_at?: string
+          prize_id: string
+          redeemed_at?: string | null
+          source?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          email_ref?: string | null
+          expires_at?: string
+          id?: string
+          opened_at?: string
+          prize_id?: string
+          redeemed_at?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebotica_openings_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rebotica_openings_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "v_rebotica_dashboard"
+            referencedColumns: ["campaign_id"]
+          },
+          {
+            foreignKeyName: "rebotica_openings_prize_id_fkey"
+            columns: ["prize_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_prizes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rebotica_partners: {
+        Row: {
+          contacto: string | null
+          created_at: string
+          estado: string
+          id: string
+          nombre: string
+          notas: string | null
+          opt_in_texto: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          contacto?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre: string
+          notas?: string | null
+          opt_in_texto?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          contacto?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre?: string
+          notas?: string | null
+          opt_in_texto?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rebotica_prizes: {
+        Row: {
+          caducidad_dias: number
+          campaign_id: string
+          created_at: string
+          descripcion: string | null
+          id: string
+          incomprable: boolean
+          partner_id: string | null
+          peso: number
+          stock_restante: number
+          stock_total: number
+          tier: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          valor_percibido_eur: number | null
+        }
+        Insert: {
+          caducidad_dias?: number
+          campaign_id: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          incomprable?: boolean
+          partner_id?: string | null
+          peso?: number
+          stock_restante: number
+          stock_total: number
+          tier?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+          valor_percibido_eur?: number | null
+        }
+        Update: {
+          caducidad_dias?: number
+          campaign_id?: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          incomprable?: boolean
+          partner_id?: string | null
+          peso?: number
+          stock_restante?: number
+          stock_total?: number
+          tier?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          valor_percibido_eur?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebotica_prizes_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rebotica_prizes_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "v_rebotica_dashboard"
+            referencedColumns: ["campaign_id"]
+          },
+          {
+            foreignKeyName: "rebotica_prizes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resource_downloads: {
         Row: {
           downloaded_at: string | null
@@ -2502,6 +2761,44 @@ export type Database = {
         }
         Relationships: []
       }
+      v_rebotica_consentimientos_diarios: {
+        Row: {
+          consentimientos: number | null
+          dia: string | null
+          personas_unicas: number | null
+          source: string | null
+          tipo: string | null
+        }
+        Relationships: []
+      }
+      v_rebotica_dashboard: {
+        Row: {
+          aperturas: number | null
+          caducados_sin_canjear: number | null
+          campaign_estado: string | null
+          campaign_id: string | null
+          campaign_nombre: string | null
+          canjes: number | null
+          partner_id: string | null
+          pct_canje: number | null
+          premios_total: number | null
+          quincena_fin: string | null
+          quincena_inicio: string | null
+          skin: string | null
+          stock_consumido: number | null
+          stock_restante: number | null
+          stock_total: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebotica_campaigns_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_user_points: {
@@ -2648,19 +2945,14 @@ export type Database = {
         }
         Returns: Json
       }
-      update_challenge_progress:
-        | {
-            Args: { challenge_id_param: string; points_earned_param?: number }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              challenge_id_param: string
-              new_count_param?: number
-              points_earned_param?: number
-            }
-            Returns: undefined
-          }
+      update_challenge_progress: {
+        Args: {
+          challenge_id_param: string
+          new_count_param?: number
+          points_earned_param?: number
+        }
+        Returns: undefined
+      }
       update_user_role_admin: {
         Args: {
           new_role: Database["public"]["Enums"]["user_role"]
