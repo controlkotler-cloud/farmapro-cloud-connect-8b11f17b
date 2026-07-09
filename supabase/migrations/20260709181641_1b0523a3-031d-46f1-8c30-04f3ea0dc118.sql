@@ -1,0 +1,1 @@
+ALTER VIEW public.founder_count SET (security_invoker = true);
