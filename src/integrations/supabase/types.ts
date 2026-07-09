@@ -2267,7 +2267,9 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
+          cycle: string | null
           id: string
+          is_founder: boolean
           plan_id: string | null
           plan_name: string | null
           status: Database["public"]["Enums"]["subscription_status"]
@@ -2280,7 +2282,9 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
+          cycle?: string | null
           id?: string
+          is_founder?: boolean
           plan_id?: string | null
           plan_name?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -2293,7 +2297,9 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
+          cycle?: string | null
           id?: string
+          is_founder?: boolean
           plan_id?: string | null
           plan_name?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -2731,6 +2737,12 @@ export type Database = {
       }
     }
     Views: {
+      founder_count: {
+        Row: {
+          spots_taken: number | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           avatar_url: string | null
@@ -2814,11 +2826,6 @@ export type Database = {
           total_attempts: number
           total_users: number
         }[]
-      }
-      calculate_team_price: { Args: { member_count: number }; Returns: number }
-      calculate_team_price_v2: {
-        Args: { premium_count: number; professional_count: number }
-        Returns: number
       }
       can_access_contact_info: { Args: never; Returns: boolean }
       can_access_lesson: { Args: { _module_id: string }; Returns: boolean }
