@@ -13,6 +13,8 @@ import {
   Wrench,
   ShoppingBag,
   BookOpen,
+  Landmark,
+  GraduationCap,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -37,16 +39,22 @@ interface EventCardProps {
 
 // Portada por tipo de evento (color + icono) cuando no hay imagen propia.
 // Nada de fotos de stock: coherente con la identidad del portal.
+// event_type es texto libre (sin ENUM en BD) — normalizar a minúsculas antes
+// de buscar, porque en producción hay valores con mayúscula inicial ("Congreso",
+// "Feria", "Jornada") que si no, caen siempre al fallback gris sin icono.
 const EVENT_COVER: Record<string, { gradient: string; Icon: LucideIcon }> = {
   webinar: { gradient: 'from-sky-500 to-blue-600', Icon: Video },
   conferencia: { gradient: 'from-indigo-500 to-violet-600', Icon: Users },
+  congreso: { gradient: 'from-rose-500 to-red-600', Icon: Landmark },
   workshop: { gradient: 'from-emerald-500 to-green-600', Icon: Wrench },
+  jornada: { gradient: 'from-teal-500 to-cyan-600', Icon: GraduationCap },
   feria: { gradient: 'from-amber-500 to-orange-600', Icon: ShoppingBag },
   curso: { gradient: 'from-fuchsia-500 to-purple-600', Icon: BookOpen },
 };
 
 export const EventCard = ({ event, index }: EventCardProps) => {
-  const cover = EVENT_COVER[event.event_type] || { gradient: 'from-slate-500 to-slate-700', Icon: Calendar };
+  const normalizedType = event.event_type?.toLowerCase().trim();
+  const cover = EVENT_COVER[normalizedType] || { gradient: 'from-slate-500 to-slate-700', Icon: Calendar };
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -62,10 +70,12 @@ export const EventCard = ({ event, index }: EventCardProps) => {
   };
 
   const getEventTypeColor = (type: string) => {
-    switch (type) {
+    switch (type?.toLowerCase().trim()) {
       case 'webinar': return 'bg-blue-100 text-blue-800';
       case 'conferencia': return 'bg-purple-100 text-purple-800';
+      case 'congreso': return 'bg-rose-100 text-rose-800';
       case 'workshop': return 'bg-green-100 text-green-800';
+      case 'jornada': return 'bg-teal-100 text-teal-800';
       case 'feria': return 'bg-orange-100 text-orange-800';
       case 'curso': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
