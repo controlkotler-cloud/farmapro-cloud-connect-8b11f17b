@@ -61,10 +61,12 @@ const authSchema = z.object({
 interface AuthFormProps {
   isRegistering: boolean;
   onToggleMode: () => void;
+  /** Preselección de email (p. ej. desde el enlace de un email de campaña). Opcional. */
+  initialEmail?: string;
 }
 
-export const AuthForm = ({ isRegistering, onToggleMode }: AuthFormProps) => {
-  const [email, setEmail] = useState('');
+export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthFormProps) => {
+  const [email, setEmail] = useState(initialEmail ?? '');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [pharmacyName, setPharmacyName] = useState('');

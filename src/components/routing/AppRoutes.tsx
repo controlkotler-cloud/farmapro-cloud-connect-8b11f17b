@@ -17,6 +17,8 @@ import Eventos from "@/pages/Eventos";
 import Promociones from "@/pages/Promociones";
 
 import Precios from "@/pages/Precios";
+import Rebotica from "@/pages/Rebotica";
+import ReboticaBasesLegales from "@/pages/ReboticaBasesLegales";
 import Perfil from "@/pages/Perfil";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
@@ -68,6 +70,9 @@ export const AppRoutes = () => {
     <Routes>
       {/* Public pricing page */}
       <Route path="/precios" element={<Precios />} />
+      {/* La Rebotica: página pública (elegir cajón sin cuenta; abrir exige registro) */}
+      <Route path="/rebotica" element={<Rebotica />} />
+      <Route path="/rebotica/bases-legales" element={<ReboticaBasesLegales />} />
       {/* Team invitation acceptance (public — inner logic requires auth) */}
       <Route path="/invitation" element={<Invitation />} />
       

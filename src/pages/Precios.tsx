@@ -15,7 +15,7 @@ import {
   type Plan,
 } from "@/lib/plans";
 
-type BillingCycle = "monthly" | "yearly";
+export type BillingCycle = "monthly" | "yearly";
 
 /** Formatea un importe en euros con el estilo español (coma decimal, sin decimales si es entero). */
 function formatPrice(value: number): string {
@@ -204,7 +204,7 @@ export default function Precios() {
   );
 }
 
-interface PlanCardProps {
+export interface PlanCardProps {
   plan: Plan;
   billing: BillingCycle;
   /** Si el lanzamiento sigue activo, se muestra el precio de lanzamiento; si no, el normal. */
@@ -212,7 +212,8 @@ interface PlanCardProps {
   onReserve: () => void;
 }
 
-function PlanCard({ plan, billing, launchActive, onReserve }: PlanCardProps) {
+/** Exportada para reutilizarla tal cual en la landing de la Rebotica (mismos precios, cero duplicación). */
+export function PlanCard({ plan, billing, launchActive, onReserve }: PlanCardProps) {
   const isFree = plan.id === "gratis";
   const isHighlighted = Boolean(plan.highlight);
   const period = billing === "yearly" ? "/año" : "/mes";
