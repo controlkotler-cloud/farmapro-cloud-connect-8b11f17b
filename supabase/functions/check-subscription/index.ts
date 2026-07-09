@@ -1,189 +1,135 @@
+// =====================================================================
+// check-subscription: valida la suscripción del usuario contra Stripe
+// mapeando por Price ID (no por importes). Roles PROTEGIDOS (admin)
+// NUNCA se degradan aquí. En modo beta se salta Stripe.
+// =====================================================================
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { lookupPrice, PROTECTED_ROLES } from "../_shared/stripePrices.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
+const log = (step: string, details?: unknown) => {
+  console.log(`[check-subscription] ${step}${details ? ' - ' + JSON.stringify(details) : ''}`);
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-  const supabaseClient = createClient(
+  const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
+    { auth: { persistSession: false } },
   );
 
   try {
-    logStep("Function started");
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) return json({ error: 'Unauthorized' }, 401);
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user?.email) return json({ error: 'Unauthorized' }, 401);
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if we're in beta mode
-    const { data: validationModeData } = await supabaseClient
-      .from('system_settings')
-      .select('value')
-      .eq('key', 'validation_mode')
-      .single();
+    // Modo beta: no consultamos Stripe.
+    const { data: modeRow } = await supabase.from('system_settings')
+      .select('value').eq('key', 'validation_mode').maybeSingle();
+    const validationMode = modeRow?.value ? JSON.parse(modeRow.value) : 'beta';
 
-    const validationMode = validationModeData?.value ? JSON.parse(validationModeData.value) : 'beta';
-    logStep("Validation mode", { mode: validationMode });
-
-    // Get current profile to avoid downgrades in beta mode
-    const { data: currentProfile } = await supabaseClient
-      .from('profiles')
-      .select('subscription_role, subscription_status')
-      .eq('id', user.id)
-      .single();
+    const { data: profile } = await supabase.from('profiles')
+      .select('subscription_role, subscription_status').eq('id', user.id).maybeSingle();
 
     if (validationMode === 'beta') {
-      logStep("Beta mode active, skipping Stripe validation");
-      
-      // In beta mode, don't validate with Stripe, just return current status
-      const currentRole = currentProfile?.subscription_role || 'freemium';
-      const currentStatus = currentProfile?.subscription_status || 'trialing';
-      
-      return new Response(JSON.stringify({
-        subscribed: currentRole !== 'freemium',
-        subscription_role: currentRole,
-        subscription_status: currentStatus,
-        current_period_end: null
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+      log('beta mode, returning profile state');
+      return json({
+        subscribed: (profile?.subscription_role ?? 'freemium') !== 'freemium',
+        subscription_role: profile?.subscription_role ?? 'freemium',
+        subscription_status: profile?.subscription_status ?? 'trialing',
+        mode: 'beta',
       });
     }
 
-    // Active mode - validate with Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
-
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length === 0) {
-      logStep("No customer found, checking if should downgrade");
-      
-      // Only downgrade to freemium if not in beta mode and not already a paid plan
-      const shouldDowngrade = currentProfile?.subscription_role === 'freemium' || !currentProfile?.subscription_role;
-      
-      if (shouldDowngrade) {
-        await supabaseClient.from("profiles").update({
-          subscription_role: 'freemium',
-          subscription_status: 'trialing',
-          updated_at: new Date().toISOString(),
-        }).eq('id', user.id);
-      }
-      
-      return new Response(JSON.stringify({ 
-        subscribed: false, 
-        subscription_role: shouldDowngrade ? 'freemium' : (currentProfile?.subscription_role || 'freemium'),
-        subscription_status: shouldDowngrade ? 'trialing' : (currentProfile?.subscription_status || 'trialing')
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+    // Roles protegidos: no tocar.
+    if (profile?.subscription_role && (PROTECTED_ROLES as readonly string[]).includes(profile.subscription_role)) {
+      return json({
+        subscribed: true,
+        subscription_role: profile.subscription_role,
+        subscription_status: profile.subscription_status,
+        protected: true,
       });
+    }
+
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+
+    if (customers.data.length === 0) {
+      await supabase.from('profiles').update({
+        subscription_role: 'freemium',
+        subscription_status: 'trialing',
+        updated_at: new Date().toISOString(),
+      }).eq('id', user.id);
+      return json({ subscribed: false, subscription_role: 'freemium', subscription_status: 'trialing' });
     }
 
     const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
+    const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 });
 
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
-
-    const hasActiveSub = subscriptions.data.length > 0;
-    let subscriptionRole = 'freemium';
-    let subscriptionStatus = 'trialing';
-    let currentPeriodEnd = null;
-
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      subscriptionStatus = 'active';
-      
-      // Determine subscription role from price
-      const priceId = subscription.items.data[0].price.id;
-      const price = await stripe.prices.retrieve(priceId);
-      const amount = price.unit_amount || 0;
-      
-      if (amount === 500) {
-        subscriptionRole = "estudiante";
-      } else if (amount === 2900) {
-        subscriptionRole = "profesional";
-      } else if (amount === 3900) {
-        subscriptionRole = "premium";
-      }
-      
-      logStep("Active subscription found", { 
-        subscriptionId: subscription.id, 
-        endDate: currentPeriodEnd,
-        role: subscriptionRole 
-      });
-
-      // Update or create subscription record
-      await supabaseClient.from("subscriptions").upsert({
-        user_id: user.id,
-        stripe_subscription_id: subscription.id,
-        plan_name: subscriptionRole,
-        status: 'active',
-        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        current_period_end: currentPeriodEnd,
+    if (subs.data.length === 0) {
+      await supabase.from('profiles').update({
+        subscription_role: 'freemium',
+        subscription_status: 'canceled',
+        stripe_customer_id: customerId,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'stripe_subscription_id' });
-    } else {
-      logStep("No active subscription found");
+      }).eq('id', user.id);
+      return json({ subscribed: false, subscription_role: 'freemium', subscription_status: 'canceled' });
     }
 
-    // Update profile
-    await supabaseClient.from("profiles").update({
+    const sub = subs.data[0];
+    const priceId = sub.items.data[0].price.id;
+    const priceInfo = lookupPrice(priceId);
+    const role = priceInfo?.plan ?? profile?.subscription_role ?? 'freemium';
+
+    await supabase.from('profiles').update({
+      subscription_role: role,
+      subscription_status: 'active',
       stripe_customer_id: customerId,
-      subscription_role: subscriptionRole,
-      subscription_status: subscriptionStatus,
       updated_at: new Date().toISOString(),
     }).eq('id', user.id);
 
-    logStep("Updated database with subscription info", { 
-      subscribed: hasActiveSub, 
-      subscriptionRole, 
-      subscriptionStatus 
-    });
+    await supabase.from('subscriptions').upsert({
+      user_id: user.id,
+      stripe_customer_id: customerId,
+      stripe_subscription_id: sub.id,
+      plan_name: role,
+      plan_id: role,
+      cycle: priceInfo?.cycle ?? 'monthly',
+      is_founder: priceInfo?.founder ?? false,
+      status: 'active',
+      current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
+      current_period_end:   new Date(sub.current_period_end * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'stripe_subscription_id' });
 
-    return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      subscription_role: subscriptionRole,
-      subscription_status: subscriptionStatus,
-      current_period_end: currentPeriodEnd
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
+    return json({
+      subscribed: true,
+      subscription_role: role,
+      subscription_status: 'active',
+      current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
     });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in check-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log('ERROR', { msg });
+    return json({ error: msg }, 500);
   }
 });
+
+function json(payload: unknown, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}

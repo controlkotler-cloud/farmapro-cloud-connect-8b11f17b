@@ -1,1 +1,5 @@
 project_id = "jeysistgdajopfruqpbc"
+
+# Stripe llega sin JWT; la seguridad es la firma del webhook (stripe-signature).
+[functions.stripe-webhook]
+verify_jwt = false
