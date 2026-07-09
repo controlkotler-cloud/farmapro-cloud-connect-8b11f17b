@@ -2267,7 +2267,9 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
+          cycle: string | null
           id: string
+          is_founder: boolean
           plan_id: string | null
           plan_name: string | null
           status: Database["public"]["Enums"]["subscription_status"]
@@ -2280,7 +2282,9 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
+          cycle?: string | null
           id?: string
+          is_founder?: boolean
           plan_id?: string | null
           plan_name?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -2293,7 +2297,9 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
+          cycle?: string | null
           id?: string
+          is_founder?: boolean
           plan_id?: string | null
           plan_name?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -2731,6 +2737,12 @@ export type Database = {
       }
     }
     Views: {
+      founder_count: {
+        Row: {
+          spots_taken: number | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           avatar_url: string | null
