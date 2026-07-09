@@ -2827,11 +2827,6 @@ export type Database = {
           total_users: number
         }[]
       }
-      calculate_team_price: { Args: { member_count: number }; Returns: number }
-      calculate_team_price_v2: {
-        Args: { premium_count: number; professional_count: number }
-        Returns: number
-      }
       can_access_contact_info: { Args: never; Returns: boolean }
       can_access_lesson: { Args: { _module_id: string }; Returns: boolean }
       can_access_user_data: {
