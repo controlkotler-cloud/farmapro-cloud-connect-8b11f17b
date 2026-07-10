@@ -1730,7 +1730,7 @@ export type Database = {
         Row: {
           answers: Json | null
           attempt_number: number | null
-          completed_at: string
+          completed_at: string | null
           correct_answers: number
           id: string
           max_score: number | null
@@ -1747,7 +1747,7 @@ export type Database = {
         Insert: {
           answers?: Json | null
           attempt_number?: number | null
-          completed_at?: string
+          completed_at?: string | null
           correct_answers?: number
           id?: string
           max_score?: number | null
@@ -1764,7 +1764,7 @@ export type Database = {
         Update: {
           answers?: Json | null
           attempt_number?: number | null
-          completed_at?: string
+          completed_at?: string | null
           correct_answers?: number
           id?: string
           max_score?: number | null
