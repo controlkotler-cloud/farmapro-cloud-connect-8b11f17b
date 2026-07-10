@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, RotateCcw, Clock, Trophy, AlertCircle, ArrowRight, Loader2, PartyPopper, Dumbbell, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { useQuiz } from '@/hooks/useQuiz';
 import type { QuizAttempt } from '@/types/quiz';
 
