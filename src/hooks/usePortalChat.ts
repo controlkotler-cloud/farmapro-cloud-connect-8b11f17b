@@ -40,7 +40,12 @@ export const usePortalChat = () => {
       );
 
       if (!response.ok) {
-        throw new Error('Error al procesar la solicitud');
+        let errorMsg = 'Error al procesar la solicitud';
+        try {
+          const errorData = await response.json();
+          if (errorData?.error) errorMsg = errorData.error;
+        } catch {}
+        throw new Error(errorMsg);
       }
 
       const reader = response.body?.getReader();
