@@ -10,6 +10,19 @@ import { z } from 'zod';
 import { isValidFiscalId, validateFiscalId } from '@/lib/cif';
 import { supabase } from '@/integrations/supabase/client';
 import { trackRegistration } from '@/lib/analytics';
+import { Checkbox } from '@/components/ui/checkbox';
+
+/**
+ * Consentimientos RGPD del registro (KPI nº 1 del lanzamiento).
+ * `CONSENT_TEXTO_VERSION` identifica la versión LITERAL de los textos de abajo
+ * en consent_ledger (prueba art. 7.1 RGPD). Si cambias cualquiera de los dos
+ * textos, sube la versión (v2, v3...) y anótalo en la ficha de la Rebotica.
+ */
+export const CONSENT_TEXTO_VERSION = 'registro-portal-v1-2026-07-10';
+export const CONSENT_TEXTO_RGPD =
+  'He leído y acepto la política de privacidad. Responsable: Mkpro Kotler SL. Finalidad: gestionar tu cuenta del portal farmapro.';
+export const CONSENT_TEXTO_COMERCIAL =
+  'Acepto recibir comunicaciones del sector de farmapro (newsletter quincenal, novedades del portal y ofertas de servicios). Puedes darte de baja en cualquier momento.';
 
 /** Aviso amable cuando el CIF ya tiene una cuenta (1 prueba gratis por farmacia). */
 const CIF_DUPLICADO_TOAST = {
@@ -72,6 +85,8 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
   const [pharmacyName, setPharmacyName] = useState('');
   const [position, setPosition] = useState('');
   const [cif, setCif] = useState('');
+  const [aceptaRgpd, setAceptaRgpd] = useState(false);
+  const [aceptaComercial, setAceptaComercial] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const { handlePasswordReset } = usePasswordReset();
@@ -100,6 +115,18 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
       }
 
       if (isRegistering) {
+        // RGPD (KPI nº 1): doble check obligatorio y NUNCA premarcado. El acceso
+        // gratuito al portal es el intercambio de valor por las comunicaciones.
+        if (!aceptaRgpd || !aceptaComercial) {
+          toast({
+            title: 'Falta tu consentimiento',
+            description: 'Para crear la cuenta necesitamos que aceptes la política de privacidad y las comunicaciones del sector.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
+
         // Anti-pillaje: el CIF/NIF de la farmacia es obligatorio y debe ser válido
         // (1 prueba gratis por farmacia; la verificación de existencia se hará en el alta).
         if (!isValidFiscalId(cif)) {
@@ -121,7 +148,11 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
           return;
         }
 
-        const { error } = await signUp(email, password, fullName, pharmacyName, position, cif);
+        const { error } = await signUp(email, password, fullName, pharmacyName, position, cif, {
+          rgpd: aceptaRgpd,
+          comercial: aceptaComercial,
+          textoVersion: CONSENT_TEXTO_VERSION,
+        });
 
         if (error) {
           // El índice único de profiles hace fallar el trigger handle_new_user con
@@ -157,6 +188,8 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
           setPharmacyName('');
           setPosition('');
           setCif('');
+          setAceptaRgpd(false);
+          setAceptaComercial(false);
         }
       } else {
         const { error } = await signIn(email, password);
@@ -294,6 +327,39 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
                 className="mt-1"
                 placeholder="Tu cargo profesional"
               />
+            </div>
+
+            {/* Doble check RGPD: obligatorio, nunca premarcado (consent_ledger vía handle_new_user) */}
+            <div className="space-y-3 rounded-md border border-border p-3">
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="consent-rgpd"
+                  checked={aceptaRgpd}
+                  onCheckedChange={(v) => setAceptaRgpd(v === true)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="consent-rgpd" className="text-xs font-normal leading-snug text-muted-foreground cursor-pointer">
+                  He leído y acepto la{' '}
+                  <a href="/politica-privacidad" target="_blank" rel="noopener noreferrer" className="underline text-foreground">
+                    política de privacidad
+                  </a>
+                  . Responsable: Mkpro Kotler SL. Finalidad: gestionar tu cuenta del portal farmapro. *
+                </Label>
+              </div>
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="consent-comercial"
+                  checked={aceptaComercial}
+                  onCheckedChange={(v) => setAceptaComercial(v === true)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="consent-comercial" className="text-xs font-normal leading-snug text-muted-foreground cursor-pointer">
+                  Acepto recibir comunicaciones del sector de farmapro (newsletter quincenal, novedades del portal y ofertas de servicios). Puedes darte de baja en cualquier momento. *
+                </Label>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                El acceso gratuito al portal es el intercambio por estas comunicaciones: sin los dos consentimientos no podemos crear la cuenta.
+              </p>
             </div>
           </>
         )}

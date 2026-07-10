@@ -11,7 +11,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, pharmacyName?: string, position?: string, cif?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, pharmacyName?: string, position?: string, cif?: string, consents?: { rgpd: boolean; comercial: boolean; textoVersion: string }) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
 }
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, pharmacyName?: string, position?: string, cif?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, pharmacyName?: string, position?: string, cif?: string, consents?: { rgpd: boolean; comercial: boolean; textoVersion: string }) => {
     try {
       // CIF/NIF normalizado (anti-pillaje: 1 prueba gratis por farmacia).
       const cifNormalized = cif ? validateFiscalId(cif).normalized : undefined;
@@ -141,6 +141,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             pharmacy_name: pharmacyName,
             position: position,
             cif: cifNormalized,
+            // Consentimientos RGPD (KPI nº 1 del lanzamiento): el trigger
+            // handle_new_user los vuelca a consent_ledger con la versión
+            // literal del texto aceptado (prueba art. 7.1 RGPD).
+            ...(consents ? {
+              consent_rgpd: consents.rgpd,
+              consent_comercial: consents.comercial,
+              consent_texto_version: consents.textoVersion,
+              consent_accepted_at: new Date().toISOString(),
+            } : {}),
             ...(utms?.utm_source ? { utm_source: utms.utm_source } : {}),
             ...(utms?.utm_medium ? { utm_medium: utms.utm_medium } : {}),
             ...(utms?.utm_campaign ? { utm_campaign: utms.utm_campaign } : {}),
