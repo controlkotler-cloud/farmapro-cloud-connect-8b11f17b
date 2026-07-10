@@ -89,6 +89,8 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
         correctOptionId: result.correctOptionId
       }]);
       setPhase('feedback');
+    } else {
+      toast.error('No se pudo guardar tu respuesta. Inténtalo de nuevo.');
     }
     setSubmitting(false);
   };
