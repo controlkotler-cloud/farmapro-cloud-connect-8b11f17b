@@ -81,7 +81,8 @@ serve(async (req) => {
         if (inviteError) throw inviteError;
 
         // Enviar invitación via Clientify
-        const inviteUrl = `${Deno.env.get("SUPABASE_URL")}/invitation?token=${inviteToken}`;
+        const appUrl = Deno.env.get("APP_URL") ?? "";
+        const inviteUrl = `${appUrl}/invitation?token=${inviteToken}`;
         
         // Llamar a Clientify para enviar la invitación
         const { data: clientifyResponse, error: clientifyError } = await supabaseClient.functions.invoke('clientify-sync', {
