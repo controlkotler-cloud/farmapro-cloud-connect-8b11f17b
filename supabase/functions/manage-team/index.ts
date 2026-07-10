@@ -105,11 +105,10 @@ serve(async (req) => {
         }
 
         logStep("Member invited", { email, teamId, inviteToken });
-        return new Response(JSON.stringify({ 
-          success: true, 
-          message: `Invitación creada para ${email}. URL: ${inviteUrl}`,
+        return new Response(JSON.stringify({
+          success: true,
+          message: `Invitación creada para ${email}.`,
           invitationToken: inviteToken,
-          invitationUrl: inviteUrl
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
