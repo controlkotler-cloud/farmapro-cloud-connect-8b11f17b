@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,7 @@ const EVENT_COVER: Record<string, { gradient: string; Icon: LucideIcon }> = {
 };
 
 export const EventCard = ({ event, index }: EventCardProps) => {
+  const [imgError, setImgError] = useState(false);
   const normalizedType = event.event_type?.toLowerCase().trim();
   const cover = EVENT_COVER[normalizedType] || { gradient: 'from-slate-500 to-slate-700', Icon: Calendar };
 
@@ -90,12 +92,12 @@ export const EventCard = ({ event, index }: EventCardProps) => {
     >
       <Card className="h-full hover:shadow-xl transition-all duration-300 border-gray-200 group">
         <div className="relative h-44 overflow-hidden rounded-t-lg">
-          {event.image_url ? (
+          {event.image_url && !imgError ? (
             <img
               src={event.image_url}
               alt={event.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              onError={() => setImgError(true)}
             />
           ) : (
             <div className={`w-full h-full bg-gradient-to-br ${cover.gradient} flex items-center justify-center`}>

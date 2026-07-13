@@ -127,3 +127,20 @@ SELECT
 WHERE NOT EXISTS (
   SELECT 1 FROM public.events WHERE title = '24º Congreso Nacional Farmacéutico (24CNF)'
 );
+
+-- ============================================================================
+-- FIX 5: events.image_url apuntando a la home del organizador, no a una imagen
+-- ============================================================================
+-- Confirmado en /admin/eventos (formulario "Editar Evento" del 24CNF): el campo
+-- "URL de Imagen" tenía https://congresonacional.farmaceuticos.com (la home del
+-- Consejo General, no un fichero de imagen) — de ahí que la tarjeta se viera en
+-- blanco/gris sin icono en /eventos. src/components/events/EventCard.tsx (L93-99)
+-- solo ocultaba el <img> con onError sin caer al fallback de gradiente+icono por
+-- tipo (a diferencia de CourseCard.tsx, que sí lo hacía); ya corregido en el
+-- mismo commit que esta migración. Aquí limpiamos el dato: cualquier
+-- events.image_url que no tenga pinta de fichero de imagen se pone a NULL para
+-- que el fallback de EVENT_COVER por tipo se aplique en vez de un <img> roto.
+UPDATE public.events
+SET image_url = NULL
+WHERE image_url IS NOT NULL
+  AND image_url !~* '\.(jpg|jpeg|png|webp|gif|svg)(\?.*)?$';
