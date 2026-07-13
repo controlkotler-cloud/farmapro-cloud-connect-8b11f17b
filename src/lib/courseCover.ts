@@ -4,6 +4,8 @@ import {
   Briefcase,
   Users,
   HeartHandshake,
+  Headset,
+  Monitor,
   Sparkles,
   type LucideIcon,
 } from 'lucide-react';
@@ -23,6 +25,8 @@ const COVERS: Record<string, CourseCover> = {
   gestion: { gradient: 'from-indigo-500 to-violet-600', label: 'Gestión', Icon: Briefcase },
   liderazgo: { gradient: 'from-amber-500 to-orange-600', label: 'Liderazgo', Icon: Users },
   atencion: { gradient: 'from-rose-500 to-pink-600', label: 'Atención', Icon: HeartHandshake },
+  atencion_cliente: { gradient: 'from-cyan-500 to-teal-600', label: 'Atención al cliente', Icon: Headset },
+  tecnologia: { gradient: 'from-violet-500 to-fuchsia-600', label: 'Tecnología', Icon: Monitor },
   otros: { gradient: 'from-slate-500 to-slate-700', label: 'Formación', Icon: Sparkles },
 };
 

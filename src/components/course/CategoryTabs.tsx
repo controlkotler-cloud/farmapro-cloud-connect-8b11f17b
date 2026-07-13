@@ -8,7 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 // Categorías reales del catálogo (enum course_category canónico).
 // El color/icono/etiqueta se toma de getCourseCover para mantener una
 // sola fuente de verdad visual con las tarjetas y las secciones.
-const CATEGORY_ORDER = ['ventas', 'marketing', 'gestion', 'liderazgo', 'atencion', 'otros'] as const;
+const CATEGORY_ORDER = ['ventas', 'marketing', 'gestion', 'liderazgo', 'atencion', 'atencion_cliente', 'tecnologia', 'otros'] as const;
 
 interface CategoryTabsProps {
   selectedCategory: string;
