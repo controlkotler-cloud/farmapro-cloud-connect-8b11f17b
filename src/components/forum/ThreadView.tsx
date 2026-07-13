@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { ArrowLeft, MessageSquare, Users, Clock, Heart, Reply, Pin, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -16,6 +18,7 @@ interface Reply {
   author_id: string;
   likes_count: number;
   created_at: string;
+  author_display_name?: string | null;
   profiles?: {
     full_name: string;
   };
@@ -31,12 +34,17 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
   const [thread, setThread] = useState<any>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [newReply, setNewReply] = useState('');
+  const [replyShowFullName, setReplyShowFullName] = useState(profile?.name_display_preference !== 'initials');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadThread();
     loadReplies();
   }, [threadId]);
+
+  useEffect(() => {
+    setReplyShowFullName(profile?.name_display_preference !== 'initials');
+  }, [profile?.name_display_preference]);
 
   const loadThread = async () => {
     const { data, error } = await supabase
@@ -77,13 +85,20 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
   const createReply = async () => {
     if (!profile?.id || !newReply.trim()) return;
 
+    const nameDisplayChoice = replyShowFullName ? 'full' : 'initials';
+
     const { error } = await supabase
       .from('forum_replies')
       .insert([{
         thread_id: threadId,
         author_id: profile.id,
-        content: newReply
-      }]);
+        content: newReply,
+        name_display_choice: nameDisplayChoice
+      } as any]);
+
+    if (nameDisplayChoice !== profile.name_display_preference) {
+      supabase.from('profiles').update({ name_display_preference: nameDisplayChoice } as any).eq('id', profile.id);
+    }
 
     if (error) {
       console.error('Error creating reply:', error);
@@ -154,7 +169,7 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             <div className="flex items-center space-x-1">
               <Users className="h-4 w-4" />
-              <span>{thread.profiles?.full_name || 'Usuario farmapro'}</span>
+              <span>{thread.author_display_name || thread.profiles?.full_name || 'Usuario farmapro'}</span>
             </div>
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4" />
@@ -189,7 +204,7 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4 text-gray-600" />
-                    <span className="font-medium">{reply.profiles?.full_name || 'Usuario farmapro'}</span>
+                    <span className="font-medium">{reply.author_display_name || reply.profiles?.full_name || 'Usuario farmapro'}</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-1 text-sm text-gray-600">
@@ -230,6 +245,14 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
               rows={4}
               className="resize-none"
             />
+            <div className="flex items-center space-x-2">
+              <Switch id="reply-show-full-name" checked={replyShowFullName} onCheckedChange={setReplyShowFullName} />
+              <Label htmlFor="reply-show-full-name" className="text-sm text-gray-600 cursor-pointer">
+                {replyShowFullName
+                  ? 'Publicar con mi nombre completo'
+                  : 'Publicar con iniciales (ej. E.M. Farmacia en tu ciudad)'}
+              </Label>
+            </div>
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-600">
                 💰 +50 puntos por participar en el foro

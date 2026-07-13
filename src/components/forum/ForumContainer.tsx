@@ -16,6 +16,7 @@ interface ForumThread {
   is_pinned: boolean;
   last_reply_at: string;
   created_at: string;
+  author_display_name?: string | null;
   profiles?: {
     full_name: string;
   };
@@ -91,10 +92,11 @@ export const ForumContainer = ({ onThreadClick, onDataChange }: ForumContainerPr
     return profile?.subscription_role && profile.subscription_role !== 'freemium';
   };
 
-  const createThread = async (title: string, content: string) => {
+  const createThread = async (title: string, content: string, showFullName: boolean) => {
     if (!profile?.id) return;
 
     const categoryId = selectedCategory !== 'all' ? selectedCategory : categories[0]?.id;
+    const nameDisplayChoice = showFullName ? 'full' : 'initials';
 
     const { error } = await supabase
       .from('forum_threads')
@@ -102,8 +104,13 @@ export const ForumContainer = ({ onThreadClick, onDataChange }: ForumContainerPr
         title,
         content,
         author_id: profile.id,
-        category_id: categoryId
-      }]);
+        category_id: categoryId,
+        name_display_choice: nameDisplayChoice
+      } as any]);
+
+    if (nameDisplayChoice !== profile.name_display_preference) {
+      supabase.from('profiles').update({ name_display_preference: nameDisplayChoice } as any).eq('id', profile.id);
+    }
 
     if (error) {
       console.error('Error creating thread:', error);
@@ -124,9 +131,10 @@ export const ForumContainer = ({ onThreadClick, onDataChange }: ForumContainerPr
           <h1 className="text-3xl font-bold text-gray-900">🏥 Comunidad farmapro</h1>
           <p className="text-gray-600">Conecta con otros profesionales y comparte conocimientos</p>
         </div>
-        <NewThreadDialog 
+        <NewThreadDialog
           categories={categories}
           selectedCategory={selectedCategory}
+          showFullNameDefault={profile?.name_display_preference !== 'initials'}
           onCreateThread={createThread}
         />
       </div>

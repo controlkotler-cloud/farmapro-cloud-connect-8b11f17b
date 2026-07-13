@@ -16,6 +16,7 @@ interface ThreadCardProps {
     is_pinned: boolean;
     last_reply_at: string;
     created_at: string;
+    author_display_name?: string | null;
     profiles?: {
       full_name: string;
     };
@@ -76,7 +77,7 @@ export const ThreadCard = ({ thread, index, onClick }: ThreadCardProps) => {
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center space-x-1">
                 <Users className="h-4 w-4" />
-                <span className="font-medium">{thread.profiles?.full_name || 'Usuario farmapro'}</span>
+                <span className="font-medium">{thread.author_display_name || thread.profiles?.full_name || 'Usuario farmapro'}</span>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-1">
