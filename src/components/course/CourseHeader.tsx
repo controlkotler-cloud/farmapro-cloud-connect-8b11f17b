@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Users, BookOpen, CheckCircle, Lock, BarChart3, TrendingUp, Crown, Handshake, Wallet, Laptop } from 'lucide-react';
+import { Clock, Users, BookOpen, CheckCircle, Lock, BarChart3, TrendingUp, Crown, Handshake, Headset, Wallet, Laptop } from 'lucide-react';
 import { getCourseCover } from '@/lib/courseCover';
 import type { Course } from '@/types/course';
 
@@ -19,6 +19,8 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
       case 'marketing': return <TrendingUp className={className} />;
       case 'liderazgo': return <Crown className={className} />;
       case 'atencion': return <Handshake className={className} />;
+      case 'atencion_cliente': return <Headset className={className} />;
+      case 'tecnologia': return <Laptop className={className} />;
       case 'finanzas': return <Wallet className={className} />;
       case 'digital': return <Laptop className={className} />;
       default: return <BookOpen className={className} />;
@@ -31,6 +33,8 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
       case 'marketing': return 'Marketing';
       case 'liderazgo': return 'Liderazgo';
       case 'atencion': return 'Atención al Cliente';
+      case 'atencion_cliente': return 'Atención al Cliente';
+      case 'tecnologia': return 'Tecnología';
       case 'finanzas': return 'Finanzas';
       case 'digital': return 'Transformación Digital';
       default: return 'General';

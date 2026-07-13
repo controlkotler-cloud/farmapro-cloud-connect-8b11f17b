@@ -22,7 +22,7 @@ type AccessFilter = 'todos' | 'gratis' | 'premium';
 type SortOption = 'recientes' | 'alfabetico' | 'dificultad';
 
 // Orden de categorías para las secciones cuando se muestra "Todos".
-const CATEGORY_ORDER = ['ventas', 'marketing', 'gestion', 'liderazgo', 'atencion', 'otros'];
+const CATEGORY_ORDER = ['ventas', 'marketing', 'gestion', 'liderazgo', 'atencion', 'atencion_cliente', 'tecnologia', 'otros'];
 
 // Peso de dificultad para ordenar de menor a mayor exigencia.
 const DIFFICULTY_WEIGHT: Record<string, number> = {
