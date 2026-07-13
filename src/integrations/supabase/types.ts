@@ -2814,7 +2814,7 @@ export type Database = {
     }
     Functions: {
       add_user_points: {
-        Args: { points: number; user_id: string }
+        Args: { _points: number; _user_id: string }
         Returns: undefined
       }
       anonymize_old_applications: { Args: never; Returns: undefined }
