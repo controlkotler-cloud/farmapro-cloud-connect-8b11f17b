@@ -784,36 +784,42 @@ export type Database = {
       }
       forum_replies: {
         Row: {
+          author_display_name: string | null
           author_id: string
           content: string
           created_at: string
           id: string
           is_solution: boolean
           likes_count: number
+          name_display_choice: string | null
           parent_id: string | null
           parent_reply_id: string | null
           thread_id: string
           updated_at: string
         }
         Insert: {
+          author_display_name?: string | null
           author_id: string
           content: string
           created_at?: string
           id?: string
           is_solution?: boolean
           likes_count?: number
+          name_display_choice?: string | null
           parent_id?: string | null
           parent_reply_id?: string | null
           thread_id: string
           updated_at?: string
         }
         Update: {
+          author_display_name?: string | null
           author_id?: string
           content?: string
           created_at?: string
           id?: string
           is_solution?: boolean
           likes_count?: number
+          name_display_choice?: string | null
           parent_id?: string | null
           parent_reply_id?: string | null
           thread_id?: string
@@ -874,6 +880,7 @@ export type Database = {
       }
       forum_threads: {
         Row: {
+          author_display_name: string | null
           author_id: string
           category_id: string
           content: string
@@ -882,12 +889,14 @@ export type Database = {
           is_locked: boolean
           is_pinned: boolean
           last_reply_at: string | null
+          name_display_choice: string | null
           replies_count: number
           title: string
           updated_at: string
           views_count: number
         }
         Insert: {
+          author_display_name?: string | null
           author_id: string
           category_id: string
           content: string
@@ -896,12 +905,14 @@ export type Database = {
           is_locked?: boolean
           is_pinned?: boolean
           last_reply_at?: string | null
+          name_display_choice?: string | null
           replies_count?: number
           title: string
           updated_at?: string
           views_count?: number
         }
         Update: {
+          author_display_name?: string | null
           author_id?: string
           category_id?: string
           content?: string
@@ -910,6 +921,7 @@ export type Database = {
           is_locked?: boolean
           is_pinned?: boolean
           last_reply_at?: string | null
+          name_display_choice?: string | null
           replies_count?: number
           title?: string
           updated_at?: string
@@ -1513,9 +1525,11 @@ export type Database = {
           full_name: string | null
           has_completed_onboarding: boolean
           id: string
+          is_seed: boolean
           landing_page: string | null
           last_activity_date: string | null
           level: number
+          name_display_preference: string
           opt_out_leaderboard: boolean
           pharmacy_city: string | null
           pharmacy_name: string | null
@@ -1548,9 +1562,11 @@ export type Database = {
           full_name?: string | null
           has_completed_onboarding?: boolean
           id: string
+          is_seed?: boolean
           landing_page?: string | null
           last_activity_date?: string | null
           level?: number
+          name_display_preference?: string
           opt_out_leaderboard?: boolean
           pharmacy_city?: string | null
           pharmacy_name?: string | null
@@ -1583,9 +1599,11 @@ export type Database = {
           full_name?: string | null
           has_completed_onboarding?: boolean
           id?: string
+          is_seed?: boolean
           landing_page?: string | null
           last_activity_date?: string | null
           level?: number
+          name_display_preference?: string
           opt_out_leaderboard?: boolean
           pharmacy_city?: string | null
           pharmacy_name?: string | null
@@ -2854,6 +2872,10 @@ export type Database = {
       current_subscription_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      format_initials_label: {
+        Args: { city: string; full_name: string }
+        Returns: string
       }
       get_active_quiz_questions: { Args: { p_quiz_id: string }; Returns: Json }
       get_course_modules: { Args: { p_course_id: string }; Returns: Json }
