@@ -20,7 +20,7 @@ const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirma tu cuenta en el Portal farmapro',
   invite: 'Te han invitado al Portal farmapro',
   magiclink: 'Tu enlace de acceso al Portal farmapro',
-  recovery: 'Restablece tu contraseña — Portal farmapro',
+  recovery: 'Restablece tu contraseña del Portal farmapro',
   email_change: 'Confirma tu nuevo email — Portal farmapro',
   reauthentication: 'Tu código de verificación — Portal farmapro',
 }
