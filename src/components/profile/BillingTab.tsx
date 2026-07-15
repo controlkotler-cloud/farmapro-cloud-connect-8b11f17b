@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Settings, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { planConfig } from '@/components/profile/config/PlanConfig';
+import { ROLE_LABELS } from '@/lib/plans';
 
 interface BillingTabProps {
   profile: any;
@@ -23,7 +23,7 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
   };
 
   const currentPlan = getCurrentPlan();
-  const config = planConfig[currentPlan as keyof typeof planConfig] || planConfig.freemium;
+  const planName = ROLE_LABELS[currentPlan] ?? 'Gratis';
 
   const handleManageSubscription = async () => {
     if (currentPlan === 'freemium') {
@@ -88,14 +88,14 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Estado actual:</span>
                   <Badge variant={currentPlan === 'admin' ? 'destructive' : profile?.subscription_status === 'active' ? 'default' : 'secondary'}>
-                    {currentPlan === 'admin' ? 'Administrador' :
+                    {currentPlan === 'admin' ? ROLE_LABELS.admin :
                      profile?.subscription_status === 'active' ? 'Activo' : 
                      profile?.subscription_status === 'trialing' ? 'Periodo de prueba' : 'Inactivo'}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Plan:</span>
-                  <span className="text-sm font-medium">{config.name}</span>
+                  <span className="text-sm font-medium">{planName}</span>
                 </div>
               </div>
             </div>

@@ -3,14 +3,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Crown, User, CreditCard, Bell, Shield, Users, Award } from 'lucide-react';
+import { Crown, User, CreditCard, Bell, Shield, Award } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PersonalInfoTab } from '@/components/profile/PersonalInfoTab';
 import { PlanTab } from '@/components/profile/PlanTab';
 import { BillingTab } from '@/components/profile/BillingTab';
 import { SecurityTab } from '@/components/profile/SecurityTab';
 import { NotificationsTab } from '@/components/profile/NotificationsTab';
-import { TeamManagementTab } from '@/components/profile/TeamManagementTab';
 import { BadgesTab } from '@/components/profile/BadgesTab';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,7 +18,7 @@ import { RotateCcw } from 'lucide-react';
 
 export default function Perfil() {
   const { profile, user, isAdmin, reloadProfile } = useAuth();
-  const { isTeamOwner, loading: teamLoading } = useTeamManagement();
+  const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
   const isMobile = useIsMobile();
   const [selectedTab, setSelectedTab] = useState('personal');
 
@@ -45,12 +44,14 @@ export default function Perfil() {
     );
   }
 
+  // Miembro de equipo sin suscripción propia: la facturación la lleva el titular.
+  const hideBilling = isTeamMember && !isTeamOwner && !profile?.stripe_customer_id;
+
   const tabOptions = [
     { value: 'personal', label: 'Personal', icon: User },
     { value: 'plan', label: 'Plan', icon: Crown },
-    ...(isTeamOwner && !teamLoading ? [{ value: 'team', label: 'Equipo', icon: Users }] : []),
     { value: 'badges', label: 'Insignias', icon: Award },
-    { value: 'billing', label: 'Facturación', icon: CreditCard },
+    ...(hideBilling ? [] : [{ value: 'billing', label: 'Facturación', icon: CreditCard }]),
     { value: 'security', label: 'Seguridad', icon: Shield },
     { value: 'notifications', label: 'Notificaciones', icon: Bell },
   ];
@@ -115,19 +116,15 @@ export default function Perfil() {
             <PlanTab profile={profile} isAdmin={isAdmin} />
           </TabsContent>
 
-          {isTeamOwner && (
-            <TabsContent value="team" className="space-y-6">
-              <TeamManagementTab />
-            </TabsContent>
-          )}
-
           <TabsContent value="badges" className="space-y-6">
             <BadgesTab />
           </TabsContent>
 
-          <TabsContent value="billing" className="space-y-6">
-            <BillingTab profile={profile} isAdmin={isAdmin} />
-          </TabsContent>
+          {!hideBilling && (
+            <TabsContent value="billing" className="space-y-6">
+              <BillingTab profile={profile} isAdmin={isAdmin} />
+            </TabsContent>
+          )}
 
           <TabsContent value="security" className="space-y-6">
             <SecurityTab />

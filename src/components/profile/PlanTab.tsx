@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Star, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { PLANS, FREE_LIMITS, getAccessState, getLaunchStatus } from '@/lib/plans';
+import { PLANS, FREE_LIMITS, ROLE_LABELS, getAccessState, getLaunchStatus } from '@/lib/plans';
+import { useTeamManagement } from '@/hooks/useTeamManagement';
 
 interface PlanTabProps {
   profile: any;
@@ -20,18 +21,12 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
   const role: string | null = isAdmin ? 'admin' : (profile?.subscription_role ?? null);
   const access = isAdmin ? 'paid' : getAccessState(role, profile?.created_at ?? null);
   const launch = getLaunchStatus();
+  const { isTeamOwner, isTeamMember, memberTeamName } = useTeamManagement();
+  // Miembro de un equipo (no titular): la plaza la gestiona el titular, no hay CTA de precios.
+  // isTeamMember (señal viva) en vez de comparar el rol cacheado del profile.
+  const isTeamMemberPlaza = isTeamMember && !isTeamOwner;
 
-  // Nombre visible del plan actual (roles antiguos incluidos hasta la migración Stripe).
-  const roleLabels: Record<string, string> = {
-    admin: 'Administrador',
-    equipo: 'Equipo',
-    plus: 'Plus',
-    premium: 'Premium',
-    profesional: 'Profesional',
-    estudiante: 'Estudiante',
-    freemium: 'Gratis',
-  };
-  const planName = roleLabels[role ?? 'freemium'] ?? 'Gratis';
+  const planName = ROLE_LABELS[role ?? 'freemium'] ?? 'Gratis';
 
   // Días restantes de la prueba gratis (solo informativo).
   const trialDaysLeft = (() => {
@@ -88,7 +83,12 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                 Cuenta de administrador: acceso completo y permanente a todo el portal.
               </p>
             )}
-            {!isAdmin && isPaid && (
+            {!isAdmin && isTeamMemberPlaza && (
+              <p className="text-sm text-muted-foreground">
+                Plan Equipo · plaza de {memberTeamName ?? 'tu farmacia'}. La gestiona tu titular.
+              </p>
+            )}
+            {!isAdmin && isPaid && !isTeamMemberPlaza && (
               <p className="text-sm text-muted-foreground">
                 Acceso completo: cursos y recursos sin límite, comunidad, retos e IAFarma.
               </p>

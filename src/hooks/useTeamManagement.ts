@@ -19,6 +19,7 @@ interface TeamMember {
   invited_at: string;
   joined_at?: string;
   user_id?: string;
+  expires_at?: string | null;
 }
 
 export const useTeamManagement = () => {
@@ -28,6 +29,7 @@ export const useTeamManagement = () => {
   const [loading, setLoading] = useState(true);
   const [isTeamOwner, setIsTeamOwner] = useState(false);
   const [isTeamMember, setIsTeamMember] = useState(false);
+  const [memberTeamName, setMemberTeamName] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -107,6 +109,21 @@ export const useTeamManagement = () => {
         setIsTeamMember(false);
       } else {
         setIsTeamMember(!!memberCheck);
+
+        if (memberCheck) {
+          const { data: memberRow, error: memberRowError } = await supabase
+            .from('team_members')
+            .select('team_subscriptions(team_name)')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+
+          if (memberRowError) {
+            console.error('Error loading member team name:', memberRowError.message);
+          } else {
+            setMemberTeamName((memberRow as any)?.team_subscriptions?.team_name ?? null);
+          }
+        }
       }
 
     } catch (error) {
@@ -198,6 +215,7 @@ export const useTeamManagement = () => {
     loading,
     isTeamOwner,
     isTeamMember,
+    memberTeamName,
     inviteMember,
     removeMember,
     acceptInvitation,

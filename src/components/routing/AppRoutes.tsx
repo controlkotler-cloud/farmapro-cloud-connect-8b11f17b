@@ -20,6 +20,7 @@ import Precios from "@/pages/Precios";
 import Rebotica from "@/pages/Rebotica";
 import ReboticaBasesLegales from "@/pages/ReboticaBasesLegales";
 import Perfil from "@/pages/Perfil";
+import MiFarmacia from "@/pages/MiFarmacia";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
 import AsistenteCreativo from "@/pages/AsistenteCreativo";
@@ -90,7 +91,8 @@ export const AppRoutes = () => {
           <Route path="/farmacias" element={<Navigate to="/precios" replace />} />
           <Route path="/promociones" element={<Navigate to="/precios" replace />} />
           <Route path="/perfil" element={<Navigate to="/precios" replace />} />
-          
+          <Route path="/mi-farmacia" element={<Navigate to="/precios" replace />} />
+
         </>
       )}
       
@@ -109,6 +111,11 @@ export const AppRoutes = () => {
       <Route path="/perfil" element={
         <ProtectedRoute>
           <Perfil />
+        </ProtectedRoute>
+      } />
+      <Route path="/mi-farmacia" element={
+        <ProtectedRoute>
+          <MiFarmacia />
         </ProtectedRoute>
       } />
       <Route path="/formacion" element={

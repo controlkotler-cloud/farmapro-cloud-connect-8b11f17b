@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Check, ImageIcon, Sparkles, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useTeamManagement } from "@/hooks/useTeamManagement";
 import {
   PLANS,
   LAUNCH,
@@ -27,10 +28,14 @@ function formatPrice(value: number): string {
 
 export default function Precios() {
   const { toast } = useToast();
+  const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   // Estado del lanzamiento: decide si rige el precio de lanzamiento o el normal,
   // y alimenta el aviso de urgencia (plazas restantes + cuenta atrás).
   const launch = getLaunchStatus();
+  // Miembro de un equipo (no titular): ya tiene acceso completo, sin CTAs de compra.
+  // isTeamMember (señal viva) en vez de profile.subscription_role (cacheado).
+  const showTeamMemberBanner = isTeamMember && !teamLoading && !isTeamOwner;
   const takenPct = Math.min(
     100,
     Math.round(((LAUNCH.spots - launch.spotsLeft) / LAUNCH.spots) * 100),
@@ -49,7 +54,13 @@ export default function Precios() {
       <div className="container mx-auto px-4 py-16">
         {/* Cabecera */}
         <div className="text-center mb-10">
-          {launch.active ? (
+          {showTeamMemberBanner ? (
+            <div className="mx-auto mb-5 max-w-xl rounded-xl border border-brand-soft bg-brand-soft p-4 text-center">
+              <p className="text-sm font-semibold text-brand-dark">
+                Ya tienes acceso completo con el plan Equipo de tu farmacia
+              </p>
+            </div>
+          ) : launch.active ? (
             <div className="mx-auto mb-5 max-w-xl rounded-xl border bg-card p-4 shadow-sm">
               <div className="flex items-center justify-center gap-2 text-sm font-semibold">
                 {launch.almostGone ? (
@@ -143,6 +154,7 @@ export default function Precios() {
               billing={billing}
               launchActive={launch.active}
               onReserve={handleReserve}
+              hideCta={showTeamMemberBanner}
             />
           ))}
         </div>
@@ -210,10 +222,12 @@ export interface PlanCardProps {
   /** Si el lanzamiento sigue activo, se muestra el precio de lanzamiento; si no, el normal. */
   launchActive: boolean;
   onReserve: () => void;
+  /** Oculta el botón de compra (quien ya tiene acceso completo vía plan Equipo de su farmacia). */
+  hideCta?: boolean;
 }
 
 /** Exportada para reutilizarla tal cual en la landing de la Rebotica (mismos precios, cero duplicación). */
-export function PlanCard({ plan, billing, launchActive, onReserve }: PlanCardProps) {
+export function PlanCard({ plan, billing, launchActive, onReserve, hideCta }: PlanCardProps) {
   const isFree = plan.id === "gratis";
   const isHighlighted = Boolean(plan.highlight);
   const period = billing === "yearly" ? "/año" : "/mes";
@@ -290,21 +304,23 @@ export function PlanCard({ plan, billing, launchActive, onReserve }: PlanCardPro
           ))}
         </ul>
 
-        <div className="mt-6">
-          {isFree ? (
-            <Button asChild className="w-full" variant="outline">
-              <Link to="/login">{plan.cta}</Link>
-            </Button>
-          ) : (
-            <Button
-              className="w-full"
-              variant={isHighlighted ? "default" : "outline"}
-              onClick={onReserve}
-            >
-              {plan.cta}
-            </Button>
-          )}
-        </div>
+        {!hideCta && (
+          <div className="mt-6">
+            {isFree ? (
+              <Button asChild className="w-full" variant="outline">
+                <Link to="/login">{plan.cta}</Link>
+              </Button>
+            ) : (
+              <Button
+                className="w-full"
+                variant={isHighlighted ? "default" : "outline"}
+                onClick={onReserve}
+              >
+                {plan.cta}
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

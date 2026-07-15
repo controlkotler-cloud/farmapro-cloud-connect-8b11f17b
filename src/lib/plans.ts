@@ -166,6 +166,17 @@ export const FREE_LIMITS = {
  */
 export const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
 
+/** Nombre visible de cada rol (roles antiguos incluidos hasta migrar todo a Stripe). */
+export const ROLE_LABELS: Record<string, string> = {
+  admin: 'Administrador',
+  equipo: 'Equipo',
+  plus: 'Plus',
+  premium: 'Premium',
+  profesional: 'Profesional',
+  estudiante: 'Estudiante',
+  freemium: 'Gratis',
+};
+
 export type AccessState = 'paid' | 'free_trial' | 'free_locked';
 
 /**
