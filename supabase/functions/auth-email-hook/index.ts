@@ -17,13 +17,14 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'Confirma tu cuenta en el Portal farmapro',
+  invite: 'Te han invitado al Portal farmapro',
+  magiclink: 'Tu enlace de acceso al Portal farmapro',
+  recovery: 'Restablece tu contraseña — Portal farmapro',
+  email_change: 'Confirma tu nuevo email — Portal farmapro',
+  reauthentication: 'Tu código de verificación — Portal farmapro',
 }
+
 
 // Template mapping
 const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
