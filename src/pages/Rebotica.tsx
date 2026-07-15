@@ -230,6 +230,69 @@ export default function Rebotica() {
     </a>
   );
 
+  // Usuario ya registrado: va directo al cajón, sin el aparato de captación
+  // (hero de venta, "cómo funciona", FAQ, CTA "únete gratis") pensado para
+  // quien todavía no conoce la Rebotica.
+  if (user) {
+    return (
+      <div className="min-h-screen bg-[#FBFBF7] font-sans text-[#0B0F0B]">
+        <nav className="sticky top-0 z-50 border-b border-[#e7e9e4] bg-[#FBFBF7]/85 backdrop-blur-md">
+          <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-3">
+            <Link to="/dashboard" className="flex items-center gap-2.5">
+              <img src="/logo-farmapro.svg" alt="farmapro" className="h-6" />
+              <span className="border-l border-[#e7e9e4] pl-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#5c6660]">
+                La Rebotica
+              </span>
+            </Link>
+            <Link to="/dashboard" className="text-sm font-semibold text-[#5c6660] transition hover:text-[#0B0F0B]">
+              &larr; Volver al portal
+            </Link>
+          </div>
+        </nav>
+
+        <div className="mx-auto max-w-[640px] px-6 py-16 text-center">
+          <p className="mb-2 text-[13px] font-bold uppercase tracking-[0.16em] text-[#7BB121]">
+            {countdown
+              ? `Próximo cajón: ${REBOTICA_NEXT_OPENING.dateLabel} · ${REBOTICA_OPENING_TIME_LABEL}`
+              : `Próximo cajón: jueves de quincena · ${REBOTICA_OPENING_TIME_LABEL}`}
+          </p>
+          <h1 className="font-serif text-[clamp(28px,3.6vw,40px)] font-semibold leading-[1.15]">
+            El cajón de esta quincena
+          </h1>
+
+          <div className="mt-8">
+            <Cajonera selected={selected} onSelect={handleSelect} disabled={opening} />
+            <div className="mx-auto mt-5 flex w-full max-w-md flex-col items-center gap-2">
+              <button
+                type="button"
+                onClick={handleOpen}
+                disabled={opening}
+                className={
+                  selected
+                    ? `${BTN_LIME} w-full text-center text-[16px] disabled:cursor-not-allowed disabled:opacity-70`
+                    : 'w-full cursor-pointer rounded-full bg-[#0B0F0B]/[.06] px-8 py-4 text-center text-[15px] font-bold text-[#5c6660] transition hover:bg-[#0B0F0B]/10'
+                }
+              >
+                {selected ? openLabel : 'Elige un cajón para empezar'}
+              </button>
+              {partner && (
+                <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
+                  El cajón de esta quincena lo presenta {partnerSlot}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <p className="mt-10 text-sm text-[#5c6660]">
+            <Link to="/rebotica/bases-legales" className="underline underline-offset-4 hover:text-[#0B0F0B]">
+              Bases legales y protección de datos
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FBFBF7] font-sans text-[#0B0F0B]">
       {/* NAV sticky con blur */}
