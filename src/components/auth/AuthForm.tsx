@@ -195,11 +195,27 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
         const { error } = await signIn(email, password);
 
         if (error) {
+          // Caso específico: cuenta creada pero email aún sin confirmar (Supabase
+          // devuelve code 'email_not_confirmed' / message "Email not confirmed").
+          const isEmailNotConfirmed =
+            (error as { code?: string }).code === 'email_not_confirmed' ||
+            error.message?.toLowerCase().includes('email not confirmed');
+
+          if (isEmailNotConfirmed) {
+            toast({
+              title: "Confirma tu email",
+              description: "Tu cuenta todavía no está confirmada. Revisa el email que te enviamos al registrarte (también en spam) y haz clic en el enlace de confirmación.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            return;
+          }
+
           // Security: Generic error message to prevent user enumeration
           const errorMessage = error.message.includes('Invalid') || error.message.includes('invalid')
             ? 'Email o contraseña incorrectos'
             : 'Error al iniciar sesión. Intenta de nuevo';
-          
+
           toast({
             title: "Error de inicio de sesión",
             description: errorMessage,
