@@ -37,7 +37,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "farmapro-cloud-farm"
+const SITE_NAME = "Portal farmapro"
 const SENDER_DOMAIN = "notify.portal.farmapro.es"
 const ROOT_DOMAIN = "portal.farmapro.es"
 const FROM_DOMAIN = "notify.portal.farmapro.es" // Domain shown in From address (may be root or sender subdomain)
