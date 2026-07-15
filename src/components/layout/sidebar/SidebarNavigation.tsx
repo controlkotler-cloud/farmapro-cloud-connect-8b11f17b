@@ -10,9 +10,10 @@ import {
   Building,
   Calendar,
   Tag,
-  ChevronRight,
-  MessageCircle,
   Bot,
+  Store,
+  Archive,
+  type LucideIcon,
 } from 'lucide-react';
 import {
   SidebarGroup,
@@ -25,19 +26,48 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSectionVisibility } from '@/hooks/useSectionVisibility';
 import { useAuth } from '@/hooks/useAuth';
+import { useTeamManagement } from '@/hooks/useTeamManagement';
 
+interface MenuItem {
+  name: string;
+  icon: LucideIcon;
+  path: string;
+}
 
-const menuItems = [
-  { name: 'Dashboard', icon: Home, path: '/dashboard' },
-  { name: 'Formación', icon: BookOpen, path: '/formacion' },
-  { name: 'Recursos', icon: FileText, path: '/recursos' },
-  { name: 'IAFarma', icon: Bot, path: '/asistente-creativo' },
-  { name: 'Comunidad', icon: MessageSquare, path: '/comunidad' },
-  { name: 'Retos', icon: Trophy, path: '/retos' },
-  { name: 'Empleo', icon: Briefcase, path: '/empleo' },
-  { name: 'Farmacias', icon: Building, path: '/farmacias' },
-  { name: 'Eventos', icon: Calendar, path: '/eventos' },
-  { name: 'Promociones', icon: Tag, path: '/promociones' },
+interface MenuGroup {
+  label: string;
+  items: MenuItem[];
+}
+
+// Navegación agrupada por intención (canon farmapro): el día a día del
+// usuario arriba, la comunidad en medio, el crecimiento después.
+const menuGroups: MenuGroup[] = [
+  {
+    label: 'Tu farmacia',
+    items: [
+      { name: 'Inicio', icon: Home, path: '/dashboard' },
+      { name: 'Formación', icon: BookOpen, path: '/formacion' },
+      { name: 'Retos', icon: Trophy, path: '/retos' },
+      { name: 'La Rebotica', icon: Archive, path: '/rebotica' },
+    ],
+  },
+  {
+    label: 'Comunidad',
+    items: [
+      { name: 'Foro', icon: MessageSquare, path: '/comunidad' },
+      { name: 'Eventos', icon: Calendar, path: '/eventos' },
+    ],
+  },
+  {
+    label: 'Crecer',
+    items: [
+      { name: 'Recursos', icon: FileText, path: '/recursos' },
+      { name: 'IAFarma', icon: Bot, path: '/asistente-creativo' },
+      { name: 'Empleo', icon: Briefcase, path: '/empleo' },
+      { name: 'Farmacias', icon: Building, path: '/farmacias' },
+      { name: 'Promociones', icon: Tag, path: '/promociones' },
+    ],
+  },
 ];
 
 export const SidebarNavigation = () => {
@@ -46,6 +76,7 @@ export const SidebarNavigation = () => {
   const isMobile = useIsMobile();
   const { isEmpleoVisible, isFarmaciasVisible } = useSectionVisibility();
   const { isAdmin } = useAuth();
+  const { isTeamOwner, loading: teamLoading } = useTeamManagement();
 
   const handleNavClick = () => {
     if (isMobile) {
@@ -53,65 +84,61 @@ export const SidebarNavigation = () => {
     }
   };
 
-  // Filter menu items based on visibility settings
-  const getVisibleMenuItems = () => {
-    return menuItems.filter(item => {
-      // Always show all items to admins
-      if (isAdmin) return true;
-      
-      // Filter based on visibility settings for regular users
-      if (item.path === '/empleo' && !isEmpleoVisible()) return false;
-      if (item.path === '/farmacias' && !isFarmaciasVisible()) return false;
-      
-      return true;
-    });
+  const isItemVisible = (item: MenuItem) => {
+    if (isAdmin) return true;
+    if (item.path === '/empleo' && !isEmpleoVisible()) return false;
+    if (item.path === '/farmacias' && !isFarmaciasVisible()) return false;
+    return true;
+  };
+
+  const getVisibleGroups = (): MenuGroup[] => {
+    return menuGroups
+      .map((group) => {
+        let items = group.items.filter(isItemVisible);
+        if (group.label === 'Tu farmacia' && isTeamOwner && !teamLoading) {
+          items = [...items, { name: 'Mi farmacia', icon: Store, path: '/mi-farmacia' }];
+        }
+        return { ...group, items };
+      })
+      .filter((group) => group.items.length > 0);
   };
 
   return (
-    <SidebarGroup>
-      <SidebarGroupContent>
-        <SidebarMenu className="space-y-2 lg:space-y-7">
-          {getVisibleMenuItems().map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton asChild>
-                   <Link
-                     to={item.path}
-                     onClick={handleNavClick}
-                     className={`group relative flex items-center px-4 py-3 lg:py-4 text-sm lg:text-base font-medium rounded-xl transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${
-                       isActive
-                         ? 'bg-sidebar-accent text-brand-dark shadow-sm translate-x-1'
-                         : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground'
-                     }`}
-                   >
-                    {/* Indicador de estado activo */}
-                    {isActive && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-brand rounded-r-full"></div>
-                    )}
-
-                    {/* Icono */}
-                    <div className="relative p-2 rounded-lg mr-4 lg:mr-5 transition-transform group-hover:scale-110">
-                      <item.icon
-                        className={`h-4 w-4 ${isActive ? 'text-brand-dark' : 'text-muted-foreground'}`}
-                      />
-                    </div>
-
-                    <span className="flex-1 font-semibold tracking-wide">{item.name}</span>
-                    
-                    {/* Flecha indicadora */}
-                    <ChevronRight
-                      className={`h-4 w-4 transition-all duration-300 ${
-                        isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-70 group-hover:translate-x-0'
-                      }`}
-                    />
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <>
+      {getVisibleGroups().map((group) => (
+        <SidebarGroup key={group.label}>
+          <SidebarGroupContent>
+            <p className="px-4 pb-1.5 pt-3 text-[10.5px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+              {group.label}
+            </p>
+            <SidebarMenu className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton asChild>
+                      <Link
+                        to={item.path}
+                        onClick={handleNavClick}
+                        className={`flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ${
+                          isActive
+                            ? 'bg-sidebar-accent text-brand-dark'
+                            : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground'
+                        }`}
+                      >
+                        <item.icon
+                          className={`h-[17px] w-[17px] flex-none ${isActive ? 'text-brand-dark' : 'text-muted-foreground'}`}
+                        />
+                        <span className="flex-1 truncate">{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      ))}
+    </>
   );
 };
