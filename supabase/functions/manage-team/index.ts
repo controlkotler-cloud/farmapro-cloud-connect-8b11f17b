@@ -118,7 +118,6 @@ serve(async (req) => {
         // First validate the invitation before processing
         const { data: validationResult, error: validationError } = await supabaseClient
           .rpc('validate_team_invitation', {
-            team_id_param: teamId,
             invitation_token_param: invitationToken,
             user_email_param: user.email
           });
