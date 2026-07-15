@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, type MotionProps } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { Cajonera } from '@/components/rebotica/Cajonera';
 import {
   REBOTICA_NEXT_OPENING,
@@ -181,7 +182,7 @@ export default function Rebotica() {
     storeReboticaContext({ cajon: drawer });
   };
 
-  const handleOpen = () => {
+  const handleOpen = async () => {
     if (!selected) {
       scrollToId('cajonera');
       return;
@@ -197,19 +198,33 @@ export default function Rebotica() {
       return;
     }
 
-    if (!REBOTICA_OPEN_REWARD_ENABLED) {
-      // TODO (S30): sustituir por la llamada real:
-      // const { data, error } = await supabase.functions.invoke('open-reward', { body: { cajon: selected } });
-      setOpening(true);
-      window.setTimeout(() => {
-        setOpening(false);
-        toast({
-          title: 'Tu cajón está reservado',
-          description:
-            'Estamos terminando de conectar los premios de la Rebotica. En cuanto esté listo, tu cajón se abrirá solo con lo que te toque.',
-        });
-      }, 900);
+    if (!REBOTICA_OPEN_REWARD_ENABLED) return;
+
+    setOpening(true);
+    // El cajón elegido en la cajonera es solo estético: el sorteo real (y a
+    // quién le toca premio vs. participación) se decide en el servidor.
+    const { data, error } = await supabase.functions.invoke('open-reward', { body: {} });
+    setOpening(false);
+
+    if (error || data?.error) {
+      toast({
+        title: 'No se ha podido abrir el cajón',
+        description: data?.error ?? 'Inténtalo de nuevo en unos segundos.',
+        variant: 'destructive',
+      });
       return;
+    }
+
+    if (data.reward_type === 'premio' && data.prize) {
+      toast({
+        title: data.already ? 'Ya tenías este premio' : `¡Premio! ${data.prize.titulo}`,
+        description: data.prize.descripcion ?? 'Revisa tu perfil para canjearlo.',
+      });
+    } else {
+      toast({
+        title: data.already ? 'Ya has abierto tu cajón de esta quincena' : '¡Participación conseguida!',
+        description: data.message ?? 'Le has dado a tu farmacia una participación más para El Baúl y El Gordo.',
+      });
     }
   };
 

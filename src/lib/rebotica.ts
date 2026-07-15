@@ -4,13 +4,10 @@
 // =====================================================================
 
 /**
- * TODO (S30, backend): activar cuando exista la edge function `open-reward`
- * (sorteo ponderado server-side, decremento atómico de stock, idempotencia).
- * Mientras esté en false, "abrir cajón" muestra un mensaje honesto de
- * "estamos conectando los premios" en vez de simular un premio falso
- * (doctrina spotsTaken: nada demostrablemente falso).
+ * `open-reward` ya existe (sorteo ponderado server-side, decremento atómico
+ * de stock, idempotencia por UNIQUE(user_id,campaign_id)) — activado 16-07.
  */
-export const REBOTICA_OPEN_REWARD_ENABLED = false;
+export const REBOTICA_OPEN_REWARD_ENABLED = true;
 
 /** Nº de cajones de la cajonera (spec §2.3 del plan maestro). */
 export const REBOTICA_DRAWER_COUNT = 9;
