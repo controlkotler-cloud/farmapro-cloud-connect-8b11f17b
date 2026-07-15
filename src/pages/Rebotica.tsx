@@ -264,7 +264,7 @@ export default function Rebotica() {
                 plan={plan}
                 billing="monthly"
                 launchActive={launch.active}
-                onReserve={() => navigate('/precios')}
+                onSubscribe={() => navigate('/precios')}
               />
             ))}
           </div>

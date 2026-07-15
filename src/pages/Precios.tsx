@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Check, ImageIcon, Sparkles, Flame } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Check, ImageIcon, Sparkles, Flame, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
+import { supabase } from "@/integrations/supabase/client";
 import {
   PLANS,
   LAUNCH,
@@ -14,6 +16,7 @@ import {
   IMAGE_ADDONS,
   FREE_LIMITS,
   type Plan,
+  type PlanId,
 } from "@/lib/plans";
 
 export type BillingCycle = "monthly" | "yearly";
@@ -28,8 +31,12 @@ function formatPrice(value: number): string {
 
 export default function Precios() {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
   const [billing, setBilling] = useState<BillingCycle>("monthly");
+  // Plan cuyo checkout está en curso (deshabilita su botón e ignora dobles clics).
+  const [checkoutLoading, setCheckoutLoading] = useState<PlanId | null>(null);
   // Estado del lanzamiento: decide si rige el precio de lanzamiento o el normal,
   // y alimenta el aviso de urgencia (plazas restantes + cuenta atrás).
   const launch = getLaunchStatus();
@@ -41,12 +48,31 @@ export default function Precios() {
     Math.round(((LAUNCH.spots - launch.spotsLeft) / LAUNCH.spots) * 100),
   );
 
-  const handleReserve = () => {
-    toast({
-      title: "Pronto podrás suscribirte",
-      description:
-        "Estamos activando el pago. Te avisaremos en cuanto tu plaza esté lista.",
+  const handleSubscribe = async (planId: PlanId) => {
+    if (planId === "gratis") return;
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    setCheckoutLoading(planId);
+    const { data, error } = await supabase.functions.invoke("create-checkout", {
+      body: { plan: planId, cycle: billing },
     });
+    setCheckoutLoading(null);
+
+    if (error || !data?.url) {
+      toast({
+        title: "No se ha podido iniciar el pago",
+        description:
+          "Inténtalo de nuevo en unos segundos. Si persiste, escríbenos a soporte@farmapro.es.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    window.location.href = data.url;
   };
 
   return (
@@ -153,7 +179,8 @@ export default function Precios() {
               plan={plan}
               billing={billing}
               launchActive={launch.active}
-              onReserve={handleReserve}
+              onSubscribe={handleSubscribe}
+              loading={checkoutLoading === plan.id}
               hideCta={showTeamMemberBanner}
             />
           ))}
@@ -221,13 +248,15 @@ export interface PlanCardProps {
   billing: BillingCycle;
   /** Si el lanzamiento sigue activo, se muestra el precio de lanzamiento; si no, el normal. */
   launchActive: boolean;
-  onReserve: () => void;
+  onSubscribe: (planId: PlanId) => void;
+  /** Checkout en curso para este plan concreto: deshabilita el botón y muestra spinner. */
+  loading?: boolean;
   /** Oculta el botón de compra (quien ya tiene acceso completo vía plan Equipo de su farmacia). */
   hideCta?: boolean;
 }
 
 /** Exportada para reutilizarla tal cual en la landing de la Rebotica (mismos precios, cero duplicación). */
-export function PlanCard({ plan, billing, launchActive, onReserve, hideCta }: PlanCardProps) {
+export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hideCta }: PlanCardProps) {
   const isFree = plan.id === "gratis";
   const isHighlighted = Boolean(plan.highlight);
   const period = billing === "yearly" ? "/año" : "/mes";
@@ -314,9 +343,10 @@ export function PlanCard({ plan, billing, launchActive, onReserve, hideCta }: Pl
               <Button
                 className="w-full"
                 variant={isHighlighted ? "default" : "outline"}
-                onClick={onReserve}
+                onClick={() => onSubscribe(plan.id)}
+                disabled={loading}
               >
-                {plan.cta}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : plan.cta}
               </Button>
             )}
           </div>
