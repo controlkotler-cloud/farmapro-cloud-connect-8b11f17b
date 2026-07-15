@@ -145,11 +145,11 @@ export const Formacion = () => {
     >
       {/* Cabecera */}
       <motion.div
-        className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-8 shadow-lg ring-1 ring-blue-200"
+        className="bg-brand-soft rounded-xl p-8 shadow-lg ring-1 ring-brand/20"
         variants={itemVariants}
       >
         <div className="relative">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-blue-400 to-blue-600 rounded-r-full shadow-lg"></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-brand rounded-r-full shadow-lg"></div>
           <div className="ml-6">
             <FormacionHeader />
           </div>
@@ -159,7 +159,7 @@ export const Formacion = () => {
       {/* Buscador */}
       <motion.div variants={itemVariants}>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             value={search}
@@ -184,7 +184,7 @@ export const Formacion = () => {
       {/* Filtros: nivel, acceso y orden */}
       <motion.div variants={itemVariants}>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <SlidersHorizontal className="h-4 w-4" />
             <span className="font-medium">Filtros</span>
           </div>
@@ -225,7 +225,7 @@ export const Formacion = () => {
             </Select>
 
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-gray-500">
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
                 <X className="h-4 w-4 mr-1" />
                 Quitar filtros
               </Button>
@@ -238,12 +238,12 @@ export const Formacion = () => {
       {showFeatured && (
         <motion.div variants={itemVariants} className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand">
               <Sparkles className="h-5 w-5 text-white" strokeWidth={1.75} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 leading-tight">Empieza por aquí</h2>
-              <p className="text-xs text-gray-500">Cursos recomendados para arrancar</p>
+              <h2 className="text-lg font-bold text-foreground leading-tight">Empieza por aquí</h2>
+              <p className="text-xs text-muted-foreground">Cursos recomendados para arrancar</p>
             </div>
           </div>
           <CourseGrid
@@ -258,12 +258,12 @@ export const Formacion = () => {
       {/* Resultados */}
       <motion.div variants={itemVariants}>
         {sortedCourses.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-white py-16 text-center">
-            <Search className="mx-auto h-8 w-8 text-gray-300" />
-            <h3 className="mt-4 text-base font-semibold text-gray-900">
+          <div className="rounded-xl border border-dashed border-border bg-white py-16 text-center">
+            <Search className="mx-auto h-8 w-8 text-muted-foreground" />
+            <h3 className="mt-4 text-base font-semibold text-foreground">
               No encontramos cursos con estos filtros
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               Prueba con otra categoría o nivel, o quita los filtros para ver todo el catálogo.
             </p>
             {hasActiveFilters && (

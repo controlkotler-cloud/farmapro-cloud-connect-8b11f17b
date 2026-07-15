@@ -22,7 +22,8 @@ import {
 
 export interface ResourceStyle {
   label: string;
-  gradient: string; // clases para bg-gradient-to-r
+  bg: string; // fondo -soft del token de marca
+  text: string; // texto en el tono DEFAULT del mismo token
   Icon: LucideIcon;
 }
 
@@ -37,14 +38,18 @@ export const RESOURCE_CATEGORIES = [
   'otros',
 ] as const;
 
+// Paleta reducida a los tokens de marca (miel/terracota/salvia/ciruela + brand).
+// Con 6 categorías reales + 'otros' y solo 5 tokens disponibles, 'impulso' reutiliza
+// terracota (ya usado por 'ventas'): ambas categorías rara vez coinciden en el mismo
+// filtro visible, así que el choque es mínimo. 'otros' queda neutro (muted), sin acento.
 const STYLES: Record<string, ResourceStyle> = {
-  ventas: { label: 'Ventas', gradient: 'from-fuchsia-500 to-purple-600', Icon: TrendingUp },
-  marketing: { label: 'Marketing', gradient: 'from-sky-500 to-blue-600', Icon: Megaphone },
-  gestion: { label: 'Gestión', gradient: 'from-indigo-500 to-violet-600', Icon: Briefcase },
-  liderazgo: { label: 'Liderazgo', gradient: 'from-amber-500 to-orange-600', Icon: Users },
-  atencion: { label: 'Atención', gradient: 'from-rose-500 to-pink-600', Icon: HeartHandshake },
-  impulso: { label: 'Impulso', gradient: 'from-lime-500 to-neutral-900', Icon: Sparkles },
-  otros: { label: 'Recursos', gradient: 'from-slate-500 to-slate-700', Icon: FileText },
+  ventas: { label: 'Ventas', bg: 'bg-terracota-soft', text: 'text-terracota', Icon: TrendingUp },
+  marketing: { label: 'Marketing', bg: 'bg-miel-soft', text: 'text-miel', Icon: Megaphone },
+  gestion: { label: 'Gestión', bg: 'bg-salvia-soft', text: 'text-salvia', Icon: Briefcase },
+  liderazgo: { label: 'Liderazgo', bg: 'bg-ciruela-soft', text: 'text-ciruela', Icon: Users },
+  atencion: { label: 'Atención', bg: 'bg-brand-soft', text: 'text-brand-dark', Icon: HeartHandshake },
+  impulso: { label: 'Impulso', bg: 'bg-terracota-soft', text: 'text-terracota', Icon: Sparkles },
+  otros: { label: 'Recursos', bg: 'bg-muted', text: 'text-muted-foreground', Icon: FileText },
 };
 
 export const getResourceStyle = (category?: string | null): ResourceStyle =>

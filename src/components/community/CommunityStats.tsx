@@ -22,26 +22,22 @@ export const CommunityStats = ({
     {
       title: "Discusiones Activas",
       value: totalThreads,
-      icon: MessageSquare,
-      color: "from-blue-500 to-blue-600"
+      icon: MessageSquare
     },
     {
       title: "Respuestas Totales",
       value: totalReplies,
-      icon: MessageCircle,
-      color: "from-green-500 to-green-600"
+      icon: MessageCircle
     },
     {
       title: "Tus Contribuciones",
       value: userForumPosts,
-      icon: Users,
-      color: "from-purple-500 to-purple-600"
+      icon: Users
     },
     {
       title: "Tu Progreso",
       value: `Nivel ${userLevel}`,
-      icon: TrendingUp,
-      color: "from-orange-500 to-orange-600"
+      icon: TrendingUp
     }
   ];
 
@@ -63,19 +59,19 @@ export const CommunityStats = ({
           <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-700">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
-                <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.color} shadow-lg`}>
-                  <stat.icon className="h-4 w-4 text-white" />
+                <div className="p-2 rounded-lg bg-terracota shadow-lg">
+                  <stat.icon className="h-4 w-4 text-primary-foreground" />
                 </div>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-gray-900 mb-1">
+              <div className="text-2xl font-bold text-foreground mb-1">
                 {stat.value}
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {stat.title === "Tu Progreso" ? `${userPoints} puntos totales` : "Participación activa"}
               </p>
             </CardContent>

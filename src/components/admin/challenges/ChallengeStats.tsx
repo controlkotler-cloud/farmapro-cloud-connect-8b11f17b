@@ -197,7 +197,7 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
                     <span className="text-muted-foreground">{getChallengeTypeIcon(typeStat.name as ChallengeType)}</span>
                     <span className="font-medium">{getChallengeTypeLabel(typeStat.name as ChallengeType)}</span>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     {typeStat.completions}/{typeStat.attempts} ({Math.round(typeStat.completionRate)}%)
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
               </div>
             ))}
             {typeStatsArray.length === 0 && (
-              <p className="text-center text-gray-500 py-4">No hay datos de rendimiento disponibles</p>
+              <p className="text-center text-muted-foreground py-4">No hay datos de rendimiento disponibles</p>
             )}
           </div>
         </CardContent>
@@ -225,8 +225,8 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
               <div key={completion.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
                   <p className="font-medium">{completion.profiles?.full_name || 'Usuario desconocido'}</p>
-                  <p className="text-sm text-gray-600">{completion.challenges?.name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-muted-foreground">{completion.challenges?.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {new Date(completion.completed_at!).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
@@ -236,13 +236,13 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
                     })}
                   </p>
                 </div>
-                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                <Badge className="bg-miel-soft text-foreground">
                   +{completion.points_earned} pts
                 </Badge>
               </div>
             ))}
             {recentCompletions.length === 0 && (
-              <p className="text-center text-gray-500 py-8">No hay completaciones recientes</p>
+              <p className="text-center text-muted-foreground py-8">No hay completaciones recientes</p>
             )}
           </div>
         </CardContent>

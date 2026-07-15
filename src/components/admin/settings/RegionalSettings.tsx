@@ -64,7 +64,7 @@ export const RegionalSettings = ({ config, onSave }: RegionalSettingsProps) => {
       <SettingsSection
         title="Idioma y Localización"
         description="Configurar idiomas, zona horaria y formatos"
-        icon={<Globe className="h-5 w-5 text-blue-600" />}
+        icon={<Globe className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -142,7 +142,7 @@ export const RegionalSettings = ({ config, onSave }: RegionalSettingsProps) => {
       <SettingsSection
         title="Configuración Legal"
         description="Enlaces a políticas, términos y avisos legales"
-        icon={<Scale className="h-5 w-5 text-blue-600" />}
+        icon={<Scale className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="space-y-4">
           <div>

@@ -108,15 +108,15 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className={`relative ${completed ? 'border-green-500 bg-green-50' : 'hover:shadow-lg'} transition-all`}>
+      <Card className={`relative ${completed ? 'border-success bg-success/10' : 'hover:shadow-lg'} transition-all`}>
         {completed && (
           <div className="absolute top-2 right-2">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+            <CheckCircle className="h-6 w-6 text-success" />
           </div>
         )}
         <CardHeader>
           <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${completed ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+            <div className={`p-2 rounded-lg ${completed ? 'bg-success/10 text-success' : 'bg-miel-soft text-miel'}`}>
               {getChallengeIcon(challenge.type)}
             </div>
             <div>
@@ -126,7 +126,7 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
               </CardTitle>
               <div className="flex items-center space-x-2 mt-1">
                 <Badge variant="outline">{getChallengeTypeLabel(challenge.type)}</Badge>
-                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                <Badge className="bg-miel-soft text-foreground">
                   {challenge.points_reward} pts
                 </Badge>
               </div>
@@ -149,7 +149,7 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
                 Completado
               </Button>
             ) : (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 {getProgressMessage()}
               </div>
             )}

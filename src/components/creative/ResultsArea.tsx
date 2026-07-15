@@ -44,7 +44,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
   const renderContent = (content: string) => {
     if (contentType === 'carousel') return renderCarouselContent(content);
     if (contentType === 'reel-script') return renderReelContent(content);
-    return <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{content}</pre>;
+    return <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{content}</pre>;
   };
 
   const renderCarouselContent = (content: string) => {
@@ -52,7 +52,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
     const parts = content.split(slideRegex);
 
     if (parts.length <= 1) {
-      return <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{content}</pre>;
+      return <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{content}</pre>;
     }
 
     const slides: { number: string; content: string }[] = [];
@@ -63,12 +63,12 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
     return (
       <div className="space-y-3">
         {parts[0]?.trim() && (
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700 mb-4">{parts[0].trim()}</pre>
+          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground mb-4">{parts[0].trim()}</pre>
         )}
         {slides.map((slide) => (
-          <div key={`slide-${slide.number}`} className="rounded-lg bg-green-50 ring-1 ring-green-200 p-4">
-            <div className="text-xs font-bold text-green-600 mb-2">SLIDE {slide.number}</div>
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{slide.content}</pre>
+          <div key={`slide-${slide.number}`} className="rounded-lg bg-ciruela-soft ring-1 ring-ciruela/20 p-4">
+            <div className="text-xs font-bold text-ciruela mb-2">SLIDE {slide.number}</div>
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{slide.content}</pre>
           </div>
         ))}
       </div>
@@ -80,13 +80,13 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
     const hasStructure = sections.some(s => content.toUpperCase().includes(s));
 
     if (!hasStructure) {
-      return <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{content}</pre>;
+      return <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{content}</pre>;
     }
 
     const colors: Record<string, string> = {
-      GANCHO: 'bg-amber-50 ring-amber-200 text-amber-700',
-      DESARROLLO: 'bg-blue-50 ring-blue-200 text-blue-700',
-      CIERRE: 'bg-green-50 ring-green-200 text-green-700',
+      GANCHO: 'bg-ciruela-soft ring-ciruela/30 text-ciruela',
+      DESARROLLO: 'bg-muted ring-border text-foreground',
+      CIERRE: 'bg-secondary ring-border text-secondary-foreground',
     };
 
     const regex = /(GANCHO|DESARROLLO|CIERRE)[:\s]*/gi;
@@ -100,12 +100,12 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
     return (
       <div className="space-y-3">
         {parts[0]?.trim() && (
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700 mb-4">{parts[0].trim()}</pre>
+          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground mb-4">{parts[0].trim()}</pre>
         )}
         {result.map((section) => (
-          <div key={section.label} className={`rounded-lg ring-1 p-4 ${colors[section.label] || 'bg-gray-50 ring-gray-200 text-gray-700'}`}>
+          <div key={section.label} className={`rounded-lg ring-1 p-4 ${colors[section.label] || 'bg-muted ring-border text-foreground'}`}>
             <div className="text-xs font-bold mb-2">{section.label}</div>
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{section.text}</pre>
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{section.text}</pre>
           </div>
         ))}
       </div>
@@ -114,17 +114,17 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
 
   if (messages.length === 0 && !isLoading) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center text-center p-8">
-        <Sparkles className="h-12 w-12 text-green-300 mb-4" />
-        <p className="text-gray-400 text-lg font-medium">Tu contenido aparecerá aquí</p>
-        <p className="text-gray-400 text-sm mt-1">Rellena el formulario y pulsa "Generar contenido"</p>
+      <div className="min-h-[500px] rounded-xl border border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center text-center p-8">
+        <Sparkles className="h-12 w-12 text-ciruela/60 mb-4" />
+        <p className="text-muted-foreground text-lg font-medium">Tu contenido aparecerá aquí</p>
+        <p className="text-muted-foreground text-sm mt-1">Rellena el formulario y pulsa "Generar contenido"</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <ScrollArea className="h-[600px] rounded-xl border border-green-100 bg-white p-6">
+      <ScrollArea className="h-[600px] rounded-xl border border-border bg-card p-6">
         <AnimatePresence mode="popLayout">
           {messages.map((message, index) => (
             <motion.div
@@ -135,13 +135,13 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
               className={`mb-4 ${message.role === 'user' ? 'ml-8' : ''}`}
             >
               {message.role === 'user' ? (
-                <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
-                  <span className="text-xs font-semibold text-gray-400 block mb-1">Tu solicitud</span>
+                <div className="rounded-lg bg-secondary p-4 text-sm text-muted-foreground">
+                  <span className="text-xs font-semibold text-muted-foreground block mb-1">Tu solicitud</span>
                   <pre className="whitespace-pre-wrap font-sans">{message.content}</pre>
                 </div>
               ) : (
-                <div className="rounded-xl ring-1 ring-green-100 bg-white p-5 shadow-sm">
-                  <span className="text-xs font-semibold text-green-600 block mb-3">Contenido generado</span>
+                <div className="rounded-xl ring-1 ring-border bg-card p-5 shadow-sm">
+                  <span className="text-xs font-semibold text-ciruela block mb-3">Contenido generado</span>
                   {renderContent(message.content)}
                 </div>
               )}
@@ -150,10 +150,10 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
         </AnimatePresence>
 
         {isLoading && !lastAssistant?.content && (
-          <div className="flex items-center gap-2 text-green-500 p-4">
-            <div className="h-2 w-2 rounded-full bg-green-400 animate-bounce" />
-            <div className="h-2 w-2 rounded-full bg-green-400 animate-bounce [animation-delay:150ms]" />
-            <div className="h-2 w-2 rounded-full bg-green-400 animate-bounce [animation-delay:300ms]" />
+          <div className="flex items-center gap-2 text-ciruela p-4">
+            <div className="h-2 w-2 rounded-full bg-ciruela animate-bounce" />
+            <div className="h-2 w-2 rounded-full bg-ciruela animate-bounce [animation-delay:150ms]" />
+            <div className="h-2 w-2 rounded-full bg-ciruela animate-bounce [animation-delay:300ms]" />
           </div>
         )}
       </ScrollArea>
@@ -163,19 +163,19 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
           <Button
             variant="outline"
             onClick={() => handleCopy(lastAssistant.content)}
-            className="text-green-700 border-green-200 hover:bg-green-50"
+            className="text-ciruela border-ciruela/30 hover:bg-ciruela-soft"
           >
             <Copy className="h-4 w-4 mr-2" />
             Copiar contenido
           </Button>
-          <Button variant="outline" onClick={onRegenerate} className="text-gray-600">
+          <Button variant="outline" onClick={onRegenerate} className="text-muted-foreground">
             <RefreshCw className="h-4 w-4 mr-2" />
             Regenerar
           </Button>
           <Button
             variant="outline"
             onClick={() => setShowAdjust(!showAdjust)}
-            className="text-gray-600"
+            className="text-muted-foreground"
           >
             <MessageSquarePlus className="h-4 w-4 mr-2" />
             Ajustar
@@ -195,7 +195,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
             placeholder="Describe los cambios que quieres..."
             onKeyDown={e => e.key === 'Enter' && handleAdjust()}
           />
-          <Button onClick={handleAdjust} disabled={!adjustInput.trim()} className="bg-green-500 hover:bg-green-600 text-white">
+          <Button onClick={handleAdjust} disabled={!adjustInput.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             Enviar
           </Button>
         </motion.div>

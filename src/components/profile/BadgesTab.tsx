@@ -24,7 +24,7 @@ const ProfileBadgeCard = ({ badge }: { badge: BadgeWithStatus }) => (
   >
     <Card className={`transition-all ${
       badge.earned
-        ? 'ring-2 ring-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50 shadow-md'
+        ? 'ring-2 ring-miel bg-miel-soft shadow-md'
         : 'opacity-50 grayscale-[40%]'
     }`}>
       <CardContent className="p-4 text-center space-y-2">
@@ -96,7 +96,7 @@ const ChallengeHistory = () => {
         <div className="space-y-3">
           {challenges.map(c => (
             <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+              <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{c.challenge?.title || 'Reto'}</p>
                 <p className="text-xs text-muted-foreground">
@@ -121,7 +121,7 @@ export const BadgesTab = () => {
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-yellow-500" />
+              <Award className="h-5 w-5 text-miel" />
               Mis Insignias
               <span className="text-sm font-normal text-muted-foreground">
                 ({earnedCount} de {totalCount})

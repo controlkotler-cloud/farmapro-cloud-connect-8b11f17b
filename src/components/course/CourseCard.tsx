@@ -17,12 +17,13 @@ interface CourseCardProps {
   onEnroll: (courseSlug: string) => void;
 }
 
-// Nivel real del curso (campo difficulty): etiqueta legible + color por nivel.
+// Nivel real del curso (campo difficulty): etiqueta legible + acento único de marca.
+// La dificultad es información semántica: conserva escala (verde → miel → terracota)
 const DIFFICULTY_STYLES: Record<string, { label: string; className: string }> = {
-  principiante: { label: 'Principiante', className: 'bg-green-100 text-green-700' },
-  basico: { label: 'Básico', className: 'bg-green-100 text-green-700' },
-  intermedio: { label: 'Intermedio', className: 'bg-amber-100 text-amber-700' },
-  avanzado: { label: 'Avanzado', className: 'bg-red-100 text-red-700' },
+  principiante: { label: 'Principiante', className: 'bg-brand-soft text-brand-dark' },
+  basico: { label: 'Básico', className: 'bg-brand-soft text-brand-dark' },
+  intermedio: { label: 'Intermedio', className: 'bg-miel-soft text-foreground border border-miel/40' },
+  avanzado: { label: 'Avanzado', className: 'bg-terracota-soft text-terracota' },
 };
 
 const getDifficulty = (difficulty?: string) => {
@@ -30,7 +31,7 @@ const getDifficulty = (difficulty?: string) => {
   return (
     DIFFICULTY_STYLES[key] || {
       label: difficulty ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1) : 'Sin nivel',
-      className: 'bg-gray-100 text-gray-600',
+      className: 'bg-muted text-muted-foreground',
     }
   );
 };
@@ -89,17 +90,17 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
           <CardTitle className="text-xl line-clamp-2">{course.title}</CardTitle>
           <div className="flex flex-col space-y-1 ml-2">
             {course.is_premium ? (
-              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-xs">
+              <Badge className="bg-primary text-primary-foreground text-xs">
                 <Award className="h-3 w-3 mr-1" />
                 Premium
               </Badge>
             ) : (
-              <Badge className="bg-emerald-100 text-emerald-700 text-xs hover:bg-emerald-100">
+              <Badge className="bg-info/15 text-info text-xs hover:bg-info/15">
                 Gratis
               </Badge>
             )}
             {isCompleted && (
-              <Badge className="bg-green-500 text-xs">
+              <Badge className="bg-success/15 text-success text-xs">
                 <Award className="h-3 w-3 mr-1" />
                 Completado
               </Badge>
@@ -112,7 +113,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
         </CardDescription>
 
         {/* Estadísticas del curso */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 mt-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mt-3">
           <div className="flex items-center">
             <Clock className="h-3 w-3 mr-1" />
             {Math.floor(totalDuration / 60)}h {totalDuration % 60}m
@@ -136,17 +137,17 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
         <div className="space-y-2">
           {/* Mostrar algunos módulos destacados */}
           {course.course_modules && course.course_modules.length > 0 && (
-            <div className="text-xs text-gray-600 mb-3">
+            <div className="text-xs text-muted-foreground mb-3">
               <p className="font-medium mb-1">Incluye:</p>
               <ul className="space-y-1">
                 {course.course_modules.slice(0, 2).map((module) => (
                   <li key={module.id} className="flex items-center">
-                    <div className="w-1 h-1 bg-blue-500 rounded-full mr-2" />
+                    <div className="w-1 h-1 bg-brand rounded-full mr-2" />
                     {module.title}
                   </li>
                 ))}
                 {course.course_modules.length > 2 && (
-                  <li className="text-gray-500 italic">
+                  <li className="text-muted-foreground italic">
                     + {course.course_modules.length - 2} módulos más
                   </li>
                 )}
@@ -159,7 +160,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
             showPlanCta ? (
               <Button
                 onClick={() => navigate('/precios')}
-                className="w-full bg-green-500 hover:bg-green-600 text-white"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Lock className="h-4 w-4 mr-2" />
                 Hazte Plus

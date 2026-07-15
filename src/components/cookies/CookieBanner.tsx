@@ -73,7 +73,7 @@ export const CookieBanner = () => {
         <CardContent className="space-y-6">
           {!showDetails ? (
             <>
-              <div className="text-sm text-gray-600 space-y-2">
+              <div className="text-sm text-muted-foreground space-y-2">
                 <p>
                   De acuerdo con la legislación española y europea (GDPR), necesitamos tu consentimiento 
                   para usar cookies no esenciales. Las cookies nos ayudan a:
@@ -108,10 +108,10 @@ export const CookieBanner = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                    <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">Cookies Necesarias</h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         Esenciales para el funcionamiento básico del sitio web.
                       </p>
                     </div>
@@ -124,10 +124,10 @@ export const CookieBanner = () => {
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-start gap-3">
-                    <BarChart3 className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <BarChart3 className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">Cookies de Análisis</h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         Nos ayudan a entender cómo interactúas con el sitio web.
                       </p>
                     </div>
@@ -140,10 +140,10 @@ export const CookieBanner = () => {
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Target className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <Target className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">Cookies de Marketing</h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         Utilizadas para mostrar anuncios relevantes y medir su efectividad.
                       </p>
                     </div>
@@ -156,10 +156,10 @@ export const CookieBanner = () => {
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-start gap-3">
-                    <User className="h-5 w-5 text-orange-600 mt-0.5" />
+                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">Cookies de Preferencias</h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         Guardan tus preferencias y configuraciones personalizadas.
                       </p>
                     </div>
@@ -188,7 +188,7 @@ export const CookieBanner = () => {
             </>
           )}
 
-          <div className="text-xs text-gray-500 pt-2 border-t">
+          <div className="text-xs text-muted-foreground pt-2 border-t">
             <p>
               Para más información sobre nuestro uso de cookies, consulta nuestra{' '}
               <a href="/politica-cookies" className="text-primary hover:underline">

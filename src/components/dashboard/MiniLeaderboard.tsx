@@ -7,9 +7,9 @@ import { Crown, Medal } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const RankIcon = ({ rank }: { rank: number }) => {
-  if (rank === 1) return <Crown className="h-4 w-4 text-yellow-500" />;
-  if (rank === 2) return <Medal className="h-4 w-4 text-gray-400" />;
-  if (rank === 3) return <Medal className="h-4 w-4 text-amber-600" />;
+  if (rank === 1) return <Crown className="h-4 w-4 text-miel" />;
+  if (rank === 2) return <Medal className="h-4 w-4 text-foreground" />;
+  if (rank === 3) return <Medal className="h-4 w-4 text-muted-foreground" />;
   return <span className="text-xs font-bold text-muted-foreground">{rank}</span>;
 };
 
@@ -30,7 +30,7 @@ export const MiniLeaderboard = () => {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Crown className="h-5 w-5 text-yellow-500" />
+            <Crown className="h-5 w-5 text-miel" />
             Top 5 Ranking
           </CardTitle>
         </CardHeader>
@@ -52,7 +52,7 @@ export const MiniLeaderboard = () => {
                   <div
                     key={entry.user_id}
                     className={`flex items-center gap-2 p-2 rounded-lg text-sm ${
-                      entry.isCurrentUser ? 'bg-green-50 ring-1 ring-green-200' : ''
+                      entry.isCurrentUser ? 'bg-miel-soft ring-1 ring-miel/30' : ''
                     }`}
                   >
                     <div className="w-6 flex justify-center"><RankIcon rank={entry.rank} /></div>
@@ -62,7 +62,7 @@ export const MiniLeaderboard = () => {
                     </Avatar>
                     <span className="flex-1 truncate font-medium">
                       {entry.first_name}
-                      {entry.isCurrentUser && <span className="text-green-600 ml-1">(tú)</span>}
+                      {entry.isCurrentUser && <span className="text-miel ml-1">(tú)</span>}
                     </span>
                     <span className="font-bold text-xs">{entry.total_points}</span>
                   </div>
@@ -71,7 +71,7 @@ export const MiniLeaderboard = () => {
 
               {currentUserRank && (
                 <div className="border-t mt-2 pt-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50 ring-1 ring-green-200 text-sm">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-miel-soft ring-1 ring-miel/30 text-sm">
                     <span className="text-xs font-bold w-6 text-center">#{currentUserRank.rank}</span>
                     <span className="flex-1 font-medium">{currentUserRank.first_name} (tú)</span>
                     <span className="font-bold text-xs">{currentUserRank.total_points}</span>

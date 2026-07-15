@@ -51,7 +51,7 @@ export const TechnicalSettings = ({ config, onSave }: TechnicalSettingsProps) =>
       <SettingsSection
         title="Configuración de Archivos"
         description="Límites de subida y tipos permitidos"
-        icon={<FileText className="h-5 w-5 text-blue-600" />}
+        icon={<FileText className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -67,7 +67,7 @@ export const TechnicalSettings = ({ config, onSave }: TechnicalSettingsProps) =>
                 }))
               }
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Actual: {formatFileSize(formData.file_config.max_upload_size)}
             </p>
           </div>
@@ -106,7 +106,7 @@ export const TechnicalSettings = ({ config, onSave }: TechnicalSettingsProps) =>
       <SettingsSection
         title="Configuración de Seguridad"
         description="Políticas de contraseñas y sesiones"
-        icon={<Shield className="h-5 w-5 text-blue-600" />}
+        icon={<Shield className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -161,7 +161,7 @@ export const TechnicalSettings = ({ config, onSave }: TechnicalSettingsProps) =>
       <SettingsSection
         title="Integraciones Externas"
         description="APIs externas, webhooks y servicios de terceros"
-        icon={<Zap className="h-5 w-5 text-blue-600" />}
+        icon={<Zap className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="space-y-4">
           <div>

@@ -6,9 +6,9 @@ import { Crown, Medal, Award } from 'lucide-react';
 import { getLevelInfo } from '@/services/pointsService';
 
 const RankIcon = ({ rank }: { rank: number }) => {
-  if (rank === 1) return <Crown className="h-5 w-5 text-yellow-500" />;
-  if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
-  if (rank === 3) return <Medal className="h-5 w-5 text-amber-600" />;
+  if (rank === 1) return <Crown className="h-5 w-5 text-miel" />;
+  if (rank === 2) return <Medal className="h-5 w-5 text-foreground" />;
+  if (rank === 3) return <Medal className="h-5 w-5 text-muted-foreground" />;
   return <span className="text-sm font-bold text-muted-foreground w-5 text-center">{rank}</span>;
 };
 
@@ -38,7 +38,7 @@ export const LeaderboardSection = () => {
               <div
                 key={entry.user_id}
                 className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                  entry.isCurrentUser ? 'bg-green-50 ring-1 ring-green-200' : 'hover:bg-muted/50'
+                  entry.isCurrentUser ? 'bg-miel-soft ring-1 ring-miel/30' : 'hover:bg-muted/50'
                 }`}
               >
                 <div className="w-8 flex justify-center">
@@ -51,7 +51,7 @@ export const LeaderboardSection = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">
                     {entry.first_name}
-                    {entry.isCurrentUser && <span className="text-green-600 ml-1">(tú)</span>}
+                    {entry.isCurrentUser && <span className="text-miel ml-1">(tú)</span>}
                   </p>
                   <p className="text-xs text-muted-foreground">{getLevelInfo(entry.total_points).icon} {getLevelInfo(entry.total_points).name}</p>
                 </div>
@@ -64,7 +64,7 @@ export const LeaderboardSection = () => {
 
             {currentUserRank && (
               <div className="border-t pt-3 mt-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 ring-1 ring-green-200">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-miel-soft ring-1 ring-miel/30">
                   <div className="w-8 flex justify-center">
                     <span className="text-sm font-bold text-muted-foreground">#{currentUserRank.rank}</span>
                   </div>
@@ -74,7 +74,7 @@ export const LeaderboardSection = () => {
                   </Avatar>
                   <div className="flex-1">
                     <p className="font-medium text-sm">
-                      {currentUserRank.first_name} <span className="text-green-600">(tú)</span>
+                      {currentUserRank.first_name} <span className="text-miel">(tú)</span>
                     </p>
                   </div>
                   <p className="font-bold text-sm">{currentUserRank.total_points} pts</p>

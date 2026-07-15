@@ -50,7 +50,7 @@ export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefa
   return (
     <Dialog open={showDialog} onOpenChange={setShowDialog}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Hilo
         </Button>
@@ -73,20 +73,20 @@ export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefa
           />
           <div className="flex items-center space-x-2">
             <Switch id="thread-show-full-name" checked={showFullName} onCheckedChange={setShowFullName} />
-            <Label htmlFor="thread-show-full-name" className="text-sm text-gray-600 cursor-pointer">
+            <Label htmlFor="thread-show-full-name" className="text-sm text-muted-foreground cursor-pointer">
               {showFullName
                 ? 'Publicar con mi nombre completo'
                 : 'Publicar con iniciales (ej. E.M. Farmacia en tu ciudad)'}
             </Label>
           </div>
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-terracota">
               💰 +100 puntos por crear un hilo
             </div>
             <Button 
               onClick={handleCreateThread} 
               disabled={!newThreadTitle || !newThreadContent || isCreating}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {isCreating ? 'Creando...' : 'Crear Hilo'}
             </Button>

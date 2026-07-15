@@ -307,8 +307,8 @@ const AdminEmpleo = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">No tienes permisos para acceder a esta página.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Acceso Denegado</h2>
+          <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
         </div>
       </div>
     );
@@ -318,8 +318,8 @@ const AdminEmpleo = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Ofertas de Empleo</h1>
-          <p className="text-gray-600">Crear y gestionar ofertas de trabajo</p>
+          <h1 className="text-3xl font-bold text-foreground">Gestión de Ofertas de Empleo</h1>
+          <p className="text-muted-foreground">Crear y gestionar ofertas de trabajo</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -479,15 +479,15 @@ const AdminEmpleo = () => {
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <span className="ml-3">Cargando ofertas...</span>
         </div>
       ) : jobs.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay ofertas creadas</h3>
-            <p className="text-gray-600 mb-4">Aún no se han creado ofertas de empleo en el sistema.</p>
+            <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No hay ofertas creadas</h3>
+            <p className="text-muted-foreground mb-4">Aún no se han creado ofertas de empleo en el sistema.</p>
             <Button onClick={openCreateDialog}>
               <Plus className="h-4 w-4 mr-2" />
               Crear primera oferta
@@ -501,7 +501,7 @@ const AdminEmpleo = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Briefcase className="h-6 w-6 text-blue-600" />
+                    <Briefcase className="h-6 w-6 text-muted-foreground" />
                     <div>
                       <CardTitle className="text-xl">{job.title}</CardTitle>
                       <CardDescription>{job.company_name}</CardDescription>
@@ -530,25 +530,25 @@ const AdminEmpleo = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   {job.location && (
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-2" />
                       {job.location}
                     </div>
                   )}
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4 mr-2" />
                     Creada: {new Date(job.created_at).toLocaleDateString('es-ES')}
                   </div>
                   {job.salary_range && (
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-muted-foreground">
                       <DollarSign className="h-4 w-4 mr-2" />
                       {job.salary_range}
                     </div>
                   )}
                 </div>
-                <p className="text-gray-700 line-clamp-2">{job.description}</p>
+                <p className="text-muted-foreground line-clamp-2">{job.description}</p>
                 {job.expires_at && (
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Expira: {new Date(job.expires_at).toLocaleDateString('es-ES')}
                   </p>
                 )}

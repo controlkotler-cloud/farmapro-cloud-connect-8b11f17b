@@ -83,78 +83,78 @@ const AdminDashboard = () => {
       description: 'Crear, editar y gestionar cursos de formación',
       icon: BookOpen,
       path: '/admin/cursos',
-      color: 'bg-blue-500'
+      color: 'bg-muted'
     },
     {
       title: 'Gestión de Recursos',
       description: 'Subir y organizar recursos descargables',
       icon: FileText,
       path: '/admin/recursos',
-      color: 'bg-green-500'
+      color: 'bg-muted'
     },
     {
       title: 'Gestión de Usuarios',
       description: 'Administrar perfiles y suscripciones',
       icon: Users,
       path: '/admin/usuarios',
-      color: 'bg-purple-500'
+      color: 'bg-muted'
     },
     {
       title: 'Gestión de Eventos',
       description: 'Crear y gestionar eventos y webinars',
       icon: Calendar,
       path: '/admin/eventos',
-      color: 'bg-orange-500'
+      color: 'bg-muted'
     },
     {
       title: 'Ofertas de Empleo',
       description: 'Moderar y gestionar ofertas de trabajo',
       icon: Briefcase,
       path: '/admin/empleo',
-      color: 'bg-red-500'
+      color: 'bg-muted'
     },
     {
       title: 'Farmacias',
       description: 'Gestionar directorio de farmacias',
       icon: Store,
       path: '/admin/farmacias',
-      color: 'bg-indigo-500'
+      color: 'bg-muted'
     },
     {
       title: 'Promociones',
       description: 'Gestionar ofertas y descuentos',
       icon: Megaphone,
       path: '/admin/promociones',
-      color: 'bg-pink-500'
+      color: 'bg-muted'
     },
     {
       title: 'Comunidad',
       description: 'Moderar foros y discusiones',
       icon: MessageSquare,
       path: '/admin/comunidad',
-      color: 'bg-cyan-500'
+      color: 'bg-muted'
     },
     {
       title: 'Retos y Desafíos',
       description: 'Crear y gestionar retos para usuarios',
       icon: Trophy,
       path: '/admin/retos',
-      color: 'bg-yellow-500'
+      color: 'bg-muted'
     },
     {
       title: 'Configuración General',
       description: 'Ajustes del portal y configuraciones',
       icon: Settings,
       path: '/admin/configuracion',
-      color: 'bg-gray-600'
+      color: 'bg-muted'
     }
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
-        <p className="text-gray-600">Gestiona todo el contenido y funcionalidades de farmapro</p>
+        <h1 className="text-3xl font-bold text-foreground">Panel de Administración</h1>
+        <p className="text-muted-foreground">Gestiona todo el contenido y funcionalidades de farmapro</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -163,7 +163,7 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${section.color}`}>
-                  <section.icon className="h-6 w-6 text-white" />
+                  <section.icon className={`h-6 w-6 ${section.color === 'bg-muted' ? 'text-foreground' : 'text-white'}`} />
                 </div>
                 <div>
                   <CardTitle className="text-lg">{section.title}</CardTitle>
@@ -189,13 +189,13 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <BookOpen className="h-8 w-8 text-blue-600" />
+              <BookOpen className="h-8 w-8 text-muted-foreground" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Cursos</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Cursos</p>
                 {statsLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                  <div className="animate-pulse bg-muted h-8 w-12 rounded"></div>
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalCourses || 0}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats?.totalCourses || 0}</p>
                 )}
               </div>
             </div>
@@ -204,13 +204,13 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <FileText className="h-8 w-8 text-green-600" />
+              <FileText className="h-8 w-8 text-muted-foreground" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Recursos</p>
+                <p className="text-sm font-medium text-muted-foreground">Recursos</p>
                 {statsLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                  <div className="animate-pulse bg-muted h-8 w-12 rounded"></div>
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalResources || 0}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats?.totalResources || 0}</p>
                 )}
               </div>
             </div>
@@ -219,13 +219,13 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-purple-600" />
+              <Users className="h-8 w-8 text-muted-foreground" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Usuarios Activos</p>
+                <p className="text-sm font-medium text-muted-foreground">Usuarios Activos</p>
                 {statsLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                  <div className="animate-pulse bg-muted h-8 w-12 rounded"></div>
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stats?.activeUsers || 0}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats?.activeUsers || 0}</p>
                 )}
               </div>
             </div>
@@ -234,13 +234,13 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-orange-600" />
+              <Calendar className="h-8 w-8 text-muted-foreground" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Eventos</p>
+                <p className="text-sm font-medium text-muted-foreground">Eventos</p>
                 {statsLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                  <div className="animate-pulse bg-muted h-8 w-12 rounded"></div>
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalEvents || 0}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats?.totalEvents || 0}</p>
                 )}
               </div>
             </div>

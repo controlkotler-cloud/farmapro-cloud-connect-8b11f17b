@@ -36,7 +36,7 @@ export const ModuleNavigationFooter = ({
   const isLastModule = moduleIndex === totalModules - 1;
 
   return (
-    <div className="border-t bg-gray-50 p-6">
+    <div className="border-t bg-muted p-6">
       <div className="flex justify-between items-center">
         {/* Botón Anterior - Solo si no es el primer módulo */}
         <div className="flex-1">
@@ -60,13 +60,13 @@ export const ModuleNavigationFooter = ({
           {!isCompleted ? (
             <Button 
               onClick={onComplete}
-              className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <CheckCircle className="h-4 w-4" />
               Completar módulo
             </Button>
           ) : (
-            <div className="flex items-center gap-2 text-green-600 font-medium">
+            <div className="flex items-center gap-2 text-brand-dark font-medium">
               <CheckCircle className="h-4 w-4" />
               Módulo completado
             </div>
@@ -88,7 +88,7 @@ export const ModuleNavigationFooter = ({
           ) : isCompleted ? (
             <Button 
               onClick={onFinishCourse}
-              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <Trophy className="h-4 w-4" />
               Finalizar

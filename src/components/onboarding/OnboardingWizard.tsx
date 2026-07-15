@@ -22,7 +22,7 @@ const steps: OnboardingStep[] = [
     subtitle: 'Tu plataforma de formación y herramientas para farmacia',
     text: 'Vamos a enseñarte en 1 minuto todo lo que puedes hacer aquí. ¿Empezamos?',
     icons: <Pill className="h-20 w-20" />,
-    bgClass: 'from-emerald-50 to-emerald-100/50',
+    bgClass: 'from-brand-soft to-secondary',
     cta: 'Empezar tour',
   },
   {
@@ -30,7 +30,7 @@ const steps: OnboardingStep[] = [
     text: 'Desde Instagram y Google hasta gestión financiera y normativa. Cada curso tiene módulos con contenido real, no teoría vacía. Los cursos Premium son exclusivos para titulares.',
     highlight: 'Cursos por niveles · Módulos con contenido real · Con cuestionario al final',
     icons: <GraduationCap className="h-20 w-20" />,
-    bgClass: 'from-emerald-50 to-emerald-100/50',
+    bgClass: 'from-brand-soft to-secondary',
     cta: 'Ver cursos',
   },
   {
@@ -38,7 +38,7 @@ const steps: OnboardingStep[] = [
     text: 'El foro de farmapro es tu espacio para preguntar, compartir experiencias y aprender de otros compañeros. Marketing, gestión, normativa, atención farmacéutica... todo tiene su categoría.',
     highlight: 'Varias categorías · Comparte experiencias · Aprende de otros compañeros',
     icons: <Users className="h-20 w-20" />,
-    bgClass: 'from-emerald-50 to-emerald-100/50',
+    bgClass: 'from-brand-soft to-secondary',
     cta: 'Explorar el foro',
   },
   {
@@ -51,7 +51,7 @@ const steps: OnboardingStep[] = [
         <Sparkles className="h-16 w-16" />
       </div>
     ),
-    bgClass: 'from-emerald-50 to-emerald-100/50',
+    bgClass: 'from-brand-soft to-secondary',
     cta: 'Ver recursos',
   },
   {
@@ -64,7 +64,7 @@ const steps: OnboardingStep[] = [
         <Trophy className="h-16 w-16" />
       </div>
     ),
-    bgClass: 'from-emerald-50 to-green-100/50',
+    bgClass: 'from-brand-soft to-secondary',
     cta: '¡Empezar a explorar!',
   },
 ];

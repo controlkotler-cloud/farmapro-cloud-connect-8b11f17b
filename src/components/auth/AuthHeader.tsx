@@ -19,7 +19,7 @@ export const AuthHeader = ({ isRegistering }: AuthHeaderProps) => {
       <div className="mx-auto mb-6 space-y-3">
         {/* Imagotipo */}
         <div className="flex justify-center">
-          <img src="/lovable-uploads/9312b52a-2ecc-45f4-a83d-1fbfdbd673db.png" alt="farmapro imagotipo" className="w-16 h-16" />
+          <img src="/icono-farmapro.svg" alt="farmapro imagotipo" className="w-16 h-16" />
         </div>
 
         {/* Texto Portal */}
@@ -27,7 +27,7 @@ export const AuthHeader = ({ isRegistering }: AuthHeaderProps) => {
 
         {/* Logotipo */}
         <div className="flex justify-center">
-          <img src="/lovable-uploads/logo_farmapro.svg" alt="farmapro logotipo" className="h-8" />
+          <img src="/logo-farmapro.svg" alt="farmapro logotipo" className="h-8" />
         </div>
       </div>
 

@@ -52,12 +52,12 @@ export const Retos = () => {
       animate="visible"
     >
       {/* Header */}
-      <motion.div 
-        className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl p-8 shadow-lg ring-1 ring-yellow-200"
+      <motion.div
+        className="bg-miel-soft rounded-xl p-8 shadow-lg ring-1 ring-miel/20"
         variants={itemVariants}
       >
         <div className="relative">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-r-full shadow-lg" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-miel rounded-r-full shadow-lg" />
           <div className="ml-6">
             <h1 className="text-3xl font-bold text-foreground">Retos y Desafíos</h1>
             <p className="text-muted-foreground">Completa retos, gana insignias y sube en el ranking</p>
@@ -88,12 +88,12 @@ export const Retos = () => {
           </TabsList>
 
           <TabsContent value="challenges">
-            <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl p-6 shadow-lg ring-1 ring-indigo-200">
+            <div className="bg-miel-soft rounded-xl p-6 shadow-lg ring-1 ring-miel/20">
               <div className="relative mb-6">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-r-full shadow-lg" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-miel rounded-r-full shadow-lg" />
                 <div className="ml-6 flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg">
-                    <Target className="h-6 w-6 text-white" />
+                  <div className="p-2 rounded-lg bg-miel shadow-lg">
+                    <Target className="h-6 w-6 text-primary-foreground" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-foreground">Retos Permanentes</h2>

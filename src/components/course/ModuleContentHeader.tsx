@@ -33,25 +33,25 @@ export const ModuleContentHeader = ({
   };
 
   return (
-    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+    <CardHeader className="bg-brand-soft border-b">
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+          <div className="flex-shrink-0 p-2 bg-brand-soft rounded-lg">
             {getModuleIcon(moduleIndex)}
           </div>
           <div>
             <CardTitle className="text-xl flex items-center gap-2">
               Módulo {moduleIndex + 1}: {module.title}
               {isCompleted && (
-                <CheckCircle className="h-5 w-5 text-green-500" />
+                <CheckCircle className="h-5 w-5 text-success" />
               )}
             </CardTitle>
-            <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
               <Badge variant="outline" className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 {module.duration} min
               </Badge>
-              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="bg-brand-soft text-brand-dark px-2 py-1 rounded-full text-xs font-medium">
                 {moduleIndex + 1} de {totalModules}
               </span>
             </div>

@@ -377,7 +377,7 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
           <Button
             variant="link"
             onClick={() => handlePasswordReset(email)}
-            className="text-gray-600 hover:text-gray-700 p-0 h-auto text-sm"
+            className="text-muted-foreground hover:text-foreground p-0 h-auto text-sm"
           >
             ¿Olvidaste tu contraseña?
           </Button>
@@ -385,13 +385,13 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
       )}
       
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           {isRegistering ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}
         </p>
         <Button
           variant="link"
           onClick={handleToggle}
-          className="text-blue-600 hover:text-blue-700 p-0 h-auto font-medium"
+          className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
         >
           {isRegistering ? 'Iniciar Sesión' : 'Registrarse'}
         </Button>

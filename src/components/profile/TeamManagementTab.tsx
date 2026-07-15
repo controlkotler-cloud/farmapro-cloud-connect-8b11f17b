@@ -26,8 +26,8 @@ export const TeamManagementTab = () => {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-48 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-muted rounded"></div>
+          <div className="h-48 bg-muted rounded"></div>
         </div>
       </div>
     );
@@ -46,7 +46,7 @@ export const TeamManagementTab = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             Para gestionar un equipo, necesitas suscribirte al Plan Team desde la sección de suscripciones.
           </p>
           <Button variant="outline">
@@ -106,7 +106,7 @@ export const TeamManagementTab = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-amber-600" />
+            <Crown className="h-5 w-5 text-miel" />
             {teamSubscription.team_name}
           </CardTitle>
           <CardDescription>
@@ -115,21 +115,21 @@ export const TeamManagementTab = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{stats.activeMembers}</div>
-              <div className="text-sm text-gray-600">Miembros Activos</div>
+            <div className="text-center p-4 bg-success/10 rounded-lg">
+              <div className="text-2xl font-bold text-success">{stats.activeMembers}</div>
+              <div className="text-sm text-muted-foreground">Miembros Activos</div>
             </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">{stats.pendingMembers}</div>
-              <div className="text-sm text-gray-600">Invitaciones Pendientes</div>
+            <div className="text-center p-4 bg-warning/10 rounded-lg">
+              <div className="text-2xl font-bold text-warning">{stats.pendingMembers}</div>
+              <div className="text-sm text-muted-foreground">Invitaciones Pendientes</div>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{stats.availableSlots}</div>
-              <div className="text-sm text-gray-600">Slots Disponibles</div>
+            <div className="text-center p-4 bg-muted rounded-lg">
+              <div className="text-2xl font-bold text-foreground">{stats.availableSlots}</div>
+              <div className="text-sm text-muted-foreground">Slots Disponibles</div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-gray-600">{stats.totalSlots}</div>
-              <div className="text-sm text-gray-600">Total Slots</div>
+            <div className="text-center p-4 bg-muted rounded-lg">
+              <div className="text-2xl font-bold text-foreground">{stats.totalSlots}</div>
+              <div className="text-sm text-muted-foreground">Total Slots</div>
             </div>
           </div>
         </CardContent>
@@ -162,7 +162,7 @@ export const TeamManagementTab = () => {
             </Button>
           </div>
           {stats.availableSlots <= 0 && (
-            <p className="text-sm text-red-600 mt-2">
+            <p className="text-sm text-destructive mt-2">
               No tienes slots disponibles. Contacta con soporte para ampliar tu equipo.
             </p>
           )}
@@ -180,23 +180,23 @@ export const TeamManagementTab = () => {
         <CardContent>
           <div className="space-y-4">
             {teamMembers.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
+              <p className="text-center text-muted-foreground py-8">
                 No hay miembros en el equipo todavía. ¡Invita a tus colegas!
               </p>
             ) : (
               teamMembers.map((member) => (
                 <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
                       {member.status === 'active' ? (
-                        <UserCheck className="h-5 w-5 text-green-600" />
+                        <UserCheck className="h-5 w-5 text-success" />
                       ) : (
-                        <Mail className="h-5 w-5 text-gray-600" />
+                        <Mail className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                     <div>
                       <div className="font-medium">{member.email}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         {member.status === 'active' && member.joined_at
                           ? `Se unió ${new Date(member.joined_at).toLocaleDateString('es-ES')}`
                           : `Invitado ${new Date(member.invited_at).toLocaleDateString('es-ES')}`

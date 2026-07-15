@@ -66,7 +66,7 @@ export const CreativeWorkspace = () => {
                 <Button
                   variant="ghost"
                   onClick={clearChat}
-                  className="w-full mt-4 text-red-500 hover:text-red-600 hover:bg-red-50"
+                  className="w-full mt-4 text-destructive hover:text-destructive hover:bg-destructive/10"
                   size="sm"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />

@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Plus Jakarta Sans", "sans-serif"],
-        display: ["Space Grotesk", "sans-serif"],
+        sans: ["Manrope", "system-ui", "sans-serif"],
+        display: ["Manrope", "system-ui", "sans-serif"],
+        serif: ["Fraunces", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -64,6 +65,27 @@ export default {
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         info: "hsl(var(--info))",
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          dark: "hsl(var(--brand-dark))",
+          soft: "hsl(var(--brand-soft))",
+        },
+        miel: {
+          DEFAULT: "hsl(var(--miel))",
+          soft: "hsl(var(--miel-soft))",
+        },
+        terracota: {
+          DEFAULT: "hsl(var(--terracota))",
+          soft: "hsl(var(--terracota-soft))",
+        },
+        salvia: {
+          DEFAULT: "hsl(var(--salvia))",
+          soft: "hsl(var(--salvia-soft))",
+        },
+        ciruela: {
+          DEFAULT: "hsl(var(--ciruela))",
+          soft: "hsl(var(--ciruela-soft))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

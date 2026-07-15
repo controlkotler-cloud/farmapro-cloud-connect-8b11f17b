@@ -36,8 +36,8 @@ export const SectionVisibilitySettings = ({ config, onSave }: SectionVisibilityS
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600">
-                  <Briefcase className="h-5 w-5 text-white" />
+                <div className="p-2 rounded-lg bg-salvia">
+                  <Briefcase className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div>
                   <Label htmlFor="empleo-visible" className="text-base font-medium">
@@ -50,9 +50,9 @@ export const SectionVisibilitySettings = ({ config, onSave }: SectionVisibilityS
               </div>
               <div className="flex items-center gap-2">
                 {config.empleo_visible ? (
-                  <Eye className="h-4 w-4 text-green-600" />
+                  <Eye className="h-4 w-4 text-success" />
                 ) : (
-                  <EyeOff className="h-4 w-4 text-red-600" />
+                  <EyeOff className="h-4 w-4 text-destructive" />
                 )}
                 <Switch
                   id="empleo-visible"
@@ -64,8 +64,8 @@ export const SectionVisibilitySettings = ({ config, onSave }: SectionVisibilityS
 
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600">
-                  <Building className="h-5 w-5 text-white" />
+                <div className="p-2 rounded-lg bg-salvia">
+                  <Building className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div>
                   <Label htmlFor="farmacias-visible" className="text-base font-medium">
@@ -78,9 +78,9 @@ export const SectionVisibilitySettings = ({ config, onSave }: SectionVisibilityS
               </div>
               <div className="flex items-center gap-2">
                 {config.farmacias_visible ? (
-                  <Eye className="h-4 w-4 text-green-600" />
+                  <Eye className="h-4 w-4 text-success" />
                 ) : (
-                  <EyeOff className="h-4 w-4 text-red-600" />
+                  <EyeOff className="h-4 w-4 text-destructive" />
                 )}
                 <Switch
                   id="farmacias-visible"
@@ -91,8 +91,8 @@ export const SectionVisibilitySettings = ({ config, onSave }: SectionVisibilityS
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
+          <div className="p-4 bg-info/10 border border-info/20 rounded-lg">
+            <p className="text-sm text-foreground">
               <strong>Nota:</strong> Los cambios se aplicarán inmediatamente. Las secciones deshabilitadas no aparecerán en el menú lateral para los usuarios, pero los administradores siempre tendrán acceso completo.
             </p>
           </div>

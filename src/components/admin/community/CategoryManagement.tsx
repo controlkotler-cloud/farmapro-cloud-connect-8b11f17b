@@ -104,7 +104,7 @@ const CategoryManagement = ({
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold">Categorías del Foro</h3>
-          <p className="text-sm text-gray-600">Gestiona las categorías disponibles en el foro</p>
+          <p className="text-sm text-muted-foreground">Gestiona las categorías disponibles en el foro</p>
         </div>
         <Button onClick={() => openCategoryDialog()}>
           <Plus className="h-4 w-4 mr-2" />
@@ -119,18 +119,18 @@ const CategoryManagement = ({
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <h4 className="font-medium text-gray-900">{category.name}</h4>
+                    <h4 className="font-medium text-foreground">{category.name}</h4>
                     {category.is_premium && (
-                      <Badge variant="default" className="bg-yellow-100 text-yellow-800">Premium</Badge>
+                      <Badge variant="default" className="bg-secondary text-secondary-foreground">Premium</Badge>
                     )}
                     <Badge variant="outline">
                       {category._count?.threads || 0} hilos
                     </Badge>
                   </div>
                   {category.description && (
-                    <p className="text-sm text-gray-600 mb-2">{category.description}</p>
+                    <p className="text-sm text-muted-foreground mb-2">{category.description}</p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Creada el {new Date(category.created_at).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
@@ -158,7 +158,7 @@ const CategoryManagement = ({
                         <AlertDialogDescription>
                           Esta acción no se puede deshacer. Se eliminará la categoría "{category.name}".
                           {category._count && category._count.threads > 0 && (
-                            <span className="block mt-2 text-red-600 font-medium">
+                            <span className="block mt-2 text-destructive font-medium">
                               ⚠️ Esta categoría tiene {category._count.threads} hilo(s) asociado(s).
                             </span>
                           )}
@@ -168,7 +168,7 @@ const CategoryManagement = ({
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => onDeleteCategory(category.id)}
-                          className="bg-red-600 hover:bg-red-700"
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                           Eliminar
                         </AlertDialogAction>
@@ -183,9 +183,9 @@ const CategoryManagement = ({
         {categories.length === 0 && (
           <Card>
             <CardContent className="p-8 text-center">
-              <Hash className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No hay categorías</h3>
-              <p className="text-gray-600 mb-4">Crea la primera categoría para organizar los hilos del foro</p>
+              <Hash className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No hay categorías</h3>
+              <p className="text-muted-foreground mb-4">Crea la primera categoría para organizar los hilos del foro</p>
               <Button onClick={() => openCategoryDialog()}>
                 <Plus className="h-4 w-4 mr-2" />
                 Crear Primera Categoría

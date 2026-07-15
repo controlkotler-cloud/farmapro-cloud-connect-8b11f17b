@@ -132,15 +132,15 @@ const Farmacias = () => {
       >
         <FarmaciasHeader />
         
-        <Card className="border-amber-200 bg-amber-50">
+        <Card className="border-warning/30 bg-warning/10">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800">
-              <AlertCircle className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <AlertCircle className="h-5 w-5 text-warning" />
               Sección en Desarrollo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-amber-700">
+            <p className="text-foreground">
               La sección de Farmacias estará disponible próximamente. Estamos preparando el mejor marketplace para la compra y venta de farmacias.
             </p>
           </CardContent>

@@ -38,8 +38,8 @@ export const PromotionCard = ({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-green-100 p-2 rounded-full">
-              <Megaphone className="h-5 w-5 text-green-600" />
+            <div className="bg-muted p-2 rounded-full">
+              <Megaphone className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <CardTitle className="text-lg">{promotion.title}</CardTitle>
@@ -54,22 +54,22 @@ export const PromotionCard = ({
       <CardContent>
         <div className="space-y-3">
           <div>
-            <p className="text-sm font-medium text-gray-700">Tipo de empresa</p>
-            <p className="text-sm text-gray-600">{promotion.company_type}</p>
+            <p className="text-sm font-medium text-muted-foreground">Tipo de empresa</p>
+            <p className="text-sm text-muted-foreground">{promotion.company_type}</p>
           </div>
           {promotion.discount_details && (
             <div>
-              <p className="text-sm font-medium text-gray-700">Descuento</p>
-              <p className="text-sm text-gray-600">{promotion.discount_details}</p>
+              <p className="text-sm font-medium text-muted-foreground">Descuento</p>
+              <p className="text-sm text-muted-foreground">{promotion.discount_details}</p>
             </div>
           )}
           {promotion.valid_until && (
-            <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="h-3 w-3 mr-1" />
               Válida hasta: {new Date(promotion.valid_until).toLocaleDateString()}
             </div>
           )}
-          <p className="text-sm text-gray-700 line-clamp-2">{promotion.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{promotion.description}</p>
           <PromotionActions
             onEdit={() => onEdit(promotion)}
             onToggleStatus={() => onToggleStatus(promotion.id, promotion.is_active)}

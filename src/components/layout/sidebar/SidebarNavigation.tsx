@@ -28,16 +28,16 @@ import { useAuth } from '@/hooks/useAuth';
 
 
 const menuItems = [
-  { name: 'Dashboard', icon: Home, path: '/dashboard', color: 'from-green-500 to-green-600' },
-  { name: 'Formación', icon: BookOpen, path: '/formacion', color: 'from-blue-500 to-blue-600' },
-  { name: 'Recursos', icon: FileText, path: '/recursos', color: 'from-purple-500 to-purple-600' },
-  { name: 'IAFarma', icon: Bot, path: '/asistente-creativo', color: 'from-cyan-400 to-cyan-600' },
-  { name: 'Comunidad', icon: MessageSquare, path: '/comunidad', color: 'from-pink-500 to-pink-600' },
-  { name: 'Retos', icon: Trophy, path: '/retos', color: 'from-yellow-500 to-yellow-600' },
-  { name: 'Empleo', icon: Briefcase, path: '/empleo', color: 'from-indigo-500 to-indigo-600' },
-  { name: 'Farmacias', icon: Building, path: '/farmacias', color: 'from-teal-500 to-teal-600' },
-  { name: 'Eventos', icon: Calendar, path: '/eventos', color: 'from-orange-500 to-orange-600' },
-  { name: 'Promociones', icon: Tag, path: '/promociones', color: 'from-red-500 to-red-600' },
+  { name: 'Dashboard', icon: Home, path: '/dashboard' },
+  { name: 'Formación', icon: BookOpen, path: '/formacion' },
+  { name: 'Recursos', icon: FileText, path: '/recursos' },
+  { name: 'IAFarma', icon: Bot, path: '/asistente-creativo' },
+  { name: 'Comunidad', icon: MessageSquare, path: '/comunidad' },
+  { name: 'Retos', icon: Trophy, path: '/retos' },
+  { name: 'Empleo', icon: Briefcase, path: '/empleo' },
+  { name: 'Farmacias', icon: Building, path: '/farmacias' },
+  { name: 'Eventos', icon: Calendar, path: '/eventos' },
+  { name: 'Promociones', icon: Tag, path: '/promociones' },
 ];
 
 export const SidebarNavigation = () => {
@@ -81,25 +81,22 @@ export const SidebarNavigation = () => {
                      onClick={handleNavClick}
                      className={`group relative flex items-center px-4 py-3 lg:py-4 text-sm lg:text-base font-medium rounded-xl transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${
                        isActive
-                         ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-lg ring-1 ring-blue-200 translate-x-1'
-                         : 'text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:text-gray-800'
+                         ? 'bg-sidebar-accent text-brand-dark shadow-sm translate-x-1'
+                         : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground'
                      }`}
                    >
                     {/* Indicador de estado activo */}
                     {isActive && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-r-full shadow-lg"></div>
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-brand rounded-r-full"></div>
                     )}
-                    
-                    {/* Icono con gradiente */}
-                    <div className={`relative p-2 rounded-lg bg-gradient-to-r ${item.color} shadow-lg mr-4 lg:mr-5 transition-transform group-hover:scale-110`}>
+
+                    {/* Icono */}
+                    <div className="relative p-2 rounded-lg mr-4 lg:mr-5 transition-transform group-hover:scale-110">
                       <item.icon
-                        className="h-4 w-4 text-white"
+                        className={`h-4 w-4 ${isActive ? 'text-brand-dark' : 'text-muted-foreground'}`}
                       />
-                      {isActive && (
-                        <div className="absolute inset-0 rounded-lg bg-white/20 animate-pulse"></div>
-                      )}
                     </div>
-                    
+
                     <span className="flex-1 font-semibold tracking-wide">{item.name}</span>
                     
                     {/* Flecha indicadora */}

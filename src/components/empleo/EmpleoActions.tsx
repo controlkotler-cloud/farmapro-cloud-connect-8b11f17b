@@ -14,21 +14,21 @@ interface EmpleoActionsProps {
 export const EmpleoActions = ({ canPostJobs, isPremium, isAdmin, onCreateJob }: EmpleoActionsProps) => {
   if (canPostJobs) {
     return (
-      <Card className="border-green-200 bg-green-50 shadow-lg">
+      <Card className="border-salvia bg-salvia-soft shadow-lg">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-green-800 font-semibold mb-1">Publica tu oferta de empleo</h3>
-              <p className="text-green-700 text-sm">
-                {isAdmin 
+              <h3 className="text-foreground font-semibold mb-1">Publica tu oferta de empleo</h3>
+              <p className="text-muted-foreground text-sm">
+                {isAdmin
                   ? "Administra y publica ofertas de empleo en la plataforma"
                   : "Encuentra a tu equipo farmacéutico ideal con tu plan premium"
                 }
               </p>
             </div>
-            <Button 
+            <Button
               onClick={onCreateJob}
-              className="bg-green-600 hover:bg-green-700 shadow-lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
             >
               <Plus className="h-4 w-4 mr-2" />
               Publicar Oferta
@@ -40,16 +40,16 @@ export const EmpleoActions = ({ canPostJobs, isPremium, isAdmin, onCreateJob }: 
   }
 
   return (
-    <Card className="border-blue-200 bg-blue-50 shadow-lg">
+    <Card className="border-salvia bg-salvia-soft shadow-lg">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-blue-800 font-semibold mb-1">¿Necesitas personal para tu farmacia?</h3>
-            <p className="text-blue-700 text-sm">
+            <h3 className="text-foreground font-semibold mb-1">¿Necesitas personal para tu farmacia?</h3>
+            <p className="text-muted-foreground text-sm">
               Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo
             </p>
           </div>
-          <Button asChild className="bg-blue-600 hover:bg-blue-700 shadow-lg">
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg">
             <Link to="/precios">
               Ver Planes
             </Link>

@@ -181,7 +181,7 @@ export const ChallengeManagement = ({
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold">Gestión de Retos</h3>
-          <p className="text-sm text-gray-600">Crea y gestiona los retos de la plataforma</p>
+          <p className="text-sm text-muted-foreground">Crea y gestiona los retos de la plataforma</p>
         </div>
         <Button onClick={() => openChallengeDialog()} disabled={creating}>
           <Plus className="h-4 w-4 mr-2" />
@@ -195,11 +195,11 @@ export const ChallengeManagement = ({
             {[...Array(3)].map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="p-6">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-3 bg-muted rounded mb-4"></div>
                   <div className="flex space-x-2">
-                    <div className="h-6 w-16 bg-gray-200 rounded"></div>
-                    <div className="h-6 w-20 bg-gray-200 rounded"></div>
+                    <div className="h-6 w-16 bg-muted rounded"></div>
+                    <div className="h-6 w-20 bg-muted rounded"></div>
                   </div>
                 </CardContent>
               </Card>
@@ -217,7 +217,7 @@ export const ChallengeManagement = ({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
-                          <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                          <div className="p-2 rounded-lg bg-miel-soft text-miel">
                             <IconComponent className="h-5 w-5" />
                           </div>
                           <div>
@@ -226,7 +226,7 @@ export const ChallengeManagement = ({
                             </h4>
                             <div className="flex items-center space-x-2 mt-1">
                               <Badge variant="outline">{typeInfo.label}</Badge>
-                              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                              <Badge className="bg-miel-soft text-foreground">
                                 {challenge.points_reward} pts
                               </Badge>
                               <Badge variant={challenge.is_active ? "default" : "secondary"}>
@@ -235,12 +235,12 @@ export const ChallengeManagement = ({
                             </div>
                           </div>
                         </div>
-                        
+
                         {challenge.description && (
-                          <p className="text-gray-600 mb-3">{challenge.description}</p>
+                          <p className="text-muted-foreground mb-3">{challenge.description}</p>
                         )}
-                        
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+
+                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                           <span>Meta: {challenge.target_count}</span>
                           <span>•</span>
                           <span>Creado: {new Date(challenge.created_at).toLocaleDateString('es-ES')}</span>
@@ -274,7 +274,7 @@ export const ChallengeManagement = ({
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => onDeleteChallenge(challenge.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
                                 Eliminar
                               </AlertDialogAction>
@@ -290,9 +290,9 @@ export const ChallengeManagement = ({
             {challenges.length === 0 && (
               <Card>
                 <CardContent className="p-12 text-center">
-                  <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No hay retos</h3>
-                  <p className="text-gray-600 mb-4">Crea el primer reto para motivar a los usuarios</p>
+                  <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">No hay retos</h3>
+                  <p className="text-muted-foreground mb-4">Crea el primer reto para motivar a los usuarios</p>
                   <Button onClick={() => openChallengeDialog()}>
                     <Plus className="h-4 w-4 mr-2" />
                     Crear Primer Reto

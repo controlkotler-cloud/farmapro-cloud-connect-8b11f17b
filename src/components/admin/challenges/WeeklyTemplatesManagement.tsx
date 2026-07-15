@@ -159,7 +159,7 @@ export const WeeklyTemplatesManagement = () => {
                         <span>{stats.participants}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-success" />
                         <span>{stats.completed}</span>
                       </div>
                       <Badge variant="outline">{stats.rate}%</Badge>

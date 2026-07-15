@@ -38,7 +38,7 @@ export const EngagementWidget = () => {
       const streak = await calculateStreak(profile.id);
       if (streak > 0) {
         result.push({
-          icon: <Flame className="h-4 w-4 text-orange-500" />,
+          icon: <Flame className="h-4 w-4 text-miel" />,
           text: `Racha actual: ${streak} días — ¡No la pierdas!`,
           link: '/retos',
         });
@@ -54,7 +54,7 @@ export const EngagementWidget = () => {
         const pos = allPoints.findIndex(p => p.user_id === profile.id) + 1;
         if (pos > 0) {
           result.push({
-            icon: <Star className="h-4 w-4 text-yellow-500" />,
+            icon: <Star className="h-4 w-4 text-miel" />,
             text: `Estás en el puesto #${pos} del ranking`,
             link: '/retos',
           });

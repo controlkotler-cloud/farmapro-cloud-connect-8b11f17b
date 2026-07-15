@@ -271,12 +271,12 @@ const AdminUsuarios = () => {
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'premium': return 'bg-blue-100 text-blue-800';
-      case 'profesional': return 'bg-purple-100 text-purple-800';
-      case 'estudiante': return 'bg-green-100 text-green-800';
+      case 'admin': return 'bg-info/10 text-info';
+      case 'premium': return 'bg-secondary text-secondary-foreground';
+      case 'profesional': return 'bg-secondary text-secondary-foreground';
+      case 'estudiante': return 'bg-secondary text-secondary-foreground';
       case 'freemium':
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-secondary text-secondary-foreground';
     }
   };
 
@@ -284,15 +284,15 @@ const AdminUsuarios = () => {
     <div className="space-y-6">
       <div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Usuarios</h1>
-          <p className="text-gray-600">Administra perfiles de usuario y suscripciones</p>
+          <h1 className="text-3xl font-bold text-foreground">Gestión de Usuarios</h1>
+          <p className="text-muted-foreground">Administra perfiles de usuario y suscripciones</p>
         </div>
       </div>
 
       {/* Filters and Actions */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Buscar por nombre, email o farmacia..."
             value={searchTerm}
@@ -384,9 +384,9 @@ const AdminUsuarios = () => {
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-muted rounded mb-2"></div>
+                <div className="h-3 bg-muted rounded mb-4"></div>
+                <div className="h-8 bg-muted rounded"></div>
               </CardContent>
             </Card>
           ))}
@@ -398,12 +398,12 @@ const AdminUsuarios = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="bg-blue-100 p-2 rounded-full">
-                      <User className="h-5 w-5 text-blue-600" />
+                    <div className="bg-muted p-2 rounded-full">
+                      <User className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{user.full_name || 'Sin nombre'}</CardTitle>
-                      <div className="flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <Mail className="h-3 w-3 mr-1" />
                         {user.email}
                       </div>
@@ -417,14 +417,14 @@ const AdminUsuarios = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Farmacia</p>
-                    <p className="text-sm text-gray-600">{user.pharmacy_name || 'No especificada'}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Farmacia</p>
+                    <p className="text-sm text-muted-foreground">{user.pharmacy_name || 'No especificada'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Posición</p>
-                    <p className="text-sm text-gray-600">{user.position || 'No especificada'}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Posición</p>
+                    <p className="text-sm text-muted-foreground">{user.position || 'No especificada'}</p>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="h-3 w-3 mr-1" />
                     Registrado: {new Date(user.created_at).toLocaleDateString()}
                   </div>
@@ -461,8 +461,8 @@ const AdminUsuarios = () => {
       {filteredUsers.length === 0 && !loading && (
         <Card>
           <CardContent className="p-12 text-center">
-            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No se encontraron usuarios con los filtros aplicados</p>
+            <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No se encontraron usuarios con los filtros aplicados</p>
           </CardContent>
         </Card>
       )}

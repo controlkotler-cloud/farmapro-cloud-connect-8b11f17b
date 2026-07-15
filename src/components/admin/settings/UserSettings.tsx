@@ -93,13 +93,13 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
       <SettingsSection
         title="Configuración de Registro"
         description="Campos obligatorios y verificación de usuarios"
-        icon={<Users className="h-5 w-5 text-blue-600" />}
+        icon={<Users className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <Label>Verificación de Email</Label>
-              <p className="text-sm text-gray-500">Requerir verificación de email al registrarse</p>
+              <p className="text-sm text-muted-foreground">Requerir verificación de email al registrarse</p>
             </div>
             <Switch
               checked={formData.registration_config?.email_verification ?? false}
@@ -117,7 +117,7 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
           <div className="flex items-center justify-between">
             <div>
               <Label>Moderación Manual</Label>
-              <p className="text-sm text-gray-500">Los registros requieren aprobación manual</p>
+              <p className="text-sm text-muted-foreground">Los registros requieren aprobación manual</p>
             </div>
             <Switch
               checked={formData.registration_config?.manual_moderation ?? false}
@@ -138,11 +138,11 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
       <SettingsSection
         title="Límites de Suscripción"
         description="Configurar límites por tipo de suscripción"
-        icon={<UserCheck className="h-5 w-5 text-blue-600" />}
+        icon={<UserCheck className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <div>
-            <h4 className="font-medium mb-3 text-gray-600">Plan Freemium</h4>
+            <h4 className="font-medium mb-3 text-foreground">Plan Freemium</h4>
             <div className="space-y-3">
               <div>
                 <Label htmlFor="freemium-courses">Cursos máximos</Label>
@@ -188,7 +188,7 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
           </div>
 
           <div>
-            <h4 className="font-medium mb-3 text-green-600">Plan Estudiante</h4>
+            <h4 className="font-medium mb-3 text-foreground">Plan Estudiante</h4>
             <div className="space-y-3">
               <div>
                 <Label htmlFor="estudiante-courses">Cursos máximos</Label>
@@ -234,7 +234,7 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
           </div>
 
           <div>
-            <h4 className="font-medium mb-3 text-blue-600">Plan Profesional</h4>
+            <h4 className="font-medium mb-3 text-foreground">Plan Profesional</h4>
             <div className="space-y-3">
               <div>
                 <Label htmlFor="profesional-courses">Cursos máximos (-1 = ilimitado)</Label>
@@ -280,7 +280,7 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
           </div>
 
           <div>
-            <h4 className="font-medium mb-3 text-yellow-600">Plan Premium</h4>
+            <h4 className="font-medium mb-3 text-foreground">Plan Premium</h4>
             <div className="space-y-3">
               <div>
                 <Label htmlFor="premium-courses">Cursos máximos (-1 = ilimitado)</Label>
@@ -330,7 +330,7 @@ export const UserSettings = ({ config, onSave }: UserSettingsProps) => {
       <SettingsSection
         title="Sistema de Puntos"
         description="Configurar puntos, conversiones y niveles"
-        icon={<Trophy className="h-5 w-5 text-blue-600" />}
+        icon={<Trophy className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>

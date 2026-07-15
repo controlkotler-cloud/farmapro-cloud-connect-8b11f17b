@@ -1,13 +1,17 @@
 
 import { Crown, Sparkles, GraduationCap, Briefcase, Settings } from 'lucide-react';
 
+// Sin acento de sección propio (layout/suscripción core): freemium y estudiante en
+// neutro shadcn, profesional (plan "Más Popular") en brand, premium (nivel superior) en
+// ciruela. admin no es un plan de pago: neutro reforzado (foreground) para distinguirlo
+// sin añadir un tercer acento de color.
 export const planConfig = {
   freemium: {
     name: 'Freemium',
     icon: Sparkles,
-    color: 'from-gray-400 to-gray-600',
-    bgColor: 'bg-gray-100',
-    textColor: 'text-gray-800',
+    color: 'bg-muted-foreground',
+    bgColor: 'bg-muted',
+    textColor: 'text-muted-foreground',
     features: [
       'Acceso a 1 curso',
       'Máximo 2 descargas',
@@ -18,9 +22,9 @@ export const planConfig = {
   estudiante: {
     name: 'Estudiante',
     icon: GraduationCap,
-    color: 'from-green-400 to-blue-500',
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-800',
+    color: 'bg-foreground',
+    bgColor: 'bg-secondary',
+    textColor: 'text-secondary-foreground',
     features: [
       '1 curso al mes',
       '2 descargas al mes',
@@ -32,9 +36,9 @@ export const planConfig = {
   profesional: {
     name: 'Profesional',
     icon: Briefcase,
-    color: 'from-blue-500 to-purple-600',
-    bgColor: 'bg-blue-100',
-    textColor: 'text-blue-800',
+    color: 'bg-primary',
+    bgColor: 'bg-brand-soft',
+    textColor: 'text-brand-dark',
     features: [
       'Acceso completo a formación',
       'Descargas ilimitadas',
@@ -46,9 +50,9 @@ export const planConfig = {
   premium: {
     name: 'Premium',
     icon: Crown,
-    color: 'from-yellow-400 to-orange-500',
-    bgColor: 'bg-yellow-100',
-    textColor: 'text-yellow-800',
+    color: 'bg-ciruela',
+    bgColor: 'bg-ciruela-soft',
+    textColor: 'text-ciruela',
     features: [
       'Todo lo anterior',
       'Promociones exclusivas',
@@ -60,9 +64,9 @@ export const planConfig = {
   admin: {
     name: 'Administrador',
     icon: Settings,
-    color: 'from-red-400 to-red-600',
-    bgColor: 'bg-red-100',
-    textColor: 'text-red-800',
+    color: 'bg-foreground',
+    bgColor: 'bg-secondary',
+    textColor: 'text-foreground',
     features: [
       'Acceso completo al sistema',
       'Panel de administración',

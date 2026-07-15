@@ -23,7 +23,7 @@ const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
     >
       <Card className={`relative overflow-hidden transition-all ${
         badge.earned
-          ? 'ring-2 ring-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50 shadow-lg'
+          ? 'ring-2 ring-miel bg-miel-soft shadow-lg'
           : 'opacity-60 grayscale-[30%]'
       }`}>
         <CardContent className="p-4 text-center space-y-2">
@@ -61,8 +61,8 @@ export const BadgesSection = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-500 shadow-lg">
-            <Award className="h-6 w-6 text-white" />
+          <div className="p-2 rounded-lg bg-miel shadow-lg">
+            <Award className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Mis Insignias</h2>

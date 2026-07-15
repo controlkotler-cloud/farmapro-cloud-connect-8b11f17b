@@ -47,13 +47,13 @@ export const AnalyticsSettings = ({ config, onSave }: AnalyticsSettingsProps) =>
       <SettingsSection
         title="Google Analytics"
         description="Configurar tracking y objetivos"
-        icon={<BarChart3 className="h-5 w-5 text-blue-600" />}
+        icon={<BarChart3 className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <Label>Habilitar Google Analytics</Label>
-              <p className="text-sm text-gray-500">Activar tracking de Google Analytics</p>
+              <p className="text-sm text-muted-foreground">Activar tracking de Google Analytics</p>
             </div>
             <Switch
               checked={formData.google_analytics.enabled}
@@ -85,7 +85,7 @@ export const AnalyticsSettings = ({ config, onSave }: AnalyticsSettingsProps) =>
       <SettingsSection
         title="Reportes Automáticos"
         description="Configurar frecuencia, destinatarios y métricas"
-        icon={<FileBarChart className="h-5 w-5 text-blue-600" />}
+        icon={<FileBarChart className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="space-y-4">
           <div>
@@ -145,7 +145,7 @@ export const AnalyticsSettings = ({ config, onSave }: AnalyticsSettingsProps) =>
                         reports_config: { ...prev.reports_config, metrics: updatedMetrics }
                       }));
                     }}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                   />
                   <Label htmlFor={metric} className="text-sm capitalize">
                     {metric.replace('_', ' ')}

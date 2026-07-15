@@ -25,36 +25,36 @@ export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
   const toNext = getPointsToNextLevel(points);
 
   return (
-    <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+    <Card className="bg-miel-soft border-miel/20">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            <div className="p-3 bg-indigo-100 rounded-lg mr-4">
-              <TrendingUp className="h-8 w-8 text-indigo-600" />
+            <div className="p-3 bg-miel-soft rounded-lg mr-4">
+              <TrendingUp className="h-8 w-8 text-miel" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-indigo-900">Progreso de Nivel</h3>
-              <p className="text-indigo-700">Nivel {current.level} · {current.name}</p>
+              <h3 className="text-xl font-bold text-foreground">Progreso de Nivel</h3>
+              <p className="text-muted-foreground">Nivel {current.level} · {current.name}</p>
             </div>
           </div>
           <div className="text-right">
             {next ? (
               <>
-                <p className="text-sm text-indigo-600">Faltan {toNext} puntos</p>
-                <p className="text-lg font-bold text-indigo-900">para Nivel {next.level}</p>
+                <p className="text-sm text-muted-foreground">Faltan {toNext} puntos</p>
+                <p className="text-lg font-bold text-foreground">para Nivel {next.level}</p>
               </>
             ) : (
-              <p className="text-lg font-bold text-indigo-900">¡Nivel máximo!</p>
+              <p className="text-lg font-bold text-foreground">¡Nivel máximo!</p>
             )}
           </div>
         </div>
         <div className="space-y-2">
-          <div className="flex justify-between text-sm text-indigo-700">
+          <div className="flex justify-between text-sm text-muted-foreground">
             <span>Nivel {current.level}</span>
             <span>{next ? `Nivel ${next.level}` : '—'}</span>
           </div>
           <Progress value={progress} className="h-3" />
-          <div className="flex justify-between text-xs text-indigo-600">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>{points} pts actuales</span>
             <span>{next ? `${next.minPoints} pts objetivo` : 'Máximo'}</span>
           </div>

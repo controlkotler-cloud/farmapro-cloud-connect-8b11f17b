@@ -307,7 +307,7 @@ export const QuestionFormDialog: React.FC<QuestionFormDialogProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={() => removeOption(index)}
-                        className="text-red-600"
+                        className="text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

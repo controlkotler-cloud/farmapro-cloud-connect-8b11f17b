@@ -96,8 +96,8 @@ export function SubscriptionPlans({
       {visiblePlans.includes('freemium') && (
         <Card className={`relative overflow-hidden ${currentPlan === 'freemium' ? 'ring-2 ring-primary' : ''}`}>
           <CardHeader className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-muted-foreground flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-background" />
             </div>
             <CardTitle className="text-xl">Freemium</CardTitle>
             <CardDescription>
@@ -110,19 +110,19 @@ export function SubscriptionPlans({
           <CardContent>
             <ul className="space-y-2 mb-6">
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Acceso a 1 curso</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Máximo 2 descargas</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Ver comunidad (solo lectura)</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Retos básicos</span>
               </li>
             </ul>
@@ -141,8 +141,8 @@ export function SubscriptionPlans({
       {visiblePlans.includes('estudiante') && (
         <Card className={`relative overflow-hidden ${currentPlan === 'estudiante' ? 'ring-2 ring-primary' : ''}`}>
           <CardHeader className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-foreground flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-background" />
             </div>
             <CardTitle className="text-xl">Estudiante</CardTitle>
             <CardDescription>
@@ -156,23 +156,23 @@ export function SubscriptionPlans({
           <CardContent>
             <ul className="space-y-2 mb-6">
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">1 curso al mes</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">2 descargas al mes</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Acceso a bolsa de trabajo</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Farmacias en venta</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Verificación de matrícula requerida</span>
               </li>
             </ul>
@@ -194,12 +194,12 @@ export function SubscriptionPlans({
       {/* Professional Plan */}
       {visiblePlans.includes('profesional') && (
         <Card className={`relative overflow-hidden border-primary ${currentPlan === 'profesional' ? 'ring-2 ring-primary' : ''}`}>
-          <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 text-sm font-medium">
+          <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-center py-2 text-sm font-medium">
             Más Popular
           </div>
           <CardHeader className="text-center pt-12">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-              <Briefcase className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary flex items-center justify-center">
+              <Briefcase className="w-6 h-6 text-primary-foreground" />
             </div>
             <CardTitle className="text-xl">Profesional</CardTitle>
             <CardDescription>
@@ -213,23 +213,23 @@ export function SubscriptionPlans({
           <CardContent>
             <ul className="space-y-2 mb-6">
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Acceso completo a formación</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Descargas ilimitadas</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Comunidad completa</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Retos avanzados</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Eventos exclusivos</span>
               </li>
             </ul>
@@ -248,8 +248,8 @@ export function SubscriptionPlans({
       {visiblePlans.includes('premium') && (
         <Card className={`relative overflow-hidden ${currentPlan === 'premium' ? 'ring-2 ring-primary' : ''}`}>
           <CardHeader className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center">
-              <Crown className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-ciruela flex items-center justify-center">
+              <Crown className="w-6 h-6 text-primary-foreground" />
             </div>
             <CardTitle className="text-xl">Premium</CardTitle>
             <CardDescription>
@@ -263,23 +263,23 @@ export function SubscriptionPlans({
           <CardContent>
             <ul className="space-y-2 mb-6">
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Todo lo anterior</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Promociones exclusivas</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Publicar ofertas de empleo</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Formaciones premium</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-primary" />
                 <span className="text-sm">Soporte prioritario</span>
               </li>
             </ul>

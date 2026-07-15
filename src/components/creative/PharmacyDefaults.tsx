@@ -23,18 +23,18 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
   };
 
   return (
-    <section className="rounded-xl bg-green-50/60 ring-1 ring-green-100 p-5">
+    <section className="rounded-xl bg-ciruela-soft/60 ring-1 ring-ciruela/20 p-5">
       <div className="flex items-center gap-2 mb-1">
-        <Store className="h-4 w-4 text-green-600" />
-        <h2 className="text-sm font-semibold text-gray-800">Datos de tu farmacia</h2>
+        <Store className="h-4 w-4 text-ciruela" />
+        <h2 className="text-sm font-semibold text-foreground">Datos de tu farmacia</h2>
       </div>
-      <p className="text-xs text-gray-500 mb-4">
+      <p className="text-xs text-muted-foreground mb-4">
         Se rellenan solos en cada contenido. Edítalos cuando quieras: se guardan en este navegador.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Nombre de la farmacia</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Nombre de la farmacia</label>
           <Input
             value={defaults.farmacia}
             onChange={e => onChange('farmacia', e.target.value)}
@@ -42,7 +42,7 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Localidad</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Localidad</label>
           <Input
             value={defaults.localidad}
             onChange={e => onChange('localidad', e.target.value)}
@@ -50,7 +50,7 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Tono de comunicación</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Tono de comunicación</label>
           <Select value={defaults.tono || ''} onValueChange={v => onChange('tono', v)}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar..." />
@@ -70,7 +70,7 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
           variant="ghost"
           size="sm"
           onClick={handleSave}
-          className="text-green-700 hover:text-green-800 hover:bg-green-100"
+          className="text-ciruela hover:text-ciruela hover:bg-ciruela-soft"
         >
           <Check className="h-3.5 w-3.5 mr-1.5" />
           Guardar como predeterminado

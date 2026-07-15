@@ -12,7 +12,7 @@ export const SubscriptionPrompt = ({ canCreateListing }: SubscriptionPromptProps
   }
 
   return (
-    <Card className="border-green-200 bg-green-50">
+    <Card className="border-border bg-muted">
       <CardContent className="p-6">
         <ContactForm />
       </CardContent>

@@ -19,15 +19,17 @@ export interface CourseCover {
 // Portada por categoría: color + icono + etiqueta, para que cada curso se
 // distinga de un vistazo aunque no tenga foto. Si el curso tiene thumbnail_url
 // / featured_image_url, esa imagen tiene prioridad sobre esta portada.
+// Color plano (sin gradiente) tomado de la paleta de marca; la paleta "botica"
+// (miel/terracota/salvia/ciruela) está reservada para diferenciar categorías.
 const COVERS: Record<string, CourseCover> = {
-  ventas: { gradient: 'from-fuchsia-500 to-purple-600', label: 'Ventas', Icon: TrendingUp },
-  marketing: { gradient: 'from-sky-500 to-blue-600', label: 'Marketing', Icon: Megaphone },
-  gestion: { gradient: 'from-indigo-500 to-violet-600', label: 'Gestión', Icon: Briefcase },
-  liderazgo: { gradient: 'from-amber-500 to-orange-600', label: 'Liderazgo', Icon: Users },
-  atencion: { gradient: 'from-rose-500 to-pink-600', label: 'Atención', Icon: HeartHandshake },
-  atencion_cliente: { gradient: 'from-cyan-500 to-teal-600', label: 'Atención al cliente', Icon: Headset },
-  tecnologia: { gradient: 'from-violet-500 to-fuchsia-600', label: 'Tecnología', Icon: Monitor },
-  otros: { gradient: 'from-slate-500 to-slate-700', label: 'Formación', Icon: Sparkles },
+  ventas: { gradient: 'bg-brand', label: 'Ventas', Icon: TrendingUp },
+  marketing: { gradient: 'bg-terracota', label: 'Marketing', Icon: Megaphone },
+  gestion: { gradient: 'bg-ciruela', label: 'Gestión', Icon: Briefcase },
+  liderazgo: { gradient: 'bg-miel', label: 'Liderazgo', Icon: Users },
+  atencion: { gradient: 'bg-salvia', label: 'Atención', Icon: HeartHandshake },
+  atencion_cliente: { gradient: 'bg-brand-dark', label: 'Atención al cliente', Icon: Headset },
+  tecnologia: { gradient: 'bg-terracota', label: 'Tecnología', Icon: Monitor },
+  otros: { gradient: 'bg-brand-dark', label: 'Formación', Icon: Sparkles },
 };
 
 export const getCourseCover = (category?: string | null): CourseCover =>

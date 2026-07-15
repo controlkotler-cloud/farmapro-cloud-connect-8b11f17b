@@ -38,18 +38,18 @@ export const ResourceCard = ({ resource, index, onDownload }: ResourceCardProps)
     >
       <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-all duration-300 border-0 shadow-md">
         {/* Banda de categoría: color + icono + etiqueta (para distinguir de un vistazo) */}
-        <div className={`bg-gradient-to-r ${style.gradient} px-4 py-2.5 flex items-center justify-between`}>
-          <div className="flex items-center gap-2 text-white">
+        <div className={`${style.bg} px-4 py-2.5 flex items-center justify-between`}>
+          <div className={`flex items-center gap-2 ${style.text}`}>
             <style.Icon className="h-4 w-4" />
             <span className="text-xs font-semibold uppercase tracking-wide">{style.label}</span>
           </div>
           {resource.is_premium ? (
-            <Badge className="bg-white/20 text-white border-0 text-[10px] gap-1">
+            <Badge className="bg-background/70 text-foreground border-0 text-[10px] gap-1">
               <Lock className="h-3 w-3" />
               Premium
             </Badge>
           ) : (
-            <Badge className="bg-white/20 text-white border-0 text-[10px]">
+            <Badge className="bg-background/70 text-foreground border-0 text-[10px]">
               Gratis
             </Badge>
           )}
@@ -74,7 +74,7 @@ export const ResourceCard = ({ resource, index, onDownload }: ResourceCardProps)
           </Badge>
           <Button
             onClick={() => onDownload(resource)}
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-300"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
           >
             <Download className="h-4 w-4 mr-2" />
             Descargar

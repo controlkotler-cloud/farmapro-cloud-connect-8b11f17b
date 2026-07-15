@@ -174,8 +174,8 @@ export const JobApplicationDialog = ({ job, isOpen, onClose, onSuccess }: JobApp
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800 text-sm">
+          <div className="bg-info/10 border border-info/20 rounded-lg p-4">
+            <p className="text-info text-sm">
               <strong>Empresa:</strong> {job.company_name}<br />
               <strong>Ubicación:</strong> {job.location || job.province || 'No especificada'}
             </p>
@@ -212,24 +212,24 @@ export const JobApplicationDialog = ({ job, isOpen, onClose, onSuccess }: JobApp
               />
               <label
                 htmlFor="resume"
-                className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-muted-foreground transition-colors"
               >
                 <div className="text-center">
                   {resumeFile ? (
                     <div className="flex items-center gap-2">
-                      <FileText className="h-8 w-8 text-green-600" />
+                      <FileText className="h-8 w-8 text-success" />
                       <div>
-                        <p className="font-medium text-green-800">{resumeFile.name}</p>
-                        <p className="text-sm text-green-600">
+                        <p className="font-medium text-success">{resumeFile.name}</p>
+                        <p className="text-sm text-success">
                           {(resumeFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-600">Haz clic para subir tu currículum</p>
-                      <p className="text-sm text-gray-500">PDF, máximo 5MB</p>
+                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">Haz clic para subir tu currículum</p>
+                      <p className="text-sm text-muted-foreground">PDF, máximo 5MB</p>
                     </div>
                   )}
                 </div>
@@ -237,7 +237,7 @@ export const JobApplicationDialog = ({ job, isOpen, onClose, onSuccess }: JobApp
             </div>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
             <div className="flex gap-3">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -251,8 +251,8 @@ export const JobApplicationDialog = ({ job, isOpen, onClose, onSuccess }: JobApp
                   Acepto compartir mi información personal y currículum con la empresa que ha publicado esta oferta de empleo
                 </Label>
                 <div className="flex items-start gap-2 mt-2">
-                  <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-yellow-800">
+                  <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-warning">
                     Esta información se guardará en tu perfil para futuras consultas. 
                     Sin tu consentimiento no podremos procesar tu solicitud.
                   </p>

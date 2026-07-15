@@ -29,11 +29,11 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg mb-1">{quiz.title}</CardTitle>
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-sm text-muted-foreground mb-2">
               {quiz.courses?.title || 'Curso no encontrado'}
             </p>
             {quiz.description && (
-              <p className="text-sm text-gray-500 line-clamp-2">
+              <p className="text-sm text-muted-foreground line-clamp-2">
                 {quiz.description}
               </p>
             )}
@@ -47,16 +47,16 @@ export const QuizCard: React.FC<QuizCardProps> = ({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center space-x-2">
-            <Target className="h-4 w-4 text-blue-500" />
+            <Target className="h-4 w-4 text-brand-dark" />
             <span>{quiz.passing_score}% mínimo</span>
           </div>
           <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-green-500" />
+            <Users className="h-4 w-4 text-brand-dark" />
             <span>{quiz.max_attempts === -1 ? 'Sin límite' : `${quiz.max_attempts} intentos`}</span>
           </div>
           {quiz.time_limit_minutes && (
             <div className="flex items-center space-x-2 col-span-2">
-              <Clock className="h-4 w-4 text-orange-500" />
+              <Clock className="h-4 w-4 text-brand-dark" />
               <span>{quiz.time_limit_minutes} minutos</span>
             </div>
           )}
@@ -84,7 +84,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onDelete(quiz.id)}
-              className="text-red-600 hover:text-red-700"
+              className="text-destructive hover:text-destructive/80"
             >
               <Trash2 className="h-4 w-4" />
             </Button>

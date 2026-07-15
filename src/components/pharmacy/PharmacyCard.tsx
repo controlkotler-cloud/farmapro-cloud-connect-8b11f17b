@@ -93,16 +93,16 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
               }
             }}
           />
-          <div className="fallback-bg h-48 bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center rounded-t-lg absolute inset-0">
-            <Building2 className="h-16 w-16 text-blue-600" />
+          <div className="fallback-bg h-48 bg-salvia-soft flex items-center justify-center rounded-t-lg absolute inset-0">
+            <Building2 className="h-16 w-16 text-salvia" />
           </div>
-          <Badge className="absolute top-2 right-2 bg-green-600 z-10">
+          <Badge className="absolute top-2 right-2 bg-success text-success-foreground z-10">
             En Venta
           </Badge>
         </div>
         <CardHeader>
           <CardTitle className="text-lg">{listing.title}</CardTitle>
-          <div className="flex items-center text-gray-600">
+          <div className="flex items-center text-muted-foreground">
             <MapPin className="h-4 w-4 mr-1" />
             {listing.location}
           </div>
@@ -112,23 +112,23 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
           <div className="space-y-3">
             {listing.price && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Precio:</span>
-                <span className="font-bold text-lg text-green-600">
+                <span className="text-sm text-muted-foreground">Precio:</span>
+                <span className="font-bold text-lg text-primary">
                   {formatPrice(listing.price)}
                 </span>
               </div>
             )}
-            
+
             <div className="grid grid-cols-2 gap-4 text-sm">
               {listing.surface_area && (
                 <div className="flex items-center">
-                  <Home className="h-4 w-4 mr-1 text-gray-400" />
+                  <Home className="h-4 w-4 mr-1 text-muted-foreground" />
                   <span>{listing.surface_area} m²</span>
                 </div>
               )}
               {(listing as any).annual_revenue && (
                 <div className="flex items-center">
-                  <TrendingUp className="h-4 w-4 mr-1 text-gray-400" />
+                  <TrendingUp className="h-4 w-4 mr-1 text-muted-foreground" />
                   <span className="text-xs">{formatRevenue((listing as any).annual_revenue)}</span>
                 </div>
               )}

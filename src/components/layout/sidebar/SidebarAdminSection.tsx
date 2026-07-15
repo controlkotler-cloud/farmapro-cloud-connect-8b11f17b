@@ -92,7 +92,7 @@ export const SidebarAdminSection = () => {
     <SidebarGroup>
       <Collapsible defaultOpen={hasActiveAdminRoute} onOpenChange={setIsExpanded}>
         <CollapsibleTrigger asChild>
-          <SidebarGroupLabel className="group/label flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors cursor-pointer">
+          <SidebarGroupLabel className="group/label flex items-center justify-between px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors cursor-pointer">
             <span>Administración</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
           </SidebarGroupLabel>
@@ -113,8 +113,8 @@ export const SidebarAdminSection = () => {
                         end={item.exact}
                         className={`flex items-center px-8 py-2 text-sm font-medium rounded-r-full transition-all duration-200 ${
                           isActive
-                            ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-r-4 border-blue-500 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground border-r-4 border-sidebar-primary shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-sidebar-accent'
                         }`}
                       >
                         <item.icon className="mr-3 h-4 w-4" />

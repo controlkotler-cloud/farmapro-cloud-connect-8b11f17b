@@ -47,7 +47,7 @@ export const ForumStats = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <Card className="bg-terracota text-primary-foreground">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
                 <MessageSquare className="h-8 w-8" />
@@ -65,7 +65,7 @@ export const ForumStats = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+          <Card className="bg-terracota text-primary-foreground">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
                 <Users className="h-8 w-8" />
@@ -83,7 +83,7 @@ export const ForumStats = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+          <Card className="bg-terracota text-primary-foreground">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
                 <TrendingUp className="h-8 w-8" />
@@ -106,7 +106,7 @@ export const ForumStats = ({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-yellow-600" />
+              <Award className="h-5 w-5 text-terracota" />
               <span>Tu Estado en la Comunidad</span>
             </CardTitle>
           </CardHeader>
@@ -117,9 +117,9 @@ export const ForumStats = ({
                   <Badge variant="outline" className="text-lg px-3 py-1">
                     Nivel {userLevel}
                   </Badge>
-                  <span className="text-sm text-gray-600">{userPoints} puntos farmapro</span>
+                  <span className="text-sm text-muted-foreground">{userPoints} puntos farmapro</span>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   Sigue participando para subir de nivel y desbloquear beneficios
                 </p>
               </div>
@@ -137,7 +137,7 @@ export const ForumStats = ({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Target className="h-5 w-5 text-orange-600" />
+              <Target className="h-5 w-5 text-terracota" />
               <span>Retos del Foro</span>
             </CardTitle>
             <CardDescription>
@@ -150,31 +150,31 @@ export const ForumStats = ({
                 <div 
                   key={index}
                   className={`p-4 rounded-lg border ${
-                    challenge.completed 
-                      ? 'bg-green-50 border-green-200' 
-                      : 'bg-gray-50 border-gray-200'
+                    challenge.completed
+                      ? 'bg-secondary border-success'
+                      : 'bg-secondary border-border'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <h4 className="font-medium">{challenge.title}</h4>
                       {challenge.completed && (
-                        <Badge className="bg-green-500">¡Completado!</Badge>
+                        <Badge className="bg-success text-success-foreground">¡Completado!</Badge>
                       )}
                     </div>
                     <Badge variant="outline">+{challenge.points} pts</Badge>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{challenge.description}</p>
                   <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div 
+                    <div className="flex-1 bg-muted rounded-full h-2">
+                      <div
                         className={`h-2 rounded-full ${
-                          challenge.completed ? 'bg-green-500' : 'bg-blue-500'
+                          challenge.completed ? 'bg-success' : 'bg-terracota'
                         }`}
                         style={{ width: `${(challenge.progress / challenge.target) * 100}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-muted-foreground">
                       {challenge.progress}/{challenge.target}
                     </span>
                   </div>

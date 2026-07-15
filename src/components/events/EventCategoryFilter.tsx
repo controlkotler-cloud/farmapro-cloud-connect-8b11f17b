@@ -5,13 +5,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Video, Users, Wrench, ShoppingBag, BookOpen } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+// Paleta reducida a los tokens de marca (brand/brand-dark, miel, terracota,
+// salvia, ciruela) en vez del arcoíris original. "Todos" usa terracota como
+// acento de la sección; los 5 tipos reales se reparten 1:1 entre los tokens
+// restantes, y "Cursos" reutiliza brand-dark (variante de workshop) porque
+// solo hay 5 tokens disponibles para 5 categorías + "Todos".
 export const eventTypes = [
-  { id: 'all', name: 'Todos', icon: Calendar, color: 'from-orange-500 to-orange-600' },
-  { id: 'webinar', name: 'Webinars', icon: Video, color: 'from-blue-500 to-blue-600' },
-  { id: 'conferencia', name: 'Conferencias', icon: Users, color: 'from-purple-500 to-purple-600' },
-  { id: 'workshop', name: 'Workshops', icon: Wrench, color: 'from-green-500 to-green-600' },
-  { id: 'feria', name: 'Ferias', icon: ShoppingBag, color: 'from-yellow-500 to-yellow-600' },
-  { id: 'curso', name: 'Cursos', icon: BookOpen, color: 'from-indigo-500 to-indigo-600' }
+  { id: 'all', name: 'Todos', icon: Calendar, bg: 'bg-terracota' },
+  { id: 'webinar', name: 'Webinars', icon: Video, bg: 'bg-salvia' },
+  { id: 'conferencia', name: 'Conferencias', icon: Users, bg: 'bg-ciruela' },
+  { id: 'workshop', name: 'Workshops', icon: Wrench, bg: 'bg-brand' },
+  { id: 'feria', name: 'Ferias', icon: ShoppingBag, bg: 'bg-miel' },
+  { id: 'curso', name: 'Cursos', icon: BookOpen, bg: 'bg-brand-dark' }
 ];
 
 interface EventCategoryFilterProps {
@@ -27,13 +32,13 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
   if (isMobile) {
     return (
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Categorías</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Categorías</h2>
         <Select value={selectedType} onValueChange={onTypeChange}>
           <SelectTrigger className="w-full">
             <SelectValue>
               <div className="flex items-center">
-                <div className={`p-1 rounded bg-gradient-to-r ${selectedCategory.color} mr-2`}>
-                  <selectedCategory.icon className="h-4 w-4 text-white" />
+                <div className={`p-1 rounded ${selectedCategory.bg} mr-2`}>
+                  <selectedCategory.icon className="h-4 w-4 text-primary-foreground" />
                 </div>
                 {selectedCategory.name}
               </div>
@@ -43,8 +48,8 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
             {eventTypes.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center">
-                  <div className={`p-1 rounded bg-gradient-to-r ${category.color} mr-2`}>
-                    <category.icon className="h-4 w-4 text-white" />
+                  <div className={`p-1 rounded ${category.bg} mr-2`}>
+                    <category.icon className="h-4 w-4 text-primary-foreground" />
                   </div>
                   {category.name}
                 </div>
@@ -58,8 +63,8 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Categorías</h2>
-      <motion.div 
+      <h2 className="text-lg font-semibold text-foreground mb-4">Categorías</h2>
+      <motion.div
         className="flex flex-wrap gap-2"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -76,12 +81,12 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
               onClick={() => onTypeChange(category.id)}
               className={`relative group transition-all duration-300 transform hover:scale-105 ${
                 selectedType === category.id
-                  ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
-                  : 'hover:shadow-md hover:bg-green-600 hover:text-white'
+                  ? `${category.bg} text-primary-foreground shadow-lg`
+                  : 'hover:shadow-md hover:bg-accent hover:text-accent-foreground'
               }`}
             >
-              <div className={`p-2 rounded-lg bg-gradient-to-r ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
-                <category.icon className="h-4 w-4 text-white" />
+              <div className={`p-2 rounded-lg ${category.bg} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
+                <category.icon className="h-4 w-4 text-primary-foreground" />
               </div>
               {category.name}
             </Button>

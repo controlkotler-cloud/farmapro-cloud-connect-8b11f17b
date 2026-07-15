@@ -32,7 +32,7 @@ export const ContactForm = () => {
 
   return (
     <div className="space-y-4">
-      <p className="text-green-800">
+      <p className="text-salvia">
         <strong>¿Quieres vender tu farmacia?</strong> Rellena este formulario y contactaremos contigo
       </p>
       <Collapsible open={showContactForm} onOpenChange={setShowContactForm}>

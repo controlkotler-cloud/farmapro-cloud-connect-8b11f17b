@@ -54,14 +54,14 @@ export const QuickTemplates = ({ contentType, onSelect }: QuickTemplatesProps) =
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ideas rápidas</p>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ideas rápidas</p>
       <div className="flex flex-wrap gap-2">
         {templates.map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => onSelect(t)}
-            className="text-xs px-3 py-1.5 rounded-full bg-green-50 text-green-700 ring-1 ring-green-200 hover:bg-green-100 transition-colors active:scale-95"
+            className="text-xs px-3 py-1.5 rounded-full bg-ciruela-soft text-ciruela ring-1 ring-ciruela/30 hover:bg-ciruela-soft/70 transition-colors active:scale-95"
           >
             {t}
           </button>

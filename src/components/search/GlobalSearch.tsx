@@ -309,7 +309,7 @@ export const GlobalSearch = () => {
   return (
     <div ref={searchRef} className="relative flex-1 max-w-xl mx-0 md:mx-6">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           placeholder="Buscar en farmapro..."
           value={searchQuery}
@@ -318,12 +318,12 @@ export const GlobalSearch = () => {
           className="pl-10 pr-4 py-2 w-full"
         />
         {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 animate-spin" />
+          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 animate-spin" />
         )}
       </div>
 
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-md shadow-lg z-50">
           <Command>
             <CommandList className="max-h-80">
               {results.length === 0 ? (
@@ -343,11 +343,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-blue-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
@@ -368,11 +368,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-green-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
@@ -393,11 +393,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-purple-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
@@ -418,11 +418,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-orange-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
@@ -443,11 +443,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-teal-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
@@ -468,11 +468,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-indigo-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
@@ -493,11 +493,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-pink-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>
@@ -518,11 +518,11 @@ export const GlobalSearch = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{result.title}</div>
                             {result.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {result.description}
                               </div>
                             )}
-                            <div className="text-xs text-yellow-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {getTypeLabel(result.type)}
                             </div>
                           </div>

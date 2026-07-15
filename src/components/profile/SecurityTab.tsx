@@ -91,8 +91,8 @@ export const SecurityTab = () => {
           />
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
+        <div className="bg-info/10 border border-info/30 rounded-lg p-4">
+          <p className="text-sm text-info">
             <strong>Requisitos de seguridad:</strong> La contraseña debe tener al menos 6 caracteres.
           </p>
         </div>

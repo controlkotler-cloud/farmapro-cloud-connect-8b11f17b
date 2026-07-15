@@ -167,7 +167,7 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
             <Field label="Producto o servicio *" value={fields.producto} onChange={v => setField('producto', v)} placeholder="ej: Línea solar Avène" />
             <Field label="Descuento o beneficio" value={fields.descuento} onChange={v => setField('descuento', v)} placeholder="ej: 20% dto, regalo con compra, consulta gratis" />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha límite</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Fecha límite</label>
               <Input type="date" value={fields.fecha || ''} onChange={e => setField('fecha', e.target.value)} />
             </div>
             <SelectField label="Canal" value={fields.canal} onChange={v => setField('canal', v)} options={['Instagram', 'WhatsApp', 'Escaparate', 'Todos']} />
@@ -184,7 +184,7 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
         return (
           <>
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reseña del cliente *</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Reseña del cliente *</label>
               <Textarea
                 value={fields.resena || ''}
                 onChange={e => setField('resena', e.target.value)}
@@ -210,7 +210,7 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Instrucciones adicionales (opcional)</label>
+        <label className="block text-sm font-medium text-foreground mb-1">Instrucciones adicionales (opcional)</label>
         <Textarea
           value={extra}
           onChange={e => setExtra(e.target.value)}
@@ -224,7 +224,7 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
       <Button
         type="submit"
         disabled={isLoading || !canSubmit()}
-        className="w-full bg-green-500 hover:bg-green-600 text-white"
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
         size="lg"
       >
         {isLoading ? (
@@ -245,14 +245,14 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
 
 const Field = ({ label, value, onChange, placeholder }: { label: string; value?: string; onChange: (v: string) => void; placeholder: string }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <label className="block text-sm font-medium text-foreground mb-1">{label}</label>
     <Input value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
   </div>
 );
 
 const SelectField = ({ label, value, onChange, options }: { label: string; value?: string; onChange: (v: string) => void; options: string[] }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <label className="block text-sm font-medium text-foreground mb-1">{label}</label>
     <Select value={value || ''} onValueChange={onChange}>
       <SelectTrigger>
         <SelectValue placeholder="Seleccionar..." />

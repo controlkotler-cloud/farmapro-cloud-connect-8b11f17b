@@ -37,7 +37,7 @@ export const MotivationalBanner = () => {
       if (todayCompleted && todayCompleted.length > 0 && todayCompleted[0].challenges) {
         const c = todayCompleted[0];
         setBanner({
-          icon: <PartyPopper className="h-5 w-5 text-yellow-500 shrink-0" />,
+          icon: <PartyPopper className="h-5 w-5 text-miel shrink-0" />,
           text: `¡Completaste '${(c.challenges as any).name}' hoy! +${c.points_earned} puntos`,
         });
         return;
@@ -53,7 +53,7 @@ export const MotivationalBanner = () => {
 
       if (streak > 0) {
         setBanner({
-          icon: <Flame className="h-5 w-5 text-orange-500 shrink-0" />,
+          icon: <Flame className="h-5 w-5 text-miel shrink-0" />,
           text: `Llevas ${streak} días consecutivos aprendiendo. ¡Sigue así!`,
         });
         return;
@@ -76,7 +76,7 @@ export const MotivationalBanner = () => {
         const next = badges.find(b => !earnedIds.has(b.id));
         if (next) {
           setBanner({
-            icon: <Star className="h-5 w-5 text-yellow-500 shrink-0" />,
+            icon: <Star className="h-5 w-5 text-miel shrink-0" />,
             text: `Estás cerca de desbloquear '${next.name}'`,
           });
           return;

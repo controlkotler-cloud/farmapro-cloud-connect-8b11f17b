@@ -21,21 +21,21 @@ export const ContentTypeGrid = ({ selected, onSelect }: ContentTypeGridProps) =>
             'text-left rounded-xl p-4 transition-all duration-200 ring-1 cursor-pointer',
             'hover:shadow-md active:scale-[0.97]',
             selected === type.id
-              ? 'bg-green-50 ring-green-300 shadow-sm'
-              : 'bg-white ring-gray-150 hover:ring-gray-200'
+              ? 'bg-ciruela-soft ring-ciruela shadow-sm'
+              : 'bg-card ring-border hover:ring-muted-foreground/30'
           )}
         >
           <div className={cn(
             'text-2xl mb-2',
-            selected === type.id ? 'text-green-600' : 'text-gray-600'
+            selected === type.id ? 'text-ciruela' : 'text-muted-foreground'
           )}>{type.icon}</div>
           <div className={cn(
             'font-semibold text-sm mb-1',
-            selected === type.id ? 'text-green-700' : 'text-gray-800'
+            selected === type.id ? 'text-ciruela' : 'text-foreground'
           )}>
             {type.label}
           </div>
-          <p className="text-xs text-gray-500 leading-relaxed">{type.description}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
         </motion.button>
       ))}
     </div>

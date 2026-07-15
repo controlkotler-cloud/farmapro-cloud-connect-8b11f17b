@@ -43,25 +43,25 @@ export const Header = () => {
     // Podríamos usar diferentes iconos según el tipo
     switch (type) {
       case 'course':
-        return <BookOpen className="h-4 w-4 text-blue-600" />;
+        return <BookOpen className="h-4 w-4 text-muted-foreground" />;
       case 'resource':
-        return <Download className="h-4 w-4 text-green-600" />;
+        return <Download className="h-4 w-4 text-muted-foreground" />;
       case 'forum':
-        return <MessageSquare className="h-4 w-4 text-purple-600" />;
+        return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
       case 'challenge':
-        return <Trophy className="h-4 w-4 text-yellow-600" />;
+        return <Trophy className="h-4 w-4 text-muted-foreground" />;
       default:
-        return <Bell className="h-4 w-4 text-gray-600" />;
+        return <Bell className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
+    <header className="bg-background border-b border-border px-4 md:px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Mobile: Hamburger + Logo */}
         <div className="flex items-center space-x-3">
           <SidebarTrigger className="lg:hidden" />
-          <img src="/lovable-uploads/logo_farmapro.svg" alt="farmapro" className="h-8" />
+          <img src="/logo-farmapro.svg" alt="farmapro" className="h-8" />
         </div>
 
         {/* Desktop: Search */}
@@ -87,25 +87,25 @@ export const Header = () => {
               </div>
               <div className="max-h-64 overflow-y-auto">
                 {loading ? (
-                  <div className="p-3 text-center text-gray-500">
+                  <div className="p-3 text-center text-muted-foreground">
                     Cargando notificaciones...
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-3 text-center text-gray-500">
+                  <div className="p-3 text-center text-muted-foreground">
                     No tienes notificaciones nuevas
                   </div>
                 ) : (
                   notifications.map((notification) => (
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       key={notification.id}
-                      className="p-3 flex flex-col items-start cursor-pointer hover:bg-gray-50"
+                      className="p-3 flex flex-col items-start cursor-pointer hover:bg-secondary"
                       onClick={() => handleNotificationClick(notification)}
                     >
                       <div className="flex items-start justify-between w-full">
                         <div className="flex-1">
                           <p className="font-medium text-sm">{notification.title}</p>
-                          <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">{notification.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
                             {new Date(notification.created_at).toLocaleDateString('es-ES', {
                               day: 'numeric',
                               month: 'short',
@@ -141,7 +141,7 @@ export const Header = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
                   {profile?.full_name?.charAt(0) || 'U'}
                 </div>
                 {!isMobile && <span className="font-medium">{profile?.full_name || 'Usuario'}</span>}
@@ -150,9 +150,9 @@ export const Header = () => {
             <DropdownMenuContent className="w-56" align="end">
               <div className="p-3 border-b">
                 <p className="font-medium">{profile?.full_name}</p>
-                <p className="text-sm text-gray-500">{profile?.email}</p>
+                <p className="text-sm text-muted-foreground">{profile?.email}</p>
                 {profile?.pharmacy_name && (
-                  <p className="text-sm text-gray-500">{profile.pharmacy_name}</p>
+                  <p className="text-sm text-muted-foreground">{profile.pharmacy_name}</p>
                 )}
               </div>
               <DropdownMenuItem onClick={handleProfileClick}>

@@ -137,7 +137,7 @@ const CourseFormDialog = ({
                 onChange={(e) => handleFieldChange('slug', e.target.value)}
                 required
                 placeholder="ejemplo: mi-curso-fantastico"
-                className={!isSlugValid && formData.slug ? 'border-red-500' : ''}
+                className={!isSlugValid && formData.slug ? 'border-destructive' : ''}
               />
               <Button
                 type="button"
@@ -150,7 +150,7 @@ const CourseFormDialog = ({
               </Button>
             </div>
             {!isSlugValid && formData.slug && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 El slug debe contener solo letras minúsculas, números y guiones
               </p>
             )}

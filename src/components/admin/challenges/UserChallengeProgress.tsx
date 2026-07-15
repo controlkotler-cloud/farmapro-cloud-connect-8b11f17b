@@ -118,12 +118,12 @@ export const UserChallengeProgress = ({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Progreso de Usuarios</h3>
-          <p className="text-sm text-gray-600">Monitorea el progreso de los usuarios en los retos</p>
+          <p className="text-sm text-muted-foreground">Monitorea el progreso de los usuarios en los retos</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Buscar usuarios o retos..."
               value={searchTerm}
@@ -164,9 +164,9 @@ export const UserChallengeProgress = ({
             {[...Array(5)].map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="p-6">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-2 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-3 bg-muted rounded mb-4"></div>
+                  <div className="h-2 bg-muted rounded"></div>
                 </CardContent>
               </Card>
             ))}
@@ -180,19 +180,19 @@ export const UserChallengeProgress = ({
                 : 0;
               
               return (
-                <Card key={progress.id} className={completed ? 'border-green-200 bg-green-50' : ''}>
+                <Card key={progress.id} className={completed ? 'border-success/30 bg-success/10' : ''}>
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
-                          <div className={`p-2 rounded-lg ${completed ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                          <div className={`p-2 rounded-lg ${completed ? 'bg-success/10 text-success' : 'bg-miel-soft text-miel'}`}>
                             <User className="h-4 w-4" />
                           </div>
                           <div>
                             <h4 className="font-medium text-lg">
                               {progress.profiles?.full_name || 'Usuario desconocido'}
                             </h4>
-                            <p className="text-sm text-gray-600">{progress.profiles?.email}</p>
+                            <p className="text-sm text-muted-foreground">{progress.profiles?.email}</p>
                           </div>
                         </div>
                         
@@ -206,7 +206,7 @@ export const UserChallengeProgress = ({
                               {getChallengeTypeLabel(progress.challenges?.type || 'course_started')}
                             </Badge>
                             {completed && (
-                              <Badge className="bg-green-100 text-green-800">
+                              <Badge className="bg-success/10 text-success">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Completado
                               </Badge>
@@ -224,7 +224,7 @@ export const UserChallengeProgress = ({
                           </div>
                         </div>
                         
-                        <div className="flex items-center justify-between text-sm text-gray-500">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
                           <div className="flex items-center space-x-4">
                             <span>Iniciado: {new Date(progress.created_at).toLocaleDateString('es-ES')}</span>
                             {completed && (
@@ -232,7 +232,7 @@ export const UserChallengeProgress = ({
                             )}
                           </div>
                           {progress.points_earned > 0 && (
-                            <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                            <Badge className="bg-miel-soft text-foreground">
                               +{progress.points_earned} pts
                             </Badge>
                           )}
@@ -258,7 +258,7 @@ export const UserChallengeProgress = ({
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => onResetProgress(progress.id)}
-                                className="bg-orange-600 hover:bg-orange-700"
+                                className="bg-warning text-warning-foreground hover:bg-warning/90"
                               >
                                 Reiniciar
                               </AlertDialogAction>
@@ -276,15 +276,15 @@ export const UserChallengeProgress = ({
                 <CardContent className="p-12 text-center">
                   {searchTerm || filterStatus !== 'all' ? (
                     <>
-                      <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron resultados</h3>
-                      <p className="text-gray-600">Intenta ajustar los filtros de búsqueda</p>
+                      <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">No se encontraron resultados</h3>
+                      <p className="text-muted-foreground">Intenta ajustar los filtros de búsqueda</p>
                     </>
                   ) : (
                     <>
-                      <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No hay progreso de usuarios</h3>
-                      <p className="text-gray-600">Los progresos aparecerán aquí cuando los usuarios comiencen a completar retos</p>
+                      <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">No hay progreso de usuarios</h3>
+                      <p className="text-muted-foreground">Los progresos aparecerán aquí cuando los usuarios comiencen a completar retos</p>
                     </>
                   )}
                 </CardContent>

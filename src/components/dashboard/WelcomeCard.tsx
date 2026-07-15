@@ -27,7 +27,7 @@ export const WelcomeCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="bg-gradient-to-r from-green-600 to-green-700 text-white border-0">
+      <Card className="bg-brand-dark text-white border-0">
         <CardHeader>
           <CardTitle className="text-2xl text-white font-bold">
             ¡Bienvenido de nuevo, {userName}!

@@ -61,7 +61,7 @@ export const ClientifyTestPanel = () => {
               {loading ? 'Sincronizando...' : 'Sincronizar Usuario Actual'}
             </Button>
             {user && (
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Usuario: {user.email}
               </span>
             )}
@@ -113,7 +113,7 @@ export const ClientifyTestPanel = () => {
 
         {/* Indicador de estado */}
         {loading && (
-          <div className="flex items-center gap-2 text-blue-600">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <RefreshCw className="h-4 w-4 animate-spin" />
             <span className="text-sm">Procesando con Clientify...</span>
           </div>

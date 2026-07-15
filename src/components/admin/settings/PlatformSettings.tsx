@@ -50,7 +50,7 @@ export const PlatformSettings = ({ config, onSave }: PlatformSettingsProps) => {
       <SettingsSection
         title="Información de la Empresa"
         description="Datos básicos de la organización"
-        icon={<Building2 className="h-5 w-5 text-blue-600" />}
+        icon={<Building2 className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -100,7 +100,7 @@ export const PlatformSettings = ({ config, onSave }: PlatformSettingsProps) => {
       <SettingsSection
         title="Configuración de Email"
         description="Configuración SMTP y remitente por defecto"
-        icon={<Mail className="h-5 w-5 text-blue-600" />}
+        icon={<Mail className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -163,13 +163,13 @@ export const PlatformSettings = ({ config, onSave }: PlatformSettingsProps) => {
       <SettingsSection
         title="Configuración de Notificaciones"
         description="Activar/desactivar tipos de notificaciones"
-        icon={<Bell className="h-5 w-5 text-blue-600" />}
+        icon={<Bell className="h-5 w-5 text-muted-foreground" />}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <Label>Notificaciones Push</Label>
-              <p className="text-sm text-gray-500">Enviar notificaciones push a los usuarios</p>
+              <p className="text-sm text-muted-foreground">Enviar notificaciones push a los usuarios</p>
             </div>
             <Switch
               checked={formData.notifications_config.push_enabled}
@@ -184,7 +184,7 @@ export const PlatformSettings = ({ config, onSave }: PlatformSettingsProps) => {
           <div className="flex items-center justify-between">
             <div>
               <Label>Notificaciones por Email</Label>
-              <p className="text-sm text-gray-500">Enviar notificaciones por correo electrónico</p>
+              <p className="text-sm text-muted-foreground">Enviar notificaciones por correo electrónico</p>
             </div>
             <Switch
               checked={formData.notifications_config.email_enabled}
@@ -199,7 +199,7 @@ export const PlatformSettings = ({ config, onSave }: PlatformSettingsProps) => {
           <div className="flex items-center justify-between">
             <div>
               <Label>Notificaciones SMS</Label>
-              <p className="text-sm text-gray-500">Enviar notificaciones por SMS</p>
+              <p className="text-sm text-muted-foreground">Enviar notificaciones por SMS</p>
             </div>
             <Switch
               checked={formData.notifications_config.sms_enabled}

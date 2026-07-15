@@ -44,13 +44,13 @@ export const CategoryTabs = ({
 
   if (isMobile) {
     return (
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-border">
         <Select value={selectedCategory} onValueChange={onCategoryChange}>
           <SelectTrigger className="w-full">
             <SelectValue>
               <div className="flex items-center gap-2">
                 <span className="font-semibold">{selectedTab.label}</span>
-                <span className="text-xs text-gray-500">({selectedTab.count})</span>
+                <span className="text-xs text-muted-foreground">({selectedTab.count})</span>
               </div>
             </SelectValue>
           </SelectTrigger>
@@ -59,12 +59,12 @@ export const CategoryTabs = ({
               <SelectItem key={tab.value} value={tab.value}>
                 <div className="flex items-center gap-2">
                   {tab.cover ? (
-                    <tab.cover.Icon className="h-4 w-4 text-gray-500" strokeWidth={1.75} />
+                    <tab.cover.Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
                   ) : (
-                    <LayoutGrid className="h-4 w-4 text-gray-500" strokeWidth={1.75} />
+                    <LayoutGrid className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
                   )}
                   <span className="font-medium">{tab.label}</span>
-                  <span className="text-xs text-gray-500">({tab.count})</span>
+                  <span className="text-xs text-muted-foreground">({tab.count})</span>
                 </div>
               </SelectItem>
             ))}
@@ -75,7 +75,7 @@ export const CategoryTabs = ({
   }
 
   return (
-    <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl p-3 shadow-sm border border-border">
       <div className="flex flex-wrap gap-2">
         {tabs.map((tab, index) => {
           const isActive = selectedCategory === tab.value;
@@ -93,14 +93,14 @@ export const CategoryTabs = ({
                 onClick={() => onCategoryChange(tab.value)}
                 aria-pressed={isActive}
                 className={`gap-2 transition-colors ${
-                  isActive ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-gray-700'
+                  isActive ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="h-4 w-4" strokeWidth={1.75} />
                 <span className="font-medium">{tab.label}</span>
                 <span
                   className={`ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                    isActive ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {tab.count}

@@ -23,9 +23,9 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
           {currentQuestion + 1} / {totalQuestions}
         </Badge>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div 
-          className="bg-green-600 h-2 rounded-full transition-all duration-300"
+      <div className="w-full bg-muted rounded-full h-2">
+        <div
+          className="bg-brand h-2 rounded-full transition-all duration-300"
           style={{ width: `${progress}%` }}
         ></div>
       </div>

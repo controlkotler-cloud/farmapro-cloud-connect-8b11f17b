@@ -13,10 +13,10 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verificando permisos de administrador...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Verificando permisos de administrador...</p>
         </div>
       </div>
     );
@@ -32,14 +32,14 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md mx-auto p-8 bg-white rounded-lg shadow-lg">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded mb-6">
             <strong className="font-bold block">Acceso Denegado</strong>
             <span className="text-sm">No tienes permisos de administrador para acceder a esta sección.</span>
           </div>
           
           <div className="mb-6">
-            <p className="text-gray-600 mb-2">Usuario actual:</p>
-            <p className="font-medium text-gray-900">{user.email}</p>
+            <p className="text-muted-foreground mb-2">Usuario actual:</p>
+            <p className="font-medium text-foreground">{user.email}</p>
           </div>
           
           <div className="space-y-3">
@@ -61,7 +61,7 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
             </Button>
           </div>
           
-          <div className="mt-6 p-4 bg-gray-50 rounded text-sm text-gray-600">
+          <div className="mt-6 p-4 bg-muted rounded text-sm text-muted-foreground">
             <p className="font-medium mb-1">¿Necesitas acceso de administrador?</p>
             <p>Contacta con el administrador del sistema para solicitar los permisos necesarios.</p>
           </div>

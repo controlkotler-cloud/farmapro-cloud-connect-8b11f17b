@@ -144,12 +144,12 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg">
-            <MessageSquare className="h-6 w-6 text-white" />
+          <div className="p-2 rounded-lg bg-terracota shadow-lg">
+            <MessageSquare className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Foro de Discusión</h2>
-            <p className="text-sm md:text-base text-gray-600">Participa en conversaciones con profesionales</p>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">Foro de Discusión</h2>
+            <p className="text-sm md:text-base text-muted-foreground">Participa en conversaciones con profesionales</p>
           </div>
         </div>
         <NewThreadDialog
@@ -162,16 +162,16 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
 
       {/* Categorías reorganizadas de manera más amigable */}
       <Card className="border-0 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+        <CardHeader className="bg-secondary border-b border-border">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-gray-900">
+            <CardTitle className="text-lg font-semibold text-foreground">
               Categorías de Discusión
             </CardTitle>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => loadThreads()}
-              className="hover:bg-gray-100"
+              className="hover:bg-muted"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Actualizar
@@ -197,7 +197,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
                     >
                       <div className="flex items-center space-x-2">
                         <span>{category.name}</span>
-                        {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
+                        {category.is_premium && <Star className="h-3 w-3 text-terracota" />}
                       </div>
                     </SelectItem>
                   ))}
@@ -209,8 +209,8 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
                   onClick={() => setSelectedCategory('all')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     selectedCategory === 'all'
-                      ? 'bg-pink-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-terracota text-primary-foreground shadow-lg'
+                      : 'bg-muted text-muted-foreground hover:bg-accent'
                   }`}
                 >
                   Todas las discusiones
@@ -222,14 +222,14 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
                     disabled={!canAccessCategory(category)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
                       selectedCategory === category.id
-                        ? 'bg-pink-500 text-white shadow-lg'
+                        ? 'bg-terracota text-primary-foreground shadow-lg'
                         : canAccessCategory(category)
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                        ? 'bg-muted text-muted-foreground hover:bg-accent'
+                        : 'bg-muted/50 text-muted-foreground/60 cursor-not-allowed'
                     }`}
                   >
                     <span>{category.name}</span>
-                    {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
+                    {category.is_premium && <Star className="h-3 w-3 text-terracota" />}
                   </button>
                 ))}
               </div>
@@ -238,7 +238,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
 
           {/* Información de hilos */}
           <div className="flex items-center justify-between mb-6">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               {threads.length} {threads.length === 1 ? 'discusión' : 'discusiones'} 
               {selectedCategory !== 'all' && (
                 <span className="ml-1">

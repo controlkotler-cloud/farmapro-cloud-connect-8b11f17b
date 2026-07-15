@@ -46,16 +46,16 @@ export const ThreadCard = ({ thread, index, onClick }: ThreadCardProps) => {
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
       <Card 
-        className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-blue-300 group"
+        className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-terracota group"
         onClick={onClick}
       >
         <CardHeader className="pb-3 p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               {thread.is_pinned && (
-                <Pin className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <Pin className="h-4 w-4 text-terracota flex-shrink-0" />
               )}
-              <CardTitle className="text-lg group-hover:text-blue-600 transition-colors line-clamp-2">
+              <CardTitle className="text-lg group-hover:text-terracota transition-colors line-clamp-2">
                 {thread.title}
               </CardTitle>
             </div>
@@ -63,17 +63,17 @@ export const ThreadCard = ({ thread, index, onClick }: ThreadCardProps) => {
               <Badge variant="outline" className="flex items-center space-x-1">
                 <span>{thread.forum_categories?.name || 'General'}</span>
                 {thread.forum_categories?.name && ['Gestión Farmacéutica', 'Nuevos Medicamentos'].includes(thread.forum_categories.name) && (
-                  <Star className="h-3 w-3 text-yellow-500" />
+                  <Star className="h-3 w-3 text-terracota" />
                 )}
               </Badge>
             </div>
           </div>
-          <CardDescription className="line-clamp-2 text-gray-600">
+          <CardDescription className="line-clamp-2 text-muted-foreground">
             {thread.content.substring(0, 150).replace(/[*_~`#>\-]/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\n+/g, ' ')}...
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 text-sm text-muted-foreground">
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center space-x-1">
                 <Users className="h-4 w-4" />

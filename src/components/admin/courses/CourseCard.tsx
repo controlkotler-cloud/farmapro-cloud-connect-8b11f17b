@@ -34,7 +34,7 @@ const CourseCard = ({ course, categories, onEdit, onDelete }: CourseCardProps) =
                 {categories.find(c => c.value === course.category)?.label}
               </Badge>
               {course.is_premium && (
-                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                <Badge className="bg-primary text-primary-foreground">
                   Premium
                 </Badge>
               )}
@@ -46,11 +46,11 @@ const CourseCard = ({ course, categories, onEdit, onDelete }: CourseCardProps) =
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+        <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
           <span>{course.duration_minutes ? `${course.duration_minutes} min` : 'Sin duración'}</span>
           <span>{new Date(course.created_at).toLocaleDateString()}</span>
         </div>
-        <div className="text-xs text-gray-500 mb-4">
+        <div className="text-xs text-muted-foreground mb-4">
           <div>Módulos: {course.total_lessons ?? '—'}</div>
           <div>Slug: {course.slug}</div>
           <div>ID: {course.id}</div>

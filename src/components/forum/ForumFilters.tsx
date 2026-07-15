@@ -44,7 +44,7 @@ export const ForumFilters = ({
   return (
     <Tabs value={selectedCategory} onValueChange={onCategoryChange}>
       <TabsList className="grid w-full grid-cols-auto bg-white border">
-        <TabsTrigger value="all" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
+        <TabsTrigger value="all" className="data-[state=active]:bg-terracota-soft data-[state=active]:text-terracota">
           <div className="flex items-center space-x-1">
             <LayoutList className="h-4 w-4" />
             <span>Todos</span>
@@ -55,12 +55,12 @@ export const ForumFilters = ({
             key={category.id}
             value={category.id}
             disabled={!canAccessCategory(category)}
-            className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700"
+            className="data-[state=active]:bg-terracota-soft data-[state=active]:text-terracota"
           >
             <div className="flex items-center space-x-1">
               {getCategoryIcon(category.name)}
               <span>{category.name}</span>
-              {category.is_premium && <Star className="h-3 w-3 text-yellow-500" />}
+              {category.is_premium && <Star className="h-3 w-3 text-terracota" />}
             </div>
           </TabsTrigger>
         ))}

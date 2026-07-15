@@ -10,28 +10,28 @@ export const SidebarFooter = () => {
   return (
     <SidebarGroup className="mt-auto">
       <SidebarGroupContent>
-        <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+        <div className="p-6 border-t border-sidebar-border bg-sidebar">
           {profile ? (
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-blue-200">
-                  <User className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                  <User className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar shadow-sm"></div>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-800 truncate">
+                <p className="text-sm font-bold text-sidebar-foreground truncate">
                   {profile.full_name || 'Usuario farmapro'}
                 </p>
-                <p className="text-xs text-gray-500 capitalize font-medium">
+                <p className="text-xs text-sidebar-foreground/60 capitalize font-medium">
                   {isAdmin ? 'admin' : (profile.subscription_role || 'freemium')}
                 </p>
               </div>
             </div>
           ) : (
-            <Link 
-              to="/login" 
-              className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg transform hover:scale-105"
+            <Link
+              to="/login"
+              className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-all duration-300 shadow-lg transform hover:scale-105"
             >
               Iniciar Sesión
             </Link>

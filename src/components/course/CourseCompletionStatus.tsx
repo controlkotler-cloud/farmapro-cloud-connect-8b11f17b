@@ -24,13 +24,13 @@ export const CourseCompletionStatus = ({
     <div className="mt-6 flex flex-col gap-4">
       {/* Show evaluation button when all modules done and quiz exists */}
       {allModulesCompleted && hasQuiz && courseSlug && (
-        <div className="flex flex-col items-center gap-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-          <ClipboardCheck className="h-8 w-8 text-blue-600" />
+        <div className="flex flex-col items-center gap-3 bg-brand-soft border border-brand/20 rounded-lg p-6">
+          <ClipboardCheck className="h-8 w-8 text-brand-dark" />
           <div className="text-center">
-            <p className="font-semibold text-blue-800 dark:text-blue-300">
+            <p className="font-semibold text-brand-dark">
               ¡Has completado todos los módulos!
             </p>
-            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+            <p className="text-sm text-brand-dark/80 mt-1">
               Realiza la evaluación para obtener tu certificado
             </p>
           </div>
@@ -44,11 +44,11 @@ export const CourseCompletionStatus = ({
       )}
 
       {isCompleted && (
-        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4 justify-center">
-          <Award className="h-6 w-6 text-green-600" />
+        <div className="flex items-center gap-3 bg-brand-soft border border-brand/20 rounded-lg p-4 justify-center">
+          <Award className="h-6 w-6 text-brand-dark" />
           <div>
-            <p className="font-semibold text-green-800 flex items-center gap-1.5"><PartyPopper className="h-4 w-4" /> ¡Curso completado!</p>
-            <p className="text-sm text-green-600">Has finalizado exitosamente este curso</p>
+            <p className="font-semibold text-brand-dark flex items-center gap-1.5"><PartyPopper className="h-4 w-4" /> ¡Curso completado!</p>
+            <p className="text-sm text-brand-dark/80">Has finalizado exitosamente este curso</p>
           </div>
         </div>
       )}

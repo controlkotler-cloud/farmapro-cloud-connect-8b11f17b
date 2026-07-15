@@ -49,8 +49,8 @@ export const WeeklyChallengesSection = ({ challenges, loading }: WeeklyChallenge
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border-amber-200 shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+      <Card className="bg-miel-soft border-miel/30 shadow-lg overflow-hidden">
+        <div className="bg-miel px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Flame className="h-6 w-6 text-white" />
             <h2 className="text-xl font-bold text-white">Retos de la Semana</h2>
@@ -70,10 +70,10 @@ export const WeeklyChallengesSection = ({ challenges, loading }: WeeklyChallenge
               const target = challenge.target_count || 1;
               const pct = Math.min((challenge.current_count / target) * 100, 100);
               return (
-                <Card key={challenge.id} className={`relative transition-all ${completed ? 'border-green-400 bg-green-50' : 'hover:shadow-md'}`}>
+                <Card key={challenge.id} className={`relative transition-all ${completed ? 'border-success bg-success/10' : 'hover:shadow-md'}`}>
                   {completed && (
                     <div className="absolute top-2 right-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-success" />
                     </div>
                   )}
                   <CardContent className="p-4 space-y-3">
@@ -84,7 +84,7 @@ export const WeeklyChallengesSection = ({ challenges, loading }: WeeklyChallenge
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-xs">SEMANAL</Badge>
+                      <Badge className="bg-miel-soft text-miel hover:bg-miel-soft text-xs">SEMANAL</Badge>
                       <Badge variant="outline" className="text-xs">{challenge.points_reward} pts</Badge>
                     </div>
                     <div className="space-y-1">
@@ -95,7 +95,7 @@ export const WeeklyChallengesSection = ({ challenges, loading }: WeeklyChallenge
                       <Progress value={pct} className="h-2" />
                     </div>
                     {completed && (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100 w-full justify-center">
+                      <Badge className="bg-success/15 text-success hover:bg-success/15 w-full justify-center">
                         ✅ COMPLETADO
                       </Badge>
                     )}

@@ -1,34 +1,36 @@
 
 import { Crown, GraduationCap, Briefcase, Sparkles } from 'lucide-react';
 
+// Sin acento de sección propio (layout/suscripción core): freemium y estudiante en
+// neutro shadcn, profesional (plan "Más Popular") en brand, premium (nivel superior) en ciruela.
 export const planConfig = {
   freemium: {
     name: 'Freemium',
     icon: Sparkles,
-    color: 'from-gray-400 to-gray-600',
-    bgColor: 'bg-gray-100',
-    textColor: 'text-gray-800',
+    color: 'bg-muted-foreground',
+    bgColor: 'bg-muted',
+    textColor: 'text-muted-foreground',
   },
   estudiante: {
     name: 'Estudiante',
     icon: GraduationCap,
-    color: 'from-green-400 to-blue-500',
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-800',
+    color: 'bg-foreground',
+    bgColor: 'bg-secondary',
+    textColor: 'text-secondary-foreground',
   },
   profesional: {
     name: 'Profesional',
     icon: Briefcase,
-    color: 'from-blue-500 to-purple-600',
-    bgColor: 'bg-blue-100',
-    textColor: 'text-blue-800',
+    color: 'bg-primary',
+    bgColor: 'bg-brand-soft',
+    textColor: 'text-brand-dark',
   },
   premium: {
     name: 'Premium',
     icon: Crown,
-    color: 'from-yellow-400 to-orange-500',
-    bgColor: 'bg-yellow-100',
-    textColor: 'text-yellow-800',
+    color: 'bg-ciruela',
+    bgColor: 'bg-ciruela-soft',
+    textColor: 'text-ciruela',
   },
 };
 

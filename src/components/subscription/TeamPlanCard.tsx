@@ -155,19 +155,19 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
   };
 
   return (
-    <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+    <Card className="border-2 border-ciruela/30 bg-ciruela-soft">
       <CardHeader className={`text-center ${isMobile ? 'pb-2' : 'pb-4'}`}>
         <div className="flex items-center justify-center gap-3 mb-3">
-          <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center`}>
-            <Users className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
+          <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-ciruela rounded-full flex items-center justify-center`}>
+            <Users className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-primary-foreground`} />
           </div>
-          <Badge className="bg-amber-600 text-white text-xs">
+          <Badge className="bg-ciruela text-primary-foreground text-xs">
             Plan Team
           </Badge>
         </div>
-        <CardTitle className={`${isMobile ? 'text-xl' : 'text-2xl'} text-amber-800`}>Plan Team farmapro</CardTitle>
+        <CardTitle className={`${isMobile ? 'text-xl' : 'text-2xl'} text-ciruela`}>Plan Team farmapro</CardTitle>
         {!isMobile && (
-          <CardDescription className="text-amber-700">
+          <CardDescription className="text-muted-foreground">
             Ideal para equipos de farmacia. Combina múltiples planes Premium y Profesional con 15% de descuento.
           </CardDescription>
         )}
@@ -341,36 +341,36 @@ export const TeamPlanCard = ({ onPlanSelect }: TeamPlanCardProps) => {
             )}
           </Button>
 
-          <div className={`bg-white rounded-lg ${isMobile ? 'p-3' : 'p-4'} border border-amber-200`}>
-            <h4 className={`font-semibold text-amber-800 ${isMobile ? 'text-sm mb-3' : 'mb-3'}`}>¿Qué incluye?</h4>
+          <div className={`bg-card rounded-lg ${isMobile ? "p-3" : "p-4"} border border-ciruela/20`}>
+            <h4 className={`font-semibold text-ciruela ${isMobile ? 'text-sm mb-3' : 'mb-3'}`}>¿Qué incluye?</h4>
             <ul className={`${isMobile ? 'space-y-2 text-xs' : 'space-y-2 text-sm'}`}>
               <li className="flex items-start">
-                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-white text-xs">✓</span>
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-primary rounded-full flex items-center justify-center flex-shrink-0`}>
+                  <span className="text-primary-foreground text-xs">✓</span>
                 </div>
                 <span className={isMobile ? 'leading-tight' : ''}>Combina planes Premium y Profesional según necesites</span>
               </li>
               <li className="flex items-start">
-                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-white text-xs">✓</span>
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-primary rounded-full flex items-center justify-center flex-shrink-0`}>
+                  <span className="text-primary-foreground text-xs">✓</span>
                 </div>
                 <span className={isMobile ? 'leading-tight' : ''}>15% descuento permanente sobre el total</span>
               </li>
               <li className="flex items-start">
-                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-white text-xs">✓</span>
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-primary rounded-full flex items-center justify-center flex-shrink-0`}>
+                  <span className="text-primary-foreground text-xs">✓</span>
                 </div>
                 <span className={isMobile ? 'leading-tight' : ''}>El titular siempre obtiene plan Premium</span>
               </li>
               <li className="flex items-start">
-                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-white text-xs">✓</span>
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-primary rounded-full flex items-center justify-center flex-shrink-0`}>
+                  <span className="text-primary-foreground text-xs">✓</span>
                 </div>
                 <span className={isMobile ? 'leading-tight' : ''}>Facturación centralizada y gestión simple</span>
               </li>
               <li className="flex items-start">
-                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-green-500 rounded-full flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-white text-xs">✓</span>
+                <div className={`${isMobile ? 'w-4 h-4 mt-0.5 mr-2' : 'w-5 h-5 mr-3'} bg-primary rounded-full flex items-center justify-center flex-shrink-0`}>
+                  <span className="text-primary-foreground text-xs">✓</span>
                 </div>
                 <span className={isMobile ? 'leading-tight' : ''}>Máximo 11 usuarios total por equipo</span>
               </li>

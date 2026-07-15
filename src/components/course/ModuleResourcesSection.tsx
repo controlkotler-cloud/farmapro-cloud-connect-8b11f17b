@@ -12,28 +12,28 @@ export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProp
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <Download className="h-5 w-5 text-green-600" />
+        <div className="p-2 bg-brand-soft rounded-lg">
+          <Download className="h-5 w-5 text-brand-dark" />
         </div>
-        <h4 className="text-lg font-semibold text-gray-800">
+        <h4 className="text-lg font-semibold text-foreground">
           📥 Recursos Descargables
         </h4>
       </div>
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+      <div className="bg-brand-soft rounded-xl p-6 border border-brand/20">
         <div className="grid gap-4">
           {resources.map((resource, index) => (
-            <div key={index} className="bg-white rounded-lg p-4 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
+            <div key={index} className="bg-white rounded-lg p-4 border border-brand/20 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0 p-2 bg-green-100 rounded-lg">
-                    <Download className="h-5 w-5 text-green-600" />
+                  <div className="flex-shrink-0 p-2 bg-brand-soft rounded-lg">
+                    <Download className="h-5 w-5 text-brand-dark" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 flex items-center gap-2">
+                    <p className="font-medium text-foreground flex items-center gap-2">
                       📄 {resource.title}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-gray-600">Formato:</span>
+                      <span className="text-sm text-muted-foreground">Formato:</span>
                       <Badge variant="outline" className="text-xs">
                         {resource.type}
                       </Badge>

@@ -14,7 +14,7 @@ export const SettingsSection = ({ title, description, icon, children }: Settings
     <Card className="mb-6">
       <CardHeader>
         <div className="flex items-center space-x-3">
-          {icon && <div className="p-2 bg-blue-100 rounded-lg">{icon}</div>}
+          {icon && <div className="p-2 bg-muted rounded-lg">{icon}</div>}
           <div>
             <CardTitle className="text-lg">{title}</CardTitle>
             {description && (

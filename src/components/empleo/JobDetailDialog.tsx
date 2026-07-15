@@ -55,7 +55,7 @@ export const JobDetailDialog = ({
             <div className="flex flex-wrap justify-center sm:justify-start gap-2">
               {isExpired && <Badge variant="destructive">Expirada</Badge>}
               {hasApplied && (
-                <div className="flex items-center gap-1 text-green-600">
+                <div className="flex items-center gap-1 text-success">
                   <CheckCircle className="h-4 w-4" />
                   <span className="text-sm font-medium">Contactado</span>
                 </div>
@@ -91,13 +91,13 @@ export const JobDetailDialog = ({
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                <div className="flex items-center justify-start gap-2">
-                 <Briefcase className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                 <Briefcase className="h-4 w-4 text-salvia flex-shrink-0" />
                  <span className="font-medium text-sm sm:text-base">Tipo de puesto:</span>
                  <Badge variant="outline">{getJobTypeLabel(job.job_type || 'otros')}</Badge>
                </div>
                {job.salary_range && (
                  <div className="flex items-center justify-start gap-2">
-                  <Euro className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <Euro className="h-4 w-4 text-foreground flex-shrink-0" />
                   <span className="font-medium text-sm sm:text-base">{job.salary_range}</span>
                 </div>
               )}
@@ -124,12 +124,12 @@ export const JobDetailDialog = ({
 
           {/* Application Info */}
           {hasApplied && applicationDate && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
-              <div className="flex items-center justify-start gap-2 text-green-800">
+            <div className="bg-success/10 border border-success/20 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center justify-start gap-2 text-success">
                 <CheckCircle className="h-5 w-5" />
                 <span className="font-medium text-sm sm:text-base">Ya has contactado con esta oferta</span>
               </div>
-              <p className="text-green-700 text-xs sm:text-sm mt-1 text-center sm:text-left">
+              <p className="text-success text-xs sm:text-sm mt-1 text-center sm:text-left">
                 Fecha de contacto: {formatDate(applicationDate)}
               </p>
             </div>

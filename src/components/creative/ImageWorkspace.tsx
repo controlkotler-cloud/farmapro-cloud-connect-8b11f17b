@@ -149,19 +149,19 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="bg-white rounded-xl ring-1 ring-gray-100 shadow-sm p-6 sticky top-4">
+        <div className="bg-card rounded-xl ring-1 ring-border shadow-sm p-6 sticky top-4">
           <div className="flex items-center gap-2 mb-5">
-            <ImageIcon className="h-6 w-6 text-green-600" />
-            <h3 className="font-semibold text-gray-800">Imagen</h3>
+            <ImageIcon className="h-6 w-6 text-ciruela" />
+            <h3 className="font-semibold text-foreground">Imagen</h3>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label htmlFor="iafarma-brief" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="iafarma-brief" className="block text-sm font-medium text-foreground">
                   ¿Qué quieres comunicar?
                 </label>
-                <span className="text-xs text-gray-400">{brief.length}/200</span>
+                <span className="text-xs text-muted-foreground">{brief.length}/200</span>
               </div>
               <Textarea
                 id="iafarma-brief"
@@ -171,13 +171,13 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                 placeholder="ej: consejos para tomar el sol este verano"
                 className="min-h-[72px] resize-none"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Escribe solo el tema: IAFarma redacta el titular y los textos de la pieza por ti.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de pieza</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Tipo de pieza</label>
               <div className="grid grid-cols-2 gap-2">
                 {PIECE_TYPES.map((p) => {
                   const Icon = PIECE_ICONS[p.id];
@@ -190,15 +190,15 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                       aria-pressed={selected}
                       className={`text-left rounded-lg border p-3 transition-colors ${
                         selected
-                          ? 'border-green-500 bg-green-50 ring-1 ring-green-500'
-                          : 'border-gray-200 hover:border-green-300 hover:bg-green-50/40'
+                          ? 'border-ciruela bg-ciruela-soft ring-1 ring-ciruela'
+                          : 'border-border hover:border-ciruela hover:bg-ciruela-soft'
                       }`}
                     >
                       <Icon
-                        className={`h-4 w-4 mb-1.5 ${selected ? 'text-green-600' : 'text-gray-400'}`}
+                        className={`h-4 w-4 mb-1.5 ${selected ? 'text-ciruela' : 'text-muted-foreground'}`}
                       />
-                      <span className="block text-sm font-medium text-gray-800">{p.label}</span>
-                      <span className="block text-xs text-gray-500">{p.hint}</span>
+                      <span className="block text-sm font-medium text-foreground">{p.label}</span>
+                      <span className="block text-xs text-muted-foreground">{p.hint}</span>
                     </button>
                   );
                 })}
@@ -207,10 +207,10 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label htmlFor="iafarma-headline" className="block text-sm font-medium text-gray-700">
-                  Titular <span className="font-normal text-gray-400">(opcional)</span>
+                <label htmlFor="iafarma-headline" className="block text-sm font-medium text-foreground">
+                  Titular <span className="font-normal text-muted-foreground">(opcional)</span>
                 </label>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   {headline.length}/{HEADLINE_MAX}
                 </span>
               </div>
@@ -221,13 +221,13 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                 onChange={(e) => setHeadline(e.target.value)}
                 placeholder={`ej: ${pieceInfo.headlineExample}`}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Se rotula tal cual en la imagen. Si lo dejas vacío, IAFarma lo escribe por ti.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Estilo</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Estilo</label>
               <div className="flex flex-wrap gap-2">
                 {IMAGE_STYLES.map((s) => {
                   const selected = s.id === style;
@@ -240,8 +240,8 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                       title={s.hint}
                       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                         selected
-                          ? 'border-green-500 bg-green-500 text-white'
-                          : 'border-gray-200 text-gray-600 hover:border-green-300'
+                          ? 'border-ciruela bg-ciruela text-primary-foreground'
+                          : 'border-border text-muted-foreground hover:border-ciruela'
                       }`}
                     >
                       {s.label}
@@ -249,13 +249,13 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Diseño gráfico crea una pieza con titular e iconos; Fotografía crea una escena realista.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Formato</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Formato</label>
               <div className="flex flex-wrap gap-2">
                 {IMAGE_FORMATS.map((f) => {
                   const selected = f.id === format;
@@ -268,8 +268,8 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                       title={f.hint}
                       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                         selected
-                          ? 'border-green-500 bg-green-500 text-white'
-                          : 'border-gray-200 text-gray-600 hover:border-green-300'
+                          ? 'border-ciruela bg-ciruela text-primary-foreground'
+                          : 'border-border text-muted-foreground hover:border-ciruela'
                       }`}
                     >
                       {f.label}
@@ -283,13 +283,13 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-xs font-medium text-gray-500 hover:text-green-700 underline underline-offset-2"
+                className="text-xs font-medium text-muted-foreground hover:text-ciruela underline underline-offset-2"
               >
                 {showAdvanced ? 'Ocultar ajustes avanzados' : 'Ajustes avanzados: describe tú la pieza'}
               </button>
               {showAdvanced && (
                 <div className="mt-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Describe la imagen</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Describe la imagen</label>
                   <Textarea
                     value={prompt}
                     onChange={(e) => {
@@ -299,7 +299,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                     placeholder="ej: Promoción de protección solar, producto destacado, tono profesional"
                     className="min-h-[120px] resize-none"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Describe la PIEZA (composición, elementos, colores), no tu farmacia. Los textos
                     que deban salir escritos ponlos literales.
                   </p>
@@ -310,12 +310,12 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
             <Button
               type="submit"
               disabled={loading || !canSubmit}
-              className="w-full bg-green-500 hover:bg-green-600 text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               size="lg"
             >
               {loading ? (
                 <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
                   Generando imagen...
                 </>
               ) : (
@@ -331,7 +331,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                 type="button"
                 variant="ghost"
                 onClick={handleReset}
-                className="w-full text-gray-500 hover:text-gray-700"
+                className="w-full text-muted-foreground hover:text-foreground"
                 size="sm"
               >
                 Empezar de nuevo
@@ -404,17 +404,17 @@ const ImageCreditPacks = () => {
           type="button"
           onClick={() => handleBuy(pack.credits)}
           disabled={buying !== null}
-          className="w-full flex items-center justify-between rounded-lg border border-green-200 bg-white px-4 py-3 hover:border-green-400 hover:bg-green-50/50 transition-colors disabled:opacity-60"
+          className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 hover:border-ciruela hover:bg-ciruela-soft transition-colors disabled:opacity-60"
         >
-          <span className="text-sm font-medium text-gray-800">
+          <span className="text-sm font-medium text-foreground">
             {pack.credits} créditos de imagen
           </span>
-          <span className="text-sm font-semibold text-green-700">
+          <span className="text-sm font-semibold text-ciruela">
             {buying === pack.credits ? 'Abriendo pago...' : formatPrice(pack.price)}
           </span>
         </button>
       ))}
-      <p className="text-xs text-gray-400 text-left pt-1">
+      <p className="text-xs text-muted-foreground text-left pt-1">
         Pago único, sin caducidad mensual. Disponible en los planes Plus y Equipo.
       </p>
     </div>
@@ -448,27 +448,27 @@ const ImageResult = ({
 }: ImageResultProps) => {
   if (loading) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-green-100 bg-white flex flex-col items-center justify-center text-center p-8">
-        <div className="h-10 w-10 border-2 border-green-400 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-gray-500 text-sm">Creando tu imagen, esto puede tardar unos segundos...</p>
+      <div className="min-h-[500px] rounded-xl border border-border bg-card flex flex-col items-center justify-center text-center p-8">
+        <div className="h-10 w-10 border-2 border-ciruela border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-muted-foreground text-sm">Creando tu imagen, esto puede tardar unos segundos...</p>
       </div>
     );
   }
 
   if (error?.code === 'quota') {
     return (
-      <div className="min-h-[500px] rounded-xl bg-gradient-to-br from-green-50 via-white to-emerald-50 ring-1 ring-green-100 flex flex-col items-center justify-center text-center p-8">
-        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-green-100 text-green-600 mb-5">
+      <div className="min-h-[500px] rounded-xl bg-ciruela-soft flex flex-col items-center justify-center text-center p-8">
+        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-ciruela text-primary-foreground mb-5">
           <ImageIcon className="h-7 w-7" />
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
+        <h3 className="text-lg font-bold text-foreground mb-2">
           Has gastado tus créditos de imagen de este mes
         </h3>
-        <p className="text-gray-500 mb-6 max-w-sm">
+        <p className="text-muted-foreground mb-6 max-w-sm">
           Recarga créditos al momento con un pack o mejora tu plan para seguir creando.
         </p>
         <ImageCreditPacks />
-        <Button asChild variant="ghost" className="mt-4 text-gray-500 hover:text-gray-700" size="sm">
+        <Button asChild variant="ghost" className="mt-4 text-muted-foreground hover:text-foreground" size="sm">
           <Link to="/precios">Ver planes</Link>
         </Button>
       </div>
@@ -477,19 +477,19 @@ const ImageResult = ({
 
   if (error) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-dashed border-red-200 bg-red-50/40 flex flex-col items-center justify-center text-center p-8">
-        <p className="text-red-600 font-medium">No se pudo generar la imagen</p>
-        <p className="text-red-500/80 text-sm mt-1 max-w-sm">{error.message}</p>
+      <div className="min-h-[500px] rounded-xl border border-dashed border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center text-center p-8">
+        <p className="text-destructive font-medium">No se pudo generar la imagen</p>
+        <p className="text-destructive/80 text-sm mt-1 max-w-sm">{error.message}</p>
       </div>
     );
   }
 
   if (!imageUrl) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center text-center p-8">
-        <ImageIcon className="h-12 w-12 text-green-300 mb-4" />
-        <p className="text-gray-400 text-lg font-medium">Tu imagen aparecerá aquí</p>
-        <p className="text-gray-400 text-sm mt-1">
+      <div className="min-h-[500px] rounded-xl border border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center text-center p-8">
+        <ImageIcon className="h-12 w-12 text-ciruela/60 mb-4" />
+        <p className="text-muted-foreground text-lg font-medium">Tu imagen aparecerá aquí</p>
+        <p className="text-muted-foreground text-sm mt-1">
           Elige el tipo de pieza, describe la imagen y pulsa "Generar imagen"
         </p>
       </div>
@@ -502,24 +502,24 @@ const ImageResult = ({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="rounded-xl ring-1 ring-green-100 bg-white p-4 shadow-sm"
+        className="rounded-xl ring-1 ring-border bg-card p-4 shadow-sm"
       >
-        <span className="text-xs font-semibold text-green-600 block mb-3">Imagen generada</span>
+        <span className="text-xs font-semibold text-ciruela block mb-3">Imagen generada</span>
         <img
           src={imageUrl}
           alt="Imagen generada por IAFarma"
-          className="w-full rounded-lg ring-1 ring-gray-100"
+          className="w-full rounded-lg ring-1 ring-border"
         />
         {copy && (
-          <div className="mt-4 rounded-lg bg-green-50/60 ring-1 ring-green-100 p-4">
-            <span className="text-xs font-semibold text-green-700 block mb-2">
+          <div className="mt-4 rounded-lg bg-ciruela-soft p-4">
+            <span className="text-xs font-semibold text-ciruela block mb-2">
               Texto de la pieza (escrito por IAFarma)
             </span>
-            <p className="text-sm font-semibold text-gray-800">{copy.headline}</p>
+            <p className="text-sm font-semibold text-foreground">{copy.headline}</p>
             {copy.lines.length > 0 && (
               <ul className="mt-1.5 space-y-0.5">
                 {copy.lines.map((line, i) => (
-                  <li key={i} className="text-sm text-gray-600">
+                  <li key={i} className="text-sm text-muted-foreground">
                     · {line}
                   </li>
                 ))}
@@ -528,15 +528,15 @@ const ImageResult = ({
             <button
               type="button"
               onClick={onRegenerate}
-              className="mt-3 text-xs font-medium text-green-700 hover:text-green-800 underline underline-offset-2"
+              className="mt-3 text-xs font-medium text-ciruela hover:text-ciruela/80 underline underline-offset-2"
             >
               ¿No te convence? Regenerar pieza (gasta 1 crédito)
             </button>
           </div>
         )}
         {revisedPrompt && (
-          <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-            <span className="font-medium text-gray-500">Descripción usada: </span>
+          <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+            <span className="font-medium text-muted-foreground">Descripción usada: </span>
             {revisedPrompt}
           </p>
         )}
@@ -546,11 +546,11 @@ const ImageResult = ({
         <Button
           onClick={onDownload}
           disabled={downloading}
-          className="bg-green-500 hover:bg-green-600 text-white"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {downloading ? (
             <>
-              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+              <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
               Descargando...
             </>
           ) : (
@@ -560,9 +560,9 @@ const ImageResult = ({
             </>
           )}
         </Button>
-        {remainingLabel && <span className="text-sm text-gray-500">{remainingLabel}</span>}
+        {remainingLabel && <span className="text-sm text-muted-foreground">{remainingLabel}</span>}
         {remaining === 0 && (
-          <Button asChild variant="outline" size="sm" className="border-green-300 text-green-700 hover:bg-green-50">
+          <Button asChild variant="outline" size="sm" className="border-ciruela text-ciruela hover:bg-ciruela-soft">
             <Link to="/precios">Recargar créditos</Link>
           </Button>
         )}

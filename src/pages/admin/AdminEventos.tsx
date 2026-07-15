@@ -265,8 +265,8 @@ const AdminEventos = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">No tienes permisos para acceder a esta página.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Acceso Denegado</h2>
+          <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
         </div>
       </div>
     );
@@ -276,8 +276,8 @@ const AdminEventos = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Eventos</h1>
-          <p className="text-gray-600">Crear y gestionar eventos y webinars</p>
+          <h1 className="text-3xl font-bold text-foreground">Gestión de Eventos</h1>
+          <p className="text-muted-foreground">Crear y gestionar eventos y webinars</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -430,15 +430,15 @@ const AdminEventos = () => {
       {/* Events Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-terracota"></div>
           <span className="ml-3">Cargando eventos...</span>
         </div>
       ) : events.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay eventos creados</h3>
-            <p className="text-gray-600 mb-4">Aún no se han creado eventos en el sistema.</p>
+            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No hay eventos creados</h3>
+            <p className="text-muted-foreground mb-4">Aún no se han creado eventos en el sistema.</p>
             <Button onClick={openCreateDialog}>
               <Plus className="h-4 w-4 mr-2" />
               Crear primer evento
@@ -468,18 +468,18 @@ const AdminEventos = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4 mr-2" />
                     {new Date(event.start_date).toLocaleDateString('es-ES')}
                   </div>
                   {event.location && (
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-2" />
                       {event.location}
                     </div>
                   )}
                   {event.is_featured && (
-                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                    <Badge className="bg-miel text-primary-foreground">
                       Destacado
                     </Badge>
                   )}

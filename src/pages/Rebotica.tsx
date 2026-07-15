@@ -120,7 +120,7 @@ export default function Rebotica() {
       <header className="border-b bg-white/70 backdrop-blur">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/lovable-uploads/logo_farmapro.svg" alt="farmapro" className="h-6" />
+            <img src="/logo-farmapro.svg" alt="farmapro" className="h-6" />
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Portal
             </span>

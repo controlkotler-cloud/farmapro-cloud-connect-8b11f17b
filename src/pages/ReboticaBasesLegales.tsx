@@ -50,7 +50,7 @@ export default function ReboticaBasesLegales() {
             <ArrowLeft className="h-4 w-4" />
             Volver a la Rebotica
           </Link>
-          <img src="/lovable-uploads/logo_farmapro.svg" alt="farmapro" className="h-6" />
+          <img src="/logo-farmapro.svg" alt="farmapro" className="h-6" />
         </div>
       </header>
 

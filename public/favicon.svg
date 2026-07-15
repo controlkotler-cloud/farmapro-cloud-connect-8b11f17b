@@ -1,0 +1,18 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" id="Capa_2" data-name="Capa 2" viewBox="0 0 134.02 134.08" width="134.02000427246094" height="134.0800018310547">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #88c835;
+      }
+    </style>
+  </defs>
+  <g id="Capa_1-2" data-name="Capa 1">
+    <g>
+      <path class="cls-1" d="M0,81.29C0,50.44,21.74,28.7,52.79,28.7s52.59,21.74,52.59,52.59-21.74,52.79-52.59,52.79S0,112.35,0,81.29ZM52.79,123.21c24.45,0,41.34-17.08,41.34-41.92s-16.88-41.73-41.34-41.73S11.26,56.65,11.26,81.29s16.88,41.92,41.53,41.92Z"/>
+      <path class="cls-1" d="M124.52,81.18h9.49c0-44.77-36.42-81.18-81.18-81.18v9.49c39.53,0,71.69,32.16,71.69,71.69Z"/>
+      <circle class="cls-1" cx="52.83" cy="81.39" r="9.39"/>
+    </g>
+  </g>
+</svg>

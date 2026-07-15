@@ -314,20 +314,22 @@ const AdminRecursos = () => {
     }
   };
 
+  // Paleta reducida a tokens de marca; misma reutilización que resourceCategory.ts
+  // (terracota para el formato más frecuente -pdf-, ciruela/miel/salvia para el resto).
   const getFormatIcon = (format: string) => {
     switch (format.toLowerCase()) {
       case 'pdf':
-        return <FileText className="h-4 w-4 text-red-600" />;
+        return <FileText className="h-4 w-4 text-terracota" />;
       case 'xls':
-        return <Calculator className="h-4 w-4 text-green-600" />;
+        return <Calculator className="h-4 w-4 text-salvia" />;
       case 'docs':
-        return <File className="h-4 w-4 text-blue-600" />;
+        return <File className="h-4 w-4 text-brand-dark" />;
       case 'url':
-        return <Link className="h-4 w-4 text-purple-600" />;
+        return <Link className="h-4 w-4 text-ciruela" />;
       case 'video':
-        return <Video className="h-4 w-4 text-orange-600" />;
+        return <Video className="h-4 w-4 text-miel" />;
       default:
-        return <FileText className="h-4 w-4 text-gray-600" />;
+        return <FileText className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -350,8 +352,8 @@ const AdminRecursos = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">No tienes permisos para acceder a esta página.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Acceso Denegado</h2>
+          <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
         </div>
       </div>
     );
@@ -361,15 +363,15 @@ const AdminRecursos = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Recursos</h1>
-          <p className="text-gray-600">Crear y gestionar recursos descargables</p>
+          <h1 className="text-3xl font-bold text-foreground">Gestión de Recursos</h1>
+          <p className="text-muted-foreground">Crear y gestionar recursos descargables</p>
         </div>
         <div className="flex space-x-3">
           <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
             <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0 hover:from-purple-600 hover:to-indigo-700"
+              <Button
+                variant="outline"
+                className="bg-ciruela text-primary-foreground border-0 hover:bg-ciruela/90"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
                 Generar con IA
@@ -381,7 +383,7 @@ const AdminRecursos = () => {
                 <DialogDescription>
                   Especifica un tema y categoría personalizados o deja vacío para usar el sistema automático.
                   <br />
-                  <span className="text-green-600 font-medium inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> Genera archivos descargables reales (PDF, Excel, Word)</span>
+                  <span className="text-primary font-medium inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> Genera archivos descargables reales (PDF, Excel, Word)</span>
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -394,7 +396,7 @@ const AdminRecursos = () => {
                     onChange={(e) => setCustomTopic(e.target.value)}
                     className="w-full"
                   />
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Si está vacío, se usará el próximo tema del ciclo automático
                   </p>
                 </div>
@@ -414,7 +416,7 @@ const AdminRecursos = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Si no seleccionas nada, se usará la próxima categoría del ciclo
                   </p>
                 </div>
@@ -585,13 +587,13 @@ const AdminRecursos = () => {
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <span className="ml-3">Cargando recursos...</span>
             </div>
           ) : resources.length === 0 ? (
             <div className="text-center py-8">
-              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No hay recursos creados</p>
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">No hay recursos creados</p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Crear primer recurso
@@ -620,7 +622,7 @@ const AdminRecursos = () => {
                         <div>
                           <div className="font-medium">{resource.title}</div>
                           {resource.description && (
-                            <div className="text-sm text-gray-500 line-clamp-1">
+                            <div className="text-sm text-muted-foreground line-clamp-1">
                               {resource.description}
                             </div>
                           )}
@@ -643,23 +645,23 @@ const AdminRecursos = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <Download className="h-4 w-4 mr-1" />
                         {resource.download_count || 0}
                       </div>
                     </TableCell>
                     <TableCell>
                       {resource.is_premium ? (
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+                        <Badge className="bg-miel text-primary-foreground border-0">
                           Premium
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-green-600 border-green-600">
+                        <Badge variant="outline" className="text-success border-success">
                           Gratuito
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500">
+                    <TableCell className="text-sm text-muted-foreground">
                       {new Date(resource.created_at).toLocaleDateString('es-ES')}
                     </TableCell>
                     <TableCell className="text-right">

@@ -86,8 +86,8 @@ export const EmailTemplates = ({ config, onSave }: EmailTemplatesProps) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Plantillas de Email</h2>
-          <p className="text-gray-600">Personaliza los mensajes de email automáticos del portal</p>
+          <h2 className="text-2xl font-bold text-foreground">Plantillas de Email</h2>
+          <p className="text-muted-foreground">Personaliza los mensajes de email automáticos del portal</p>
         </div>
         <Button onClick={handleSave} size="lg" className="flex items-center space-x-2">
           <Save className="h-4 w-4" />
@@ -100,7 +100,7 @@ export const EmailTemplates = ({ config, onSave }: EmailTemplatesProps) => {
           key={template.key}
           title={template.title}
           description={template.description}
-          icon={<Mail className="h-5 w-5 text-blue-600" />}
+          icon={<Mail className="h-5 w-5 text-muted-foreground" />}
         >
           <div className="space-y-4">
             <div>
@@ -125,16 +125,16 @@ export const EmailTemplates = ({ config, onSave }: EmailTemplatesProps) => {
               />
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2 text-gray-700">Variables Disponibles:</h4>
+            <div className="bg-muted p-4 rounded-lg">
+              <h4 className="font-medium mb-2 text-muted-foreground">Variables Disponibles:</h4>
               <div className="flex flex-wrap gap-2">
                 {template.variables.map((variable) => (
-                  <code key={variable} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                  <code key={variable} className="px-2 py-1 bg-secondary text-secondary-foreground rounded text-sm">
                     {variable}
                   </code>
                 ))}
               </div>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Usa estas variables en el asunto o contenido del email. Se reemplazarán automáticamente con los valores correspondientes.
               </p>
             </div>

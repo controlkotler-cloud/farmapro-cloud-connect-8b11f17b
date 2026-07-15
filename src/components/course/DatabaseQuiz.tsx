@@ -164,8 +164,8 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
             className="mx-auto mb-3 w-fit"
           >
             {passed
-              ? <PartyPopper className="h-14 w-14 text-yellow-500" />
-              : <Dumbbell className="h-14 w-14 text-orange-500" />}
+              ? <PartyPopper className="h-14 w-14 text-miel" />
+              : <Dumbbell className="h-14 w-14 text-warning" />}
           </motion.div>
           <CardTitle className="text-2xl">
             {passed
@@ -175,7 +175,7 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <div className={`text-5xl font-bold mb-2 ${passed ? 'text-green-600' : 'text-orange-600'}`}>
+            <div className={`text-5xl font-bold mb-2 ${passed ? 'text-success' : 'text-warning'}`}>
               {Math.round(completedAttempt.percentage)}%
             </div>
             <p className="text-lg text-muted-foreground">
@@ -200,23 +200,23 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
                 <div key={question.id} className="border rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     {record.isCorrect ? (
-                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                      <CheckCircle className="h-5 w-5 text-success mt-0.5 shrink-0" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                      <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium">{question.question_text || question.question}</p>
-                      <p className={`text-sm mt-1 ${record.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`text-sm mt-1 ${record.isCorrect ? 'text-success' : 'text-destructive'}`}>
                         Tu respuesta: {selectedOpt?.option_text || '—'}
                       </p>
                       {!record.isCorrect && correctOpt && (
-                        <p className="text-sm text-green-600">
+                        <p className="text-sm text-success">
                           Respuesta correcta: {correctOpt.option_text}
                         </p>
                       )}
                       {question.explanation && (
                         <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-2 rounded flex items-start gap-1.5">
-                          <Lightbulb className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
+                          <Lightbulb className="h-3.5 w-3.5 text-miel mt-0.5 shrink-0" />
                           <span>{question.explanation}</span>
                         </p>
                       )}
@@ -254,16 +254,16 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{questions.length}</div>
+            <div className="text-center p-4 bg-brand-soft rounded-lg">
+              <div className="text-2xl font-bold text-brand-dark">{questions.length}</div>
               <div className="text-sm text-muted-foreground">Preguntas</div>
             </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{quiz.passing_score}%</div>
+            <div className="text-center p-4 bg-brand-soft rounded-lg">
+              <div className="text-2xl font-bold text-brand-dark">{quiz.passing_score}%</div>
               <div className="text-sm text-muted-foreground">Nota mínima</div>
             </div>
-            <div className="text-center p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">
+            <div className="text-center p-4 bg-brand-soft rounded-lg">
+              <div className="text-2xl font-bold text-brand-dark">
                 {quiz.time_limit_minutes ? `${quiz.time_limit_minutes} min` : '∞'}
               </div>
               <div className="text-sm text-muted-foreground">Tiempo</div>
@@ -271,12 +271,12 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
           </div>
 
           {bestAttempt && (
-            <div className={`border rounded-lg p-4 ${bestAttempt.passed ? 'bg-green-50 border-green-200 dark:bg-green-950/20' : 'bg-orange-50 border-orange-200 dark:bg-orange-950/20'}`}>
-              <h3 className={`font-semibold mb-1 ${bestAttempt.passed ? 'text-green-800 dark:text-green-300' : 'text-orange-800 dark:text-orange-300'}`}>
+            <div className={`border rounded-lg p-4 ${bestAttempt.passed ? 'bg-success/10 border-success/30' : 'bg-warning/10 border-warning/30'}`}>
+              <h3 className={`font-semibold mb-1 ${bestAttempt.passed ? 'text-success' : 'text-warning'}`}>
                 Mejor resultado previo:
               </h3>
               <div className="flex items-center justify-between">
-                <span className={bestAttempt.passed ? 'text-green-700 dark:text-green-400' : 'text-orange-700 dark:text-orange-400'}>
+                <span className={bestAttempt.passed ? 'text-success' : 'text-warning'}>
                   {Math.round(bestAttempt.percentage)}% — {bestAttempt.passed ? '✅ Aprobado' : '❌ No aprobado'}
                 </span>
                 <span className="text-sm text-muted-foreground">
@@ -346,11 +346,11 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
 
                 if (phase === 'feedback' && currentFeedback) {
                   if (option.id === currentFeedback.correctOptionId) {
-                    borderClass = 'border-green-500';
-                    bgClass = 'bg-green-50 dark:bg-green-950/30';
+                    borderClass = 'border-success';
+                    bgClass = 'bg-success/10';
                   } else if (option.id === selectedOption && !currentFeedback.isCorrect) {
-                    borderClass = 'border-red-500';
-                    bgClass = 'bg-red-50 dark:bg-red-950/30';
+                    borderClass = 'border-destructive';
+                    bgClass = 'bg-destructive/10';
                   } else {
                     borderClass = 'border-border opacity-50';
                   }
@@ -369,9 +369,9 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
                     <div className="flex items-center gap-3">
                       {phase === 'feedback' && currentFeedback ? (
                         option.id === currentFeedback.correctOptionId ? (
-                          <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
+                          <CheckCircle className="h-5 w-5 text-success shrink-0" />
                         ) : option.id === selectedOption && !currentFeedback.isCorrect ? (
-                          <XCircle className="h-5 w-5 text-red-600 shrink-0" />
+                          <XCircle className="h-5 w-5 text-destructive shrink-0" />
                         ) : (
                           <div className="w-5 h-5 rounded-full border-2 border-border shrink-0" />
                         )
@@ -394,11 +394,11 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 className={`mt-4 p-4 rounded-lg border ${
                   currentFeedback.isCorrect
-                    ? 'bg-green-50 border-green-200 dark:bg-green-950/20'
-                    : 'bg-red-50 border-red-200 dark:bg-red-950/20'
+                    ? 'bg-success/10 border-success/30'
+                    : 'bg-destructive/10 border-destructive/30'
                 }`}
               >
-                <p className={`font-semibold ${currentFeedback.isCorrect ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                <p className={`font-semibold ${currentFeedback.isCorrect ? 'text-success' : 'text-destructive'}`}>
                   {currentFeedback.isCorrect ? '✅ ¡Correcto!' : '❌ Incorrecto'}
                 </p>
                 {question.explanation && (

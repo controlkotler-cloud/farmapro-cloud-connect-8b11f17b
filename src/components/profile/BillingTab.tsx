@@ -86,7 +86,7 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
               <h4 className="font-medium mb-2">Estado de Cuenta</h4>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Estado actual:</span>
+                  <span className="text-sm text-muted-foreground">Estado actual:</span>
                   <Badge variant={currentPlan === 'admin' ? 'destructive' : profile?.subscription_status === 'active' ? 'default' : 'secondary'}>
                     {currentPlan === 'admin' ? 'Administrador' :
                      profile?.subscription_status === 'active' ? 'Activo' : 
@@ -94,7 +94,7 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Plan:</span>
+                  <span className="text-sm text-muted-foreground">Plan:</span>
                   <span className="text-sm font-medium">{config.name}</span>
                 </div>
               </div>
@@ -102,8 +102,8 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
             
             <div className="p-4 border rounded-lg">
               <h4 className="font-medium mb-2">Próxima Facturación</h4>
-              <p className="text-sm text-gray-600">
-                {currentPlan === 'freemium' 
+              <p className="text-sm text-muted-foreground">
+                {currentPlan === 'freemium'
                   ? 'No tienes una suscripción activa' 
                   : currentPlan === 'admin'
                   ? 'Sin facturación - Cuenta administrativa'
@@ -114,8 +114,8 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
           </div>
 
           {(currentPlan === 'freemium' || currentPlan === 'admin') && (
-            <div className={`${currentPlan === 'admin' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4 mb-4`}>
-              <p className={`${currentPlan === 'admin' ? 'text-red-800' : 'text-yellow-800'} text-sm`}>
+            <div className={`${currentPlan === 'admin' ? 'bg-info/10 border-info/30' : 'bg-warning/10 border-warning/30'} border rounded-lg p-4 mb-4`}>
+              <p className={`${currentPlan === 'admin' ? 'text-info' : 'text-warning'} text-sm`}>
                 <strong>{currentPlan === 'admin' ? 'Cuenta de Administrador:' : 'Plan Gratuito:'}</strong> 
                 {currentPlan === 'admin' 
                   ? ' Como administrador, tienes acceso completo al sistema sin necesidad de suscripción ni facturación.'
@@ -149,8 +149,8 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
           )}
 
           {currentPlan !== 'admin' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+            <div className="bg-info/10 border border-info/30 rounded-lg p-4">
+              <p className="text-sm text-info">
                 <strong>Gestión de pagos:</strong> Ambos botones te llevarán al portal seguro de Stripe donde podrás 
                 gestionar tu método de pago, ver y descargar facturas, y administrar tu suscripción.
               </p>

@@ -164,9 +164,9 @@ export const JobApplicationsView = () => {
         {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded mb-4"></div>
-              <div className="h-8 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-muted rounded mb-2"></div>
+              <div className="h-3 bg-muted rounded mb-4"></div>
+              <div className="h-8 bg-muted rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -177,9 +177,9 @@ export const JobApplicationsView = () => {
   if (jobsWithApplications.length === 0) {
     return (
       <div className="text-center py-12">
-        <Briefcase className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay solicitudes</h3>
-        <p className="text-gray-600">
+        <Briefcase className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-xl font-semibold text-foreground mb-2">No hay solicitudes</h3>
+        <p className="text-muted-foreground">
           Aún no has recibido solicitudes para tus ofertas de empleo.
         </p>
       </div>
@@ -220,11 +220,11 @@ export const JobApplicationsView = () => {
               {job.applications.map((application, index) => (
                 <div key={application.id}>
                   {index > 0 && <Separator className="my-4" />}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-2">
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-blue-600" />
+                          <User className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{application.applicant_name}</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -236,7 +236,7 @@ export const JobApplicationsView = () => {
                         <Calendar className="h-4 w-4" />
                         <span>Aplicó el {formatDate(application.applied_at)}</span>
                       </div>
-                      <p className="text-sm text-gray-700 mt-2 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                         {application.summary}
                       </p>
                     </div>
@@ -275,35 +275,35 @@ export const JobApplicationsView = () => {
           </DialogHeader>
           {selectedApplication && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Nombre completo</label>
+                  <label className="text-sm font-medium text-muted-foreground">Nombre completo</label>
                   <p className="font-medium">{selectedApplication.applicant_name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
                   <p className="font-medium">{selectedApplication.applicant_email}</p>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-sm font-medium text-gray-600">Fecha de solicitud</label>
+                  <label className="text-sm font-medium text-muted-foreground">Fecha de solicitud</label>
                   <p className="font-medium">{formatDate(selectedApplication.applied_at)}</p>
                 </div>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-600 block mb-2">Resumen personal</label>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-800 whitespace-pre-wrap">{selectedApplication.summary}</p>
+                <label className="text-sm font-medium text-muted-foreground block mb-2">Resumen personal</label>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-foreground whitespace-pre-wrap">{selectedApplication.summary}</p>
                 </div>
               </div>
 
               {selectedApplication.resume_url && (
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between p-4 border border-border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <FileText className="h-8 w-8 text-red-600" />
+                    <FileText className="h-8 w-8 text-muted-foreground" />
                     <div>
                       <p className="font-medium">Currículum Vitae</p>
-                      <p className="text-sm text-gray-600">CV_{selectedApplication.applicant_name.replace(/\s+/g, '_')}.pdf</p>
+                      <p className="text-sm text-muted-foreground">CV_{selectedApplication.applicant_name.replace(/\s+/g, '_')}.pdf</p>
                     </div>
                   </div>
                   <Button

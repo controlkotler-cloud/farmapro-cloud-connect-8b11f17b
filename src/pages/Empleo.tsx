@@ -244,15 +244,15 @@ const Empleo = () => {
       >
         <EmpleoHeader />
         
-        <Card className="border-amber-200 bg-amber-50">
+        <Card className="border-warning/30 bg-warning/10">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800">
-              <AlertCircle className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <AlertCircle className="h-5 w-5 text-warning" />
               Sección en Desarrollo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-amber-700">
+            <p className="text-foreground">
               La sección de Empleo estará disponible próximamente. Estamos trabajando para ofrecerte las mejores oportunidades laborales en el sector farmacéutico.
             </p>
           </CardContent>
@@ -393,8 +393,8 @@ const Empleo = () => {
 
       {/* Lista de ofertas */}
       <Card className="shadow-lg border-0">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-          <CardTitle className="text-xl font-semibold text-gray-900">
+        <CardHeader className="bg-muted border-b border-border">
+          <CardTitle className="text-xl font-semibold text-foreground">
             Ofertas de Empleo Disponibles
           </CardTitle>
         </CardHeader>
@@ -404,18 +404,18 @@ const Empleo = () => {
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardContent className="p-6">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-8 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-muted rounded mb-2"></div>
+                    <div className="h-3 bg-muted rounded mb-4"></div>
+                    <div className="h-8 bg-muted rounded"></div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-12">
-              <Briefcase className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay ofertas disponibles</h3>
-              <p className="text-gray-600">No hay ofertas de empleo activas en este momento.</p>
+              <Briefcase className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">No hay ofertas disponibles</h3>
+              <p className="text-muted-foreground">No hay ofertas de empleo activas en este momento.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
@@ -467,13 +467,13 @@ const Empleo = () => {
                       <div className="space-y-3">
                         {job.salary_range && (
                           <div className="flex items-center text-sm">
-                            <Euro className="h-4 w-4 mr-2 text-green-600 flex-shrink-0" />
+                            <Euro className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
                             <span className="font-medium">{job.salary_range}</span>
                           </div>
                         )}
-                        
+
                         {applications.includes(job.id) && applicationDates[job.id] && (
-                          <div className="text-xs text-green-600 font-medium">
+                          <div className="text-xs text-success font-medium">
                             Contactado el {formatDate(applicationDates[job.id])}
                           </div>
                         )}
