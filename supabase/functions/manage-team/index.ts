@@ -113,7 +113,12 @@ serve(async (req) => {
             invitation_token: inviteToken
           });
 
-        if (inviteError) throw inviteError;
+        if (inviteError) {
+          if ((inviteError as { code?: string }).code === '23505') {
+            throw new Error('Ya existe una invitación pendiente para ese email en este equipo.');
+          }
+          throw new Error(inviteError.message);
+        }
 
         // Enviar invitación vía Mailrelay (API transaccional /send_emails, no
         // una campaña — no requiere que el destinatario esté en ninguna lista).
@@ -280,7 +285,9 @@ serve(async (req) => {
         throw new Error("Invalid action");
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error
+      ? error.message
+      : (error as { message?: string })?.message ?? String(error);
     logStep("ERROR in manage-team", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
