@@ -37,6 +37,7 @@ import AdminComunidad from "@/pages/admin/AdminComunidad";
 import AdminRetos from "@/pages/admin/AdminRetos";
 import AdminConfiguracion from "@/pages/admin/AdminConfiguracion";
 import Invitation from "@/pages/Invitation";
+import { ResetPassword } from "@/pages/ResetPassword";
 
 
 export const AppRoutes = () => {
@@ -76,6 +77,8 @@ export const AppRoutes = () => {
       <Route path="/rebotica/bases-legales" element={<ReboticaBasesLegales />} />
       {/* Team invitation acceptance (public — inner logic requires auth) */}
       <Route path="/invitation" element={<Invitation />} />
+      {/* Password recovery link target (public — Supabase establece sesión temporal vía URL) */}
+      <Route path="/reset-password" element={<ResetPassword />} />
       
       
       {/* Redirect expired users to precios when they try to access protected routes */}
