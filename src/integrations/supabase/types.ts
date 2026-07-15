@@ -2873,6 +2873,15 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      deactivate_team_for_owner: { Args: { p_owner: string }; Returns: number }
+      ensure_team_subscription: {
+        Args: {
+          p_owner: string
+          p_stripe_subscription_id?: string
+          p_team_name?: string
+        }
+        Returns: string
+      }
       format_initials_label: {
         Args: { city: string; full_name: string }
         Returns: string
@@ -2892,6 +2901,23 @@ export type Database = {
       get_pharmacy_contact_email_secure: {
         Args: { pharmacy_id_param: string }
         Returns: string
+      }
+      get_team_progress: {
+        Args: never
+        Returns: {
+          cursos_completados: number
+          cursos_en_curso: number
+          email: string
+          es_titular: boolean
+          evaluaciones_aprobadas: number
+          member_user_id: string
+          nivel: number
+          nombre: string
+          puesto: string
+          puntos: number
+          se_unio: string
+          ultima_actividad: string
+        }[]
       }
       grant_user_role: {
         Args: {
@@ -2991,11 +3017,7 @@ export type Database = {
         Returns: Json
       }
       validate_team_invitation: {
-        Args: {
-          invitation_token_param: string
-          team_id_param: string
-          user_email_param: string
-        }
+        Args: { invitation_token_param: string; user_email_param: string }
         Returns: boolean
       }
     }
