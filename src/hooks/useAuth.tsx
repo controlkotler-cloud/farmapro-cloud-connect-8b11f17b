@@ -136,6 +136,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
         options: {
+          // Preserva a dónde volver tras confirmar el email (invitación de
+          // equipo con su token, cajón de la Rebotica, UTMs...) — sin esto,
+          // el link del email de confirmación lleva al Site URL genérico y
+          // se pierde el contexto del flujo desde el que se registró.
+          emailRedirectTo: window.location.href,
           data: {
             full_name: fullName,
             pharmacy_name: pharmacyName,
