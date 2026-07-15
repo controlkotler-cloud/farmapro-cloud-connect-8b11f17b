@@ -144,6 +144,16 @@ async function handleCheckoutCompleted(
   }, { onConflict: 'stripe_subscription_id' });
   if (subErr) log('subscriptions upsert error', { err: subErr.message });
 
+  // Plan Equipo: crea o reactiva el equipo del titular (9 plazas de invitación).
+  // Idempotente — seguro de relanzar si el webhook se reintenta.
+  if (plan === 'equipo') {
+    const { error: teamErr } = await supabase.rpc('ensure_team_subscription', {
+      p_owner: userId,
+      p_stripe_subscription_id: subscriptionId,
+    });
+    if (teamErr) log('ensure_team_subscription error', { err: teamErr.message });
+  }
+
   log('checkout completed', { userId, plan, cycle, founder });
 }
 
