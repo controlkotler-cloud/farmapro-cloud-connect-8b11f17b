@@ -34,8 +34,8 @@ export const ResourcesCategorySection = ({ category, resources, onDownload }: Re
       className="space-y-4"
     >
       <div className="flex items-center gap-3">
-        <div className={`p-2.5 rounded-lg bg-gradient-to-r ${style.gradient} shadow`}>
-          <style.Icon className="h-5 w-5 text-white" />
+        <div className={`p-2.5 rounded-lg ${style.bg} shadow-soft`}>
+          <style.Icon className={`h-5 w-5 ${style.text}`} />
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-900 leading-tight">{style.label}</h2>
