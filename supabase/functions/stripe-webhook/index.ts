@@ -179,6 +179,23 @@ async function handleInvoicePaymentFailed(
       updated_at: new Date().toISOString(),
     }).eq('id', row.user_id);
 
+    // Email past-due (fire-and-forget; el fallo no interrumpe el webhook).
+    try {
+      const { data: prof } = await supabase.from('profiles')
+        .select('full_name, email').eq('id', row.user_id).maybeSingle();
+      const to = (prof as any)?.email;
+      if (to) {
+        await supabase.functions.invoke('send-portal-email', {
+          body: {
+            template: 'past-due',
+            to,
+            data: { nombre: (prof as any)?.full_name ?? '' },
+            meta: { trigger: 'stripe-webhook', event: 'invoice.payment_failed', subscription_id: subscriptionId },
+          },
+        });
+      }
+    } catch (e) { log('past-due email dispatch failed', { err: (e as Error).message }); }
+
     // Notificación in-app.
     await supabase.from('notifications').insert({
       user_id: row.user_id,
