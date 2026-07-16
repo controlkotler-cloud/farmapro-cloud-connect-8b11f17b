@@ -83,8 +83,7 @@ export const AvisoLegal = () => (
     </P>
     <P>
       Puede ponerse en contacto con nosotros en la dirección de correo electrónico{' '}
-      <a href="mailto:entra@farmapro.es" className={linkCls}>entra@farmapro.es</a> o, si lo prefiere, a través
-      del teléfono <a href="tel:+34655769731" className={linkCls}>+34 655 769 731</a>.
+      <a href="mailto:entra@farmapro.es" className={linkCls}>entra@farmapro.es</a>.
     </P>
 
     <H2>2. Usuarios</H2>
