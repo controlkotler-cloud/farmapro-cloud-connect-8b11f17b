@@ -254,6 +254,69 @@ async function handleInvoicePaymentFailed(
   log('invoice.payment_failed processed', { subscriptionId });
 }
 
+async function handleInvoicePaid(
+  stripe: Stripe,
+  supabase: ReturnType<typeof createClient>,
+  invoice: Stripe.Invoice,
+) {
+  // Solo facturamos suscripciones aquí (los packs se facturan en checkout.session.completed).
+  const subscriptionId = invoice.subscription as string | null;
+  if (!subscriptionId) {
+    log('invoice.paid without subscription, skipping', { id: invoice.id });
+    return;
+  }
+
+  // Recuperar la subscripción para leer metadata (origen, plan, cycle, founder).
+  let sub: Stripe.Subscription | null = null;
+  try { sub = await stripe.subscriptions.retrieve(subscriptionId); }
+  catch (e) { log('subscription retrieve failed', { err: (e as Error).message }); }
+
+  const origen = sub?.metadata?.origen ?? invoice.metadata?.origen;
+  if (origen !== 'portal') {
+    log('invoice.paid not from portal, skipping Holded', { subscriptionId, origen });
+    return;
+  }
+
+  const plan = (sub?.metadata?.plan ?? '') as string;
+  const cycle = (sub?.metadata?.cycle ?? 'monthly') as string;
+  const founder = (sub?.metadata?.founder === 'true');
+  const userId = (sub?.metadata?.user_id as string | undefined) ?? null;
+
+  const planLabel = plan === 'plus' ? 'Plus' : plan === 'equipo' ? 'Equipo' : plan;
+  const cycleLabel = cycle === 'yearly' ? 'anual' : 'mensual';
+  const concept = `Suscripción portal farmapro · Plan ${planLabel} (${cycleLabel}${founder ? ', precio fundador' : ''})`;
+
+  const total = ((invoice.amount_paid ?? invoice.amount_due ?? 0) / 100);
+  const email = invoice.customer_email
+    ?? invoice.customer_address?.line1  // fallback (raro)
+    ?? '';
+
+  // Datos del perfil para nombre/CIF.
+  let name: string | null = null;
+  let cif: string | null = null;
+  let profEmail: string | null = null;
+  if (userId) {
+    const { data: prof } = await supabase.from('profiles')
+      .select('full_name, cif, email').eq('id', userId).maybeSingle();
+    name = (prof as any)?.full_name ?? null;
+    cif = (prof as any)?.cif ?? null;
+    profEmail = (prof as any)?.email ?? null;
+  }
+
+  await createHoldedInvoice({
+    sourceId: invoice.id,
+    sourceType: 'stripe_invoice',
+    userId,
+    email: profEmail ?? (email as string),
+    name,
+    cif,
+    concept,
+    totalEur: total,
+    meta: { plan, cycle, founder, subscription_id: subscriptionId, origen: 'portal' },
+  });
+
+  log('invoice.paid processed', { invoiceId: invoice.id, subscriptionId, plan, cycle, founder });
+
 async function handleSubscriptionChange(
   supabase: ReturnType<typeof createClient>,
   sub: Stripe.Subscription,
