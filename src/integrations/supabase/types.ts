@@ -2086,6 +2086,63 @@ export type Database = {
           },
         ]
       }
+      rebotica_calendar_draws: {
+        Row: {
+          created_at: string
+          drawn_at: string
+          estado: string
+          id: string
+          meta: Json | null
+          opening_id: string | null
+          periodo: string | null
+          prize_id: string | null
+          temporada: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          drawn_at?: string
+          estado?: string
+          id?: string
+          meta?: Json | null
+          opening_id?: string | null
+          periodo?: string | null
+          prize_id?: string | null
+          temporada: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          drawn_at?: string
+          estado?: string
+          id?: string
+          meta?: Json | null
+          opening_id?: string | null
+          periodo?: string | null
+          prize_id?: string | null
+          temporada?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebotica_calendar_draws_opening_id_fkey"
+            columns: ["opening_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_openings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rebotica_calendar_draws_prize_id_fkey"
+            columns: ["prize_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_prizes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rebotica_campaigns: {
         Row: {
           created_at: string
@@ -3227,6 +3284,11 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      rebotica_cron_daily: { Args: never; Returns: undefined }
+      rebotica_pick_and_consume_prize: {
+        Args: { p_campaign_id: string; p_tier: string }
+        Returns: string
       }
       recompute_user_points: { Args: { _user_id: string }; Returns: undefined }
       revoke_user_role: {

@@ -9,3 +9,8 @@ project_id = "jeysistgdajopfruqpbc"
     verify_jwt = false
   [functions.send-portal-email]
     verify_jwt = false
+  [functions.open-reward]
+    verify_jwt = true
+  [functions.redeem-reward]
+    verify_jwt = true
+

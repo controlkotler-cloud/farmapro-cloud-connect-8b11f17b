@@ -32,6 +32,11 @@ const VALID_TEMPLATES: PortalTemplateName[] = [
   'past-due',
   'equipo-invitacion',
   'equipo-plaza-activada',
+  'rebotica-premio-ganado',
+  'rebotica-premio-caduca',
+  'rebotica-baul-ganador',
+  'rebotica-gordo-ganador',
+  'rebotica-aviso-calendario-interno',
 ];
 
 const log = (step: string, details?: unknown) => {
