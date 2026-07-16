@@ -26,14 +26,20 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({} as any));
+    const pack = body.pack as number | undefined;
     const plan = body.plan as PlanId;
     const cycle = (body.cycle ?? 'monthly') as Cycle;
 
-    if (!['plus', 'equipo'].includes(plan)) {
-      return json({ error: 'Invalid plan (expected plus|equipo)' }, 400);
-    }
-    if (!['monthly', 'yearly'].includes(cycle)) {
-      return json({ error: 'Invalid cycle (expected monthly|yearly)' }, 400);
+    const isPack = typeof pack === 'number';
+    if (!isPack) {
+      if (!['plus', 'equipo'].includes(plan)) {
+        return json({ error: 'Invalid plan (expected plus|equipo)' }, 400);
+      }
+      if (!['monthly', 'yearly'].includes(cycle)) {
+        return json({ error: 'Invalid cycle (expected monthly|yearly)' }, 400);
+      }
+    } else if (!IMAGE_PACK_PRICES[pack]) {
+      return json({ error: 'Invalid pack (expected 20|50|100)' }, 400);
     }
 
     // Auth
