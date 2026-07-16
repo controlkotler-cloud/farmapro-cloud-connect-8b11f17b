@@ -19,6 +19,7 @@ import Promociones from "@/pages/Promociones";
 import Precios from "@/pages/Precios";
 import Rebotica from "@/pages/Rebotica";
 import ReboticaBasesLegales from "@/pages/ReboticaBasesLegales";
+import { AvisoLegal, PoliticaPrivacidad, PoliticaCookies, ContactoSoporte } from "@/pages/Legal";
 import Perfil from "@/pages/Perfil";
 import MiFarmacia from "@/pages/MiFarmacia";
 import CourseView from "@/pages/CourseView";
@@ -75,6 +76,11 @@ export const AppRoutes = () => {
       {/* La Rebotica: página pública (elegir cajón sin cuenta; abrir exige registro) */}
       <Route path="/rebotica" element={<Rebotica />} />
       <Route path="/rebotica/bases-legales" element={<ReboticaBasesLegales />} />
+      {/* Páginas legales: públicas, sin sidebar (mismo patrón que /rebotica/bases-legales) */}
+      <Route path="/aviso-legal" element={<AvisoLegal />} />
+      <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
+      <Route path="/politica-cookies" element={<PoliticaCookies />} />
+      <Route path="/contacto-soporte" element={<ContactoSoporte />} />
       {/* Team invitation acceptance (public — inner logic requires auth) */}
       <Route path="/invitation" element={<Invitation />} />
       {/* Password recovery link target (public — Supabase establece sesión temporal vía URL) */}

@@ -102,9 +102,13 @@ export default function Perfil() {
               </Select>
             </div>
           ) : (
-            <TabsList className={`grid w-full`} style={{ gridTemplateColumns: `repeat(${tabOptions.length}, minmax(0, 1fr))` }}>
+            <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0">
               {tabOptions.map((tab) => (
-                <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground shadow-none transition data-[state=active]:border-brand/30 data-[state=active]:bg-brand-soft data-[state=active]:text-brand-dark data-[state=active]:shadow-none"
+                >
                   <tab.icon className="h-4 w-4" />
                   {tab.label}
                 </TabsTrigger>

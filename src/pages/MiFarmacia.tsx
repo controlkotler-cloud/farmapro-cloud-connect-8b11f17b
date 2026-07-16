@@ -141,23 +141,28 @@ export default function MiFarmacia() {
             <Store className="h-6 w-6 text-brand-dark" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Mi farmacia</h1>
-            {teamSubscription.team_name && (
-              <p className="text-muted-foreground">{teamSubscription.team_name}</p>
-            )}
+            <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">
+              Mi farmacia
+            </h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {teamSubscription.team_name || 'El equipo de tu farmacia, con su formación al día'}
+            </p>
           </div>
         </div>
 
         {/* Plazas */}
         <Card>
           <CardHeader>
-            <CardTitle>Plazas</CardTitle>
+            <span className="mb-1 inline-flex w-fit rounded-full bg-brand-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-brand-dark">
+              Plan Equipo
+            </span>
+            <CardTitle className="text-base font-extrabold tracking-tight">Plazas</CardTitle>
             <CardDescription>
               {totalPeople} de {maxPeople} personas
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div className="h-2 w-full overflow-hidden rounded-full border border-border bg-secondary">
               <div
                 className="h-full rounded-full bg-brand transition-all"
                 style={{ width: `${progressPct}%` }}
@@ -206,7 +211,7 @@ export default function MiFarmacia() {
                     <div className="text-xs text-muted-foreground">Titular</div>
                   </div>
                 </div>
-                <Badge className="bg-brand-soft text-brand-dark hover:bg-brand-soft">Titular</Badge>
+                <Badge className="rounded-full bg-brand-soft text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-brand-dark hover:bg-brand-soft">Titular</Badge>
               </div>
 
               {/* Activos */}
@@ -226,10 +231,10 @@ export default function MiFarmacia() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-brand-soft text-brand-dark hover:bg-brand-soft">Activo</Badge>
+                    <Badge className="rounded-full bg-brand-soft text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-brand-dark hover:bg-brand-soft">Activo</Badge>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" disabled={removingEmail === member.email}>
+                        <Button variant="outline" size="sm" className="rounded-full" disabled={removingEmail === member.email}>
                           Retirar plaza
                         </Button>
                       </AlertDialogTrigger>
@@ -270,10 +275,11 @@ export default function MiFarmacia() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-miel-soft text-foreground hover:bg-miel-soft">Pendiente</Badge>
+                    <Badge className="rounded-full bg-miel-soft text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-foreground hover:bg-miel-soft">Pendiente</Badge>
                     <Button
                       variant="outline"
                       size="sm"
+                      className="rounded-full"
                       onClick={() => handleResend(member.email)}
                       disabled={resendingEmail === member.email || removingEmail === member.email}
                     >
@@ -284,6 +290,7 @@ export default function MiFarmacia() {
                         <Button
                           variant="outline"
                           size="sm"
+                          className="rounded-full"
                           disabled={removingEmail === member.email || resendingEmail === member.email}
                         >
                           Cancelar
@@ -314,7 +321,10 @@ export default function MiFarmacia() {
         {/* Progreso del equipo */}
         <Card>
           <CardHeader>
-            <CardTitle>Progreso del equipo</CardTitle>
+            <span className="mb-1 inline-flex w-fit rounded-full bg-brand-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-brand-dark">
+              Formación
+            </span>
+            <CardTitle className="text-base font-extrabold tracking-tight">Progreso del equipo</CardTitle>
             <CardDescription>Cursos, evaluaciones y última actividad de cada persona</CardDescription>
           </CardHeader>
           <CardContent>
@@ -331,12 +341,12 @@ export default function MiFarmacia() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 pr-4 font-medium">Persona</th>
-                      <th className="pb-2 pr-4 font-medium">Cursos</th>
-                      <th className="pb-2 pr-4 font-medium">Evaluaciones</th>
-                      <th className="pb-2 pr-4 font-medium">Nivel</th>
-                      <th className="pb-2 font-medium">Última actividad</th>
+                    <tr className="border-b text-left text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-muted-foreground">
+                      <th className="pb-2 pr-4">Persona</th>
+                      <th className="pb-2 pr-4">Cursos</th>
+                      <th className="pb-2 pr-4">Evaluaciones</th>
+                      <th className="pb-2 pr-4">Nivel</th>
+                      <th className="pb-2">Última actividad</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -377,7 +387,10 @@ export default function MiFarmacia() {
         {/* Tu plan */}
         <Card>
           <CardHeader>
-            <CardTitle>Tu plan</CardTitle>
+            <span className="mb-1 inline-flex w-fit rounded-full bg-brand-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-brand-dark">
+              Suscripción
+            </span>
+            <CardTitle className="text-base font-extrabold tracking-tight">Tu plan</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-start justify-between gap-4 rounded-lg border bg-muted/40 p-4 sm:flex-row sm:items-center">

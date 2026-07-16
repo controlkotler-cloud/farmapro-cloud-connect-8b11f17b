@@ -41,20 +41,26 @@ export const PortalChatbot = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-background border rounded-lg shadow-lift flex flex-col z-50">
+        <div className="fixed bottom-6 right-6 z-50 flex h-[min(600px,calc(100dvh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-lift">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-ciruela text-primary-foreground">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              <h3 className="font-semibold">Asistente farmapro</h3>
+          <div className="flex items-center justify-between border-b border-border bg-card p-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ciruela-soft">
+                <Sparkles className="h-4 w-4 text-ciruela" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold tracking-tight text-foreground">Asistente farmapro</h3>
+                <p className="text-xs text-muted-foreground">Te ayuda a moverte por el portal</p>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               {messages.length > 0 && (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={clearChat}
-                  className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
+                  aria-label="Vaciar conversación"
+                  className="h-8 w-8 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -63,7 +69,8 @@ export const PortalChatbot = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
-                className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
+                aria-label="Cerrar el asistente"
+                className="h-8 w-8 text-muted-foreground hover:bg-secondary hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -139,7 +146,13 @@ export const PortalChatbot = () => {
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+              <Button
+                type="submit"
+                size="icon"
+                disabled={isLoading || !input.trim()}
+                aria-label="Enviar"
+                className="rounded-full"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
