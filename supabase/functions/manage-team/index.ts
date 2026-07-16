@@ -111,40 +111,38 @@ serve(async (req) => {
           throw new Error(inviteError.message);
         }
 
-        // Enviar invitación vía Mailrelay (API transaccional /send_emails, no
-        // una campaña — no requiere que el destinatario esté en ninguna lista).
-        // Clientify dejó de ser canal de envío el 10-07 (ahora es solo CRM).
-        const appUrl = Deno.env.get("APP_URL") ?? "";
+        // Enviar invitación vía send-portal-email (plantilla 'equipo-invitacion').
+        // Clientify ya no envía transaccionales; solo CRM.
+        const appUrl = Deno.env.get("APP_URL") ?? "https://portal.farmapro.es";
         const inviteUrl = `${appUrl}/invitation?token=${inviteToken}`;
 
-        const mailrelayBase = Deno.env.get("MAILRELAY_API_BASE") ?? "";
-        const mailrelayKey = Deno.env.get("MAILRELAY_API_KEY") ?? "";
+        // Nombre del titular/farmacia para personalizar el email
+        let invitadoPor = 'tu equipo';
+        try {
+          const { data: ownerProfile } = await supabaseClient
+            .from('profiles')
+            .select('full_name, pharmacy_name')
+            .eq('id', user.id)
+            .maybeSingle();
+          invitadoPor = ownerProfile?.pharmacy_name || ownerProfile?.full_name || user.email || 'tu equipo';
+        } catch (_e) { /* noop */ }
 
-        if (!mailrelayBase || !mailrelayKey) {
-          logStep("Mailrelay secrets missing, invitation email not sent", { email });
-        } else {
-          try {
-            const mrResponse = await fetch(`${mailrelayBase}/send_emails`, {
-              method: "POST",
-              headers: {
-                "X-AUTH-TOKEN": mailrelayKey,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                from: { email: "somos@farmapro.es", name: "farmapro" },
-                to: [{ email }],
-                subject: "Te han invitado a un equipo en el Portal farmapro",
-                html_part: buildInvitationEmailHtml(inviteUrl),
-              }),
-            });
-            if (!mrResponse.ok) {
-              logStep("Mailrelay invitation error", { status: mrResponse.status, body: await mrResponse.text() });
-            } else {
-              logStep("Invitation sent via Mailrelay", { email });
-            }
-          } catch (mrErr) {
-            logStep("Mailrelay invitation exception", { err: (mrErr as Error).message });
+        try {
+          const { error: sendErr } = await supabaseClient.functions.invoke('send-portal-email', {
+            body: {
+              template: 'equipo-invitacion',
+              to: email,
+              data: { invitadoPor, inviteUrl, caducidadDias: 7 },
+              meta: { trigger: 'manage-team.invite_member', team_id: teamId },
+            },
+          });
+          if (sendErr) {
+            logStep("send-portal-email invitation error", { err: sendErr.message });
+          } else {
+            logStep("Invitation email dispatched", { email });
           }
+        } catch (mrErr) {
+          logStep("send-portal-email invitation exception", { err: (mrErr as Error).message });
         }
 
         logStep("Member invited", { email, teamId, inviteToken });
