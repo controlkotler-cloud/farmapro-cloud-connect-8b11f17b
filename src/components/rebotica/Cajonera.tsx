@@ -138,7 +138,7 @@ export function Cajonera({ skin = 'cajonera', selected, onSelect, disabled }: Ca
 
       <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-[#5c6660]">
         <Lock className="h-3 w-3 shrink-0" />
-        Todos llevan premio. Elegir cajón no cambia lo que te toca: el sorteo se hace en servidor.
+        Todos llevan premio. Elegir cajón no cambia lo que te toca.
       </p>
     </div>
   );
