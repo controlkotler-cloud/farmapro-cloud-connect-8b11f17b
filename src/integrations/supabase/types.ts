@@ -2201,9 +2201,11 @@ export type Database = {
           expires_at: string
           id: string
           opened_at: string
-          prize_id: string
+          prize_id: string | null
           redeemed_at: string | null
+          reward_type: string
           source: string
+          team_subscription_id: string | null
           user_id: string
         }
         Insert: {
@@ -2213,9 +2215,11 @@ export type Database = {
           expires_at: string
           id?: string
           opened_at?: string
-          prize_id: string
+          prize_id?: string | null
           redeemed_at?: string | null
+          reward_type?: string
           source?: string
+          team_subscription_id?: string | null
           user_id: string
         }
         Update: {
@@ -2225,9 +2229,11 @@ export type Database = {
           expires_at?: string
           id?: string
           opened_at?: string
-          prize_id?: string
+          prize_id?: string | null
           redeemed_at?: string | null
+          reward_type?: string
           source?: string
+          team_subscription_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -2250,6 +2256,58 @@ export type Database = {
             columns: ["prize_id"]
             isOneToOne: false
             referencedRelation: "rebotica_prizes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rebotica_openings_team_subscription_id_fkey"
+            columns: ["team_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "team_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rebotica_participaciones: {
+        Row: {
+          created_at: string
+          id: string
+          opening_id: string
+          periodo: string
+          sorteo_tipo: string
+          team_subscription_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          opening_id: string
+          periodo: string
+          sorteo_tipo: string
+          team_subscription_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          opening_id?: string
+          periodo?: string
+          sorteo_tipo?: string
+          team_subscription_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebotica_participaciones_opening_id_fkey"
+            columns: ["opening_id"]
+            isOneToOne: false
+            referencedRelation: "rebotica_openings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rebotica_participaciones_team_subscription_id_fkey"
+            columns: ["team_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "team_subscriptions"
             referencedColumns: ["id"]
           },
         ]
@@ -2362,6 +2420,47 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "rebotica_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rebotica_sorteos: {
+        Row: {
+          created_at: string
+          ganador_team_subscription_id: string | null
+          id: string
+          periodo: string
+          sorteado_at: string
+          sorteado_por: string | null
+          tipo: string
+          total_participaciones: number
+        }
+        Insert: {
+          created_at?: string
+          ganador_team_subscription_id?: string | null
+          id?: string
+          periodo: string
+          sorteado_at?: string
+          sorteado_por?: string | null
+          tipo: string
+          total_participaciones?: number
+        }
+        Update: {
+          created_at?: string
+          ganador_team_subscription_id?: string | null
+          id?: string
+          periodo?: string
+          sorteado_at?: string
+          sorteado_por?: string | null
+          tipo?: string
+          total_participaciones?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebotica_sorteos_ganador_team_subscription_id_fkey"
+            columns: ["ganador_team_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "team_subscriptions"
             referencedColumns: ["id"]
           },
         ]
@@ -3157,6 +3256,10 @@ export type Database = {
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      ejecutar_sorteo_rebotica: {
+        Args: { p_periodo: string; p_tipo: string }
+        Returns: string
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
