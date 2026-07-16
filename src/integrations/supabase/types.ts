@@ -3285,6 +3285,11 @@ export type Database = {
           read_ct: number
         }[]
       }
+      rebotica_cron_daily: { Args: never; Returns: undefined }
+      rebotica_pick_and_consume_prize: {
+        Args: { p_campaign_id: string; p_tier: string }
+        Returns: string
+      }
       recompute_user_points: { Args: { _user_id: string }; Returns: undefined }
       revoke_user_role: {
         Args: {
