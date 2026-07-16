@@ -17,7 +17,7 @@ const SECTIONS = [
   },
   {
     title: '4. Premios',
-    body: 'El catálogo de premios de cada campaña se publica en la propia página de la Rebotica mientras esté activa. Los premios son siempre un regalo completo, sin condiciones de compra asociadas: la Rebotica regala, nunca descuenta. Ningún premio tiene contenido sanitario ni relacionado con la dispensación de medicamentos, en línea con el código deontológico farmacéutico. Todos los premios los aporta farmapro: ningún partner que patrocine una campaña entrega producto propio como premio, ni dentro ni fuera de su patrocinio. Algunos premios de servicio, como la Radiografía digital exprés, requieren aportar los datos públicos de una farmacia real (ficha de Google Business, web o redes) para poder ejecutarse; si el ganador no dispone de ellos, el premio se sustituye por otro de valor equivalente del catálogo.',
+    body: 'El catálogo de premios de cada campaña se publica en la propia página de la Rebotica mientras esté activa. Los premios son siempre un regalo completo, sin condiciones de compra asociadas: la Rebotica regala, nunca descuenta. Ningún premio tiene contenido sanitario ni relacionado con la dispensación de medicamentos, en línea con el código deontológico farmacéutico. Todos los premios los aporta farmapro: ningún partner que patrocine una campaña entrega producto propio como premio, ni dentro ni fuera de su patrocinio. Algunos premios de servicio, como la Radiografía digital exprés, requieren aportar los datos públicos de una farmacia real (ficha de Google Business, web o redes) para poder ejecutarse; si el ganador no dispone de ellos, el premio se sustituye por una masterclass o un recurso premium del catálogo, siempre disponibles.',
   },
   {
     title: '5. Caducidad y canje',
