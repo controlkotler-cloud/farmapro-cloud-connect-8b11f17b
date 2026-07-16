@@ -41,6 +41,15 @@ export const useCookieConsent = () => {
       console.log('useCookieConsent - Loading saved preferences');
       setPreferences(JSON.parse(savedPreferences));
     }
+
+    const handleOpenSettings = () => {
+      console.log('useCookieConsent - open-cookie-settings event received');
+      setForceShow(true);
+      setShowBanner(true);
+    };
+
+    window.addEventListener('open-cookie-settings', handleOpenSettings);
+    return () => window.removeEventListener('open-cookie-settings', handleOpenSettings);
   }, []);
 
   const acceptAll = () => {
