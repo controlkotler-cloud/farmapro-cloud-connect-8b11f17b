@@ -51,13 +51,13 @@ serve(async (req) => {
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  const campaignId = String(body.campaign_id ?? "").trim();
+  const campaignIdRaw = String(body.campaign_id ?? "").trim();
   const cajon = Number(body.cajon);
   const source: Source = (VALID_SOURCES as readonly string[]).includes(body.source ?? "")
     ? (body.source as Source)
     : "welcome";
 
-  if (!campaignId || !/^[0-9a-f-]{36}$/i.test(campaignId)) {
+  if (campaignIdRaw && !/^[0-9a-f-]{36}$/i.test(campaignIdRaw)) {
     return json({ error: "campaign_id inválido" }, 400);
   }
   if (!Number.isInteger(cajon) || cajon < 1 || cajon > 30) {
@@ -66,38 +66,51 @@ serve(async (req) => {
 
   // ---- Auth ----------------------------------------------------------------
   const authHeader = req.headers.get("Authorization");
+  const loginRedirect = `/login?modo=registro${campaignIdRaw ? `&c=${encodeURIComponent(campaignIdRaw)}` : ""}&cajon=${cajon}`;
   if (!authHeader?.startsWith("Bearer ")) {
-    return json({
-      error: "Unauthorized",
-      redirect: `/login?modo=registro&c=${encodeURIComponent(campaignId)}&cajon=${cajon}`,
-    }, 401);
+    return json({ error: "Unauthorized", redirect: loginRedirect }, 401);
   }
   const token = authHeader.replace("Bearer ", "");
   const { data: userData, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userData.user) {
-    return json({
-      error: "Unauthorized",
-      redirect: `/login?modo=registro&c=${encodeURIComponent(campaignId)}&cajon=${cajon}`,
-    }, 401);
+    return json({ error: "Unauthorized", redirect: loginRedirect }, 401);
   }
   const user = userData.user;
-  log("user", { id: user.id, campaignId, cajon, source });
+  log("user", { id: user.id, campaignIdRaw, cajon, source });
 
   try {
     // ---- Campaña activa y en rango ----------------------------------------
-    const { data: campaign } = await supabase
-      .from("rebotica_campaigns")
-      .select("id, estado, quincena_inicio, quincena_fin")
-      .eq("id", campaignId)
-      .maybeSingle();
-
-    if (!campaign) return json({ error: "Campaña no encontrada" }, 404);
-    if (campaign.estado !== "activa") {
-      return json({ error: "La campaña no está activa" }, 409);
-    }
     const today = new Date().toISOString().slice(0, 10);
-    if (campaign.quincena_inicio > today || campaign.quincena_fin < today) {
-      return json({ error: "La campaña no está en su ventana de apertura" }, 409);
+    let campaign: { id: string; estado: string; quincena_inicio: string; quincena_fin: string } | null = null;
+
+    if (campaignIdRaw) {
+      const { data } = await supabase
+        .from("rebotica_campaigns")
+        .select("id, estado, quincena_inicio, quincena_fin")
+        .eq("id", campaignIdRaw)
+        .maybeSingle();
+      campaign = data;
+      if (!campaign) return json({ error: "Campaña no encontrada" }, 404);
+      if (campaign.estado !== "activa") {
+        return json({ error: "La campaña no está activa" }, 409);
+      }
+      if (campaign.quincena_inicio > today || campaign.quincena_fin < today) {
+        return json({ error: "La campaña no está en su ventana de apertura" }, 409);
+      }
+    } else {
+      // Sin campaign_id: resuelve la campaña activa cuya ventana incluye hoy;
+      // si hubiera varias, la de quincena_inicio más reciente.
+      const { data } = await supabase
+        .from("rebotica_campaigns")
+        .select("id, estado, quincena_inicio, quincena_fin")
+        .eq("estado", "activa")
+        .lte("quincena_inicio", today)
+        .gte("quincena_fin", today)
+        .order("quincena_inicio", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      campaign = data;
+      if (!campaign) return json({ error: "No hay campaña activa ahora mismo" }, 409);
     }
 
     // ---- Idempotencia ------------------------------------------------------
@@ -116,6 +129,7 @@ serve(async (req) => {
         .maybeSingle();
       return json({
         already: true,
+        reward_type: "premio",
         opening_id: existing.id,
         expires_at: existing.expires_at,
         redeemed_at: existing.redeemed_at,
@@ -190,6 +204,7 @@ serve(async (req) => {
 
     log("premio granted", { userId: user.id, prizeId, openingId: opening.id });
     return json({
+      reward_type: "premio",
       opening_id: opening.id,
       expires_at: opening.expires_at,
       prize,

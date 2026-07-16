@@ -201,9 +201,16 @@ export default function Rebotica() {
     if (!REBOTICA_OPEN_REWARD_ENABLED) return;
 
     setOpening(true);
-    // El cajón elegido en la cajonera es solo estético: el sorteo real (y a
-    // quién le toca premio vs. participación) se decide en el servidor.
-    const { data, error } = await supabase.functions.invoke('open-reward', { body: {} });
+    // El cajón elegido en la cajonera es solo estético: el sorteo real se
+    // decide en el servidor. Si el email trajo `?c=` (campaign_id explícito)
+    // lo mandamos; si no, la edge resuelve la campaña activa por fecha.
+    const { data, error } = await supabase.functions.invoke('open-reward', {
+      body: {
+        cajon: selected,
+        source: 'welcome',
+        ...(ctx.campaign ? { campaign_id: ctx.campaign } : {}),
+      },
+    });
     setOpening(false);
 
     if (error || data?.error) {
@@ -215,15 +222,16 @@ export default function Rebotica() {
       return;
     }
 
-    if (data.reward_type === 'premio' && data.prize) {
+    if (data?.prize) {
       toast({
         title: data.already ? 'Ya tenías este premio' : `¡Premio! ${data.prize.titulo}`,
         description: data.prize.descripcion ?? 'Revisa tu perfil para canjearlo.',
       });
     } else {
       toast({
-        title: data.already ? 'Ya has abierto tu cajón de esta quincena' : '¡Participación conseguida!',
-        description: data.message ?? 'Le has dado a tu farmacia una participación más para El Baúl y El Gordo.',
+        title: 'No se ha podido abrir el cajón',
+        description: 'Inténtalo de nuevo en unos segundos.',
+        variant: 'destructive',
       });
     }
   };
