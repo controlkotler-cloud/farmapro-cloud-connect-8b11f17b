@@ -55,6 +55,11 @@ serve(async (req) => {
     const user = userData.user;
     log('user', { id: user.id, email: user.email });
 
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    );
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
 
     // Reutiliza customer si existe.
