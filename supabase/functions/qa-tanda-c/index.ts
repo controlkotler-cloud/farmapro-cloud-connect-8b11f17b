@@ -185,16 +185,16 @@ async function runB(stripe: Stripe, sb: ReturnType<typeof createClient>, userId:
   const { error: creditErr } = await sb.rpc("add_image_credits", { p_user: userId, p_credits: 20 });
   if (creditErr) throw new Error("add_image_credits: " + creditErr.message);
 
-  // Insertar factura Holded del pack (mismo llamado que hace el webhook).
-  const holdedRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/qa-holded-proxy`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-internal-key": Deno.env.get("INTERNAL_FUNCTION_KEY") || "" },
-    body: JSON.stringify({
-      sourceId: session.id, sourceType: "stripe_checkout_session", userId, email,
-      concept: "Portal farmapro · Pack 20 imágenes IAFarma (QA test)",
-      totalEur: 4.99, meta: { pack_credits: 20, origen: "portal", qa: "tanda-c-B" },
-    }),
-  }).then((r) => r.json()).catch((e) => ({ error: String(e) }));
+  // Insertar factura Holded del pack (mismo helper que el webhook).
+  const holdedRes = await createHoldedInvoice({
+    sourceId: session.id,
+    sourceType: "stripe_checkout_session",
+    userId,
+    email,
+    concept: "Portal farmapro · Pack 20 imágenes IAFarma (QA test)",
+    totalEur: 4.99,
+    meta: { pack_credits: 20, origen: "portal", qa: "tanda-c-B" },
+  });
 
   await sleep(2000);
   const { data: after } = await sb.from("ai_image_usage").select("*").eq("user_id", userId);
