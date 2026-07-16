@@ -199,6 +199,55 @@ serve(async (req) => {
 
         if (profileError) throw profileError;
 
+        // Notificar al titular del equipo: 'equipo-plaza-activada'
+        try {
+          const acceptedRowId = acceptedRows[0].id;
+          const { data: memberRow } = await supabaseClient
+            .from('team_members')
+            .select('team_id, email, team_subscriptions!inner(owner_id, max_members)')
+            .eq('id', acceptedRowId)
+            .maybeSingle();
+          const ts: any = (memberRow as any)?.team_subscriptions;
+          const ownerId: string | undefined = ts?.owner_id;
+          const maxMembers: number = ts?.max_members ?? 0;
+          const teamIdVal = (memberRow as any)?.team_id;
+
+          if (ownerId && teamIdVal) {
+            const { data: ownerAuth } = await supabaseClient.auth.admin.getUserById(ownerId);
+            const ownerEmail = ownerAuth?.user?.email;
+            const { data: ownerProfile } = await supabaseClient
+              .from('profiles').select('full_name').eq('id', ownerId).maybeSingle();
+            const { count: occupiedCount } = await supabaseClient
+              .from('team_members')
+              .select('*', { count: 'exact', head: true })
+              .eq('team_id', teamIdVal)
+              .eq('status', 'active');
+            const { data: joinedProfile } = await supabaseClient
+              .from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+
+            if (ownerEmail) {
+              const { error: notifyErr } = await supabaseClient.functions.invoke('send-portal-email', {
+                body: {
+                  template: 'equipo-plaza-activada',
+                  to: ownerEmail,
+                  data: {
+                    nombre: ownerProfile?.full_name || undefined,
+                    miembroNombre: joinedProfile?.full_name || user.email,
+                    miembroEmail: user.email,
+                    plazasOcupadas: occupiedCount ?? undefined,
+                    plazasTotal: maxMembers || undefined,
+                  },
+                  meta: { trigger: 'manage-team.accept_invitation', team_id: teamIdVal, new_member: user.id },
+                },
+              });
+              if (notifyErr) logStep('plaza-activada send error', { err: notifyErr.message });
+              else logStep('plaza-activada dispatched', { ownerEmail });
+            }
+          }
+        } catch (notifyErr) {
+          logStep('plaza-activada exception', { err: (notifyErr as Error).message });
+        }
+
         logStep("Invitation accepted", { userId: user.id, email: user.email });
         return new Response(JSON.stringify({ 
           success: true, 
