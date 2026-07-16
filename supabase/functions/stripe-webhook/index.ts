@@ -75,6 +75,10 @@ serve(async (req) => {
         await handleInvoicePaymentFailed(supabase, event.data.object as Stripe.Invoice);
         break;
 
+      case 'invoice.paid':
+        await handleInvoicePaid(stripe, supabase, event.data.object as Stripe.Invoice);
+        break;
+
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
         await handleSubscriptionChange(supabase, event.data.object as Stripe.Subscription, event.type);
