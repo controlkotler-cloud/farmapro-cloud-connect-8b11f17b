@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { PROTECTED_ROLES } from "../_shared/stripePrices.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -132,7 +133,7 @@ serve(async (req) => {
             body: {
               template: 'equipo-invitacion',
               to: email,
-              data: { invitadoPor, inviteUrl, caducidadDias: 7 },
+              data: { invitadoPor, inviteUrl, caducidadDias: 14 },
               meta: { trigger: 'manage-team.invite_member', team_id: teamId },
             },
           });
@@ -187,14 +188,27 @@ serve(async (req) => {
           throw new Error('Invalid invitation token');
         }
 
-        // El rol de un miembro de equipo es siempre 'equipo' (paga el titular).
+        // El rol de un miembro de equipo es siempre 'equipo' (paga el titular),
+        // salvo que el usuario ya tenga un rol protegido (ej. admin).
         // member_role es vestigial: no decide el rol.
+        const { data: memberProfile } = await supabaseClient
+          .from('profiles')
+          .select('subscription_role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const isProtected = memberProfile?.subscription_role
+          ? PROTECTED_ROLES.includes(memberProfile.subscription_role as typeof PROTECTED_ROLES[number])
+          : false;
+
+        const profileUpdate: Record<string, unknown> = { subscription_status: 'active' };
+        if (!isProtected) {
+          profileUpdate.subscription_role = 'equipo';
+        }
+
         const { error: profileError } = await supabaseClient
           .from('profiles')
-          .update({
-            subscription_role: 'equipo',
-            subscription_status: 'active'
-          })
+          .update(profileUpdate)
           .eq('id', user.id);
 
         if (profileError) throw profileError;
