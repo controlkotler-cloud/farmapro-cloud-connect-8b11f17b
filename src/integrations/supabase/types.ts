@@ -1641,6 +1641,54 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_holded_invoices: {
+        Row: {
+          concept: string | null
+          created_at: string
+          email: string | null
+          error_message: string | null
+          holded_doc_id: string | null
+          id: string
+          meta: Json | null
+          source_id: string
+          source_type: string
+          status: string
+          total_eur: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          concept?: string | null
+          created_at?: string
+          email?: string | null
+          error_message?: string | null
+          holded_doc_id?: string | null
+          id?: string
+          meta?: Json | null
+          source_id: string
+          source_type: string
+          status?: string
+          total_eur: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          concept?: string | null
+          created_at?: string
+          email?: string | null
+          error_message?: string | null
+          holded_doc_id?: string | null
+          id?: string
+          meta?: Json | null
+          source_id?: string
+          source_type?: string
+          status?: string
+          total_eur?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       portal_trial_notice_log: {
         Row: {
           id: string
@@ -3002,6 +3050,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_image_credits: {
+        Args: { p_credits: number; p_user: string }
+        Returns: number
+      }
       add_user_points: {
         Args: { _points: number; _user_id: string }
         Returns: undefined
@@ -3279,7 +3331,12 @@ export type Database = {
         | "checklist"
         | "manual"
         | "herramienta"
-      subscription_status: "active" | "canceled" | "expired" | "trialing"
+      subscription_status:
+        | "active"
+        | "canceled"
+        | "expired"
+        | "trialing"
+        | "past_due"
       team_member_role: "premium" | "profesional"
       user_role:
         | "freemium"
@@ -3473,7 +3530,13 @@ export const Constants = {
         "manual",
         "herramienta",
       ],
-      subscription_status: ["active", "canceled", "expired", "trialing"],
+      subscription_status: [
+        "active",
+        "canceled",
+        "expired",
+        "trialing",
+        "past_due",
+      ],
       team_member_role: ["premium", "profesional"],
       user_role: [
         "freemium",
