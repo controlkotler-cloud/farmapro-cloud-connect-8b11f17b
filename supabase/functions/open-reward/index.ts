@@ -80,19 +80,37 @@ serve(async (req) => {
 
   try {
     // ---- Campaña activa y en rango ----------------------------------------
-    const { data: campaign } = await supabase
-      .from("rebotica_campaigns")
-      .select("id, estado, quincena_inicio, quincena_fin")
-      .eq("id", campaignId)
-      .maybeSingle();
-
-    if (!campaign) return json({ error: "Campaña no encontrada" }, 404);
-    if (campaign.estado !== "activa") {
-      return json({ error: "La campaña no está activa" }, 409);
-    }
     const today = new Date().toISOString().slice(0, 10);
-    if (campaign.quincena_inicio > today || campaign.quincena_fin < today) {
-      return json({ error: "La campaña no está en su ventana de apertura" }, 409);
+    let campaign: { id: string; estado: string; quincena_inicio: string; quincena_fin: string } | null = null;
+
+    if (campaignIdRaw) {
+      const { data } = await supabase
+        .from("rebotica_campaigns")
+        .select("id, estado, quincena_inicio, quincena_fin")
+        .eq("id", campaignIdRaw)
+        .maybeSingle();
+      campaign = data;
+      if (!campaign) return json({ error: "Campaña no encontrada" }, 404);
+      if (campaign.estado !== "activa") {
+        return json({ error: "La campaña no está activa" }, 409);
+      }
+      if (campaign.quincena_inicio > today || campaign.quincena_fin < today) {
+        return json({ error: "La campaña no está en su ventana de apertura" }, 409);
+      }
+    } else {
+      // Sin campaign_id: resuelve la campaña activa cuya ventana incluye hoy;
+      // si hubiera varias, la de quincena_inicio más reciente.
+      const { data } = await supabase
+        .from("rebotica_campaigns")
+        .select("id, estado, quincena_inicio, quincena_fin")
+        .eq("estado", "activa")
+        .lte("quincena_inicio", today)
+        .gte("quincena_fin", today)
+        .order("quincena_inicio", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      campaign = data;
+      if (!campaign) return json({ error: "No hay campaña activa ahora mismo" }, 409);
     }
 
     // ---- Idempotencia ------------------------------------------------------
