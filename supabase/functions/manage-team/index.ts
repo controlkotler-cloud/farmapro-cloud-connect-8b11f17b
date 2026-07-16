@@ -12,40 +12,8 @@ const logStep = (step: string, details?: any) => {
   console.log(`[MANAGE-TEAM] ${step}${detailsStr}`);
 };
 
-// Mismo canon visual que docs/email-templates/auth-confirm-signup-es.html
-// (verde #88C835/#5F8F20, Open Sans/Arial, pill button). Estilos inline: los
-// clientes de correo strippean <style>.
-const buildInvitationEmailHtml = (inviteUrl: string) => `
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;background-color:#f4f4f4;">
-  <tr>
-    <td align="center" style="padding:32px 12px;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="480" style="border-collapse:collapse;background-color:#ffffff;max-width:480px;width:100%;border-radius:14px;">
-        <tr>
-          <td style="padding:40px 32px;font-family:'Open Sans',Arial,Helvetica,sans-serif;text-align:center;">
-            <img src="https://farmapro.es/email-logo-farmapro.png" alt="farmapro" width="130" style="display:block;width:130px;height:auto;border:0;outline:none;margin:0 auto 28px;">
-            <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#181C17;line-height:1.3;text-align:center;">Te han invitado a un equipo</h1>
-            <p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#3a3f38;text-align:center;">
-              Alguien de tu farmacia te ha invitado a unirte a su equipo en el <strong style="color:#181C17;">Portal farmapro</strong>. Acepta la invitación para empezar a usarlo.
-            </p>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="border-collapse:collapse;">
-              <tr>
-                <td align="center" style="border-radius:999px;background-color:#5F8F20;">
-                  <a href="${inviteUrl}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;letter-spacing:0.04em;padding:16px 40px;text-transform:uppercase;line-height:1;">Aceptar invitación</a>
-                </td>
-              </tr>
-            </table>
-            <p style="margin:32px 0 0;font-size:13px;line-height:1.5;color:#9a9a9a;text-align:center;">
-              Este enlace caduca en 7 días. Si no esperabas esta invitación, puedes ignorar este email.
-            </p>
-          </td>
-        </tr>
-      </table>
-      <p style="margin:20px 0 0;font-size:12px;line-height:1.6;color:#9a9a9a;text-align:center;">
-        farmapro &middot; el ecosistema para farmacias
-      </p>
-    </td>
-  </tr>
-</table>`;
+// Email de invitación migrado a send-portal-email (plantilla 'equipo-invitacion').
+// Clientify dejó de ser canal de envío el 10-07 (ahora es solo CRM).
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
