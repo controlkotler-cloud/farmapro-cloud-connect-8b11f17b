@@ -66,7 +66,27 @@ serve(async (req) => {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
+    // Guard miembro de equipo: si el usuario es miembro activo de un equipo
+    // activo, su rol correcto es 'equipo' (paga el titular). Nunca se degrada
+    // aquí, aunque no tenga stripe_customer_id ni suscripción propia.
+    const { data: teamMembership } = await supabase
+      .from('team_members')
+      .select('team_id, team_subscriptions!inner(status)')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .eq('team_subscriptions.status', 'active')
+      .maybeSingle();
+
     if (customers.data.length === 0) {
+      if (teamMembership) {
+        log('team member without own stripe customer, keeping equipo role');
+        await supabase.from('profiles').update({
+          subscription_role: 'equipo',
+          subscription_status: 'active',
+          updated_at: new Date().toISOString(),
+        }).eq('id', user.id);
+        return json({ subscribed: true, subscription_role: 'equipo', subscription_status: 'active', team_member: true });
+      }
       await supabase.from('profiles').update({
         subscription_role: 'freemium',
         subscription_status: 'trialing',
@@ -79,6 +99,16 @@ serve(async (req) => {
     const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 });
 
     if (subs.data.length === 0) {
+      if (teamMembership) {
+        log('team member without own active subscription, keeping equipo role');
+        await supabase.from('profiles').update({
+          subscription_role: 'equipo',
+          subscription_status: 'active',
+          stripe_customer_id: customerId,
+          updated_at: new Date().toISOString(),
+        }).eq('id', user.id);
+        return json({ subscribed: true, subscription_role: 'equipo', subscription_status: 'active', team_member: true });
+      }
       await supabase.from('profiles').update({
         subscription_role: 'freemium',
         subscription_status: 'canceled',

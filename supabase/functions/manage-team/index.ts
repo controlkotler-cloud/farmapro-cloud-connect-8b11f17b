@@ -12,40 +12,8 @@ const logStep = (step: string, details?: any) => {
   console.log(`[MANAGE-TEAM] ${step}${detailsStr}`);
 };
 
-// Mismo canon visual que docs/email-templates/auth-confirm-signup-es.html
-// (verde #88C835/#5F8F20, Open Sans/Arial, pill button). Estilos inline: los
-// clientes de correo strippean <style>.
-const buildInvitationEmailHtml = (inviteUrl: string) => `
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;background-color:#f4f4f4;">
-  <tr>
-    <td align="center" style="padding:32px 12px;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="480" style="border-collapse:collapse;background-color:#ffffff;max-width:480px;width:100%;border-radius:14px;">
-        <tr>
-          <td style="padding:40px 32px;font-family:'Open Sans',Arial,Helvetica,sans-serif;text-align:center;">
-            <img src="https://farmapro.es/email-logo-farmapro.png" alt="farmapro" width="130" style="display:block;width:130px;height:auto;border:0;outline:none;margin:0 auto 28px;">
-            <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#181C17;line-height:1.3;text-align:center;">Te han invitado a un equipo</h1>
-            <p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#3a3f38;text-align:center;">
-              Alguien de tu farmacia te ha invitado a unirte a su equipo en el <strong style="color:#181C17;">Portal farmapro</strong>. Acepta la invitación para empezar a usarlo.
-            </p>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="border-collapse:collapse;">
-              <tr>
-                <td align="center" style="border-radius:999px;background-color:#5F8F20;">
-                  <a href="${inviteUrl}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;letter-spacing:0.04em;padding:16px 40px;text-transform:uppercase;line-height:1;">Aceptar invitación</a>
-                </td>
-              </tr>
-            </table>
-            <p style="margin:32px 0 0;font-size:13px;line-height:1.5;color:#9a9a9a;text-align:center;">
-              Este enlace caduca en 7 días. Si no esperabas esta invitación, puedes ignorar este email.
-            </p>
-          </td>
-        </tr>
-      </table>
-      <p style="margin:20px 0 0;font-size:12px;line-height:1.6;color:#9a9a9a;text-align:center;">
-        farmapro &middot; el ecosistema para farmacias
-      </p>
-    </td>
-  </tr>
-</table>`;
+// Email de invitación migrado a send-portal-email (plantilla 'equipo-invitacion').
+// Clientify dejó de ser canal de envío el 10-07 (ahora es solo CRM).
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -143,40 +111,38 @@ serve(async (req) => {
           throw new Error(inviteError.message);
         }
 
-        // Enviar invitación vía Mailrelay (API transaccional /send_emails, no
-        // una campaña — no requiere que el destinatario esté en ninguna lista).
-        // Clientify dejó de ser canal de envío el 10-07 (ahora es solo CRM).
-        const appUrl = Deno.env.get("APP_URL") ?? "";
+        // Enviar invitación vía send-portal-email (plantilla 'equipo-invitacion').
+        // Clientify ya no envía transaccionales; solo CRM.
+        const appUrl = Deno.env.get("APP_URL") ?? "https://portal.farmapro.es";
         const inviteUrl = `${appUrl}/invitation?token=${inviteToken}`;
 
-        const mailrelayBase = Deno.env.get("MAILRELAY_API_BASE") ?? "";
-        const mailrelayKey = Deno.env.get("MAILRELAY_API_KEY") ?? "";
+        // Nombre del titular/farmacia para personalizar el email
+        let invitadoPor = 'tu equipo';
+        try {
+          const { data: ownerProfile } = await supabaseClient
+            .from('profiles')
+            .select('full_name, pharmacy_name')
+            .eq('id', user.id)
+            .maybeSingle();
+          invitadoPor = ownerProfile?.pharmacy_name || ownerProfile?.full_name || user.email || 'tu equipo';
+        } catch (_e) { /* noop */ }
 
-        if (!mailrelayBase || !mailrelayKey) {
-          logStep("Mailrelay secrets missing, invitation email not sent", { email });
-        } else {
-          try {
-            const mrResponse = await fetch(`${mailrelayBase}/send_emails`, {
-              method: "POST",
-              headers: {
-                "X-AUTH-TOKEN": mailrelayKey,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                from: { email: "somos@farmapro.es", name: "farmapro" },
-                to: [{ email }],
-                subject: "Te han invitado a un equipo en el Portal farmapro",
-                html_part: buildInvitationEmailHtml(inviteUrl),
-              }),
-            });
-            if (!mrResponse.ok) {
-              logStep("Mailrelay invitation error", { status: mrResponse.status, body: await mrResponse.text() });
-            } else {
-              logStep("Invitation sent via Mailrelay", { email });
-            }
-          } catch (mrErr) {
-            logStep("Mailrelay invitation exception", { err: (mrErr as Error).message });
+        try {
+          const { error: sendErr } = await supabaseClient.functions.invoke('send-portal-email', {
+            body: {
+              template: 'equipo-invitacion',
+              to: email,
+              data: { invitadoPor, inviteUrl, caducidadDias: 7 },
+              meta: { trigger: 'manage-team.invite_member', team_id: teamId },
+            },
+          });
+          if (sendErr) {
+            logStep("send-portal-email invitation error", { err: sendErr.message });
+          } else {
+            logStep("Invitation email dispatched", { email });
           }
+        } catch (mrErr) {
+          logStep("send-portal-email invitation exception", { err: (mrErr as Error).message });
         }
 
         logStep("Member invited", { email, teamId, inviteToken });
@@ -232,6 +198,55 @@ serve(async (req) => {
           .eq('id', user.id);
 
         if (profileError) throw profileError;
+
+        // Notificar al titular del equipo: 'equipo-plaza-activada'
+        try {
+          const acceptedRowId = acceptedRows[0].id;
+          const { data: memberRow } = await supabaseClient
+            .from('team_members')
+            .select('team_id, email, team_subscriptions!inner(owner_id, max_members)')
+            .eq('id', acceptedRowId)
+            .maybeSingle();
+          const ts: any = (memberRow as any)?.team_subscriptions;
+          const ownerId: string | undefined = ts?.owner_id;
+          const maxMembers: number = ts?.max_members ?? 0;
+          const teamIdVal = (memberRow as any)?.team_id;
+
+          if (ownerId && teamIdVal) {
+            const { data: ownerAuth } = await supabaseClient.auth.admin.getUserById(ownerId);
+            const ownerEmail = ownerAuth?.user?.email;
+            const { data: ownerProfile } = await supabaseClient
+              .from('profiles').select('full_name').eq('id', ownerId).maybeSingle();
+            const { count: occupiedCount } = await supabaseClient
+              .from('team_members')
+              .select('*', { count: 'exact', head: true })
+              .eq('team_id', teamIdVal)
+              .eq('status', 'active');
+            const { data: joinedProfile } = await supabaseClient
+              .from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+
+            if (ownerEmail) {
+              const { error: notifyErr } = await supabaseClient.functions.invoke('send-portal-email', {
+                body: {
+                  template: 'equipo-plaza-activada',
+                  to: ownerEmail,
+                  data: {
+                    nombre: ownerProfile?.full_name || undefined,
+                    miembroNombre: joinedProfile?.full_name || user.email,
+                    miembroEmail: user.email,
+                    plazasOcupadas: occupiedCount ?? undefined,
+                    plazasTotal: maxMembers || undefined,
+                  },
+                  meta: { trigger: 'manage-team.accept_invitation', team_id: teamIdVal, new_member: user.id },
+                },
+              });
+              if (notifyErr) logStep('plaza-activada send error', { err: notifyErr.message });
+              else logStep('plaza-activada dispatched', { ownerEmail });
+            }
+          }
+        } catch (notifyErr) {
+          logStep('plaza-activada exception', { err: (notifyErr as Error).message });
+        }
 
         logStep("Invitation accepted", { userId: user.id, email: user.email });
         return new Response(JSON.stringify({ 
