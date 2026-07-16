@@ -100,6 +100,29 @@ serve(async (req) => {
           throw new Error("Unauthorized: Only team owners can invite members");
         }
 
+        // Cupo server-side: el plan Equipo incluye al titular + max_members personas más.
+        const { data: teamSub, error: teamSubError } = await supabaseClient
+          .from('team_subscriptions')
+          .select('max_members')
+          .eq('id', teamId)
+          .single();
+
+        if (teamSubError || !teamSub) {
+          throw new Error('No se ha encontrado el equipo.');
+        }
+
+        const { count: activeMemberCount, error: countError } = await supabaseClient
+          .from('team_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', teamId)
+          .neq('status', 'inactive');
+
+        if (countError) throw countError;
+
+        if ((activeMemberCount ?? 0) >= teamSub.max_members) {
+          throw new Error(`No quedan plazas: tu plan Equipo incluye al titular y ${teamSub.max_members} personas más.`);
+        }
+
         // Generate invitation token
         const inviteToken = crypto.randomUUID();
         
@@ -179,23 +202,8 @@ serve(async (req) => {
           throw new Error('Invalid or expired invitation');
         }
 
-        // Get the member role before updating
-        const { data: memberData, error: memberError } = await supabaseClient
-          .from('team_members')
-          .select('member_role')
-          .eq('invitation_token', invitationToken)
-          .single();
-
-        if (memberError || !memberData) {
-          logStep("Failed to get member role", { error: memberError?.message });
-          throw new Error('Invalid invitation token');
-        }
-
-        const memberRole = memberData.member_role;
-        logStep("Retrieved member role", { memberRole });
-
         // Update the team member status, clear the token, and set joined_at
-        const { error: acceptError } = await supabaseClient
+        const { data: acceptedRows, error: acceptError } = await supabaseClient
           .from('team_members')
           .update({
             user_id: user.id,
@@ -204,23 +212,28 @@ serve(async (req) => {
             invitation_token: null // Clear token to prevent reuse
           })
           .eq('invitation_token', invitationToken)
-          .eq('email', user.email);
+          .eq('email', user.email)
+          .select('id');
 
         if (acceptError) throw acceptError;
+        if (!acceptedRows || acceptedRows.length === 0) {
+          logStep("Accept invitation matched no rows", { invitationToken });
+          throw new Error('Invalid invitation token');
+        }
 
-        // Update user profile role based on member role
-        const subscriptionRole = memberRole === 'premium' ? 'premium' : 'profesional';
+        // El rol de un miembro de equipo es siempre 'equipo' (paga el titular).
+        // member_role es vestigial: no decide el rol.
         const { error: profileError } = await supabaseClient
           .from('profiles')
-          .update({ 
-            subscription_role: subscriptionRole,
+          .update({
+            subscription_role: 'equipo',
             subscription_status: 'active'
           })
           .eq('id', user.id);
 
         if (profileError) throw profileError;
 
-        logStep("Invitation accepted", { userId: user.id, email: user.email, subscriptionRole });
+        logStep("Invitation accepted", { userId: user.id, email: user.email });
         return new Response(JSON.stringify({ 
           success: true, 
           message: 'Te has unido al equipo exitosamente' 

@@ -5,7 +5,8 @@
 //   fila en subscriptions, marca is_founder.
 // - invoice.payment_failed: marca past_due.
 // - customer.subscription.updated/deleted: sincroniza estado y degrada
-//   a freemium (SALVO admin).
+//   a freemium (SALVO admin); si sale de 'equipo', desactiva el equipo
+//   (deactivate_team_for_owner) antes de degradar al titular.
 // verify_jwt = false: la seguridad es la firma del webhook.
 // =====================================================================
 
@@ -249,6 +250,13 @@ async function handleSubscriptionChange(
       updated_at: new Date().toISOString(),
     }).eq('id', row.user_id);
     return;
+  }
+
+  // Salir de Equipo (cancelación o downgrade a otro plan): desactivar el equipo
+  // ANTES de degradar al titular, para que los miembros pierdan el acceso.
+  if (currentRole === 'equipo' && newRole !== 'equipo') {
+    const { error: deactivateErr } = await supabase.rpc('deactivate_team_for_owner', { p_owner: row.user_id });
+    if (deactivateErr) log('deactivate_team_for_owner error', { err: deactivateErr.message });
   }
 
   await supabase.from('profiles').update({
