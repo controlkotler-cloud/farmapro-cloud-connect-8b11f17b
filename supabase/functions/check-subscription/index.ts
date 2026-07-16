@@ -117,20 +117,6 @@ serve(async (req) => {
       }).eq('id', user.id);
       return json({ subscribed: false, subscription_role: 'freemium', subscription_status: 'canceled' });
     }
-    }
-
-    const customerId = customers.data[0].id;
-    const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 });
-
-    if (subs.data.length === 0) {
-      await supabase.from('profiles').update({
-        subscription_role: 'freemium',
-        subscription_status: 'canceled',
-        stripe_customer_id: customerId,
-        updated_at: new Date().toISOString(),
-      }).eq('id', user.id);
-      return json({ subscribed: false, subscription_role: 'freemium', subscription_status: 'canceled' });
-    }
 
     const sub = subs.data[0];
     const priceId = sub.items.data[0].price.id;
