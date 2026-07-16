@@ -1,6 +1,6 @@
-
 import { Link } from 'react-router-dom';
 import { Copyright } from 'lucide-react';
+import { CookieIcon } from '@/components/cookies/CookieIcon';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -26,6 +26,7 @@ const Footer = () => {
           >
             Política de Cookies
           </Link>
+          <CookieIcon />
           <Link
             to="/politica-privacidad"
             className="hover:text-foreground transition-colors"
