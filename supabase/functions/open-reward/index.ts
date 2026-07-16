@@ -66,22 +66,17 @@ serve(async (req) => {
 
   // ---- Auth ----------------------------------------------------------------
   const authHeader = req.headers.get("Authorization");
+  const loginRedirect = `/login?modo=registro${campaignIdRaw ? `&c=${encodeURIComponent(campaignIdRaw)}` : ""}&cajon=${cajon}`;
   if (!authHeader?.startsWith("Bearer ")) {
-    return json({
-      error: "Unauthorized",
-      redirect: `/login?modo=registro&c=${encodeURIComponent(campaignId)}&cajon=${cajon}`,
-    }, 401);
+    return json({ error: "Unauthorized", redirect: loginRedirect }, 401);
   }
   const token = authHeader.replace("Bearer ", "");
   const { data: userData, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userData.user) {
-    return json({
-      error: "Unauthorized",
-      redirect: `/login?modo=registro&c=${encodeURIComponent(campaignId)}&cajon=${cajon}`,
-    }, 401);
+    return json({ error: "Unauthorized", redirect: loginRedirect }, 401);
   }
   const user = userData.user;
-  log("user", { id: user.id, campaignId, cajon, source });
+  log("user", { id: user.id, campaignIdRaw, cajon, source });
 
   try {
     // ---- Campaña activa y en rango ----------------------------------------
