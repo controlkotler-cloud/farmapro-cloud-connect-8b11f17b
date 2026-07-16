@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { CookieBanner } from './CookieBanner';
-import { CookieIcon } from './CookieIcon';
 import { applyConsent, captureUtms, trackPageView } from '@/lib/analytics';
 
 export const CookieManager = () => {
@@ -24,10 +23,5 @@ export const CookieManager = () => {
     trackPageView(location.pathname);
   }, [location.pathname]);
 
-  return (
-    <>
-      <CookieBanner />
-      <CookieIcon />
-    </>
-  );
+  return <CookieBanner />;
 };
