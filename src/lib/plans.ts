@@ -148,7 +148,7 @@ export const IMAGE_ADDONS = [
  * (body { pack: credits }). Mientras esté a false, la UI muestra los packs pero
  * el botón informa de que la recarga instantánea llega con el pago online.
  */
-export const PACKS_CHECKOUT_READY = false;
+export const PACKS_CHECKOUT_READY = true;
 
 /** Límites del plan Gratis. */
 export const FREE_LIMITS = {
