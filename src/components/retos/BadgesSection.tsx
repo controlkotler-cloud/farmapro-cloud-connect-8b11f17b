@@ -1,7 +1,6 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useBadges, BadgeWithStatus } from '@/hooks/useBadges';
 import { Award } from 'lucide-react';
@@ -22,15 +21,13 @@ const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
       transition={{ duration: 0.3 }}
     >
       <Card className={`relative overflow-hidden transition-all ${
-        badge.earned
-          ? 'ring-2 ring-miel bg-miel-soft shadow-lg'
-          : 'opacity-60 grayscale-[30%]'
+        badge.earned ? 'ring-1 ring-miel/40 bg-miel-soft' : ''
       }`}>
         <CardContent className="p-4 text-center space-y-2">
           <div className={`text-4xl ${badge.earned ? '' : 'opacity-40'}`}>
             {badge.icon}
           </div>
-          <p className="font-semibold text-sm">{badge.name}</p>
+          <p className="font-semibold text-sm text-foreground">{badge.name}</p>
           {badge.earned ? (
             <p className="text-xs text-muted-foreground">
               {new Date(badge.earned_at!).toLocaleDateString('es-ES')}
@@ -40,7 +37,12 @@ const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
               <p className="text-xs text-muted-foreground">{badge.description}</p>
               {badge.requirement_type !== 'manual' && (
                 <>
-                  <Progress value={badge.progress} className="h-1.5" />
+                  <div className="h-1.5 overflow-hidden rounded-full border border-border bg-secondary">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
+                      style={{ width: `${Math.max(badge.progress, 4)}%` }}
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {badge.currentValue}/{badge.requirement_value}
                   </p>
@@ -61,8 +63,8 @@ export const BadgesSection = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-miel shadow-lg">
-            <Award className="h-6 w-6 text-primary-foreground" />
+          <div className="rounded-lg bg-miel-soft p-2">
+            <Award className="h-6 w-6 text-miel" />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Mis Insignias</h2>

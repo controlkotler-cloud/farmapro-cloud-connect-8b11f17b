@@ -150,7 +150,7 @@ export const OnboardingWizard = ({ onComplete }: { onComplete: () => void }) => 
           )}
 
           {/* CTA */}
-          <Button onClick={handleNext} size="lg" className="w-full max-w-xs gap-2 text-base">
+          <Button onClick={handleNext} size="lg" className="w-full max-w-xs gap-2 rounded-full text-base">
             {step.cta}
             {currentStep < steps.length - 1 && <ChevronRight className="h-4 w-4" />}
           </Button>

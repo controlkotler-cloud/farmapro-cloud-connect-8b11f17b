@@ -114,29 +114,28 @@ const Promociones = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div
-        className="bg-salvia-soft rounded-xl p-8 shadow-lg ring-1 ring-salvia/20"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="relative">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-salvia rounded-r-full shadow-lg"></div>
-          <div className="ml-6">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">Promociones</h1>
-              {noPromotionsAtAll && <Badge className="bg-salvia text-primary-foreground">Próximamente</Badge>}
-            </div>
-            <p className="text-muted-foreground">Ofertas y descuentos exclusivos del sector para tu farmacia</p>
-          </div>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">
+            La Rebotica regala; aquí <em className="italic-display">se ofrece</em>
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Códigos y ofertas de partners, siempre con las condiciones claras.
+          </p>
         </div>
-      </motion.div>
+        {noPromotionsAtAll && (
+          <span className="inline-flex flex-none items-center rounded-full bg-miel-soft px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-miel">
+            Próximamente
+          </span>
+        )}
+      </div>
 
       {noPromotionsAtAll ? (
         /* Teaser: aún no hay ofertas cargadas */
-        <Card className="border-dashed">
+        <Card className="border-dashed shadow-soft">
           <CardContent className="text-center py-14 px-6 space-y-5 max-w-2xl mx-auto">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-salvia text-primary-foreground flex items-center justify-center">
-              <Gift className="h-8 w-8" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-miel-soft">
+              <Gift className="h-8 w-8 text-miel" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">Ofertas del sector, muy pronto</h2>
             <p className="text-muted-foreground">
@@ -145,17 +144,20 @@ const Promociones = () => {
               servicios. Todo en un mismo sitio, pensado para que tu farmacia ahorre y gane.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><BadgePercent className="h-4 w-4 text-salvia" /> Descuentos exclusivos</span>
-              <span className="inline-flex items-center gap-1.5"><Building2 className="h-4 w-4 text-salvia" /> Partners del sector</span>
+              <span className="inline-flex items-center gap-1.5"><BadgePercent className="h-4 w-4 text-miel" /> Descuentos exclusivos</span>
+              <span className="inline-flex items-center gap-1.5"><Building2 className="h-4 w-4 text-miel" /> Partners del sector</span>
             </div>
-            <Button onClick={notifyInterest} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Bell className="h-4 w-4 mr-2" />
+            <Button
+              onClick={notifyInterest}
+              className="gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+            >
+              <Bell className="h-4 w-4" />
               ¿Te interesaría recibir ofertas del sector? Avísame
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="bg-card rounded-xl shadow-lg border border-border p-6">
+        <div className="space-y-6">
           <PromotionCategoryFilter selectedType={selectedType} onTypeChange={setSelectedType} />
 
           {loading ? (
@@ -171,7 +173,7 @@ const Promociones = () => {
               ))}
             </div>
           ) : promotions.length === 0 ? (
-            <Card className="text-center py-12 border-border shadow-sm">
+            <Card className="text-center py-12 border-border shadow-soft">
               <CardContent>
                 <Gift className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">No hay promociones de este tipo</h3>
@@ -182,8 +184,9 @@ const Promociones = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {promotions.map((promotion, index) => {
                 const cover = PROMO_COVER[(promotion.company_type || '').toLowerCase()] || {
-                  bg: 'bg-salvia', Icon: Gift,
+                  bg: 'bg-miel', Icon: Gift,
                 };
+                const featured = index === 0;
                 return (
                   <motion.div
                     key={promotion.id}
@@ -191,13 +194,17 @@ const Promociones = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: Math.min(index, 8) * 0.1 }}
                   >
-                    <Card className="h-full hover:shadow-xl transition-all duration-300 border-border group">
+                    <Card
+                      className={`h-full overflow-hidden border-border shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift group ${
+                        featured ? 'bg-gradient-to-br from-miel-soft to-card' : ''
+                      }`}
+                    >
                       <div className="relative h-44 overflow-hidden rounded-t-lg">
                         {promotion.image_url ? (
                           <img
                             src={promotion.image_url}
                             alt={promotion.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                           />
                         ) : (
@@ -206,24 +213,26 @@ const Promociones = () => {
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                        <div className="absolute top-3 left-3 space-y-2">
-                          <Badge className="bg-salvia text-primary-foreground shadow-lg">
-                            <Gift className="h-3 w-3 mr-1" />
+                        <div className="absolute top-3 left-3 flex flex-col items-start gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-miel-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-miel shadow-soft">
+                            <Gift className="h-3 w-3" />
                             Oferta
-                          </Badge>
+                          </span>
                           {promotion.valid_until && isExpiringSoon(promotion.valid_until) && (
-                            <Badge className="bg-warning text-warning-foreground shadow-lg">
+                            <Badge className="bg-warning text-warning-foreground shadow-soft text-[10.5px] font-extrabold uppercase tracking-[0.12em]">
                               <Clock className="h-3 w-3 mr-1" />
                               ¡Últimos días!
                             </Badge>
                           )}
                         </div>
-                        <Badge className={`absolute top-3 right-3 ${getCompanyTypeColor(promotion.company_type)} shadow-lg`}>
+                        <span
+                          className={`absolute top-3 right-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] shadow-soft ${getCompanyTypeColor(promotion.company_type)}`}
+                        >
                           {promotion.company_type}
-                        </Badge>
+                        </span>
                       </div>
                       <CardHeader className="pb-3">
-                        <CardTitle className="text-lg line-clamp-2 group-hover:text-salvia transition-colors">
+                        <CardTitle className="text-lg line-clamp-2 group-hover:text-miel transition-colors">
                           {promotion.title}
                         </CardTitle>
                         <div className="flex items-center text-muted-foreground">
@@ -237,16 +246,16 @@ const Promociones = () => {
                       <CardContent className="pt-0">
                         <div className="space-y-3">
                           {promotion.discount_details && (
-                            <div className="p-3 bg-salvia-soft rounded-lg border border-salvia/20">
+                            <div className="p-3 bg-miel-soft rounded-lg border border-miel/20">
                               <div className="flex items-center mb-1">
-                                <Tag className="h-4 w-4 mr-2 text-salvia" />
-                                <span className="font-medium text-salvia">Oferta:</span>
+                                <Tag className="h-4 w-4 mr-2 text-miel" />
+                                <span className="font-medium text-miel">Oferta:</span>
                               </div>
                               <p className="text-sm text-foreground">{promotion.discount_details}</p>
                             </div>
                           )}
                           <div className="flex items-center text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4 mr-2 text-salvia" />
+                            <Calendar className="h-4 w-4 mr-2 text-miel" />
                             Válido hasta: {formatDate(promotion.valid_until)}
                           </div>
                           {promotion.terms_conditions && (
@@ -255,8 +264,10 @@ const Promociones = () => {
                               <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
                             </details>
                           )}
-                          <Button className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg">
-                            <ExternalLink className="h-4 w-4 mr-2" />
+                          <Button
+                            className="w-full mt-4 gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+                          >
+                            <ExternalLink className="h-4 w-4" />
                             Solicitar
                           </Button>
                         </div>

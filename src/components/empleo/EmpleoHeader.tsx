@@ -4,16 +4,17 @@ import { motion } from 'framer-motion';
 export const EmpleoHeader = () => {
   return (
     <motion.div
-      className="bg-salvia-soft rounded-xl p-8 shadow-lg ring-1 ring-salvia/20"
+      className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className="relative">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-salvia rounded-r-full shadow-lg"></div>
-        <div className="ml-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Bolsa de Empleo</h1>
-          <p className="text-muted-foreground">Encuentra oportunidades laborales en el sector farmacéutico</p>
-        </div>
+      <div className="min-w-0">
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">
+          Empleo <em className="italic-display">en farmacia</em>
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Ofertas y candidaturas del sector, sin ruido.
+        </p>
       </div>
     </motion.div>
   );

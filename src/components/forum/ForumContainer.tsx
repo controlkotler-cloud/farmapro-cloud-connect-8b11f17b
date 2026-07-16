@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -126,10 +125,12 @@ export const ForumContainer = ({ onThreadClick, onDataChange }: ForumContainerPr
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">🏥 Comunidad farmapro</h1>
-          <p className="text-gray-600">Conecta con otros profesionales y comparte conocimientos</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">
+            Comunidad <em className="italic-display">farmapro</em>
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">Conecta con otros profesionales y comparte conocimientos</p>
         </div>
         <NewThreadDialog
           categories={categories}

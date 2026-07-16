@@ -51,11 +51,11 @@ export const ResourcesGrid = ({
         {[...Array(6)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-muted rounded w-3/4"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
             </CardHeader>
             <CardContent>
-              <div className="h-20 bg-gray-200 rounded"></div>
+              <div className="h-20 bg-muted rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -64,18 +64,24 @@ export const ResourcesGrid = ({
   }
 
   if (resources.length === 0) {
+    // Vacío honesto: sin filtros activos es el vault real (aún llenándose);
+    // con filtros/búsqueda es un "no hay resultados" normal de exploración.
     return (
       <motion.div
         className="text-center py-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hemos encontrado recursos</h3>
-        <p className="text-gray-500 mb-4">
+        <FileText className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">
+          {hasActiveFilters ? 'No hemos encontrado recursos' : 'El vault se está llenando'}
+        </h3>
+        <p className="text-muted-foreground mb-4">
           {searchTerm
             ? `No hay resultados para "${searchTerm}". Probad con otros términos o quitad algún filtro.`
-            : 'No hay recursos que coincidan con los filtros seleccionados.'}
+            : hasActiveFilters
+              ? 'No hay recursos que coincidan con los filtros seleccionados.'
+              : 'Plantillas y guías listas para el mostrador, muy pronto.'}
         </p>
         {hasActiveFilters && onClearFilters && (
           <Button variant="outline" onClick={onClearFilters}>

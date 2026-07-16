@@ -63,9 +63,9 @@ export const PharmacyForm = ({ profileId, onListingCreated }: PharmacyFormProps)
   return (
     <Dialog open={showDialog} onOpenChange={setShowDialog}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="rounded-full bg-brand-dark text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift">
           <Plus className="h-4 w-4 mr-2" />
-          Publicar Farmacia
+          Publicar farmacia
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">

@@ -14,8 +14,8 @@ export const Sidebar = () => {
   const { isAdmin } = useAuth();
 
   return (
-    <SidebarPrimitive variant="sidebar" className="border-r border-gray-200 shadow-xl">
-      <SidebarContent className="bg-white">
+    <SidebarPrimitive variant="sidebar" className="border-r border-border">
+      <SidebarContent className="bg-card">
         <SidebarHeader />
         <SidebarNavigation />
         {isAdmin && <SidebarAdminSection />}

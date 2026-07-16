@@ -2,7 +2,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Trophy, Target, Star, CheckCircle, Gift, MessageSquare, Users, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -108,7 +107,7 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className={`relative ${completed ? 'border-success bg-success/10' : 'hover:shadow-lg'} transition-all`}>
+      <Card className={`relative transition-all ${completed ? 'border-success bg-success/10' : 'hover:shadow-lift'}`}>
         {completed && (
           <div className="absolute top-2 right-2">
             <CheckCircle className="h-6 w-6 text-success" />
@@ -142,7 +141,12 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
                 {currentCount} / {challenge.target_count}
               </span>
             </div>
-            <Progress value={progressPercentage} className="h-2" />
+            <div className="h-2 overflow-hidden rounded-full border border-border bg-secondary">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
+                style={{ width: `${Math.max(progressPercentage, 4)}%` }}
+              />
+            </div>
             {completed ? (
               <Button variant="outline" disabled className="w-full">
                 <CheckCircle className="h-4 w-4 mr-2" />

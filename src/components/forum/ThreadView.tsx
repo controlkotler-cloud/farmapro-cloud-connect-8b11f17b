@@ -1,4 +1,3 @@
-
 import ReactMarkdown from 'react-markdown';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,11 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, MessageSquare, Users, Clock, Heart, Reply, Pin, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface Reply {
   id: string;
@@ -110,7 +107,7 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
       // Update thread reply count
       await supabase
         .from('forum_threads')
-        .update({ 
+        .update({
           replies_count: replies.length + 1,
           last_reply_at: new Date().toISOString()
         })
@@ -135,15 +132,17 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
   if (loading || !thread) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">Cargando hilo...</div>
+        <div className="text-center text-muted-foreground">Cargando hilo...</div>
       </div>
     );
   }
 
+  const isFeaturedCategory = ['Gestión Farmacéutica', 'Nuevos Medicamentos'].includes(thread.forum_categories?.name);
+
   return (
     <div className="space-y-6">
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         onClick={onBack}
         className="mb-4"
       >
@@ -154,17 +153,15 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
       {/* Thread Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
               {thread.is_pinned && <Pin className="h-5 w-5 text-terracota" />}
               <CardTitle className="text-2xl">{thread.title}</CardTitle>
             </div>
-            <Badge variant="outline" className="flex items-center space-x-1">
-              <span>{thread.forum_categories?.name}</span>
-              {['Gestión Farmacéutica', 'Nuevos Medicamentos'].includes(thread.forum_categories?.name) && (
-                <Star className="h-3 w-3 text-terracota" />
-              )}
-            </Badge>
+            <span className="inline-flex flex-none items-center gap-1 rounded-full bg-terracota-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-terracota">
+              {thread.forum_categories?.name}
+              {isFeaturedCategory && <Star className="h-3 w-3" />}
+            </span>
           </div>
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
             <div className="flex items-center space-x-1">
@@ -190,39 +187,30 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
 
       {/* Replies */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">💬 Respuestas ({replies.length})</h3>
-        
-        {replies.map((reply, index) => (
-          <motion.div
-            key={reply.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-          >
-            <Card className="border-l-4 border-l-terracota">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{reply.author_display_name || reply.profiles?.full_name || 'Usuario farmapro'}</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                      <Heart className="h-4 w-4" />
-                      <span>{reply.likes_count}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">{formatDate(reply.created_at)}</span>
-                  </div>
+        <h3 className="text-lg font-bold text-foreground">Respuestas ({replies.length})</h3>
+
+        <div className="divide-y divide-border">
+          {replies.map((reply) => (
+            <div key={reply.id} className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">{reply.author_display_name || reply.profiles?.full_name || 'Usuario farmapro'}</span>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="prose max-w-none text-foreground leading-relaxed">
-                  <ReactMarkdown>{reply.content}</ReactMarkdown>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                    <Heart className="h-4 w-4" />
+                    <span>{reply.likes_count}</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">{formatDate(reply.created_at)}</span>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+              </div>
+              <div className="prose max-w-none mt-2 text-foreground leading-relaxed">
+                <ReactMarkdown>{reply.content}</ReactMarkdown>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Reply Form */}
@@ -231,7 +219,7 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
           <CardHeader>
             <CardTitle className="text-lg flex items-center space-x-2">
               <Reply className="h-5 w-5" />
-              <span>💭 Escribir respuesta</span>
+              <span>Escribir respuesta</span>
             </CardTitle>
             <CardDescription>
               Comparte tu experiencia y conocimiento con la comunidad farmapro
@@ -254,10 +242,10 @@ export const ThreadView = ({ threadId, onBack }: ThreadViewProps) => {
               </Label>
             </div>
             <div className="flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">
-                💰 +50 puntos por participar en el foro
-              </div>
-              <Button 
+              <span className="inline-flex rounded-full bg-terracota-soft px-2.5 py-0.5 text-xs font-bold text-terracota">
+                +50 puntos por participar en el foro
+              </span>
+              <Button
                 onClick={createReply}
                 disabled={!newReply.trim()}
               >

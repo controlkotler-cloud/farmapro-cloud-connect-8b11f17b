@@ -127,18 +127,18 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
 
           {currentPlan !== 'admin' && (
             <div className="space-y-4">
-              <Button 
+              <Button
                 onClick={handleManageSubscription}
                 disabled={managementLoading}
-                className="flex items-center gap-2 w-full"
+                className="flex items-center gap-2 w-full rounded-full"
               >
                 <Settings className="h-4 w-4" />
                 {managementLoading ? 'Abriendo...' : 'Gestionar Método de Pago'}
               </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full" 
+
+              <Button
+                variant="outline"
+                className="w-full rounded-full"
                 onClick={handleViewInvoices}
                 disabled={invoiceLoading}
               >

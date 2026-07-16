@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ThreadView } from '@/components/forum/ThreadView';
@@ -66,23 +65,18 @@ const Comunidad = () => {
   // Show thread view if a thread is selected
   if (selectedThreadId) {
     return (
-      <ThreadView 
-        threadId={selectedThreadId} 
+      <ThreadView
+        threadId={selectedThreadId}
         onBack={handleBackToForum}
       />
     );
   }
 
   return (
-    <motion.div 
-      className="space-y-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ staggerChildren: 0.1 }}
-    >
+    <div className="space-y-8">
       <CommunityHeader />
 
-      <CommunityStats 
+      <CommunityStats
         totalThreads={forumStats.totalThreads}
         totalReplies={forumStats.totalReplies}
         userForumPosts={forumStats.userForumPosts}
@@ -90,11 +84,11 @@ const Comunidad = () => {
         userPoints={profile?.total_points || 0}
       />
 
-      <CommunityContent 
+      <CommunityContent
         onThreadClick={handleThreadClick}
         onDataChange={loadForumStats}
       />
-    </motion.div>
+    </div>
   );
 };
 

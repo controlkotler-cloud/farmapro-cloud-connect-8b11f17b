@@ -1,20 +1,15 @@
 
-import { motion } from 'framer-motion';
-
 export const ResourcesHeader = () => {
   return (
-    <motion.div
-      className="bg-salvia-soft rounded-xl p-8 shadow-lg ring-1 ring-salvia/20"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <div className="relative">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-salvia rounded-r-full shadow-lg"></div>
-        <div className="ml-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Recursos Descargables</h1>
-          <p className="text-muted-foreground">Descarga plantillas, guías y herramientas para impulsar tu farmacia</p>
-        </div>
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">
+          Plantillas y guías <em className="italic-display">listas para usar</em>
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          El vault del portal: descárgalo y aplícalo hoy en tu farmacia.
+        </p>
       </div>
-    </motion.div>
+    </div>
   );
 };

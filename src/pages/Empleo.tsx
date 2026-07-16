@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { MapPin, Euro, Building2, Mail, Calendar, Plus, Briefcase, Eye } from 'lucide-react';
+import { MapPin, Euro, Building2, Mail, Calendar, Plus, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { EmpleoHeader } from '@/components/empleo/EmpleoHeader';
@@ -19,6 +19,17 @@ import { JobListing } from '@/types/job';
 import { useSectionVisibility } from '@/hooks/useSectionVisibility';
 import { AlertCircle } from 'lucide-react';
 import { PAID_ROLES } from '@/lib/plans';
+
+// Etiquetas de tipo de puesto para el chip de la tarjeta (presentacional,
+// duplica el mapeo de JobDetailDialog para no tocar sus exports).
+const JOB_TYPE_LABELS: Record<string, string> = {
+  adjunto_farmaceutico: 'Adjunto/a Farmacéutico/a',
+  tecnico: 'Técnico',
+  auxiliar: 'Auxiliar',
+  otros: 'Otros',
+};
+
+const getJobTypeLabel = (jobType?: string) => JOB_TYPE_LABELS[jobType || 'otros'] || 'Otros';
 
 const Empleo = () => {
   const { profile, isAdmin: userIsAdmin } = useAuth();
@@ -392,137 +403,147 @@ const Empleo = () => {
       />
 
       {/* Lista de ofertas */}
-      <Card className="shadow-lg border-0">
-        <CardHeader className="bg-muted border-b border-border">
-          <CardTitle className="text-xl font-semibold text-foreground">
-            Ofertas de Empleo Disponibles
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-muted rounded mb-2"></div>
-                    <div className="h-3 bg-muted rounded mb-4"></div>
-                    <div className="h-8 bg-muted rounded"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : jobs.length === 0 ? (
-            <div className="text-center py-12">
-              <Briefcase className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">No hay ofertas disponibles</h3>
-              <p className="text-muted-foreground">No hay ofertas de empleo activas en este momento.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-              {jobs.map((job, index) => (
-                <motion.div
-                  key={job.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <Card 
-                    className={`h-full shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer ${
-                      isJobExpired(job.expires_at) ? 'opacity-60' : ''
-                    }`}
-                    onClick={() => handleJobClick(job)}
-                  >
-                    <CardHeader className="p-4 md:p-6 pb-3">
-                      {/* Title and badges */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                        <CardTitle className="text-lg md:text-xl font-semibold pr-2 break-words">{job.title}</CardTitle>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-shrink-0">
-                          {applications.includes(job.id) && (
-                            <Badge variant="secondary" className="text-xs">Contactado</Badge>
-                          )}
-                          {isJobExpired(job.expires_at) && (
-                            <Badge variant="destructive">Expirada</Badge>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Company and location */}
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center">
-                          <Building2 className="h-4 w-4 mr-1 flex-shrink-0" />
-                          <span className="truncate">{job.company_name}</span>
-                        </div>
-                        {(job.location || job.province) && (
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                            <span className="truncate">{job.location || job.province}</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <CardDescription className="line-clamp-3 mt-3">{job.description}</CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent className="p-4 md:p-6 pt-0">
-                      <div className="space-y-3">
-                        {job.salary_range && (
-                          <div className="flex items-center text-sm">
-                            <Euro className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
-                            <span className="font-medium">{job.salary_range}</span>
-                          </div>
-                        )}
+      <div className="space-y-4">
+        <h2 className="text-lg font-extrabold tracking-tight text-foreground">Ofertas de empleo disponibles</h2>
 
-                        {applications.includes(job.id) && applicationDates[job.id] && (
-                          <div className="text-xs text-success font-medium">
-                            Contactado el {formatDate(applicationDates[job.id])}
-                          </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-3 bg-muted rounded mb-4"></div>
+                  <div className="h-8 bg-muted rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border py-12 text-center">
+            <Briefcase className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <h3 className="text-base font-extrabold tracking-tight text-foreground">Aún no hay ofertas activas</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Vuelve pronto o, si buscas equipo, publica la tuya.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            {jobs.map((job, index) => (
+              <motion.div
+                key={job.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card
+                  className={`h-full cursor-pointer shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift ${
+                    isJobExpired(job.expires_at) ? 'opacity-60' : ''
+                  }`}
+                  onClick={() => handleJobClick(job)}
+                >
+                  <CardHeader className="p-4 md:p-6 pb-3">
+                    {/* Title and badges */}
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <CardTitle className="text-lg md:text-xl font-extrabold tracking-tight pr-2 break-words">{job.title}</CardTitle>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-shrink-0">
+                        {applications.includes(job.id) && (
+                          <Badge
+                            variant="secondary"
+                            className="rounded-full bg-success/10 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-success hover:bg-success/10"
+                          >
+                            Contactado
+                          </Badge>
                         )}
-                        
-                        {/* Footer reorganized for mobile */}
-                        <div className="pt-3 border-t space-y-3 sm:space-y-0">
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Expira: {formatDate(job.expires_at)}
-                          </div>
-                          
-                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
+                        {isJobExpired(job.expires_at) && (
+                          <Badge
+                            variant="destructive"
+                            className="rounded-full bg-destructive/10 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-destructive hover:bg-destructive/10"
+                          >
+                            Expirada
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tipo de puesto */}
+                    <div className="mt-2">
+                      <span className="rounded-full bg-salvia-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-salvia">
+                        {getJobTypeLabel(job.job_type)}
+                      </span>
+                    </div>
+
+                    {/* Company and location */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-2">
+                      <div className="flex items-center">
+                        <Building2 className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{job.company_name}</span>
+                      </div>
+                      {(job.location || job.province) && (
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">{job.location || job.province}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <CardDescription className="line-clamp-3 mt-3">{job.description}</CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="p-4 md:p-6 pt-0">
+                    <div className="space-y-3">
+                      {job.salary_range && (
+                        <div className="flex items-center text-sm">
+                          <Euro className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
+                          <span className="font-medium">{job.salary_range}</span>
+                        </div>
+                      )}
+
+                      {applications.includes(job.id) && applicationDates[job.id] && (
+                        <div className="text-xs text-success font-medium">
+                          Contactado el {formatDate(applicationDates[job.id])}
+                        </div>
+                      )}
+
+                      {/* Footer reorganized for mobile */}
+                      <div className="pt-3 border-t space-y-3 sm:space-y-0">
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                          Expira: {formatDate(job.expires_at)}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleJobClick(job);
+                            }}
+                            className="text-sm font-bold text-salvia hover:underline text-left"
+                          >
+                            Ver más →
+                          </button>
+                          {profile?.id && (
+                            <Button
+                              size="sm"
+                              disabled={isJobExpired(job.expires_at) || applications.includes(job.id)}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleJobClick(job);
+                                handleContact(job);
                               }}
-                              className="w-full sm:w-auto text-xs"
+                              className="w-full sm:w-auto text-xs rounded-full bg-salvia text-white hover:bg-salvia/90"
                             >
-                              <Eye className="h-3 w-3 mr-1" />
-                              Ver más
+                              <Mail className="h-3 w-3 mr-1" />
+                              {applications.includes(job.id) ? 'Contactado' : 'Contactar'}
                             </Button>
-                            {profile?.id && (
-                              <Button 
-                                size="sm" 
-                                disabled={isJobExpired(job.expires_at) || applications.includes(job.id)}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleContact(job);
-                                }}
-                                className="w-full sm:w-auto text-xs shadow-md"
-                              >
-                                <Mail className="h-3 w-3 mr-1" />
-                                {applications.includes(job.id) ? 'Contactado' : 'Contactar'}
-                              </Button>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 };

@@ -560,7 +560,11 @@ const ImageResult = ({
             </>
           )}
         </Button>
-        {remainingLabel && <span className="text-sm text-muted-foreground">{remainingLabel}</span>}
+        {remainingLabel && (
+          <span className="inline-flex items-center rounded-full bg-ciruela-soft px-3 py-1 text-xs font-bold tabular-nums text-ciruela">
+            {remainingLabel}
+          </span>
+        )}
         {remaining === 0 && (
           <Button asChild variant="outline" size="sm" className="border-ciruela text-ciruela hover:bg-ciruela-soft">
             <Link to="/precios">Recargar créditos</Link>

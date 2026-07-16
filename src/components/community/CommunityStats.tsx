@@ -1,6 +1,4 @@
-
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { MessageSquare, MessageCircle, Users, TrendingUp } from 'lucide-react';
 
 interface CommunityStatsProps {
@@ -20,64 +18,47 @@ export const CommunityStats = ({
 }: CommunityStatsProps) => {
   const stats = [
     {
-      title: "Discusiones Activas",
+      title: 'Discusiones activas',
       value: totalThreads,
-      icon: MessageSquare
+      icon: MessageSquare,
+      caption: 'Participación activa'
     },
     {
-      title: "Respuestas Totales",
+      title: 'Respuestas totales',
       value: totalReplies,
-      icon: MessageCircle
+      icon: MessageCircle,
+      caption: 'Participación activa'
     },
     {
-      title: "Tus Contribuciones",
+      title: 'Tus contribuciones',
       value: userForumPosts,
-      icon: Users
+      icon: Users,
+      caption: 'Participación activa'
     },
     {
-      title: "Tu Progreso",
+      title: 'Tu progreso',
       value: `Nivel ${userLevel}`,
-      icon: TrendingUp
+      icon: TrendingUp,
+      caption: `${userPoints} puntos totales`
     }
   ];
 
   return (
-    <motion.div 
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-    >
-      {stats.map((stat, index) => (
-        <motion.div
-          key={stat.title}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          whileHover={{ scale: 1.02 }}
-        >
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <div className="p-2 rounded-lg bg-terracota shadow-lg">
-                  <stat.icon className="h-4 w-4 text-primary-foreground" />
-                </div>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {stats.map((stat) => (
+        <Card key={stat.title}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+              <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-terracota-soft">
+                <stat.icon className="h-4 w-4 text-terracota" />
               </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-foreground mb-1">
-                {stat.value}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {stat.title === "Tu Progreso" ? `${userPoints} puntos totales` : "Participación activa"}
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+            <p className="mt-3 text-2xl font-bold text-foreground">{stat.value}</p>
+            <p className="text-sm text-muted-foreground">{stat.caption}</p>
+          </CardContent>
+        </Card>
       ))}
-    </motion.div>
+    </div>
   );
 };

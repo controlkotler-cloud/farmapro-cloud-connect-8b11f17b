@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, XCircle, RotateCcw, Clock, Trophy, AlertCircle, ArrowRight, Loader2, PartyPopper, Dumbbell, Lightbulb } from 'lucide-react';
+import { CheckCircle, XCircle, RotateCcw, Clock, Trophy, AlertCircle, ArrowRight, Loader2, PartyPopper, Dumbbell, Lightbulb, ClipboardCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useQuiz } from '@/hooks/useQuiz';
@@ -228,7 +227,11 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
           </div>
 
           <div className="flex justify-center pt-4">
-            <Button onClick={resetQuiz} size="lg" className="flex items-center gap-2">
+            <Button
+              onClick={resetQuiz}
+              size="lg"
+              className="flex items-center gap-2 rounded-full shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+            >
               <RotateCcw className="h-4 w-4" />
               {passed ? 'Repetir evaluación' : 'Mejorar mi nota'}
             </Button>
@@ -246,7 +249,7 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader className="text-center">
-          <div className="text-4xl mb-2">📝</div>
+          <ClipboardCheck className="mx-auto mb-2 h-10 w-10 text-brand-dark" />
           <CardTitle className="text-2xl">{quiz.title || `Evaluación - ${courseTitle}`}</CardTitle>
           {quiz.description && (
             <p className="text-muted-foreground mt-2">{quiz.description}</p>
@@ -276,8 +279,9 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
                 Mejor resultado previo:
               </h3>
               <div className="flex items-center justify-between">
-                <span className={bestAttempt.passed ? 'text-success' : 'text-warning'}>
-                  {Math.round(bestAttempt.percentage)}% — {bestAttempt.passed ? '✅ Aprobado' : '❌ No aprobado'}
+                <span className={`inline-flex items-center gap-1.5 ${bestAttempt.passed ? 'text-success' : 'text-warning'}`}>
+                  {bestAttempt.passed ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                  {Math.round(bestAttempt.percentage)}% — {bestAttempt.passed ? 'Aprobado' : 'No aprobado'}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   {userAttempts.length} intento{userAttempts.length !== 1 ? 's' : ''} realizado{userAttempts.length !== 1 ? 's' : ''}
@@ -287,7 +291,11 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
           )}
 
           <div className="text-center">
-            <Button onClick={handleStartQuiz} size="lg" className="px-10 py-4 text-lg">
+            <Button
+              onClick={handleStartQuiz}
+              size="lg"
+              className="rounded-full px-10 py-4 text-lg shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+            >
               {!hasAttempts
                 ? 'Comenzar evaluación'
                 : bestAttempt?.passed
@@ -324,7 +332,9 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
             Pregunta {currentQuestion + 1} de {questions.length}
           </Badge>
         </div>
-        <Progress value={progressValue} className="h-2" />
+        <div className="h-2 overflow-hidden rounded-full border border-border bg-secondary">
+          <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${progressValue}%` }} />
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <AnimatePresence mode="wait">
@@ -398,8 +408,9 @@ export const DatabaseQuiz: React.FC<DatabaseQuizProps> = ({
                     : 'bg-destructive/10 border-destructive/30'
                 }`}
               >
-                <p className={`font-semibold ${currentFeedback.isCorrect ? 'text-success' : 'text-destructive'}`}>
-                  {currentFeedback.isCorrect ? '✅ ¡Correcto!' : '❌ Incorrecto'}
+                <p className={`flex items-center gap-1.5 font-semibold ${currentFeedback.isCorrect ? 'text-success' : 'text-destructive'}`}>
+                  {currentFeedback.isCorrect ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                  {currentFeedback.isCorrect ? '¡Correcto!' : 'Incorrecto'}
                 </p>
                 {question.explanation && (
                   <p className="text-sm text-muted-foreground mt-1">

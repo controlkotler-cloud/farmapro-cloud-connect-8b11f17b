@@ -1,18 +1,11 @@
-
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { 
-  MessageSquare, 
-  Star, 
-  RefreshCw,
-  Plus
-} from 'lucide-react';
+import { MessageSquare, Star, RefreshCw } from 'lucide-react';
 import { ThreadList } from '@/components/forum/ThreadList';
 import { NewThreadDialog } from '@/components/forum/NewThreadDialog';
 
@@ -136,20 +129,15 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
   };
 
   return (
-    <motion.div 
-      className="space-y-4 md:space-y-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ staggerChildren: 0.1 }}
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-terracota shadow-lg">
-            <MessageSquare className="h-6 w-6 text-primary-foreground" />
+    <div className="space-y-4 md:space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-terracota-soft">
+            <MessageSquare className="h-5 w-5 text-terracota" />
           </div>
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">Foro de Discusión</h2>
-            <p className="text-sm md:text-base text-muted-foreground">Participa en conversaciones con profesionales</p>
+            <h2 className="text-lg font-extrabold tracking-tight text-foreground md:text-xl">Foro de discusión</h2>
+            <p className="text-sm text-muted-foreground">Participa en conversaciones con profesionales</p>
           </div>
         </div>
         <NewThreadDialog
@@ -160,23 +148,20 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
         />
       </div>
 
-      {/* Categorías reorganizadas de manera más amigable */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="bg-secondary border-b border-border">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-foreground">
-              Categorías de Discusión
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => loadThreads()}
-              className="hover:bg-muted"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Actualizar
-            </Button>
-          </div>
+      {/* Categorías de discusión */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border">
+          <CardTitle className="text-base font-extrabold text-foreground">
+            Categorías
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadThreads()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Actualizar
+          </Button>
         </CardHeader>
 
         <CardContent className="p-4 md:p-6">
@@ -190,8 +175,8 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
                 <SelectContent>
                   <SelectItem value="all">Todas las discusiones</SelectItem>
                   {categories.map((category) => (
-                    <SelectItem 
-                      key={category.id} 
+                    <SelectItem
+                      key={category.id}
                       value={category.id}
                       disabled={!canAccessCategory(category)}
                     >
@@ -204,12 +189,12 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
                 </SelectContent>
               </Select>
             ) : (
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                     selectedCategory === 'all'
-                      ? 'bg-terracota text-primary-foreground shadow-lg'
+                      ? 'bg-terracota-soft text-terracota'
                       : 'bg-muted text-muted-foreground hover:bg-accent'
                   }`}
                 >
@@ -220,9 +205,9 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
                     disabled={!canAccessCategory(category)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                       selectedCategory === category.id
-                        ? 'bg-terracota text-primary-foreground shadow-lg'
+                        ? 'bg-terracota-soft text-terracota'
                         : canAccessCategory(category)
                         ? 'bg-muted text-muted-foreground hover:bg-accent'
                         : 'bg-muted/50 text-muted-foreground/60 cursor-not-allowed'
@@ -237,15 +222,13 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
           </div>
 
           {/* Información de hilos */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="text-sm text-muted-foreground">
-              {threads.length} {threads.length === 1 ? 'discusión' : 'discusiones'} 
-              {selectedCategory !== 'all' && (
-                <span className="ml-1">
-                  en {categories.find(c => c.id === selectedCategory)?.name}
-                </span>
-              )}
-            </div>
+          <div className="mb-4 text-sm text-muted-foreground">
+            {threads.length} {threads.length === 1 ? 'discusión' : 'discusiones'}
+            {selectedCategory !== 'all' && (
+              <span className="ml-1">
+                en {categories.find(c => c.id === selectedCategory)?.name}
+              </span>
+            )}
           </div>
 
           {/* Lista de hilos */}
@@ -257,6 +240,6 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
           />
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };

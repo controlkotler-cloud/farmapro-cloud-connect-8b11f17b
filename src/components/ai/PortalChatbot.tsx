@@ -33,7 +33,7 @@ export const PortalChatbot = () => {
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg hover:scale-110 transition-transform z-50"
+          className="fixed bottom-6 right-6 rounded-full h-14 w-14 bg-ciruela text-primary-foreground shadow-soft transition-all hover:-translate-y-0.5 hover:bg-ciruela/90 hover:shadow-lift z-50"
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
@@ -41,9 +41,9 @@ export const PortalChatbot = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-background border rounded-lg shadow-2xl flex flex-col z-50">
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-background border rounded-lg shadow-lift flex flex-col z-50">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground">
+          <div className="flex items-center justify-between p-4 border-b bg-ciruela text-primary-foreground">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
               <h3 className="font-semibold">Asistente farmapro</h3>
@@ -78,16 +78,18 @@ export const PortalChatbot = () => {
                   ¡Hola! Soy tu asistente de farmapro. Puedo ayudarte con información sobre cursos, recursos, eventos y más.
                 </p>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Preguntas sugeridas:</p>
-                  {suggestedQuestions.map((question, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setInput(question)}
-                      className="block w-full text-left p-2 text-sm rounded-lg hover:bg-accent transition-colors"
-                    >
-                      {question}
-                    </button>
-                  ))}
+                  <p className="text-sm font-medium text-foreground">Preguntas sugeridas:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInput(question)}
+                        className="rounded-full bg-ciruela-soft px-3 py-1.5 text-xs font-medium text-ciruela ring-1 ring-ciruela/30 transition-colors hover:bg-ciruela-soft/70 active:scale-95"
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -104,8 +106,8 @@ export const PortalChatbot = () => {
                       className={cn(
                         'max-w-[80%] rounded-lg p-3 text-sm',
                         message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
+                          ? 'bg-secondary text-foreground'
+                          : 'bg-card ring-1 ring-border text-foreground'
                       )}
                     >
                       {message.content}
@@ -114,11 +116,11 @@ export const PortalChatbot = () => {
                 ))}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-muted rounded-lg p-3 text-sm">
+                    <div className="bg-card ring-1 ring-border rounded-lg p-3 text-sm">
                       <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:0.2s]" />
-                        <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:0.4s]" />
+                        <div className="w-2 h-2 bg-ciruela rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-ciruela rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-2 h-2 bg-ciruela rounded-full animate-bounce [animation-delay:0.4s]" />
                       </div>
                     </div>
                   </div>

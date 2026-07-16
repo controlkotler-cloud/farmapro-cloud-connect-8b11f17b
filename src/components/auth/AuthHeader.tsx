@@ -10,7 +10,7 @@ export const AuthHeader = ({ isRegistering }: AuthHeaderProps) => {
       <div className="mb-4">
         <a
           href="https://farmapro.es"
-          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           &larr; volver a farmapro.es
         </a>
@@ -23,7 +23,7 @@ export const AuthHeader = ({ isRegistering }: AuthHeaderProps) => {
         </div>
 
         {/* Texto Portal */}
-        <h1 className="text-xl font-bold text-gray-800">Portal</h1>
+        <h1 className="text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground">Portal</h1>
 
         {/* Logotipo */}
         <div className="flex justify-center">
@@ -31,11 +31,11 @@ export const AuthHeader = ({ isRegistering }: AuthHeaderProps) => {
         </div>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <h2 className="text-2xl font-extrabold tracking-tight text-foreground mb-2 [text-wrap:balance]">
         {isRegistering ? 'Registro' : 'Accede a tu cuenta'}
       </h2>
       {isRegistering && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Crea tu cuenta profesional
         </p>
       )}

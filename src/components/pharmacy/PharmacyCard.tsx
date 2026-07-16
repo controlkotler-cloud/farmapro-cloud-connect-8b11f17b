@@ -70,7 +70,7 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className="h-full hover:shadow-lg transition-shadow">
+      <Card className="h-full shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift">
         <div className="relative">
           <img
             src={getPharmacyImage(index)}
@@ -96,8 +96,8 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
           <div className="fallback-bg h-48 bg-salvia-soft flex items-center justify-center rounded-t-lg absolute inset-0">
             <Building2 className="h-16 w-16 text-salvia" />
           </div>
-          <Badge className="absolute top-2 right-2 bg-success text-success-foreground z-10">
-            En Venta
+          <Badge className="absolute top-2 right-2 z-10 rounded-full bg-success text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-success-foreground hover:bg-success">
+            En venta
           </Badge>
         </div>
         <CardHeader>
@@ -113,7 +113,7 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
             {listing.price && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Precio:</span>
-                <span className="font-bold text-lg text-primary">
+                <span className="text-lg font-extrabold tracking-tight text-foreground">
                   {formatPrice(listing.price)}
                 </span>
               </div>
@@ -134,8 +134,8 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
               )}
             </div>
             
-            <Button 
-              className="w-full mt-4"
+            <Button
+              className="mt-4 w-full rounded-full bg-salvia text-white hover:bg-salvia/90"
               onClick={() => onContactClick ? onContactClick(listing.id, listing.title) : undefined}
             >
               <Mail className="h-4 w-4 mr-2" />

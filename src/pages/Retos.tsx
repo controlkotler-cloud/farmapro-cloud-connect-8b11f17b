@@ -53,15 +53,16 @@ export const Retos = () => {
     >
       {/* Header */}
       <motion.div
-        className="bg-miel-soft rounded-xl p-8 shadow-lg ring-1 ring-miel/20"
+        className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4"
         variants={itemVariants}
       >
-        <div className="relative">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-miel rounded-r-full shadow-lg" />
-          <div className="ml-6">
-            <h1 className="text-3xl font-bold text-foreground">Retos y Desafíos</h1>
-            <p className="text-muted-foreground">Completa retos, gana insignias y sube en el ranking</p>
-          </div>
+        <div className="min-w-0">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">
+            Retos que <em className="italic-display">suman</em>
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Pequeños desafíos, puntos e insignias de verdad.
+          </p>
         </div>
       </motion.div>
 
@@ -88,26 +89,29 @@ export const Retos = () => {
           </TabsList>
 
           <TabsContent value="challenges">
-            <div className="bg-miel-soft rounded-xl p-6 shadow-lg ring-1 ring-miel/20">
-              <div className="relative mb-6">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-miel rounded-r-full shadow-lg" />
-                <div className="ml-6 flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-miel shadow-lg">
-                    <Target className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground">Retos Permanentes</h2>
-                    <p className="text-sm text-muted-foreground">Estos retos siempre están disponibles</p>
-                  </div>
+            <div>
+              <div className="mb-6 flex items-center gap-3">
+                <div className="rounded-lg bg-miel-soft p-2">
+                  <Target className="h-5 w-5 text-miel" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-extrabold tracking-tight text-foreground">Retos Permanentes</h2>
+                  <p className="text-sm text-muted-foreground">Estos retos siempre están disponibles.</p>
                 </div>
               </div>
-              <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" variants={containerVariants}>
-                {permanentChallenges.map((challenge, index) => (
-                  <motion.div key={challenge.id} variants={itemVariants} transition={{ delay: index * 0.1 }}>
-                    <ChallengeCard challenge={challenge} progress={getProgressForChallenge(challenge.id)} index={index} />
-                  </motion.div>
-                ))}
-              </motion.div>
+              {permanentChallenges.length > 0 ? (
+                <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" variants={containerVariants}>
+                  {permanentChallenges.map((challenge, index) => (
+                    <motion.div key={challenge.id} variants={itemVariants} transition={{ delay: index * 0.1 }}>
+                      <ChallengeCard challenge={challenge} progress={getProgressForChallenge(challenge.id)} index={index} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Los retos vuelven en breve. Mientras tanto, suma puntos completando cursos y participando en el foro.
+                </p>
+              )}
             </div>
           </TabsContent>
 

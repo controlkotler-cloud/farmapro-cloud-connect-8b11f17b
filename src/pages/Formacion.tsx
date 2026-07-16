@@ -144,16 +144,8 @@ export const Formacion = () => {
       animate="visible"
     >
       {/* Cabecera */}
-      <motion.div
-        className="bg-brand-soft rounded-xl p-8 shadow-lg ring-1 ring-brand/20"
-        variants={itemVariants}
-      >
-        <div className="relative">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-brand rounded-r-full shadow-lg"></div>
-          <div className="ml-6">
-            <FormacionHeader />
-          </div>
-        </div>
+      <motion.div variants={itemVariants}>
+        <FormacionHeader />
       </motion.div>
 
       {/* Buscador */}
@@ -239,7 +231,7 @@ export const Formacion = () => {
         <motion.div variants={itemVariants} className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand">
-              <Sparkles className="h-5 w-5 text-white" strokeWidth={1.75} />
+              <Sparkles className="h-5 w-5 text-foreground" strokeWidth={1.75} />
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground leading-tight">Empieza por aquí</h2>

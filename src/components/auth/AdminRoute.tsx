@@ -31,19 +31,19 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-lg shadow-lg">
+        <div className="text-center max-w-md mx-auto p-8 bg-card rounded-lg shadow-soft ring-1 ring-border">
           <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded mb-6">
             <strong className="font-bold block">Acceso Denegado</strong>
             <span className="text-sm">No tienes permisos de administrador para acceder a esta sección.</span>
           </div>
-          
+
           <div className="mb-6">
             <p className="text-muted-foreground mb-2">Usuario actual:</p>
             <p className="font-medium text-foreground">{user.email}</p>
           </div>
-          
+
           <div className="space-y-3">
-            <Button 
+            <Button
               onClick={reloadProfile}
               className="w-full flex items-center justify-center gap-2"
               variant="outline"
@@ -51,10 +51,10 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
               <RefreshCw className="h-4 w-4" />
               Recargar Permisos
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => window.location.href = '/dashboard'}
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 rounded-full"
             >
               <Home className="h-4 w-4" />
               Ir al Dashboard

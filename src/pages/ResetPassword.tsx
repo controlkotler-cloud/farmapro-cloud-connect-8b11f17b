@@ -92,20 +92,20 @@ export const ResetPassword = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="w-full max-w-md shadow-2xl">
+        <Card className="w-full max-w-md shadow-lift">
           <CardHeader>
             <div className="text-center">
               <div className="mx-auto mb-6 space-y-3">
                 <div className="flex justify-center">
                   <img src="/icono-farmapro.svg" alt="farmapro imagotipo" className="w-16 h-16" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-800">Portal</h1>
+                <h1 className="text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground">Portal</h1>
                 <div className="flex justify-center">
                   <img src="/logo-farmapro.svg" alt="farmapro logotipo" className="h-8" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Nueva contraseña</h2>
-              <p className="text-sm text-gray-600">Escribe tu nueva contraseña para el Portal farmapro</p>
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground mb-2 [text-wrap:balance]">Nueva contraseña</h2>
+              <p className="text-sm text-muted-foreground">Escribe tu nueva contraseña para el Portal farmapro</p>
             </div>
           </CardHeader>
           <CardContent>
@@ -144,7 +144,7 @@ export const ResetPassword = () => {
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full rounded-full" disabled={loading}>
                   {loading ? 'Guardando...' : 'Guardar contraseña'}
                 </Button>
               </form>

@@ -16,7 +16,7 @@ export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProp
           <Download className="h-5 w-5 text-brand-dark" />
         </div>
         <h4 className="text-lg font-semibold text-foreground">
-          📥 Recursos Descargables
+          Recursos descargables
         </h4>
       </div>
       <div className="bg-brand-soft rounded-xl p-6 border border-brand/20">
@@ -29,8 +29,8 @@ export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProp
                     <Download className="h-5 w-5 text-brand-dark" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground flex items-center gap-2">
-                      📄 {resource.title}
+                    <p className="font-medium text-foreground">
+                      {resource.title}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-sm text-muted-foreground">Formato:</span>

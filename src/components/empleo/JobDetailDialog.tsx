@@ -53,7 +53,14 @@ export const JobDetailDialog = ({
             
             {/* Badges */}
             <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-              {isExpired && <Badge variant="destructive">Expirada</Badge>}
+              {isExpired && (
+                <Badge
+                  variant="destructive"
+                  className="rounded-full bg-destructive/10 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-destructive hover:bg-destructive/10"
+                >
+                  Expirada
+                </Badge>
+              )}
               {hasApplied && (
                 <div className="flex items-center gap-1 text-success">
                   <CheckCircle className="h-4 w-4" />
@@ -93,7 +100,9 @@ export const JobDetailDialog = ({
                <div className="flex items-center justify-start gap-2">
                  <Briefcase className="h-4 w-4 text-salvia flex-shrink-0" />
                  <span className="font-medium text-sm sm:text-base">Tipo de puesto:</span>
-                 <Badge variant="outline">{getJobTypeLabel(job.job_type || 'otros')}</Badge>
+                 <span className="rounded-full bg-salvia-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-salvia">
+                   {getJobTypeLabel(job.job_type || 'otros')}
+                 </span>
                </div>
                {job.salary_range && (
                  <div className="flex items-center justify-start gap-2">
@@ -144,11 +153,11 @@ export const JobDetailDialog = ({
               </span>
             </div>
             
-            <Button 
+            <Button
               onClick={onContact}
               disabled={isExpired || hasApplied}
               size="lg"
-              className="w-full sm:w-auto sm:min-w-[140px] sm:self-end"
+              className="w-full rounded-full bg-salvia text-white hover:bg-salvia/90 sm:w-auto sm:min-w-[140px] sm:self-end"
             >
               {hasApplied ? 'Ya contactado' : 'Contactar'}
             </Button>

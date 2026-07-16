@@ -25,7 +25,7 @@ export const LoginForm = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="w-full max-w-md shadow-2xl">
+        <Card className="w-full max-w-md shadow-lift">
           <CardHeader>
             <AuthHeader isRegistering={isRegistering} />
           </CardHeader>

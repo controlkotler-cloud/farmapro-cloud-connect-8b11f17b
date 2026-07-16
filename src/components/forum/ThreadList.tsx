@@ -1,5 +1,3 @@
-
-import { Card, CardContent } from '@/components/ui/card';
 import { ThreadCard } from './ThreadCard';
 import { EmptyForumState } from './EmptyForumState';
 
@@ -31,14 +29,12 @@ interface ThreadListProps {
 export const ThreadList = ({ threads, loading, onThreadClick, onCreateThread }: ThreadListProps) => {
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="divide-y divide-border">
         {[...Array(5)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
+          <div key={i} className="animate-pulse py-4">
+            <div className="mb-2 h-4 w-2/3 rounded bg-muted"></div>
+            <div className="h-3 w-1/3 rounded bg-muted"></div>
+          </div>
         ))}
       </div>
     );
@@ -49,7 +45,7 @@ export const ThreadList = ({ threads, loading, onThreadClick, onCreateThread }: 
   }
 
   return (
-    <div className="space-y-3 md:space-y-4">
+    <div className="divide-y divide-border">
       {threads.map((thread, index) => (
         <ThreadCard
           key={thread.id}

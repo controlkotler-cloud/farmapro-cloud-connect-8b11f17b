@@ -92,7 +92,7 @@ export const EventCard = ({ event, index }: EventCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: Math.min(index, 8) * 0.1 }}
     >
-      <Card className="h-full hover:shadow-xl transition-all duration-300 border-border group">
+      <Card className="h-full transition-all hover:shadow-lift group">
         <div className="relative h-44 overflow-hidden rounded-t-lg">
           {event.image_url && !imgError ? (
             <img
@@ -109,16 +109,18 @@ export const EventCard = ({ event, index }: EventCardProps) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
           <div className="absolute top-3 left-3 space-y-2">
             {event.is_featured && (
-              <Badge className="bg-miel text-primary-foreground shadow-lg">
-                <Star className="h-3 w-3 mr-1" />
+              <Badge className="rounded-full bg-miel-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-foreground shadow-soft">
+                <Star className="h-3 w-3 mr-1 text-miel" />
                 Destacado
               </Badge>
             )}
             {isToday(event.start_date) && (
-              <Badge className="bg-warning text-warning-foreground shadow-lg">Hoy</Badge>
+              <Badge className="rounded-full bg-warning px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-warning-foreground shadow-soft">
+                Hoy
+              </Badge>
             )}
           </div>
-          <Badge className={`absolute top-3 right-3 ${getEventTypeColor(event.event_type)} shadow-lg`}>
+          <Badge className={`absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] shadow-soft ${getEventTypeColor(event.event_type)}`}>
             {event.event_type}
           </Badge>
         </div>
@@ -153,11 +155,11 @@ export const EventCard = ({ event, index }: EventCardProps) => {
             )}
 
             <Button
-              className="w-full mt-4 bg-terracota text-primary-foreground hover:opacity-90 shadow-lg"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift disabled:pointer-events-none disabled:opacity-50"
               onClick={() => window.open(event.registration_url, '_blank')}
               disabled={!event.registration_url}
             >
-              <ExternalLink className="h-4 w-4 mr-2" />
+              <ExternalLink className="h-4 w-4" />
               {isUpcoming(event.start_date) ? 'Más información' : 'Ver evento'}
             </Button>
           </div>

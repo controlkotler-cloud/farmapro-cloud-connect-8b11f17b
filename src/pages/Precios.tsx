@@ -102,7 +102,7 @@ export default function Precios() {
               </div>
               {/* El contador solo se enseña con altas reales suficientes (fases en plans.ts). */}
               {launch.showCounter && (
-                <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full border border-border bg-secondary">
                   <div
                     className={`h-full rounded-full transition-all ${
                       launch.almostGone ? "bg-destructive" : "bg-primary"
@@ -136,7 +136,9 @@ export default function Precios() {
               Planes de farmapro
             </Badge>
           )}
-          <h1 className="text-4xl font-bold mb-4">Planes de farmapro</h1>
+          <h1 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-4xl [text-wrap:balance]">
+            Planes <em className="italic-display">de farmapro</em>
+          </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             {launch.active
               ? "Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu plaza al precio de lanzamiento y consérvalo para siempre."
@@ -271,7 +273,7 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
   return (
     <Card
       className={`relative flex flex-col h-full overflow-hidden transition-shadow ${
-        isHighlighted ? "border-primary border-2 shadow-lg ring-1 ring-primary/20" : ""
+        isHighlighted ? "border-primary border-2 shadow-lift" : ""
       }`}
     >
       {isHighlighted && (
@@ -336,12 +338,12 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
         {!hideCta && (
           <div className="mt-6">
             {isFree ? (
-              <Button asChild className="w-full" variant="outline">
+              <Button asChild className="w-full rounded-full" variant="outline">
                 <Link to="/login">{plan.cta}</Link>
               </Button>
             ) : (
               <Button
-                className="w-full"
+                className="w-full rounded-full"
                 variant={isHighlighted ? "default" : "outline"}
                 onClick={() => onSubscribe(plan.id)}
                 disabled={loading}

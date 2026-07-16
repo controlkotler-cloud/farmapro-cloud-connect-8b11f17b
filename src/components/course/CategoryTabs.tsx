@@ -92,15 +92,17 @@ export const CategoryTabs = ({
                 size="sm"
                 onClick={() => onCategoryChange(tab.value)}
                 aria-pressed={isActive}
-                className={`gap-2 transition-colors ${
-                  isActive ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-muted-foreground'
+                className={`gap-2 rounded-full transition-colors ${
+                  isActive
+                    ? 'border border-brand/30 bg-brand-soft text-brand-dark hover:bg-brand-soft'
+                    : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="h-4 w-4" strokeWidth={1.75} />
                 <span className="font-medium">{tab.label}</span>
                 <span
                   className={`ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
+                    isActive ? 'bg-brand/20 text-brand-dark' : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {tab.count}

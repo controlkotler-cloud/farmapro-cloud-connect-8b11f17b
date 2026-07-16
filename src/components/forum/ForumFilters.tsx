@@ -43,7 +43,7 @@ export const ForumFilters = ({
 }: ForumFiltersProps) => {
   return (
     <Tabs value={selectedCategory} onValueChange={onCategoryChange}>
-      <TabsList className="grid w-full grid-cols-auto bg-white border">
+      <TabsList className="grid w-full grid-cols-auto border border-border bg-card">
         <TabsTrigger value="all" className="data-[state=active]:bg-terracota-soft data-[state=active]:text-terracota">
           <div className="flex items-center space-x-1">
             <LayoutList className="h-4 w-4" />

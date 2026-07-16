@@ -56,11 +56,11 @@ export const UserStatsCards = ({ userStats }: UserStatsCardsProps) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-terracota-soft border-terracota/20">
+      <Card className="bg-miel-soft border-miel/20">
         <CardContent className="p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-terracota-soft rounded-lg">
-              <Flame className="h-8 w-8 text-terracota" />
+            <div className="p-3 bg-miel-soft rounded-lg">
+              <Flame className="h-8 w-8 text-miel" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Flame className="h-4 w-4" /> Racha</p>

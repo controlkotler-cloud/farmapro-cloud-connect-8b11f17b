@@ -48,14 +48,14 @@ export const ResourcesFilters = ({
     >
       {/* Chips de filtro por tipo de recurso */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-gray-500 mr-1">Tipo</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground mr-1">Tipo</span>
         <button
           type="button"
           onClick={() => onTypeChange('todos')}
           className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
             selectedType === 'todos'
-              ? 'border-transparent bg-gray-900 text-white'
-              : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              ? 'border-transparent bg-foreground text-background'
+              : 'border-border bg-background text-muted-foreground hover:bg-muted'
           }`}
         >
           Todos ({totalCount})
@@ -70,8 +70,8 @@ export const ResourcesFilters = ({
               onClick={() => onTypeChange(value)}
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                 active
-                  ? 'border-transparent bg-gray-900 text-white'
-                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'border-transparent bg-foreground text-background'
+                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
               }`}
             >
               <ts.Icon className="h-3.5 w-3.5" />
@@ -83,7 +83,7 @@ export const ResourcesFilters = ({
 
       {/* Toggle de acceso (Gratis / Premium) + orden */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5">
+        <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
           {ACCESS_OPTIONS.map(opt => {
             const active = access === opt.value;
             return (
@@ -92,7 +92,7 @@ export const ResourcesFilters = ({
                 type="button"
                 onClick={() => onAccessChange(opt.value)}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  active ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  active ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {opt.label}

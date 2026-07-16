@@ -35,7 +35,10 @@ export const CourseCompletionStatus = ({
             </p>
           </div>
           <Link to={`/curso/${courseSlug}/quiz`}>
-            <Button size="lg" className="mt-2 px-8">
+            <Button
+              size="lg"
+              className="mt-2 rounded-full px-8 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+            >
               <ClipboardCheck className="h-4 w-4 mr-2" />
               Realizar evaluación
             </Button>

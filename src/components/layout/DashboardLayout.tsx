@@ -36,7 +36,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="flex h-screen bg-gray-50 w-full">
+      <div className="flex h-screen bg-background w-full">
         <Sidebar />
         <SidebarInset className="flex-1 flex flex-col overflow-hidden">
           <Header />

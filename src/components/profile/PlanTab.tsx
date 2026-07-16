@@ -117,7 +117,7 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                     : 'Todo el contenido, la comunidad e IAFarma por una cuota mensual. Sin permanencia.'}
                 </p>
               </div>
-              <Button asChild>
+              <Button asChild className="rounded-full">
                 <Link to="/precios" className="flex items-center gap-2">
                   Ver planes
                   <ExternalLink className="h-4 w-4" />

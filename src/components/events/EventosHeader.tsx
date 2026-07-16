@@ -1,18 +1,14 @@
-import { motion } from 'framer-motion';
 export const EventosHeader = () => {
-  return <motion.div className="bg-terracota-soft rounded-xl p-8 shadow-lg" initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }}>
-      <div className="relative">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-terracota rounded-r-full shadow-lg"></div>
-        <div className="ml-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Eventos</h1>
-          <p className="text-muted-foreground">Aquí encontrarás actualizados todos los webinars, conferencias, workshops, cursos y ferias del sector farmacéutico.</p>
-        </div>
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">
+          La agenda <em className="italic-display">del sector</em>
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Congresos, formaciones y citas que merecen hueco.
+        </p>
       </div>
-    </motion.div>;
+    </div>
+  );
 };

@@ -1,5 +1,5 @@
 
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface CourseProgressBarProps {
   moduleProgress: number;
@@ -7,21 +7,28 @@ interface CourseProgressBarProps {
   totalModules: number;
 }
 
-export const CourseProgressBar = ({ 
-  moduleProgress, 
-  completedModulesCount, 
-  totalModules 
+export const CourseProgressBar = ({
+  moduleProgress,
+  completedModulesCount,
+  totalModules
 }: CourseProgressBarProps) => {
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium">Progreso del curso</span>
-        <span className="text-sm text-gray-600">{moduleProgress}%</span>
-      </div>
-      <Progress value={moduleProgress} className="w-full" />
-      <div className="mt-2 text-xs text-gray-500">
-        Módulos completados: {completedModulesCount} de {totalModules}
-      </div>
-    </div>
+    <Card>
+      <CardContent className="p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-semibold text-foreground">Progreso del curso</span>
+          <span className="text-sm text-muted-foreground">{moduleProgress}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full border border-border bg-secondary">
+          <div
+            className="h-full rounded-full bg-brand transition-all"
+            style={{ width: `${Math.max(moduleProgress, 4)}%` }}
+          />
+        </div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          Módulos completados: {completedModulesCount} de {totalModules}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

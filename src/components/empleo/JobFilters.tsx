@@ -73,7 +73,7 @@ const PROVINCES = [
 
 export const JobFilters = ({ jobType, province, onJobTypeChange, onProvinceChange }: JobFiltersProps) => {
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-soft">
       <CardContent className="p-4">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex items-center gap-2">

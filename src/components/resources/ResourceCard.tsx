@@ -1,7 +1,5 @@
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Download, Lock } from 'lucide-react';
 import { getResourceStyle, getFormatIcon, getResourceTypeStyle } from '@/lib/resourceCategory';
 
@@ -23,64 +21,62 @@ interface ResourceCardProps {
   onDownload: (resource: Resource) => void;
 }
 
+// Tarjeta de recurso: eyebrow de categoría (acento propio del token), candado
+// premium como chip de marca (nunca gris triste) y la primera de cada grid
+// (index 0) destacada con el lavado salvia del canon.
 export const ResourceCard = ({ resource, index, onDownload }: ResourceCardProps) => {
   const style = getResourceStyle(resource.category);
   const typeStyle = getResourceTypeStyle(resource.type);
   const FormatIcon = getFormatIcon(resource.format);
+  const featured = index === 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index, 8) * 0.05 }}
-      whileHover={{ scale: 1.02 }}
-      className="h-full"
+    <Card
+      className={`flex h-full flex-col shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift ${
+        featured ? 'bg-gradient-to-br from-salvia-soft to-card' : ''
+      }`}
     >
-      <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-        {/* Banda de categoría: color + icono + etiqueta (para distinguir de un vistazo) */}
-        <div className={`${style.bg} px-4 py-2.5 flex items-center justify-between`}>
-          <div className={`flex items-center gap-2 ${style.text}`}>
-            <style.Icon className="h-4 w-4" />
-            <span className="text-xs font-semibold uppercase tracking-wide">{style.label}</span>
-          </div>
+      <CardContent className="flex h-full flex-col p-6">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] ${style.bg} ${style.text}`}
+          >
+            {style.label}
+          </span>
           {resource.is_premium ? (
-            <Badge className="bg-background/70 text-foreground border-0 text-[10px] gap-1">
+            <span className="inline-flex items-center gap-1 rounded-full bg-ciruela-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-ciruela">
               <Lock className="h-3 w-3" />
               Premium
-            </Badge>
+            </span>
           ) : (
-            <Badge className="bg-background/70 text-foreground border-0 text-[10px]">
+            <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-muted-foreground">
               Gratis
-            </Badge>
+            </span>
           )}
         </div>
 
-        <CardHeader className="pb-2">
-          {/* Badge principal: el TIPO de recurso (plantilla, checklist, calculadora…) */}
-          <div className="mb-2">
-            <Badge variant="secondary" className="gap-1.5 text-xs font-medium">
-              <typeStyle.Icon className="h-3.5 w-3.5" />
-              {typeStyle.label}
-            </Badge>
-          </div>
-          <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
-          <CardDescription className="line-clamp-3">{resource.description}</CardDescription>
-        </CardHeader>
+        <h2 className="text-base font-extrabold tracking-tight text-foreground [text-wrap:balance] line-clamp-2">
+          {resource.title}
+        </h2>
+        <p className="mt-1.5 line-clamp-3 text-sm text-muted-foreground">{resource.description}</p>
 
-        <CardContent className="flex-1 flex items-end justify-between gap-2">
-          <Badge variant="outline" className="text-xs gap-1">
+        <div className="mt-4 flex flex-1 items-end justify-between gap-3">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+            <typeStyle.Icon className="h-3.5 w-3.5" />
+            {typeStyle.label}
+            <span aria-hidden="true">·</span>
             <FormatIcon className="h-3.5 w-3.5" />
             {(resource.format || 'pdf').toUpperCase()}
-          </Badge>
+          </span>
           <Button
             onClick={() => onDownload(resource)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+            className="flex-none gap-2 rounded-full bg-brand-dark px-4 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4" />
             Descargar
           </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

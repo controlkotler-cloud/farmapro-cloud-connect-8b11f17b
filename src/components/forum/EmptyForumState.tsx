@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Plus } from 'lucide-react';
@@ -9,18 +8,23 @@ interface EmptyForumStateProps {
 
 export const EmptyForumState = ({ onCreateThread }: EmptyForumStateProps) => {
   return (
-    <Card className="text-center py-12">
-      <CardContent>
-        <MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          No hay hilos en esta categoría
+    <Card className="text-center">
+      <CardContent className="py-12">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-terracota-soft">
+          <MessageSquare className="h-7 w-7 text-terracota" />
+        </div>
+        <h3 className="mt-4 text-lg font-bold text-foreground">
+          Todavía no hay hilos aquí
         </h3>
-        <p className="text-gray-600 mb-4">
-          ¡Sé el primero en crear un hilo y empezar la conversación!
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Estrena esta categoría: cuenta cómo va tu farmacia esta semana.
         </p>
-        <Button onClick={onCreateThread}>
-          <Plus className="h-4 w-4 mr-2" />
-          Crear Primer Hilo
+        <Button
+          onClick={onCreateThread}
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+        >
+          <Plus className="h-4 w-4" />
+          Crear el primer hilo
         </Button>
       </CardContent>
     </Card>

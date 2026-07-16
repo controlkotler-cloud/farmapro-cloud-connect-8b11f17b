@@ -38,8 +38,8 @@ export const ResourcesCategorySection = ({ category, resources, onDownload }: Re
           <style.Icon className={`h-5 w-5 ${style.text}`} />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900 leading-tight">{style.label}</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-xl font-bold text-foreground leading-tight">{style.label}</h2>
+          <p className="text-sm text-muted-foreground">
             {count} {count === 1 ? 'recurso' : 'recursos'}
           </p>
         </div>

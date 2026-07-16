@@ -25,7 +25,7 @@ export const NotificationsTab = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="email_courses">Notificaciones de cursos</Label>
-              <p className="text-sm text-gray-500">Recibe notificaciones sobre nuevos cursos y actualizaciones</p>
+              <p className="text-sm text-muted-foreground">Recibe notificaciones sobre nuevos cursos y actualizaciones</p>
             </div>
             <Switch
               id="email_courses"
@@ -37,7 +37,7 @@ export const NotificationsTab = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="email_promotions">Promociones y ofertas</Label>
-              <p className="text-sm text-gray-500">Recibe información sobre promociones especiales</p>
+              <p className="text-sm text-muted-foreground">Recibe información sobre promociones especiales</p>
             </div>
             <Switch
               id="email_promotions"
@@ -49,7 +49,7 @@ export const NotificationsTab = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="email_community">Actividad de la comunidad</Label>
-              <p className="text-sm text-gray-500">Notificaciones sobre respuestas en el foro</p>
+              <p className="text-sm text-muted-foreground">Notificaciones sobre respuestas en el foro</p>
             </div>
             <Switch
               id="email_community"
@@ -61,7 +61,7 @@ export const NotificationsTab = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="push_notifications">Notificaciones push</Label>
-              <p className="text-sm text-gray-500">Recibe notificaciones en tiempo real</p>
+              <p className="text-sm text-muted-foreground">Recibe notificaciones en tiempo real</p>
             </div>
             <Switch
               id="push_notifications"
@@ -71,7 +71,7 @@ export const NotificationsTab = () => {
           </div>
         </div>
 
-        <Button className="w-full" onClick={handleSaveNotificationSettings}>
+        <Button className="w-full rounded-full" onClick={handleSaveNotificationSettings}>
           Guardar Configuración
         </Button>
       </CardContent>

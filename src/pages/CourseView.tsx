@@ -8,7 +8,7 @@ import { useCourseActions } from '@/components/course/CourseActions';
 import { useCourseNavigation } from '@/components/course/CourseNavigation';
 import { useQuiz } from '@/hooks/useQuiz';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 import { AccessLockedCard } from '@/components/access/AccessLockedCard';
 import { CourseHeader } from '@/components/course/CourseHeader';
 import { ModuleContent } from '@/components/course/ModuleContent';
@@ -146,8 +146,11 @@ const CourseView = () => {
               isNextModuleUnlocked={isNextModuleUnlocked()}
             />
           ) : (
-            <div className="bg-white p-8 rounded-lg shadow text-center">
-              <p className="text-muted-foreground">No hay módulos disponibles para este curso.</p>
+            <div className="rounded-xl border border-dashed border-border bg-card py-12 text-center">
+              <BookOpen className="mx-auto h-8 w-8 text-muted-foreground" />
+              <p className="mt-3 text-sm text-muted-foreground">
+                Todavía no hay módulos publicados para este curso. Vuelve pronto.
+              </p>
             </div>
           )}
 

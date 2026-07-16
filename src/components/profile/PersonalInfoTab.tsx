@@ -80,9 +80,9 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
               type="email"
               value={formData.email}
               disabled
-              className="bg-gray-100"
+              className="bg-muted"
             />
-            <p className="text-xs text-gray-500">El email no se puede modificar</p>
+            <p className="text-xs text-muted-foreground">El email no se puede modificar</p>
           </div>
         </div>
         
@@ -119,7 +119,7 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
         </div>
 
         <div className="pt-2">
-          <Button onClick={saveProfile} disabled={loading} className="w-full">
+          <Button onClick={saveProfile} disabled={loading} className="w-full rounded-full">
             {loading ? 'Guardando...' : 'Guardar cambios'}
           </Button>
         </div>

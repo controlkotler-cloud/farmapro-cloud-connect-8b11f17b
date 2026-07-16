@@ -380,7 +380,7 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
           </>
         )}
         
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full rounded-full" disabled={loading}>
           {loading 
             ? (isRegistering ? 'Creando cuenta...' : 'Iniciando sesión...') 
             : (isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión')

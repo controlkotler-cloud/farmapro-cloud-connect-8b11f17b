@@ -34,7 +34,7 @@ export const CreativeWorkspace = () => {
       <PharmacyDefaults defaults={defaults} onChange={updateDefault} />
 
       <section>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">¿Qué quieres crear?</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">¿Qué quieres crear?</h2>
         <ContentTypeGrid selected={contentType} onSelect={setContentType} />
       </section>
 
@@ -49,10 +49,10 @@ export const CreativeWorkspace = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="bg-white rounded-xl ring-1 ring-gray-100 shadow-sm p-6 sticky top-4">
+            <div className="bg-card rounded-xl ring-1 ring-border shadow-sm p-6 sticky top-4">
               <div className="flex items-center gap-2 mb-5">
                 <span className="text-xl">{selectedInfo?.icon}</span>
-                <h3 className="font-semibold text-gray-800">{selectedInfo?.label}</h3>
+                <h3 className="font-semibold text-foreground">{selectedInfo?.label}</h3>
               </div>
 
               <ContentForm

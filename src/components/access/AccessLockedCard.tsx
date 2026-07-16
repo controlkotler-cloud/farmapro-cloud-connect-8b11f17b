@@ -31,7 +31,7 @@ export const AccessLockedCard = ({
       <p className="text-muted-foreground mb-6">{description}</p>
       <Button
         onClick={() => navigate('/precios')}
-        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
         size="lg"
       >
         <Sparkles className="h-4 w-4 mr-2" />

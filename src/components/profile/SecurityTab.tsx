@@ -97,10 +97,10 @@ export const SecurityTab = () => {
           </p>
         </div>
 
-        <Button 
-          onClick={changePassword} 
+        <Button
+          onClick={changePassword}
           disabled={passwordLoading || !passwordData.newPassword || !passwordData.confirmPassword}
-          className="w-full"
+          className="w-full rounded-full"
         >
           {passwordLoading ? 'Actualizando...' : 'Cambiar Contraseña'}
         </Button>

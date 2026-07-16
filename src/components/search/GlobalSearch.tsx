@@ -323,7 +323,7 @@ export const GlobalSearch = () => {
       </div>
 
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-md shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lift z-50">
           <Command>
             <CommandList className="max-h-80">
               {results.length === 0 ? (

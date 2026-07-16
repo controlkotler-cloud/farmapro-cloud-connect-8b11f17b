@@ -36,6 +36,11 @@ const getDifficulty = (difficulty?: string) => {
   );
 };
 
+// La portada de "ventas" usa el verde claro de marca (bg-brand); ahí el
+// icono/etiqueta necesitan tinta en vez de blanco para mantener contraste
+// (DESIGN.md: nunca texto blanco sobre bg-brand).
+const NEEDS_INK_OVERLAY = new Set(['ventas']);
+
 export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnroll }: CourseCardProps) => {
   const navigate = useNavigate();
   const { isLocked } = useEntitlements();
@@ -77,8 +82,13 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
           />
         ) : (
           <>
-            <cover.Icon className="h-10 w-10 text-white/90" strokeWidth={1.5} />
-            <span className="absolute bottom-2 left-3 text-xs font-semibold uppercase tracking-wide text-white/85">
+            <cover.Icon
+              className={`h-10 w-10 ${NEEDS_INK_OVERLAY.has(course.category) ? 'text-foreground/90' : 'text-white/90'}`}
+              strokeWidth={1.5}
+            />
+            <span
+              className={`absolute bottom-2 left-3 text-xs font-semibold uppercase tracking-wide ${NEEDS_INK_OVERLAY.has(course.category) ? 'text-foreground/85' : 'text-white/85'}`}
+            >
               {cover.label}
             </span>
           </>

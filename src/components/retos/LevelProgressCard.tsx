@@ -1,5 +1,4 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { TrendingUp } from 'lucide-react';
 import {
   getLevelInfo,
@@ -25,11 +24,11 @@ export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
   const toNext = getPointsToNextLevel(points);
 
   return (
-    <Card className="bg-miel-soft border-miel/20">
+    <Card className="bg-gradient-to-br from-miel-soft to-card">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            <div className="p-3 bg-miel-soft rounded-lg mr-4">
+            <div className="p-3 bg-card rounded-lg mr-4">
               <TrendingUp className="h-8 w-8 text-miel" />
             </div>
             <div>
@@ -53,7 +52,12 @@ export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
             <span>Nivel {current.level}</span>
             <span>{next ? `Nivel ${next.level}` : '—'}</span>
           </div>
-          <Progress value={progress} className="h-3" />
+          <div className="h-3 overflow-hidden rounded-full border border-border bg-secondary">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
+              style={{ width: `${Math.max(progress, 4)}%` }}
+            />
+          </div>
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{points} pts actuales</span>
             <span>{next ? `${next.minPoints} pts objetivo` : 'Máximo'}</span>
