@@ -1602,6 +1602,45 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_email_log: {
+        Row: {
+          attempts: number
+          created_at: string
+          error: string | null
+          id: string
+          mailrelay_id: string | null
+          meta: Json | null
+          recipient: string
+          status: string
+          subject: string | null
+          template: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          id?: string
+          mailrelay_id?: string | null
+          meta?: Json | null
+          recipient: string
+          status: string
+          subject?: string | null
+          template: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          id?: string
+          mailrelay_id?: string | null
+          meta?: Json | null
+          recipient?: string
+          status?: string
+          subject?: string | null
+          template?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
