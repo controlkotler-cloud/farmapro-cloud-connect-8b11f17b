@@ -129,6 +129,7 @@ serve(async (req) => {
         .maybeSingle();
       return json({
         already: true,
+        reward_type: "premio",
         opening_id: existing.id,
         expires_at: existing.expires_at,
         redeemed_at: existing.redeemed_at,
