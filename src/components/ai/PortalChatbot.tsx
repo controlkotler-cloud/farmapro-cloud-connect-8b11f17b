@@ -119,8 +119,23 @@ export const PortalChatbot = () => {
                           : 'bg-card ring-1 ring-border text-foreground'
                       )}
                     >
-                      {message.content}
+                      {message.role === 'assistant' ? (
+                        <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-strong:text-foreground prose-a:text-ciruela">
+                          <ReactMarkdown
+                            components={{
+                              a: ({ node, ...props }) => (
+                                <a {...props} target="_blank" rel="noopener noreferrer" />
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        message.content
+                      )}
                     </div>
+
                   </div>
                 ))}
                 {isLoading && (
