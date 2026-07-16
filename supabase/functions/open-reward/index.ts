@@ -51,13 +51,13 @@ serve(async (req) => {
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  const campaignId = String(body.campaign_id ?? "").trim();
+  const campaignIdRaw = String(body.campaign_id ?? "").trim();
   const cajon = Number(body.cajon);
   const source: Source = (VALID_SOURCES as readonly string[]).includes(body.source ?? "")
     ? (body.source as Source)
     : "welcome";
 
-  if (!campaignId || !/^[0-9a-f-]{36}$/i.test(campaignId)) {
+  if (campaignIdRaw && !/^[0-9a-f-]{36}$/i.test(campaignIdRaw)) {
     return json({ error: "campaign_id inválido" }, 400);
   }
   if (!Number.isInteger(cajon) || cajon < 1 || cajon > 30) {
