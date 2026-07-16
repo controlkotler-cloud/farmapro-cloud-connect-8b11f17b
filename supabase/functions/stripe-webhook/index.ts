@@ -104,8 +104,48 @@ async function handleCheckoutCompleted(
   supabase: ReturnType<typeof createClient>,
   session: Stripe.Checkout.Session,
 ) {
+  // Rama PACKS de imágenes (pago único). No mezclamos con suscripción.
+  if (session.mode === 'payment') {
+    const rawPack = session.metadata?.pack_credits;
+    const packCredits = rawPack ? parseInt(rawPack, 10) : NaN;
+    const userIdPack = session.metadata?.user_id;
+    if (!userIdPack || !Number.isFinite(packCredits) || packCredits <= 0) {
+      log('payment session without pack_credits/user_id, skipping', { sessionId: session.id });
+      return;
+    }
+    // Sumar créditos (atómico, service role).
+    const { error: creditErr } = await supabase.rpc('add_image_credits', {
+      p_user: userIdPack, p_credits: packCredits,
+    });
+    if (creditErr) log('add_image_credits error', { err: creditErr.message });
+
+    // Factura Holded (pack). Total con IVA incluido = amount_total/100.
+    try {
+      const email = session.customer_details?.email
+        ?? (session.customer_email as string | undefined)
+        ?? '';
+      const { data: prof } = await supabase.from('profiles')
+        .select('full_name, cif, email').eq('id', userIdPack).maybeSingle();
+      const total = ((session.amount_total ?? 0) / 100);
+      await createHoldedInvoice({
+        sourceId: session.id,
+        sourceType: 'stripe_checkout_session',
+        userId: userIdPack,
+        email: (prof as any)?.email ?? email,
+        name: (prof as any)?.full_name ?? null,
+        cif: (prof as any)?.cif ?? null,
+        concept: `Portal farmapro · Pack ${packCredits} imágenes IAFarma`,
+        totalEur: total,
+        meta: { pack_credits: packCredits, origen: 'portal' },
+      });
+    } catch (e) { log('holded pack invoice failed', { err: (e as Error).message }); }
+
+    log('pack purchase applied', { userId: userIdPack, packCredits });
+    return;
+  }
+
   if (session.mode !== 'subscription') {
-    log('checkout not subscription, skipping', { mode: session.mode });
+    log('checkout mode not handled', { mode: session.mode });
     return;
   }
   const userId = session.metadata?.user_id;
