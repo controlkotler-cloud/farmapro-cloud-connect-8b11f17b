@@ -143,21 +143,24 @@ async function runA(stripe: Stripe, sb: ReturnType<typeof createClient>, userId:
     id: userId, email, subscription_role: "plus", subscription_status: "active",
     stripe_customer_id: customer.id, updated_at: new Date().toISOString(),
   }, { onConflict: "id" });
-  await sb.from("subscriptions").upsert({
+  const subUpsert = await sb.from("subscriptions").upsert({
     user_id: userId, stripe_customer_id: customer.id, stripe_subscription_id: sub.id,
     plan_name: "plus", plan_id: "plus", cycle: "monthly", is_founder: true, status: "active",
     current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
     current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
     updated_at: new Date().toISOString(),
-  }, { onConflict: "stripe_subscription_id" });
+  }, { onConflict: "stripe_subscription_id" }).select();
+  console.log("[qa-a] sub upsert", JSON.stringify({ err: subUpsert.error?.message, data: subUpsert.data }));
+
 
   // Esperar unos segundos a que el webhook procese invoice.paid → Holded.
   await sleep(5000);
   const { data: profile } = await sb.from("profiles").select("subscription_role, subscription_status, stripe_customer_id").eq("id", userId).maybeSingle();
   const { data: subs } = await sb.from("subscriptions").select("*").eq("user_id", userId);
   const { data: holded } = await sb.from("portal_holded_invoices").select("*").eq("user_id", userId);
-  return { clock_id: clock.id, customer_id: customer.id, subscription_id: sub.id, invoice_id: inv.id, profile, subs, holded };
+  return { clock_id: clock.id, customer_id: customer.id, subscription_id: sub.id, invoice_id: inv.id, profile, subs, holded, sub_upsert_err: subUpsert.error?.message ?? null };
 }
+
 
 // --- B: Pack de 20 imágenes -------------------------------------------------
 async function runB(stripe: Stripe, sb: ReturnType<typeof createClient>, userId: string, email: string) {
@@ -209,12 +212,18 @@ async function runC(stripe: Stripe, sb: ReturnType<typeof createClient>, userId:
   const customer = await stripe.customers.retrieve(row.stripe_customer_id as string);
   const clockId = (customer as any).test_clock as string;
 
-  // Cambiar el default PM a uno que falle (fingir tarjeta rechazada).
-  const failPm = await stripe.paymentMethods.create({
-    type: "card", card: { token: "tok_chargeCustomerFail" },
+  // Cambiar el default PM a uno que falle SIEMPRE al cobrar (test PM predefinido).
+  // pm_card_chargeCustomerFail → 4000 0000 0000 0341, cargo declinado.
+  const attached = await stripe.paymentMethods.attach("pm_card_chargeCustomerFail" as string, { customer: customer.id });
+  await stripe.customers.update(customer.id, { invoice_settings: { default_payment_method: attached.id } });
+
+
+  // La sub tiene su propio default_payment_method. Reemplazarlo por el que falla.
+  await stripe.subscriptions.update(sub.id, {
+    default_payment_method: attached.id,
+    collection_method: "charge_automatically",
   });
-  await stripe.paymentMethods.attach(failPm.id, { customer: customer.id });
-  await stripe.customers.update(customer.id, { invoice_settings: { default_payment_method: failPm.id } });
+
 
   // Avanzar el reloj más allá del period_end para forzar renovación.
   const advanceTo = (sub.current_period_end as number) + 3600;
@@ -227,12 +236,21 @@ async function runC(stripe: Stripe, sb: ReturnType<typeof createClient>, userId:
     const c = await stripe.testHelpers.testClocks.retrieve(clockId);
     if (c.status === "ready") { ready = true; break; }
   }
-  await sleep(4000);
+  await sleep(6000);
+
+  // Comprobar el estado real de la sub en Stripe (por si el webhook aún no llegó).
+  const subAfter = await stripe.subscriptions.retrieve(sub.id);
+  // Últimos eventos relevantes.
+  const events = await stripe.events.list({ limit: 10, types: ["invoice.payment_failed","invoice.paid","customer.subscription.updated"] as any });
+  const relEvents = events.data
+    .filter((e) => JSON.stringify(e.data).includes(sub.id))
+    .map((e) => ({ id: e.id, type: e.type, created: e.created }));
 
   const { data: subRow } = await sb.from("subscriptions").select("status").eq("user_id", userId).maybeSingle();
   const { data: profile } = await sb.from("profiles").select("subscription_status").eq("id", userId).maybeSingle();
-  const { data: emails } = await sb.from("portal_email_log").select("template, status, sent_at").eq("to_email", email);
-  return { clock_ready: ready, sub_status: subRow, profile, emails };
+  const { data: emails } = await sb.from("portal_email_log").select("template, status, sent_at").eq("to", email);
+  return { clock_ready: ready, stripe_sub_status: subAfter.status, events: relEvents, sub_status: subRow, profile, emails };
+
 }
 
 function json(payload: unknown, status = 200) {
