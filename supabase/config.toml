@@ -9,3 +9,5 @@ project_id = "jeysistgdajopfruqpbc"
     verify_jwt = false
   [functions.send-portal-email]
     verify_jwt = false
+  [functions.qa-tanda-c]
+    verify_jwt = false

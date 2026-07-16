@@ -165,14 +165,28 @@ async function handleCheckoutCompleted(
   const periodStart = new Date(sub.current_period_start * 1000).toISOString();
   const periodEnd   = new Date(sub.current_period_end   * 1000).toISOString();
 
-  // Actualizar profile.
-  const { error: profErr } = await supabase.from('profiles').update({
-    subscription_role: plan,
-    subscription_status: 'active',
-    stripe_customer_id: customerId,
-    updated_at: new Date().toISOString(),
-  }).eq('id', userId);
-  if (profErr) log('profile update error', { err: profErr.message });
+  // Guard: no degradar/sobrescribir roles protegidos (admin) desde el webhook.
+  const { data: currentProfile } = await supabase.from('profiles')
+    .select('subscription_role').eq('id', userId).maybeSingle();
+  const currentRole = (currentProfile as any)?.subscription_role;
+  const isProtected = currentRole && (PROTECTED_ROLES as readonly string[]).includes(currentRole);
+
+  if (isProtected) {
+    log('protected role, skipping profile role change', { userId, role: currentRole });
+    const { error: profErr } = await supabase.from('profiles').update({
+      stripe_customer_id: customerId,
+      updated_at: new Date().toISOString(),
+    }).eq('id', userId);
+    if (profErr) log('profile customer_id update error', { err: profErr.message });
+  } else {
+    const { error: profErr } = await supabase.from('profiles').update({
+      subscription_role: plan,
+      subscription_status: 'active',
+      stripe_customer_id: customerId,
+      updated_at: new Date().toISOString(),
+    }).eq('id', userId);
+    if (profErr) log('profile update error', { err: profErr.message });
+  }
 
   // Upsert en subscriptions.
   const { error: subErr } = await supabase.from('subscriptions').upsert({
