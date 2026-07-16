@@ -16,7 +16,12 @@ export type PortalTemplateName =
   | 'fin-prueba'
   | 'past-due'
   | 'equipo-invitacion'
-  | 'equipo-plaza-activada';
+  | 'equipo-plaza-activada'
+  | 'rebotica-premio-ganado'
+  | 'rebotica-premio-caduca'
+  | 'rebotica-baul-ganador'
+  | 'rebotica-gordo-ganador'
+  | 'rebotica-aviso-calendario-interno';
 
 export interface PortalTemplateData {
   // Comunes
@@ -25,14 +30,30 @@ export interface PortalTemplateData {
   aviso?: 'primero' | 'ultimo';
   diasRestantes?: number;
   // equipo-invitacion
-  invitadoPor?: string;    // nombre del titular o de la farmacia
-  inviteUrl?: string;      // URL absoluta con token
-  caducidadDias?: number;  // por defecto 14
+  invitadoPor?: string;
+  inviteUrl?: string;
+  caducidadDias?: number;
   // equipo-plaza-activada
   miembroNombre?: string;
   miembroEmail?: string;
-  plazasOcupadas?: number; // X de 10
-  plazasTotal?: number;    // 10
+  plazasOcupadas?: number;
+  plazasTotal?: number;
+  // rebotica-premio-ganado / caduca
+  premioTitulo?: string;
+  premioDescripcion?: string;
+  esPartner?: boolean;
+  expiresAt?: string;   // ISO
+  horasRestantes?: number;
+  canjeUrl?: string;
+  // rebotica-baul-ganador
+  mes?: string;
+  temporada?: string;
+  // rebotica-aviso-calendario-interno
+  tipoSorteo?: 'baul' | 'gordo';
+  ganadorEmail?: string;
+  ganadorNombre?: string;
+  ganadorFarmacia?: string;
+  periodo?: string;
 }
 
 export interface RenderedEmail {
@@ -45,7 +66,14 @@ const APP_URL = Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
 
 // --------------------------------------------------------------------- layout
 
-function layout(opts: { previewText: string; bodyHtml: string }): string {
+function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: boolean }): string {
+  const footer = opts.hideFooter
+    ? ''
+    : `<tr>
+              <td style="padding:20px 32px 28px 32px;border-top:1px solid #ecebe6;font-size:11px;line-height:1.5;color:#6b6f68;">
+                Este correo se envía en relación con tu cuenta en el portal farmapro. Responsable del tratamiento: <strong>Mkpro Kotler SL</strong> (B99554446), somos@farmapro.es. Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad y limitación escribiendo a esa dirección. Más información en <a href="${APP_URL}/legal" style="color:#3a5f16;text-decoration:underline;">${APP_URL}/legal</a>.
+              </td>
+            </tr>`;
   return `<!doctype html>
 <html lang="es">
   <head>
@@ -73,11 +101,7 @@ function layout(opts: { previewText: string; bodyHtml: string }): string {
                 </p>
               </td>
             </tr>
-            <tr>
-              <td style="padding:20px 32px 28px 32px;border-top:1px solid #ecebe6;font-size:11px;line-height:1.5;color:#6b6f68;">
-                Este correo se envía en relación con tu cuenta en el portal farmapro. Responsable del tratamiento: <strong>Mkpro Kotler SL</strong> (B99554446), somos@farmapro.es. Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad y limitación escribiendo a esa dirección. Más información en <a href="${APP_URL}/legal" style="color:#3a5f16;text-decoration:underline;">${APP_URL}/legal</a>.
-              </td>
-            </tr>
+            ${footer}
           </table>
         </td>
       </tr>
@@ -103,6 +127,16 @@ function escapeHtml(s: string): string {
 
 function textFooter(): string {
   return `\n\nUn saludo,\nEl equipo de farmapro\n\n--\nResponsable del tratamiento: Mkpro Kotler SL. Contacto: somos@farmapro.es. Más información: ${APP_URL}/legal`;
+}
+
+function fmtFecha(iso?: string): string {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+  } catch {
+    return '';
+  }
 }
 
 // --------------------------------------------------------------------- render
@@ -221,6 +255,114 @@ export function renderPortalTemplate(
         `,
       });
       const text = `${saludo}\n\n${miembro} ha activado su plaza y ya forma parte de tu equipo en el portal farmapro.\n\nAhora mismo tienes ${ocupadas} de ${total} personas en tu equipo.\n\nVer mi equipo: ${APP_URL}/perfil?tab=equipo${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'rebotica-premio-ganado': {
+      const titulo = (data.premioTitulo ?? '').trim() || 'tu premio de la Rebotica';
+      const descripcion = (data.premioDescripcion ?? '').trim();
+      const url = data.canjeUrl ?? `${APP_URL}/rebotica`;
+      const caducaTxt = fmtFecha(data.expiresAt);
+      const subject = `Has ganado ${titulo} en la Rebotica`;
+      const html = layout({
+        previewText: `${titulo} — instrucciones de canje dentro.`,
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Has ganado un premio en la Rebotica</h1>
+          <p style="margin:0 0 12px 0;">${saludo}</p>
+          <p style="margin:0 0 12px 0;">Al abrir tu cajón te ha tocado: <strong>${escapeHtml(titulo)}</strong>.</p>
+          ${descripcion ? `<p style="margin:0 0 12px 0;">${escapeHtml(descripcion)}</p>` : ''}
+          ${caducaTxt ? `<p style="margin:0 0 12px 0;">Podrás canjearlo hasta el <strong>${escapeHtml(caducaTxt)}</strong>.</p>` : ''}
+          ${ctaButton(url, 'Ir a mi premio')}
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si el enlace no funciona, entra en el portal y abre la sección Rebotica desde el menú.</p>
+        `,
+      });
+      const text = `${saludo}\n\nAl abrir tu cajón en la Rebotica te ha tocado: ${titulo}.\n${descripcion ? descripcion + '\n' : ''}${caducaTxt ? `Podrás canjearlo hasta el ${caducaTxt}.\n` : ''}\nIr a tu premio: ${url}${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'rebotica-premio-caduca': {
+      const titulo = (data.premioTitulo ?? '').trim() || 'tu premio de la Rebotica';
+      const url = data.canjeUrl ?? `${APP_URL}/rebotica`;
+      const horas = data.horasRestantes ?? 48;
+      const subject = `Tu premio en la Rebotica caduca pronto`;
+      const html = layout({
+        previewText: `Te quedan menos de ${horas} horas para canjear ${titulo}.`,
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Aún puedes canjear tu premio</h1>
+          <p style="margin:0 0 12px 0;">${saludo}</p>
+          <p style="margin:0 0 12px 0;">Te quedan menos de <strong>${horas} horas</strong> para canjear <strong>${escapeHtml(titulo)}</strong> antes de que caduque.</p>
+          ${ctaButton(url, 'Canjear ahora')}
+        `,
+      });
+      const text = `${saludo}\n\nTe quedan menos de ${horas} horas para canjear ${titulo} antes de que caduque.\n\nCanjear ahora: ${url}${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'rebotica-baul-ganador': {
+      const mes = (data.mes ?? '').trim();
+      const subject = 'Has ganado El Baúl de la Rebotica';
+      const html = layout({
+        previewText: 'El Baúl es tuyo. Necesitamos la dirección de envío de la farmacia.',
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Enhorabuena: te ha tocado El Baúl</h1>
+          <p style="margin:0 0 12px 0;">${saludo}</p>
+          <p style="margin:0 0 12px 0;">El Baúl de la Rebotica${mes ? ` de ${escapeHtml(mes)}` : ''} es una caja que preparamos con productos y sorpresas seleccionadas para tu farmacia. No sabrás qué lleva hasta que la abras.</p>
+          <p style="margin:0 0 12px 0;">Para enviártelo, <strong>respóndenos a este correo</strong> con la dirección de envío de la farmacia (nombre de la farmacia, calle, código postal, ciudad y persona de contacto).</p>
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">En cuanto tengamos la dirección, te confirmamos fecha de envío.</p>
+        `,
+      });
+      const text = `${saludo}\n\nHas ganado El Baúl de la Rebotica${mes ? ` de ${mes}` : ''}: una caja que preparamos con productos y sorpresas seleccionadas para tu farmacia.\n\nPara enviártelo, responde a este correo con la dirección de envío de la farmacia (nombre de la farmacia, calle, código postal, ciudad y persona de contacto).\n\nEn cuanto tengamos la dirección, te confirmamos fecha de envío.${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'rebotica-gordo-ganador': {
+      // Tono sobrio, SIN detalles ni asunto revelador.
+      const subject = 'Enhorabuena, tenemos algo que contarte';
+      const html = layout({
+        previewText: 'Nos gustaría llamarte para explicártelo en persona.',
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Enhorabuena</h1>
+          <p style="margin:0 0 12px 0;">${saludo}</p>
+          <p style="margin:0 0 12px 0;">Has ganado el premio grande de la temporada de la Rebotica.</p>
+          <p style="margin:0 0 12px 0;">Alejandro (director de farmapro) tiene que llamarte para explicártelo en persona. Respóndenos a este correo con:</p>
+          <ul style="margin:0 0 12px 20px;padding:0;">
+            <li>Un número de móvil de contacto.</li>
+            <li>La franja horaria en la que te va bien recibir la llamada.</li>
+          </ul>
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">No guardamos tu teléfono en el portal: lo usamos únicamente para esta llamada.</p>
+        `,
+      });
+      const text = `${saludo}\n\nHas ganado el premio grande de la temporada de la Rebotica.\n\nAlejandro (director de farmapro) tiene que llamarte para explicártelo en persona. Respóndenos a este correo con:\n- Un número de móvil de contacto.\n- La franja horaria en la que te va bien recibir la llamada.\n\nNo guardamos tu teléfono en el portal: lo usamos únicamente para esta llamada.${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'rebotica-aviso-calendario-interno': {
+      // Aviso interno para alejandro@mkpro.es (cc: control@mkpro.es). Sin footer legal RGPD ni baja.
+      const tipo = data.tipoSorteo === 'gordo' ? 'EL GORDO' : 'EL BAÚL';
+      const email = (data.ganadorEmail ?? '').trim();
+      const nombre = (data.ganadorNombre ?? '').trim() || '(sin nombre)';
+      const farmacia = (data.ganadorFarmacia ?? '').trim() || '(sin farmacia)';
+      const temporada = (data.temporada ?? '').trim();
+      const periodo = (data.periodo ?? '').trim();
+      const premio = (data.premioTitulo ?? '').trim() || '(sin detallar)';
+      const subject = `[Rebotica] Adjudicado ${tipo} — ${email || nombre}`;
+      const html = layout({
+        hideFooter: true,
+        previewText: `Adjudicado ${tipo} a ${email || nombre}.`,
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Adjudicado ${tipo}</h1>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
+            <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Ganador</td><td style="padding:4px 0;"><strong>${escapeHtml(nombre)}</strong></td></tr>
+            <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Email</td><td style="padding:4px 0;">${escapeHtml(email)}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Farmacia</td><td style="padding:4px 0;">${escapeHtml(farmacia)}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Temporada</td><td style="padding:4px 0;">${escapeHtml(temporada)}</td></tr>
+            ${periodo ? `<tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Periodo</td><td style="padding:4px 0;">${escapeHtml(periodo)}</td></tr>` : ''}
+            <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Premio</td><td style="padding:4px 0;">${escapeHtml(premio)}</td></tr>
+          </table>
+          <p style="margin:20px 0 0 0;font-size:13px;color:#6b6f68;">Aviso interno automático — no se envía enlace de baja.</p>
+        `,
+      });
+      const text = `Adjudicado ${tipo}\n\nGanador: ${nombre}\nEmail: ${email}\nFarmacia: ${farmacia}\nTemporada: ${temporada}${periodo ? '\nPeriodo: ' + periodo : ''}\nPremio: ${premio}\n\nAviso interno automático.`;
       return { subject, html, text };
     }
   }
