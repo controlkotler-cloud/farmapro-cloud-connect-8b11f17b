@@ -1641,6 +1641,27 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_trial_notice_log: {
+        Row: {
+          id: string
+          kind: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          kind: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3134,6 +3155,14 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      notify_trial_ending: {
+        Args: never
+        Returns: {
+          email: string
+          kind: string
+          user_id: string
+        }[]
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
