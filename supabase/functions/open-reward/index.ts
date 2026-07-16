@@ -204,6 +204,7 @@ serve(async (req) => {
 
     log("premio granted", { userId: user.id, prizeId, openingId: opening.id });
     return json({
+      reward_type: "premio",
       opening_id: opening.id,
       expires_at: opening.expires_at,
       prize,
