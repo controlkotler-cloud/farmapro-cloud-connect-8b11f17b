@@ -350,8 +350,8 @@ export default function Rebotica() {
               Dentro, <em className="italic text-[#7BB121]">siempre</em> hay premio.
             </h1>
             <p className="mt-5 max-w-[34em] text-[19px] leading-relaxed text-[#5c6660]">
-              La Rebotica es el programa de recompensas de farmapro para la gente de la farmacia: eliges tu cajón,
-              lo abres y te llevas formación, herramientas o regalos de verdad. Nunca descuentos. Nunca humo.
+              La Rebotica es el programa de recompensas de farmapro para la farmacia: eliges tu cajón,
+              lo abres y te llevas masterclass exclusivas, herramientas o regalos de verdad. Nunca descuentos. Nunca humo.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3.5">
               <button type="button" onClick={() => scrollToId('cajonera')} className={BTN_LIME}>
@@ -486,15 +486,11 @@ export default function Rebotica() {
                 {...reveal}
                 className="relative overflow-hidden rounded-[18px] border border-[#e7e9e4] bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_16px_34px_rgba(11,15,11,.09)]"
               >
-                <span
-                  className={
-                    prize.tone === 'lime'
-                      ? 'absolute right-4 top-4 rounded-full bg-[#EAF5D0] px-2.5 py-1 text-[11px] font-bold tracking-[0.06em] text-[#3c5a10]'
-                      : 'absolute right-4 top-4 rounded-full bg-[#fdf3d7] px-2.5 py-1 text-[11px] font-bold tracking-[0.06em] text-[#8a6d16]'
-                  }
-                >
-                  {prize.rar}
-                </span>
+                {prize.rar === 'sorteo mensual' && (
+                  <span className="absolute right-4 top-4 rounded-full bg-[#fdf3d7] px-2.5 py-1 text-[11px] font-bold tracking-[0.06em] text-[#8a6d16]">
+                    {prize.rar}
+                  </span>
+                )}
                 <div className="font-serif text-[30px] italic text-[#7BB121]">{prize.ico}</div>
                 <h3 className="mb-1.5 mt-2.5 font-serif text-lg font-semibold">{prize.title}</h3>
                 <p className="text-sm text-[#5c6660]">{prize.desc}</p>
