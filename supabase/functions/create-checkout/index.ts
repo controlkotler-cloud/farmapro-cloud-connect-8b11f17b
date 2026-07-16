@@ -55,11 +55,43 @@ serve(async (req) => {
     const user = userData.user;
     log('user', { id: user.id, email: user.email });
 
-    // Recuento real de plazas fundador (view pública).
-    const admin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
+
+    // Reutiliza customer si existe.
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customerId = customers.data[0]?.id;
+
+    const origin = req.headers.get('origin') ?? Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
+
+    // ============================================================
+    // RAMA PACKS DE IMÁGENES (pago único)
+    // ============================================================
+    if (isPack) {
+      const packPriceId = IMAGE_PACK_PRICES[pack!];
+      if (packPriceId.startsWith('TODO_')) {
+        return json({ error: `Stripe Price ID no configurado (${packPriceId})` }, 500);
+      }
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{ price: packPriceId, quantity: 1 }],
+        mode: 'payment',
+        allow_promotion_codes: true,
+        success_url: `${origin}/asistente-creativo?pack=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url:  `${origin}/asistente-creativo?pack=cancelled`,
+        metadata: {
+          origen: 'portal',
+          user_id: user.id,
+          pack_credits: String(pack),
+        },
+      });
+      log('pack session created', { id: session.id, pack });
+      return json({ url: session.url, pack });
+    }
+
+    // ============================================================
+    // RAMA SUSCRIPCIÓN (Plus / Equipo)
+    // ============================================================
     const { data: fc } = await admin.from('founder_count').select('spots_taken').maybeSingle();
     const spotsTaken = (fc?.spots_taken ?? 0) as number;
     const founderSpotsLeft = Math.max(0, FOUNDER_TOTAL - spotsTaken);
@@ -71,16 +103,8 @@ serve(async (req) => {
       return json({ error: (e as Error).message }, 400);
     }
     if (priceId.startsWith('TODO_')) {
-      return json({ error: `Stripe Price ID no configurado (${priceId}). Rellena supabase/functions/_shared/stripePrices.ts` }, 500);
+      return json({ error: `Stripe Price ID no configurado (${priceId}).` }, 500);
     }
-
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
-
-    // Reutiliza customer si existe.
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    const customerId = customers.data[0]?.id;
-
-    const origin = req.headers.get('origin') ?? Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
