@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { MessageCircle, X, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePortalChat } from '@/hooks/usePortalChat';
 import { cn } from '@/lib/utils';
+
 
 export const PortalChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
