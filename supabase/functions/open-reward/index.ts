@@ -1,17 +1,16 @@
 // =====================================================================
-// open-reward: abre el cajón de la campaña activa para el usuario.
+// open-reward: abre el cajón de la Rebotica para el usuario autenticado.
 //
-// - Titular de un equipo (o cuenta sin equipo, individual): sorteo real de
-//   rebotica_prizes vía rebotica_pick_and_consume_prize (ponderado, con
-//   stock, respeta el tier).
-// - Miembro de un equipo que NO es el titular: sin premio directo — genera
-//   1 participación por sorteo activo (El Baúl mensual, El Gordo trimestral)
-//   para la farmacia (team_subscription_id), no para el usuario individual.
-//   Decisión de producto 16-07-2026: el cajón con premio es 1 por farmacia.
-//
-// Idempotente: rebotica_openings tiene UNIQUE(user_id, campaign_id) — si ya
-// abrió, devuelve lo que ya ganó en vez de volver a sortear.
-// verify_jwt = true (default): requiere sesión, la lee del Authorization.
+// - Body: { campaign_id: uuid, cajon: number, source?: 'welcome'|'quincena'|
+//   'aniversario'|'equipo'|'reto' } (source default 'welcome').
+// - Sin JWT -> 401 { redirect: '/login?modo=registro&c=<campaign_id>&cajon=<n>' }.
+// - Valida campaña activa y en rango de fechas.
+// - Idempotente: UNIQUE(user_id, campaign_id). Si ya abrió, devuelve el premio.
+// - Sorteo ponderado por peso entre premios con stock_restante>0 y tier
+//   ('todos' o el del usuario). Solo peso>0 (los peso=0 los reserva el cron
+//   de calendario). Decremento ATÓMICO vía RPC rebotica_pick_and_consume_prize.
+// - No dispara email aquí (el email "premio-ganado" lo envía redeem-reward
+//   al confirmarse el canje).
 // =====================================================================
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -22,175 +21,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const VALID_SOURCES = ["welcome", "quincena", "aniversario", "equipo", "reto"] as const;
+type Source = typeof VALID_SOURCES[number];
+
 const log = (step: string, details?: unknown) => {
   console.log(`[open-reward] ${step}${details ? " - " + JSON.stringify(details) : ""}`);
 };
-
-const DEFAULT_EXPIRES_DAYS = 7;
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-  );
-
-  try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-    if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
-    const user = userData.user;
-    log("user", { id: user.id });
-
-    // Campaña activa (asume 1 activa a la vez; si hay varias, la más reciente).
-    const { data: campaign, error: campErr } = await supabase
-      .from("rebotica_campaigns")
-      .select("id")
-      .eq("estado", "activa")
-      .order("quincena_inicio", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (campErr) throw campErr;
-    if (!campaign) return json({ error: "No hay ninguna campaña activa ahora mismo" }, 404);
-
-    // Idempotencia: ¿ya abrió esta campaña?
-    const { data: existing } = await supabase
-      .from("rebotica_openings")
-      .select("id, reward_type, prize_id")
-      .eq("user_id", user.id)
-      .eq("campaign_id", campaign.id)
-      .maybeSingle();
-    if (existing) {
-      log("already opened", { openingId: existing.id });
-      if (existing.reward_type === "premio" && existing.prize_id) {
-        const { data: prize } = await supabase
-          .from("rebotica_prizes")
-          .select("titulo, descripcion, tipo, valor_percibido_eur")
-          .eq("id", existing.prize_id)
-          .maybeSingle();
-        return json({ already: true, reward_type: "premio", prize });
-      }
-      return json({
-        already: true,
-        reward_type: "participacion",
-        message: "Ya has abierto tu cajón de esta quincena: le diste una participación más a tu farmacia.",
-      });
-    }
-
-    // Rol de equipo: ¿titular, miembro, o sin equipo?
-    const { data: ownedTeam } = await supabase
-      .from("team_subscriptions")
-      .select("id")
-      .eq("owner_id", user.id)
-      .eq("status", "active")
-      .maybeSingle();
-
-    let teamSubscriptionId: string | null = ownedTeam?.id ?? null;
-    let isMemberNotOwner = false;
-
-    if (!ownedTeam) {
-      const { data: memberRow } = await supabase
-        .from("team_members")
-        .select("team_id")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .maybeSingle();
-      if (memberRow) {
-        teamSubscriptionId = memberRow.team_id;
-        isMemberNotOwner = true;
-      }
-    }
-    log("team role", { teamSubscriptionId, isMemberNotOwner });
-
-    if (isMemberNotOwner) {
-      const { data: opening, error: openErr } = await supabase
-        .from("rebotica_openings")
-        .insert({
-          user_id: user.id,
-          campaign_id: campaign.id,
-          prize_id: null,
-          reward_type: "participacion",
-          team_subscription_id: teamSubscriptionId,
-          expires_at: new Date(Date.now() + DEFAULT_EXPIRES_DAYS * 86_400_000).toISOString(),
-          source: "equipo",
-        })
-        .select("id")
-        .single();
-      if (openErr) throw openErr;
-
-      const now = new Date();
-      const periodoBaul = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-      const periodoGordo = `${now.getUTCFullYear()}-Q${Math.floor(now.getUTCMonth() / 3) + 1}`;
-
-      const { error: partErr } = await supabase.from("rebotica_participaciones").insert([
-        {
-          team_subscription_id: teamSubscriptionId,
-          user_id: user.id,
-          opening_id: opening.id,
-          sorteo_tipo: "baul",
-          periodo: periodoBaul,
-        },
-        {
-          team_subscription_id: teamSubscriptionId,
-          user_id: user.id,
-          opening_id: opening.id,
-          sorteo_tipo: "gordo",
-          periodo: periodoGordo,
-        },
-      ]);
-      if (partErr) log("participaciones insert error (opening ya se guardó)", { err: partErr.message });
-
-      log("participacion granted", { userId: user.id, teamSubscriptionId });
-      return json({
-        reward_type: "participacion",
-        message: "Le has dado a tu farmacia 1 participación más para El Baúl y El Gordo de esta temporada.",
-      });
-    }
-
-    // Titular de equipo, o cuenta individual: sorteo real de premio.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("subscription_role")
-      .eq("id", user.id)
-      .maybeSingle();
-    const tier = teamSubscriptionId ? "equipo" : profile?.subscription_role === "freemium" ? "gratis" : "plus";
-
-    const { data: prizeId, error: pickErr } = await supabase.rpc("rebotica_pick_and_consume_prize", {
-      p_campaign_id: campaign.id,
-      p_tier: tier,
-    });
-    if (pickErr) throw pickErr;
-    if (!prizeId) return json({ error: "Sin stock de premios disponible ahora mismo, inténtalo más tarde" }, 409);
-
-    const { data: prize, error: prizeErr } = await supabase
-      .from("rebotica_prizes")
-      .select("titulo, descripcion, tipo, valor_percibido_eur, caducidad_dias")
-      .eq("id", prizeId)
-      .single();
-    if (prizeErr) throw prizeErr;
-
-    const { error: openErr2 } = await supabase.from("rebotica_openings").insert({
-      user_id: user.id,
-      campaign_id: campaign.id,
-      prize_id: prizeId,
-      reward_type: "premio",
-      team_subscription_id: teamSubscriptionId,
-      expires_at: new Date(Date.now() + (prize.caducidad_dias ?? DEFAULT_EXPIRES_DAYS) * 86_400_000).toISOString(),
-      source: teamSubscriptionId ? "equipo" : "quincena",
-    });
-    if (openErr2) throw openErr2;
-
-    log("premio granted", { userId: user.id, prizeId });
-    return json({ reward_type: "premio", prize });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    log("ERROR", { msg });
-    return json({ error: msg }, 500);
-  }
-});
 
 function json(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -198,3 +34,169 @@ function json(payload: unknown, status = 200) {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } },
+  );
+
+  let body: { campaign_id?: string; cajon?: number; source?: Source };
+  try {
+    body = await req.json();
+  } catch {
+    return json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const campaignId = String(body.campaign_id ?? "").trim();
+  const cajon = Number(body.cajon);
+  const source: Source = (VALID_SOURCES as readonly string[]).includes(body.source ?? "")
+    ? (body.source as Source)
+    : "welcome";
+
+  if (!campaignId || !/^[0-9a-f-]{36}$/i.test(campaignId)) {
+    return json({ error: "campaign_id inválido" }, 400);
+  }
+  if (!Number.isInteger(cajon) || cajon < 1 || cajon > 30) {
+    return json({ error: "cajon inválido" }, 400);
+  }
+
+  // ---- Auth ----------------------------------------------------------------
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return json({
+      error: "Unauthorized",
+      redirect: `/login?modo=registro&c=${encodeURIComponent(campaignId)}&cajon=${cajon}`,
+    }, 401);
+  }
+  const token = authHeader.replace("Bearer ", "");
+  const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userData.user) {
+    return json({
+      error: "Unauthorized",
+      redirect: `/login?modo=registro&c=${encodeURIComponent(campaignId)}&cajon=${cajon}`,
+    }, 401);
+  }
+  const user = userData.user;
+  log("user", { id: user.id, campaignId, cajon, source });
+
+  try {
+    // ---- Campaña activa y en rango ----------------------------------------
+    const { data: campaign } = await supabase
+      .from("rebotica_campaigns")
+      .select("id, estado, quincena_inicio, quincena_fin")
+      .eq("id", campaignId)
+      .maybeSingle();
+
+    if (!campaign) return json({ error: "Campaña no encontrada" }, 404);
+    if (campaign.estado !== "activa") {
+      return json({ error: "La campaña no está activa" }, 409);
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    if (campaign.quincena_inicio > today || campaign.quincena_fin < today) {
+      return json({ error: "La campaña no está en su ventana de apertura" }, 409);
+    }
+
+    // ---- Idempotencia ------------------------------------------------------
+    const { data: existing } = await supabase
+      .from("rebotica_openings")
+      .select("id, prize_id, opened_at, expires_at, redeemed_at")
+      .eq("user_id", user.id)
+      .eq("campaign_id", campaign.id)
+      .maybeSingle();
+
+    if (existing) {
+      const { data: prize } = await supabase
+        .from("rebotica_prizes")
+        .select("id, titulo, descripcion, tipo, valor_percibido_eur, partner_id")
+        .eq("id", existing.prize_id)
+        .maybeSingle();
+      return json({
+        already: true,
+        opening_id: existing.id,
+        expires_at: existing.expires_at,
+        redeemed_at: existing.redeemed_at,
+        prize,
+      });
+    }
+
+    // ---- Tier del usuario --------------------------------------------------
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("subscription_role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const { data: memberRow } = await supabase
+      .from("team_members")
+      .select("team_id")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    const role = profile?.subscription_role ?? "freemium";
+    const tier: "gratis" | "plus" | "equipo" =
+      memberRow || role === "equipo"
+        ? "equipo"
+        : role === "freemium"
+        ? "gratis"
+        : "plus";
+    log("tier", { tier, role, hasTeam: !!memberRow });
+
+    // ---- Sorteo ponderado + decremento atómico (reintentos por carrera) ---
+    let prizeId: string | null = null;
+    for (let attempt = 0; attempt < 5 && !prizeId; attempt++) {
+      const { data, error } = await supabase.rpc("rebotica_pick_and_consume_prize", {
+        p_campaign_id: campaign.id,
+        p_tier: tier,
+      });
+      if (error) {
+        log("rpc error", { attempt, err: error.message });
+        break;
+      }
+      prizeId = (data as string | null) ?? null;
+      if (prizeId) break;
+    }
+    if (!prizeId) {
+      return json({ error: "Sin stock de premios disponible ahora mismo" }, 409);
+    }
+
+    // ---- Insert opening ----------------------------------------------------
+    const { data: prize, error: prizeErr } = await supabase
+      .from("rebotica_prizes")
+      .select("id, titulo, descripcion, tipo, valor_percibido_eur, caducidad_dias, partner_id")
+      .eq("id", prizeId)
+      .single();
+    if (prizeErr) throw prizeErr;
+
+    const caducidadDias = prize.caducidad_dias ?? 7;
+    const expiresAt = new Date(Date.now() + caducidadDias * 86_400_000).toISOString();
+
+    const { data: opening, error: openErr } = await supabase
+      .from("rebotica_openings")
+      .insert({
+        user_id: user.id,
+        campaign_id: campaign.id,
+        prize_id: prizeId,
+        expires_at: expiresAt,
+        source,
+      })
+      .select("id, expires_at")
+      .single();
+    if (openErr) throw openErr;
+
+    log("premio granted", { userId: user.id, prizeId, openingId: opening.id });
+    return json({
+      opening_id: opening.id,
+      expires_at: opening.expires_at,
+      prize,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log("ERROR", { msg });
+    return json({ error: msg }, 500);
+  }
+});
