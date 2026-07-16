@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { MessageCircle, X, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePortalChat } from '@/hooks/usePortalChat';
 import { cn } from '@/lib/utils';
+
 
 export const PortalChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,8 +119,23 @@ export const PortalChatbot = () => {
                           : 'bg-card ring-1 ring-border text-foreground'
                       )}
                     >
-                      {message.content}
+                      {message.role === 'assistant' ? (
+                        <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-strong:text-foreground prose-a:text-ciruela">
+                          <ReactMarkdown
+                            components={{
+                              a: ({ node, ...props }) => (
+                                <a {...props} target="_blank" rel="noopener noreferrer" />
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        message.content
+                      )}
                     </div>
+
                   </div>
                 ))}
                 {isLoading && (

@@ -88,7 +88,10 @@ INSTRUCCIONES:
 - Si no tienes información específica, indícalo claramente
 - Sé conciso y profesional
 - Si el usuario pregunta sobre contenido premium, indica si necesita suscripción
-- Mantén el tono profesional y amigable`;
+- Mantén el tono profesional y amigable
+
+Formato: texto conversacional. Puedes usar negritas y listas sencillas; no uses encabezados (#), tablas ni bloques de código.`;
+
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
