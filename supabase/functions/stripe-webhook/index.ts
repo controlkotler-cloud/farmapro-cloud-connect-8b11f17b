@@ -316,6 +316,9 @@ async function handleInvoicePaid(
   });
 
   log('invoice.paid processed', { invoiceId: invoice.id, subscriptionId, plan, cycle, founder });
+}
+
+
 
 async function handleSubscriptionChange(
   supabase: ReturnType<typeof createClient>,
