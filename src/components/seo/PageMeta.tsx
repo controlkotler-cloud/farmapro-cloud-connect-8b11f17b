@@ -17,7 +17,7 @@ interface RouteMeta {
 // solo vería el shell de login, no aportan nada al índice).
 const PUBLIC_META: Record<string, RouteMeta> = {
   "/rebotica": {
-    title: "La Rebotica - recompensas quincenales para tu farmacia | portal farmapro",
+    title: "La Rebotica: recompensas para tu farmacia | farmapro",
     description:
       "Cada quincena, un cajón con premios para profesionales de farmacia: masterclasses, plantillas y sorteos. Elige tu cajón y ábrelo con tu cuenta del portal farmapro.",
   },
