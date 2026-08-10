@@ -41,6 +41,7 @@ export default function Invitation() {
       <div className="min-h-screen flex items-center justify-center p-6">
         <Card className="p-8 max-w-md text-center space-y-3">
           <XCircle className="w-10 h-10 mx-auto text-destructive" />
+          <h1 className="text-lg font-extrabold tracking-tight text-foreground">Invitación no válida</h1>
           <p>Token de invitación no válido.</p>
         </Card>
       </div>
@@ -78,6 +79,7 @@ export default function Invitation() {
         {state === 'idle' ? (
           <>
             <Users className="w-10 h-10 mx-auto text-brand-dark" />
+            <h1 className="text-xl font-extrabold tracking-tight text-foreground">Invitación de equipo</h1>
             <p className="text-left text-sm text-muted-foreground">
               Al unirte a este equipo, su titular verá tu progreso formativo (cursos y evaluaciones) y
               tu última actividad en el portal. Tu actividad en la comunidad, IAFarma y la Rebotica es

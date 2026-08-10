@@ -39,6 +39,7 @@ import AdminRetos from "@/pages/admin/AdminRetos";
 import AdminConfiguracion from "@/pages/admin/AdminConfiguracion";
 import Invitation from "@/pages/Invitation";
 import { ResetPassword } from "@/pages/ResetPassword";
+import { PageMeta } from "@/components/seo/PageMeta";
 
 
 export const AppRoutes = () => {
@@ -70,6 +71,8 @@ export const AppRoutes = () => {
   const shouldRedirectToPrecios = validationMode === 'active' && accessState === 'free_locked';
 
   return (
+    <>
+    <PageMeta />
     <Routes>
       {/* Public pricing page */}
       <Route path="/precios" element={<Precios />} />
@@ -247,5 +250,6 @@ export const AppRoutes = () => {
       
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   );
 };
