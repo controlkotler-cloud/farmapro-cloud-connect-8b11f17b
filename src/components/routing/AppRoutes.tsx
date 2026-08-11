@@ -18,6 +18,18 @@ import Promociones from "@/pages/Promociones";
 
 import Precios from "@/pages/Precios";
 import Rebotica from "@/pages/Rebotica";
+import OAuthConsent from "@/pages/OAuthConsent";
+
+/**
+ * Destino post-login preservado en ?next= (lo usa el consentimiento OAuth de MCP).
+ * Solo se aceptan rutas relativas del mismo origen.
+ */
+const safeNext = (): string | null => {
+  const raw = new URLSearchParams(window.location.search).get("next");
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+};
 import ReboticaBasesLegales from "@/pages/ReboticaBasesLegales";
 import { AvisoLegal, PoliticaPrivacidad, PoliticaCookies, ContactoSoporte } from "@/pages/Legal";
 import Perfil from "@/pages/Perfil";
@@ -78,6 +90,8 @@ export const AppRoutes = () => {
       <Route path="/precios" element={<Precios />} />
       {/* La Rebotica: página pública (elegir cajón sin cuenta; abrir exige registro) */}
       <Route path="/rebotica" element={<Rebotica />} />
+      {/* Consentimiento OAuth para clientes MCP (Claude, ChatGPT, Lovable...) */}
+      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
       <Route path="/rebotica/bases-legales" element={<ReboticaBasesLegales />} />
       {/* Páginas legales: públicas, sin sidebar (mismo patrón que /rebotica/bases-legales) */}
       <Route path="/aviso-legal" element={<AvisoLegal />} />
@@ -111,7 +125,7 @@ export const AppRoutes = () => {
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
       <Route 
         path="/login" 
-        element={user ? <Navigate to="/dashboard" replace /> : <LoginForm />} 
+        element={user ? <Navigate to={safeNext() ?? "/dashboard"} replace /> : <LoginForm />} 
       />
       
       {/* Protected Routes */}
