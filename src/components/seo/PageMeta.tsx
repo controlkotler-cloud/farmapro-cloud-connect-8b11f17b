@@ -19,7 +19,7 @@ const PUBLIC_META: Record<string, RouteMeta> = {
   "/rebotica": {
     title: "La Rebotica: recompensas para tu farmacia | farmapro",
     description:
-      "Cada quincena, un cajón con premios para profesionales de farmacia: masterclasses, plantillas y sorteos. Elige tu cajón y ábrelo con tu cuenta del portal farmapro.",
+      "Cada quincena, un cajón con premios para profesionales de farmacia: masterclasses, plantillas y sorteos. Elige tu cajón con tu cuenta del portal farmapro.",
   },
   "/rebotica/bases-legales": {
     title: "Bases legales de La Rebotica | portal farmapro",
