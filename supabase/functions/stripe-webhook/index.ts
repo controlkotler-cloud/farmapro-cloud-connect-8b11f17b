@@ -95,13 +95,22 @@ serve(async (req) => {
         log('unhandled event type', { type: event.type });
     }
 
+    // Confirmamos el procesamiento correcto del evento.
+    await supabase.from('stripe_events')
+      .update({ completed_at: new Date().toISOString(), last_error: null })
+      .eq('id', event.id);
+
     return json({ received: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     log('ERROR', { msg });
-    // Devolvemos 200 para no reintentar en bucle en errores lógicos; el error ya queda logueado.
-    return json({ received: true, error: msg });
+    // Dejamos completed_at a null y guardamos el error: devolvemos 500 para que Stripe reintente.
+    await supabase.from('stripe_events')
+      .update({ last_error: msg })
+      .eq('id', event.id);
+    return json({ received: false, error: msg }, 500);
   }
+
 });
 
 // -------------------------------------------------------------------
