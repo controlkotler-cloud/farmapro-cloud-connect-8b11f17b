@@ -26,6 +26,10 @@ const corsHeaders = {
 const FROM_EMAIL = 'somos@farmapro.es';
 const FROM_NAME = 'Equipo farmapro';
 
+// Mailrelay está calentando el remitente: ~500 envíos/día sin ráfagas.
+// Subir este tope cuando termine el periodo de calentamiento.
+const DAILY_CAP = 450;
+
 const VALID_TEMPLATES: PortalTemplateName[] = [
   'bienvenida',
   'fin-prueba',
