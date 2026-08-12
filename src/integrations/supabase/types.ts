@@ -1717,6 +1717,7 @@ export type Database = {
           cif: string | null
           created_at: string
           email: string | null
+          employees_count: string | null
           full_name: string | null
           has_completed_onboarding: boolean
           id: string
@@ -1731,6 +1732,7 @@ export type Database = {
           points: number
           position: string | null
           role: Database["public"]["Enums"]["user_role"]
+          specialty_areas: string[] | null
           streak_days: number
           stripe_customer_id: string | null
           student_document_url: string | null
@@ -1754,6 +1756,7 @@ export type Database = {
           cif?: string | null
           created_at?: string
           email?: string | null
+          employees_count?: string | null
           full_name?: string | null
           has_completed_onboarding?: boolean
           id: string
@@ -1768,6 +1771,7 @@ export type Database = {
           points?: number
           position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          specialty_areas?: string[] | null
           streak_days?: number
           stripe_customer_id?: string | null
           student_document_url?: string | null
@@ -1791,6 +1795,7 @@ export type Database = {
           cif?: string | null
           created_at?: string
           email?: string | null
+          employees_count?: string | null
           full_name?: string | null
           has_completed_onboarding?: boolean
           id?: string
@@ -1805,6 +1810,7 @@ export type Database = {
           points?: number
           position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          specialty_areas?: string[] | null
           streak_days?: number
           stripe_customer_id?: string | null
           student_document_url?: string | null
