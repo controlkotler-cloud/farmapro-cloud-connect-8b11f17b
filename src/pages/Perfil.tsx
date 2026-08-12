@@ -21,7 +21,19 @@ export default function Perfil() {
   const { profile, user, isAdmin, reloadProfile } = useAuth();
   const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
   const isMobile = useIsMobile();
-  const [selectedTab, setSelectedTab] = useState('personal');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const VALID_TABS = ['personal', 'plan', 'badges', 'billing', 'security', 'notifications'];
+  const tabFromUrl = searchParams.get('tab') ?? '';
+  const [selectedTab, setSelectedTab] = useState(
+    VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'personal',
+  );
+
+  const handleTabChange = (value: string) => {
+    setSelectedTab(value);
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', value);
+    setSearchParams(next, { replace: true });
+  };
 
   // Scroll to top when component mounts
   useEffect(() => {
