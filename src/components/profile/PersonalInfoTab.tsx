@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { EMPLOYEES_COUNT_OPTIONS, SPECIALTY_OPTIONS } from '@/lib/pharmacyProfile';
+import { useAuth } from '@/hooks/useAuth';
+
 
 interface PersonalInfoTabProps {
   profile: any;
@@ -16,6 +18,7 @@ interface PersonalInfoTabProps {
 }
 
 export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
+  const { reloadProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
@@ -26,6 +29,18 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
     pharmacy_city: profile?.pharmacy_city || '',
   });
   const [specialtyAreas, setSpecialtyAreas] = useState<string[]>(profile?.specialty_areas || []);
+
+  useEffect(() => {
+    setFormData({
+      full_name: profile?.full_name || '',
+      email: profile?.email || user?.email || '',
+      pharmacy_name: profile?.pharmacy_name || '',
+      position: profile?.position || '',
+      employees_count: profile?.employees_count || '',
+      pharmacy_city: profile?.pharmacy_city || '',
+    });
+    setSpecialtyAreas(profile?.specialty_areas || []);
+  }, [profile]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -53,6 +68,7 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
 
       if (error) throw error;
 
+      await reloadProfile();
       toast.success('Perfil actualizado correctamente');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -61,6 +77,7 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
       setLoading(false);
     }
   };
+
 
   return (
     <Card>
