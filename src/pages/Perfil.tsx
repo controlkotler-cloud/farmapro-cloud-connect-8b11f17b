@@ -81,10 +81,10 @@ export default function Perfil() {
           </div>
         </div>
 
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4 md:space-y-6">
+        <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-4 md:space-y-6">
           {isMobile ? (
             <div className="w-full">
-              <Select value={selectedTab} onValueChange={setSelectedTab}>
+              <Select value={selectedTab} onValueChange={handleTabChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue>
                     {(() => {
