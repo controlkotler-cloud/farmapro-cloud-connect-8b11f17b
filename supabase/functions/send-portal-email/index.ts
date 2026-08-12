@@ -90,6 +90,42 @@ serve(async (req) => {
     return json({ error: 'MAILRELAY secrets not configured' }, 500);
   }
 
+  const toLower = to.toLowerCase();
+
+  // A1. Lista de supresión: nunca enviamos a direcciones suprimidas.
+  const { data: suppressed } = await supabase
+    .from('suppressed_emails')
+    .select('reason')
+    .eq('email', toLower)
+    .maybeSingle();
+
+  if (suppressed) {
+    log('suppressed recipient', { to: toLower, reason: suppressed.reason });
+    await logResult(supabase, {
+      template, recipient: to, subject: null, status: 'error',
+      mailrelayId: null, error: `suppressed: ${suppressed.reason ?? 'unknown'}`, attempts: 0, meta,
+    });
+    return json({ ok: false, suppressed: true }, 200);
+  }
+
+  // A4. Tope diario de calentamiento del remitente.
+  const startOfDay = new Date();
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const { count: sentToday } = await supabase
+    .from('portal_email_log')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'ok')
+    .gte('created_at', startOfDay.toISOString());
+
+  if ((sentToday ?? 0) >= DAILY_CAP) {
+    log('daily cap reached', { sentToday });
+    await logResult(supabase, {
+      template, recipient: to, subject: null, status: 'error',
+      mailrelayId: null, error: 'daily_cap_reached', attempts: 0, meta,
+    });
+    return json({ ok: false, deferred: true }, 200);
+  }
+
   const rendered = renderPortalTemplate(template, data ?? {});
 
   const payload = {
