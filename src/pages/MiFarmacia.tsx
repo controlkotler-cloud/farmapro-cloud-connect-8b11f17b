@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,7 +77,33 @@ export default function MiFarmacia() {
   }
 
   if (!isTeamOwner || !teamSubscription) {
-    return <Navigate to="/dashboard" replace />;
+    return (
+      <div className="p-4 md:p-6">
+        <div className="mx-auto max-w-4xl">
+          <Card className="p-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-soft">
+              <Store className="h-6 w-6 text-brand-dark" />
+            </div>
+            <h2 className="mb-2 text-xl font-extrabold tracking-tight text-foreground">
+              Esta sección es para titulares del plan Equipo
+            </h2>
+            <p className="mx-auto mb-6 max-w-lg text-sm text-muted-foreground">
+              Aquí gestionas las plazas de tu farmacia: invitas a tu equipo, ves quién ha entrado y
+              sigues su progreso. Si acabas de contratar el plan Equipo y no ves tus plazas, recarga
+              la página.
+            </p>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button asChild className="rounded-full">
+                <Link to="/precios">Ver el plan Equipo</Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-full">
+                <Link to="/dashboard">Volver al inicio</Link>
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   const stats = getTeamStats();
