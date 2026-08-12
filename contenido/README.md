@@ -49,6 +49,16 @@ Castellano de España (vosotros), farmapro en minúsculas, sin emojis, sin raya 
 - Validación editorial de Laura Domínguez sobre el tono y las citas de las 8 piezas.
 - Decidir si la píldora 1 (onboarding) necesita algún ajuste de UI específico para el flujo "completar perfil + primera píldora = primer cajón".
 
+## Reglas para el SQL de carga de quizzes (obligatorias desde 13-07-2026)
+
+Aprendidas del fix `20260713100000_fix_quiz_contenido_sesgo_y_tests.sql` (la tanda 1 se cargó con la correcta casi siempre en 2ª posición y con order_index duplicados):
+
+1. **Posición de la correcta repartida**: al generar el INSERT de `quiz_question_options`, la opción correcta NO puede caer sistemáticamente en la misma posición. Repartir a mano o barajar por SQL tras la carga (`row_number() OVER (PARTITION BY question_id ORDER BY random())`).
+2. **`order_index` únicos** en `quiz_questions` por quiz (0..n-1, sin repetidos) y en `quiz_question_options` por pregunta.
+3. **Un solo quiz activo por curso** (el frontend usa `maybeSingle()`: dos activos = curso sin evaluación). Verificar tras cargar: `SELECT course_id, count(*) FROM course_quizzes WHERE is_active GROUP BY 1 HAVING count(*)>1;`
+4. Nada de formato legacy: las opciones SIEMPRE en `quiz_question_options` con `is_correct` (no en el jsonb `options` de la pregunta).
+5. Pendiente: trasladar estas reglas a la skill `rebotica-contenido` en su próxima revisión.
+
 ## Decisión is_premium (Francesc, 10-07-2026)
 - Píldora 01 (Farmacia Silenciosa, onboarding): `is_premium = false`. Es la que activa el primer cajón: un usuario Gratis debe poder completarla.
 - Las otras 7 píldoras de la tanda 1: `is_premium = true`.

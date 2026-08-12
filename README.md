@@ -7,7 +7,7 @@ Portal de formación, recursos, comunidad y empleo para profesionales de farmaci
 - **Frontend:** React 18 + Vite + TypeScript + Tailwind + shadcn/ui
 - **Backend:** Supabase (Postgres + RLS + Edge Functions en Deno)
 - **Pagos:** Stripe (planes individuales y de equipo)
-- **CRM/Email:** Clientify (vía edge function `clientify-sync`)
+- **CRM:** Clientify (vía edge function `clientify-sync`, solo CRM) · **Email:** Mailrelay (masivo + transaccional del portal; la edge `send-portal-email` llega con el prompt Lovable nº 1 — la invitación de equipo ya sale por Mailrelay)
 - **Build/Deploy:** Lovable (auto-commit al repo conectado)
 
 ## Desarrollo
@@ -48,4 +48,4 @@ en Supabase, nunca en el frontend.
 - La autorización vive en **RLS** (servidor); el rol de admin se determina en `user_roles`
   vía `is_current_user_admin()`. Los checks de cliente son solo UX.
 - El plan de suscripción es `profiles.subscription_role` (la columna `role` está obsoleta).
-- Ver `auditoria-portal-2026-06-17.md` (carpeta raíz de farmapro) para el estado de hallazgos.
+- Ver `docs/auditoria-portal-2026-06-17.md` para el estado de hallazgos.

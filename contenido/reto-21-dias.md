@@ -195,13 +195,13 @@ Conecta con: N08 + N21 (cierre del reto completo).
 
 Al completar el día 21 se desbloquea un cajón especial de la Rebotica (mismo mecanismo de sorteo ponderado con stock real que cualquier otro cajón, `source = 'reto'` en `rebotica_openings`), más un diploma descargable.
 
-**Cajón del Reto**: quien completa el reto es un suscriptor de pago (el reto vive dentro del portal; un plan Gratis no puede realizarlo), así que el pool NO es el del Cajón de Bienvenida: nada de pases Plus 72h ni meses de Plus (regla de premios v2: a quien paga no se le regala suscripción de su propio nivel). Pool del Cajón del Reto, tomado del catálogo T1 v3 para planes de pago: créditos/imágenes IAFarma (incl. dobles), masterclass del vault, plantilla "solo cajón", recurso premium desbloqueado, "tu duda respondida en la newsletter" y tier-up (Plus puede ganar 1 mes de Equipo; Equipo recibe el resto del pool). Caducidad estándar 7-14 días. Si algún día se abre una versión del reto al plan Gratis, esa variante sí usaría el pool de Bienvenida.
+**Cajón del Reto**: quien completa el reto es un suscriptor de pago (el reto vive dentro del portal; un plan Gratis no puede realizarlo), así que el pool NO es el del Cajón de Bienvenida: nada de pases Plus 72h ni meses de Plus (regla de premios v2: a quien paga no se le regala suscripción de su propio nivel). Pool del Cajón del Reto, tomado del catálogo T1 v4 (13-07) para planes de pago: créditos/imágenes IAFarma (incl. dobles), masterclass del vault, plantilla "solo cajón", recurso premium desbloqueado, "tu duda respondida en la newsletter" y tier-up (Plus puede ganar 1 mes de Equipo; Equipo recibe el resto del pool). Caducidad estándar 7-14 días. Si algún día se abre una versión del reto al plan Gratis, esa variante sí usaría el pool de Bienvenida.
 
 **Diploma "Farmacia en Marcha Digital"**: PDF descargable/imprimible de marca farmapro, con el nombre de la farmacia, la fecha de finalización y una frase de cierre (propuesta, a validar):
 
 > "[Nombre de la farmacia] ha completado el Reto de 21 días de la Rebotica: 21 acciones concretas para hacer que la farmacia se vea, se organice mejor y retenga a quien ya confía en ella."
 
-Sin promesas sanitarias, sin cifras de resultado inventadas. Pensado para poder colgarse en la rebotica real, igual que la placa de los ganadores del Gordo (mismo espíritu de "objeto-foto" que ya funciona en el resto del proyecto).
+Sin promesas sanitarias, sin cifras de resultado inventadas. Pensado para poder colgarse en la rebotica real (el espíritu de "objeto-foto" que ya funciona en el resto del proyecto).
 
 ---
 
@@ -209,5 +209,5 @@ Sin promesas sanitarias, sin cifras de resultado inventadas. Pensado para poder 
 
 - El motor de retos ya existe (`update_challenge_progress`, badges en `useBadges.ts`): esto se carga por SQL/config, no se desarrolla desde cero. Definir si las 3 semanas son 3 sub-hitos de un mismo reto o 3 retos encadenados: decisión de diseño de quien lo cargue (skill `rebotica-tecnica`).
 - **Flag bloqueante para el premio final**: el esquema actual de `rebotica_openings.source` (migración `20260709120000_rebotica_schema_tanda1.sql`) solo admite `welcome/quincena/aniversario/equipo` como CHECK. Falta añadir `reto` como origen válido antes de poder registrar la apertura del Cajón del Reto. Es una migración menor (ALTER del CHECK), pero hay que hacerla antes de que el reto llegue a producción.
-- El diploma es un PDF estático generado con los datos de la farmacia (nombre + fecha): puede resolverse con una plantilla simple (igual que la placa grabada del Gordo, pero digital), no requiere diseño complejo para el lanzamiento.
+- El diploma es un PDF estático generado con los datos de la farmacia (nombre + fecha): puede resolverse con una plantilla simple, no requiere diseño complejo para el lanzamiento.
 - Las píldoras de tanda 1 (N01, N06, N05, N04, N03, N17, N08, N21) siguen pendientes de redactarse como fichero individual en `farmapro-portal/contenido/`: este documento da el hilo narrativo, no sustituye la píldora.
