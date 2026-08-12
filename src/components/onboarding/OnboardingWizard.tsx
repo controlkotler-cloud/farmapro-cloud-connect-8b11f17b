@@ -3,8 +3,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, Users, Download, Sparkles, User, Trophy, Pill, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { EMPLOYEES_COUNT_OPTIONS, SPECIALTY_OPTIONS } from '@/lib/pharmacyProfile';
 
 interface OnboardingStep {
   title: string;
@@ -73,11 +78,23 @@ export const OnboardingWizard = ({ onComplete }: { onComplete: () => void }) => 
   const [currentStep, setCurrentStep] = useState(0);
   const { user } = useAuth();
 
+  // Fase 1 del perfil de farmacia (12-08-2026): se piden aquí, en el momento
+  // de mayor disposición a rellenarlos, aunque la recomendación real con
+  // ellos llegue en fase 2. Todos opcionales — "Saltar" no los exige.
+  const [employeesCount, setEmployeesCount] = useState('');
+  const [specialtyAreas, setSpecialtyAreas] = useState<string[]>([]);
+  const [city, setCity] = useState('');
+
   const markCompleted = async () => {
     if (user) {
       await supabase
         .from('profiles')
-        .update({ has_completed_onboarding: true } as any)
+        .update({
+          has_completed_onboarding: true,
+          ...(employeesCount ? { employees_count: employeesCount } : {}),
+          ...(specialtyAreas.length > 0 ? { specialty_areas: specialtyAreas } : {}),
+          ...(city.trim() ? { pharmacy_city: city.trim() } : {}),
+        } as any)
         .eq('id', user.id);
     }
     onComplete();
@@ -146,6 +163,63 @@ export const OnboardingWizard = ({ onComplete }: { onComplete: () => void }) => 
           {step.highlight && (
             <div className="bg-background/70 border border-border rounded-lg px-4 py-3 mb-6 text-sm font-medium text-foreground">
               {step.highlight}
+            </div>
+          )}
+
+          {/* Perfil de farmacia (solo en el último paso): 3 campos opcionales,
+              base de la personalización que llegará en fase 2. */}
+          {currentStep === steps.length - 1 && (
+            <div className="w-full max-w-sm space-y-4 text-left mb-6">
+              <div className="space-y-1.5">
+                <Label htmlFor="onboarding-employees" className="text-xs font-semibold text-muted-foreground">
+                  Tamaño de tu equipo
+                </Label>
+                <Select value={employeesCount} onValueChange={setEmployeesCount}>
+                  <SelectTrigger id="onboarding-employees" className="bg-background/70">
+                    <SelectValue placeholder="Selecciona..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EMPLOYEES_COUNT_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground">Especialidades de tu farmacia</Label>
+                <ToggleGroup
+                  type="multiple"
+                  value={specialtyAreas}
+                  onValueChange={setSpecialtyAreas}
+                  className="flex-wrap justify-start gap-1.5"
+                >
+                  {SPECIALTY_OPTIONS.map((o) => (
+                    <ToggleGroupItem
+                      key={o.value}
+                      value={o.value}
+                      className="h-8 rounded-full border border-border bg-background/70 px-3 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                    >
+                      {o.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="onboarding-city" className="text-xs font-semibold text-muted-foreground">
+                  Ciudad de la farmacia
+                </Label>
+                <Input
+                  id="onboarding-city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Ej. Zaragoza"
+                  className="bg-background/70"
+                />
+              </div>
             </div>
           )}
 
