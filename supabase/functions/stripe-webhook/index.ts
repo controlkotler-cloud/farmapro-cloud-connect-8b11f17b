@@ -50,18 +50,25 @@ serve(async (req) => {
     return new Response(`Webhook Error: ${(err as Error).message}`, { status: 400 });
   }
 
-  // ⛔ IDEMPOTENCIA FIRST: si el insert falla por unique violation, ya lo procesamos.
+  // ⛔ IDEMPOTENCIA EN DOS TIEMPOS: reclamar ahora, confirmar al final.
   const { error: dupErr } = await supabase
     .from('stripe_events')
-    .insert({ id: event.id, type: event.type });
+    .insert({ id: event.id, type: event.type, completed_at: null });
   if (dupErr) {
-    // 23505 = unique_violation → ya procesado.
     if ((dupErr as any).code === '23505') {
-      log('duplicate event ignored', { id: event.id });
-      return json({ received: true, duplicate: true });
+      const { data: existing } = await supabase
+        .from('stripe_events').select('completed_at').eq('id', event.id).maybeSingle();
+      if ((existing as any)?.completed_at) {
+        log('duplicate event already completed, ignoring', { id: event.id });
+        return json({ received: true, duplicate: true });
+      }
+      log('previous attempt incomplete, reprocessing', { id: event.id });
+    } else {
+      log('stripe_events insert error, asking Stripe to retry', { err: dupErr.message });
+      return json({ received: false, error: dupErr.message }, 500);
     }
-    log('stripe_events insert error (continuing)', { err: dupErr.message });
   }
+
 
   try {
     log('processing', { type: event.type, id: event.id });
