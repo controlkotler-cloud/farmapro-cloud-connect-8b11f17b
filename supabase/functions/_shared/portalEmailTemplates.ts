@@ -110,9 +110,13 @@ function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: bool
 </html>`;
 }
 
+function safeHref(href: string): string {
+  return typeof href === 'string' && href.startsWith('https://') ? href : APP_URL;
+}
+
 function ctaButton(href: string, label: string): string {
   return `<p style="margin:24px 0;">
-    <a href="${href}" style="display:inline-block;background:#3a5f16;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;">${escapeHtml(label)}</a>
+    <a href="${escapeHtml(safeHref(href))}" style="display:inline-block;background:#3a5f16;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;">${escapeHtml(label)}</a>
   </p>`;
 }
 
