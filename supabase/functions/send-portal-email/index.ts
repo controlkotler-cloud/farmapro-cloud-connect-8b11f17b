@@ -203,6 +203,17 @@ serve(async (req) => {
     meta,
   });
 
+  // A5. Confirmamos el aviso de fin de prueba solo si el envío ha ido bien.
+  if (ok && (meta as Record<string, unknown> | undefined)?.trigger === 'notify_trial_ending') {
+    const m = meta as Record<string, unknown>;
+    const { error: noticeErr } = await supabase
+      .from('portal_trial_notice_log')
+      .update({ sent_at: new Date().toISOString() })
+      .eq('user_id', String(m.user_id ?? ''))
+      .eq('kind', String(m.kind ?? ''));
+    if (noticeErr) log('trial notice confirm failed', { err: noticeErr.message });
+  }
+
   return json(
     ok
       ? { ok: true, mailrelay_id: mailrelayId, attempts: attempt }
