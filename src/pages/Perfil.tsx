@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,7 +21,19 @@ export default function Perfil() {
   const { profile, user, isAdmin, reloadProfile } = useAuth();
   const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
   const isMobile = useIsMobile();
-  const [selectedTab, setSelectedTab] = useState('personal');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const VALID_TABS = ['personal', 'plan', 'badges', 'billing', 'security', 'notifications'];
+  const tabFromUrl = searchParams.get('tab') ?? '';
+  const [selectedTab, setSelectedTab] = useState(
+    VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'personal',
+  );
+
+  const handleTabChange = (value: string) => {
+    setSelectedTab(value);
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', value);
+    setSearchParams(next, { replace: true });
+  };
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -68,10 +81,10 @@ export default function Perfil() {
           </div>
         </div>
 
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4 md:space-y-6">
+        <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-4 md:space-y-6">
           {isMobile ? (
             <div className="w-full">
-              <Select value={selectedTab} onValueChange={setSelectedTab}>
+              <Select value={selectedTab} onValueChange={handleTabChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue>
                     {(() => {

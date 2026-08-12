@@ -1691,21 +1691,27 @@ export type Database = {
       }
       portal_trial_notice_log: {
         Row: {
+          attempts: number
+          claimed_at: string
           id: string
           kind: string
-          sent_at: string
+          sent_at: string | null
           user_id: string
         }
         Insert: {
+          attempts?: number
+          claimed_at?: string
           id?: string
           kind: string
-          sent_at?: string
+          sent_at?: string | null
           user_id: string
         }
         Update: {
+          attempts?: number
+          claimed_at?: string
           id?: string
           kind?: string
-          sent_at?: string
+          sent_at?: string | null
           user_id?: string
         }
         Relationships: []

@@ -26,6 +26,10 @@ const corsHeaders = {
 const FROM_EMAIL = 'somos@farmapro.es';
 const FROM_NAME = 'Equipo farmapro';
 
+// Mailrelay está calentando el remitente: ~500 envíos/día sin ráfagas.
+// Subir este tope cuando termine el periodo de calentamiento.
+const DAILY_CAP = 450;
+
 const VALID_TEMPLATES: PortalTemplateName[] = [
   'bienvenida',
   'fin-prueba',
@@ -86,6 +90,42 @@ serve(async (req) => {
     return json({ error: 'MAILRELAY secrets not configured' }, 500);
   }
 
+  const toLower = to.toLowerCase();
+
+  // A1. Lista de supresión: nunca enviamos a direcciones suprimidas.
+  const { data: suppressed } = await supabase
+    .from('suppressed_emails')
+    .select('reason')
+    .eq('email', toLower)
+    .maybeSingle();
+
+  if (suppressed) {
+    log('suppressed recipient', { to: toLower, reason: suppressed.reason });
+    await logResult(supabase, {
+      template, recipient: to, subject: null, status: 'error',
+      mailrelayId: null, error: `suppressed: ${suppressed.reason ?? 'unknown'}`, attempts: 0, meta,
+    });
+    return json({ ok: false, suppressed: true }, 200);
+  }
+
+  // A4. Tope diario de calentamiento del remitente.
+  const startOfDay = new Date();
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const { count: sentToday } = await supabase
+    .from('portal_email_log')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'ok')
+    .gte('created_at', startOfDay.toISOString());
+
+  if ((sentToday ?? 0) >= DAILY_CAP) {
+    log('daily cap reached', { sentToday });
+    await logResult(supabase, {
+      template, recipient: to, subject: null, status: 'error',
+      mailrelayId: null, error: 'daily_cap_reached', attempts: 0, meta,
+    });
+    return json({ ok: false, deferred: true }, 200);
+  }
+
   const rendered = renderPortalTemplate(template, data ?? {});
 
   const payload = {
@@ -101,8 +141,11 @@ serve(async (req) => {
   let mailrelayId: string | null = null;
   let ok = false;
 
-  while (attempt < 2 && !ok) {
+  let retryable = true;
+
+  while (attempt < 2 && !ok && retryable) {
     attempt += 1;
+    if (attempt > 1) await new Promise((r) => setTimeout(r, 1000));
     try {
       const res = await fetch(`${mailrelayBase.replace(/\/+$/, '')}/send_emails`, {
         method: 'POST',
@@ -118,6 +161,19 @@ serve(async (req) => {
       if (!res.ok) {
         lastError = `HTTP ${res.status}: ${text.slice(0, 500)}`;
         log('mailrelay non-2xx', { attempt, status: res.status, body: text.slice(0, 300) });
+
+        // A2. Rebote duro: suprimimos la dirección para no volver a golpearla.
+        if (res.status === 422 && /bounced/i.test(text)) {
+          const { error: supErr } = await supabase.from('suppressed_emails').insert({
+            email: toLower,
+            reason: 'hard_bounce',
+            metadata: { template, mailrelay_response: text.slice(0, 300) },
+          });
+          if (supErr) log('suppression insert ignored', { err: supErr.message });
+        }
+
+        // A3. Solo reintentamos ante errores de servidor.
+        retryable = res.status >= 500;
       } else {
         // Mailrelay suele responder { data: { id: ... } } o similar; guardamos lo que venga.
         try {
@@ -131,6 +187,7 @@ serve(async (req) => {
       }
     } catch (err) {
       lastError = (err as Error).message;
+      retryable = true;
       log('mailrelay exception', { attempt, err: lastError });
     }
   }
@@ -145,6 +202,17 @@ serve(async (req) => {
     attempts: attempt,
     meta,
   });
+
+  // A5. Confirmamos el aviso de fin de prueba solo si el envío ha ido bien.
+  if (ok && (meta as Record<string, unknown> | undefined)?.trigger === 'notify_trial_ending') {
+    const m = meta as Record<string, unknown>;
+    const { error: noticeErr } = await supabase
+      .from('portal_trial_notice_log')
+      .update({ sent_at: new Date().toISOString() })
+      .eq('user_id', String(m.user_id ?? ''))
+      .eq('kind', String(m.kind ?? ''));
+    if (noticeErr) log('trial notice confirm failed', { err: noticeErr.message });
+  }
 
   return json(
     ok
