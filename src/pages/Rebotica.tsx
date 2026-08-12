@@ -4,6 +4,7 @@ import { motion, type MotionProps } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { extractFunctionErrorStatus, extractFunctionErrorMessage } from '@/lib/functionsError';
 import { Cajonera } from '@/components/rebotica/Cajonera';
 import {
   REBOTICA_NEXT_OPENING,
@@ -158,6 +159,8 @@ export default function Rebotica() {
 
   const [selected, setSelected] = useState<number | null>(null);
   const [opening, setOpening] = useState(false);
+  // null = aún comprobando (no bloquea); true = hay campaña activa hoy; false = no hay ninguna.
+  const [campaignOpen, setCampaignOpen] = useState<boolean | null>(null);
 
   const countdown = useOpeningCountdown();
   const partner = REBOTICA_CURRENT_PARTNER;
@@ -176,6 +179,34 @@ export default function Rebotica() {
     // Solo al montar / cuando cambian los parámetros de entrada.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ctx.cajon, ctx.campaign, ctx.email]);
+
+  // Comprobación previa (evita dejar intentar abrir cuando ya se sabe que no
+  // hay campaña activa hoy). Solo para usuarios logueados: sin sesión, ya se
+  // redirige a /login antes de poder llegar a abrir nada. Ante cualquier
+  // duda (RLS, red) NO bloqueamos: el backend sigue siendo el gate real.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const today = new Date().toISOString().slice(0, 10);
+    supabase
+      .from('rebotica_campaigns')
+      .select('id')
+      .eq('estado', 'activa')
+      .lte('quincena_inicio', today)
+      .gte('quincena_fin', today)
+      .limit(1)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('Error comprobando campaña activa de la Rebotica:', error);
+          return;
+        }
+        setCampaignOpen((data?.length ?? 0) > 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const handleSelect = (drawer: number) => {
     setSelected(drawer);
@@ -200,6 +231,17 @@ export default function Rebotica() {
 
     if (!REBOTICA_OPEN_REWARD_ENABLED) return;
 
+    // Ya sabemos (comprobación previa) que hoy no hay campaña activa: no
+    // llegamos ni a llamar al servidor, evitamos el viaje de red inútil y el
+    // "error" que en realidad es un estado normal (aún no toca).
+    if (campaignOpen === false) {
+      toast({
+        title: 'Todavía no puedes abrir un cajón',
+        description: `Vuelve el ${REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.`,
+      });
+      return;
+    }
+
     setOpening(true);
     // El cajón elegido en la cajonera es solo estético: el sorteo real se
     // decide en el servidor. Si el email trajo `?c=` (campaign_id explícito)
@@ -214,9 +256,24 @@ export default function Rebotica() {
     setOpening(false);
 
     if (error || data?.error) {
+      const status = extractFunctionErrorStatus(error);
+      const bodyMessage = data?.error ?? (await extractFunctionErrorMessage(error));
+
+      // 409 = estado esperado del negocio (sin campaña activa, fuera de
+      // ventana o sin stock momentáneo), no un fallo del sistema: mensaje
+      // neutro, no en rojo, con el motivo real del backend si lo tenemos.
+      if (status === 409) {
+        setCampaignOpen((prev) => (prev === true ? prev : false));
+        toast({
+          title: 'Todavía no puedes abrir un cajón',
+          description: bodyMessage ?? `Vuelve el ${REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.`,
+        });
+        return;
+      }
+
       toast({
         title: 'No se ha podido abrir el cajón',
-        description: data?.error ?? 'Inténtalo de nuevo en unos segundos.',
+        description: bodyMessage ?? 'Inténtalo de nuevo en unos segundos.',
         variant: 'destructive',
       });
       return;
@@ -236,11 +293,17 @@ export default function Rebotica() {
     }
   };
 
+  // Solo bloquea cuando ya se confirmó que no hay campaña activa hoy; mientras
+  // se comprueba (null) se deja intentar con normalidad.
+  const canAttemptOpen = campaignOpen !== false;
+
   const openLabel = !user
     ? 'Crear cuenta gratis y abrir mi cajón'
-    : opening
-      ? 'Abriendo...'
-      : 'Abrir mi cajón';
+    : !canAttemptOpen
+      ? 'Todavía no puedes abrir un cajón'
+      : opening
+        ? 'Abriendo...'
+        : 'Abrir mi cajón';
 
   const partnerSlot = partner && (
     <a
@@ -289,7 +352,7 @@ export default function Rebotica() {
               <button
                 type="button"
                 onClick={handleOpen}
-                disabled={opening}
+                disabled={opening || (selected != null && !canAttemptOpen)}
                 className={
                   selected
                     ? `${BTN_LIME} w-full text-center text-[16px] disabled:cursor-not-allowed disabled:opacity-70`
@@ -298,6 +361,11 @@ export default function Rebotica() {
               >
                 {selected ? openLabel : 'Elige un cajón para empezar'}
               </button>
+              {selected != null && !canAttemptOpen && (
+                <p className="text-center text-xs text-[#5c6660]">
+                  Vuelve el {REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.
+                </p>
+              )}
               {partner && (
                 <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
                   El cajón de esta quincena lo presenta {partnerSlot}
@@ -398,7 +466,7 @@ export default function Rebotica() {
               <button
                 type="button"
                 onClick={handleOpen}
-                disabled={opening}
+                disabled={opening || (selected != null && !canAttemptOpen)}
                 className={
                   selected
                     ? `${BTN_LIME} w-full text-center text-[16px] disabled:cursor-not-allowed disabled:opacity-70`
@@ -409,6 +477,11 @@ export default function Rebotica() {
               </button>
               {!user && selected && (
                 <p className="text-center text-xs text-[#5c6660]">No hace falta tarjeta. Solo tu email y una contraseña.</p>
+              )}
+              {user && selected != null && !canAttemptOpen && (
+                <p className="text-center text-xs text-[#5c6660]">
+                  Vuelve el {REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.
+                </p>
               )}
               {partner && (
                 <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
