@@ -212,11 +212,11 @@ export function renderPortalTemplate(
           <p style="margin:0 0 12px 0;">${saludo}</p>
           <p style="margin:0 0 12px 0;">Hemos intentado cobrar tu suscripción al portal farmapro y el cargo no ha llegado a buen puerto. Puede ser una caducidad de tarjeta, un límite del banco o un rechazo puntual.</p>
           <p style="margin:0 0 12px 0;">Para no perder el acceso, actualiza tu método de pago desde tu perfil. El intento se repetirá automáticamente en cuanto la tarjeta esté al día.</p>
-          ${ctaButton(`${APP_URL}/perfil?tab=facturacion`, 'Actualizar método de pago')}
+          ${ctaButton(`${APP_URL}/perfil?tab=billing`, 'Actualizar método de pago')}
           <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si crees que se trata de un error o necesitas una factura, respóndenos a este correo.</p>
         `,
       });
-      const text = `${saludo}\n\nHemos intentado cobrar tu suscripción al portal farmapro y el cargo no ha llegado a buen puerto. Puede ser una caducidad de tarjeta, un límite del banco o un rechazo puntual.\n\nPara no perder el acceso, actualiza tu método de pago desde tu perfil. El intento se repetirá automáticamente en cuanto la tarjeta esté al día.\n\nActualizar método de pago: ${APP_URL}/perfil?tab=facturacion\n\nSi crees que se trata de un error o necesitas una factura, respóndenos a este correo.${textFooter()}`;
+      const text = `${saludo}\n\nHemos intentado cobrar tu suscripción al portal farmapro y el cargo no ha llegado a buen puerto. Puede ser una caducidad de tarjeta, un límite del banco o un rechazo puntual.\n\nPara no perder el acceso, actualiza tu método de pago desde tu perfil. El intento se repetirá automáticamente en cuanto la tarjeta esté al día.\n\nActualizar método de pago: ${APP_URL}/perfil?tab=billing\n\nSi crees que se trata de un error o necesitas una factura, respóndenos a este correo.${textFooter()}`;
       return { subject, html, text };
     }
 
@@ -255,10 +255,10 @@ export function renderPortalTemplate(
           <p style="margin:0 0 12px 0;">${saludo}</p>
           <p style="margin:0 0 12px 0;"><strong>${escapeHtml(miembro)}</strong> ha activado su plaza y ya forma parte de tu equipo en el portal farmapro.</p>
           <p style="margin:0 0 12px 0;">Ahora mismo tienes <strong>${ocupadas} de ${total}</strong> personas en tu equipo.</p>
-          ${ctaButton(`${APP_URL}/perfil?tab=equipo`, 'Ver mi equipo')}
+          ${ctaButton(`${APP_URL}/mi-farmacia`, 'Ver mi equipo')}
         `,
       });
-      const text = `${saludo}\n\n${miembro} ha activado su plaza y ya forma parte de tu equipo en el portal farmapro.\n\nAhora mismo tienes ${ocupadas} de ${total} personas en tu equipo.\n\nVer mi equipo: ${APP_URL}/perfil?tab=equipo${textFooter()}`;
+      const text = `${saludo}\n\n${miembro} ha activado su plaza y ya forma parte de tu equipo en el portal farmapro.\n\nAhora mismo tienes ${ocupadas} de ${total} personas en tu equipo.\n\nVer mi equipo: ${APP_URL}/mi-farmacia${textFooter()}`;
       return { subject, html, text };
     }
 
