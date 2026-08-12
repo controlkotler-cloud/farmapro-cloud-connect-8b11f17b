@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 import { useCreativeChat, CreativeContext } from '@/hooks/useCreativeChat';
 import { useIAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 import { ContentTypeGrid } from './ContentTypeGrid';
@@ -21,7 +23,20 @@ export const CreativeWorkspace = () => {
     clearChat,
   } = useCreativeChat();
 
+  const { profile } = useAuth();
   const { defaults, updateDefault } = useIAFarmaDefaults();
+
+  // Pre-rellena desde el perfil la primera vez (localStorage vacío), para no
+  // pedir dos veces el mismo dato. Si ya hay algo guardado aquí (editado a
+  // mano en IAFarma), no lo tocamos.
+  useEffect(() => {
+    if (!defaults.farmacia && profile?.pharmacy_name) {
+      updateDefault('farmacia', profile.pharmacy_name);
+    }
+    if (!defaults.localidad && profile?.pharmacy_city) {
+      updateDefault('localidad', profile.pharmacy_city);
+    }
+  }, [defaults.farmacia, defaults.localidad, profile?.pharmacy_name, profile?.pharmacy_city, updateDefault]);
 
   const selectedInfo = CONTENT_TYPES.find(t => t.id === contentType);
 

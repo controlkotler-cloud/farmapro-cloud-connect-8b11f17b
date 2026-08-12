@@ -58,10 +58,17 @@ export const Header = () => {
   return (
     <header className="bg-background border-b border-border px-4 md:px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Mobile: Hamburger + Logo */}
+        {/* Mobile/tablet: Hamburger + Logo + "Portal". Oculto en desktop (lg+):
+            ahí el sidebar ya está fijo y muestra su propio logo, así que
+            repetirlo aquí sería redundante. */}
         <div className="flex items-center space-x-3">
           <SidebarTrigger className="lg:hidden" />
-          <img src="/logo-farmapro.svg" alt="farmapro" className="h-8" />
+          <div className="flex items-center gap-2.5 lg:hidden">
+            <img src="/logo-farmapro.svg" alt="farmapro" className="h-7" />
+            <span className="border-l border-border pl-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Portal
+            </span>
+          </div>
         </div>
 
         {/* Desktop: Search */}

@@ -29,7 +29,8 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
         <h2 className="text-sm font-semibold text-foreground">Datos de tu farmacia</h2>
       </div>
       <p className="text-xs text-muted-foreground mb-4">
-        Se rellenan solos en cada contenido. Edítalos cuando quieras: se guardan en este navegador.
+        Se rellenan desde tu perfil la primera vez. Edítalos aquí si quieres algo distinto para tus
+        piezas: los cambios se guardan solo en este navegador, sin afectar a tu perfil.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
