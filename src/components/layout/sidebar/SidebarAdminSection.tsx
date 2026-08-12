@@ -1,5 +1,5 @@
 
-import { ChevronDown, Settings, Users, BookOpen, MessageSquare, Trophy, BriefcaseIcon, Building2, Gift, Calendar, FolderOpen, HelpCircle } from 'lucide-react';
+import { ChevronDown, Settings, Users, MessageSquare, Trophy, Gift } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
@@ -27,57 +27,27 @@ export const SidebarAdminSection = () => {
       icon: Settings,
       exact: true
     },
-    { 
-      title: 'Usuarios', 
-      url: '/admin/usuarios', 
-      icon: Users 
+    {
+      title: 'Usuarios',
+      url: '/admin/usuarios',
+      icon: Users
     },
-    { 
-      title: 'Cursos', 
-      url: '/admin/cursos', 
-      icon: BookOpen 
+    {
+      title: 'Comunidad',
+      url: '/admin/comunidad',
+      icon: MessageSquare
     },
-    { 
-      title: 'Quizzes', 
-      url: '/admin/quizzes', 
-      icon: HelpCircle 
+    {
+      title: 'Retos',
+      url: '/admin/retos',
+      icon: Trophy
     },
-    { 
-      title: 'Recursos', 
-      url: '/admin/recursos', 
-      icon: FolderOpen 
+    {
+      title: 'Promociones',
+      url: '/admin/promociones',
+      icon: Gift
     },
-    { 
-      title: 'Comunidad', 
-      url: '/admin/comunidad', 
-      icon: MessageSquare 
-    },
-    { 
-      title: 'Retos', 
-      url: '/admin/retos', 
-      icon: Trophy 
-    },
-    { 
-      title: 'Empleo', 
-      url: '/admin/empleo', 
-      icon: BriefcaseIcon 
-    },
-    { 
-      title: 'Farmacias', 
-      url: '/admin/farmacias', 
-      icon: Building2 
-    },
-    { 
-      title: 'Promociones', 
-      url: '/admin/promociones', 
-      icon: Gift 
-    },
-    { 
-      title: 'Eventos', 
-      url: '/admin/eventos', 
-      icon: Calendar 
-    },
-    { 
+    {
       title: 'Configuración', 
       url: '/admin/configuracion', 
       icon: Settings 

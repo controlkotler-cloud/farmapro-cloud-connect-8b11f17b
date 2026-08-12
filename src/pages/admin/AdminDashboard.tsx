@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, BookOpen, FileText, Users, Calendar, Briefcase, Store, Megaphone, MessageSquare, Trophy, Settings } from 'lucide-react';
+import { Plus, BookOpen, FileText, Users, Calendar, Megaphone, MessageSquare, Trophy, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface AdminStats {
@@ -79,45 +79,10 @@ const AdminDashboard = () => {
 
   const adminSections = [
     {
-      title: 'Gestión de Cursos',
-      description: 'Crear, editar y gestionar cursos de formación',
-      icon: BookOpen,
-      path: '/admin/cursos',
-      color: 'bg-muted'
-    },
-    {
-      title: 'Gestión de Recursos',
-      description: 'Subir y organizar recursos descargables',
-      icon: FileText,
-      path: '/admin/recursos',
-      color: 'bg-muted'
-    },
-    {
       title: 'Gestión de Usuarios',
       description: 'Administrar perfiles y suscripciones',
       icon: Users,
       path: '/admin/usuarios',
-      color: 'bg-muted'
-    },
-    {
-      title: 'Gestión de Eventos',
-      description: 'Crear y gestionar eventos y webinars',
-      icon: Calendar,
-      path: '/admin/eventos',
-      color: 'bg-muted'
-    },
-    {
-      title: 'Ofertas de Empleo',
-      description: 'Moderar y gestionar ofertas de trabajo',
-      icon: Briefcase,
-      path: '/admin/empleo',
-      color: 'bg-muted'
-    },
-    {
-      title: 'Farmacias',
-      description: 'Gestionar directorio de farmacias',
-      icon: Store,
-      path: '/admin/farmacias',
       color: 'bg-muted'
     },
     {

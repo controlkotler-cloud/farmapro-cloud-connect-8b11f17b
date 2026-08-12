@@ -38,13 +38,7 @@ import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
 import AsistenteCreativo from "@/pages/AsistenteCreativo";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminCursos from "@/pages/admin/AdminCursos";
-import AdminQuizzes from "@/pages/admin/AdminQuizzes";
-import AdminRecursos from "@/pages/admin/AdminRecursos";
 import AdminUsuarios from "@/pages/admin/AdminUsuarios";
-import AdminEventos from "@/pages/admin/AdminEventos";
-import AdminEmpleo from "@/pages/admin/AdminEmpleo";
-import AdminFarmacias from "@/pages/admin/AdminFarmacias";
 import AdminPromociones from "@/pages/admin/AdminPromociones";
 import AdminComunidad from "@/pages/admin/AdminComunidad";
 import AdminRetos from "@/pages/admin/AdminRetos";
@@ -206,39 +200,9 @@ export const AppRoutes = () => {
           <AdminDashboard />
         </AdminProtectedRoute>
       } />
-      <Route path="/admin/cursos" element={
-        <AdminProtectedRoute>
-          <AdminCursos />
-        </AdminProtectedRoute>
-      } />
-      <Route path="/admin/quizzes" element={
-        <AdminProtectedRoute>
-          <AdminQuizzes />
-        </AdminProtectedRoute>
-      } />
-      <Route path="/admin/recursos" element={
-        <AdminProtectedRoute>
-          <AdminRecursos />
-        </AdminProtectedRoute>
-      } />
       <Route path="/admin/usuarios" element={
         <AdminProtectedRoute>
           <AdminUsuarios />
-        </AdminProtectedRoute>
-      } />
-      <Route path="/admin/eventos" element={
-        <AdminProtectedRoute>
-          <AdminEventos />
-        </AdminProtectedRoute>
-      } />
-      <Route path="/admin/empleo" element={
-        <AdminProtectedRoute>
-          <AdminEmpleo />
-        </AdminProtectedRoute>
-      } />
-      <Route path="/admin/farmacias" element={
-        <AdminProtectedRoute>
-          <AdminFarmacias />
         </AdminProtectedRoute>
       } />
       <Route path="/admin/promociones" element={

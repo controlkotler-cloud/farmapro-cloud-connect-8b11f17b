@@ -1,31 +1,13 @@
 
 import { useEffect } from 'react';
-import { ConfigurationTabs } from '@/components/admin/configuration/ConfigurationTabs';
+import { SectionVisibilitySettings } from '@/components/admin/settings/SectionVisibilitySettings';
 import { ConfigurationLoading } from '@/components/admin/configuration/ConfigurationLoading';
 import { useConfigurationData } from '@/components/admin/configuration/ConfigurationData';
 import { useConfigurationHandlers } from '@/components/admin/configuration/ConfigurationHandlers';
 
 const AdminConfiguracion = () => {
-  const {
-    isLoading,
-    getEmailTemplatesConfig,
-    getPlatformConfig,
-    getUserConfig,
-    getTechnicalConfig,
-    getAnalyticsConfig,
-    getRegionalConfig,
-    getVisibilityConfig
-  } = useConfigurationData();
-
-  const {
-    handlePlatformSave,
-    handleUserSave,
-    handleTechnicalSave,
-    handleAnalyticsSave,
-    handleRegionalSave,
-    handleEmailTemplatesSave,
-    handleVisibilitySave
-  } = useConfigurationHandlers();
+  const { isLoading, getVisibilityConfig } = useConfigurationData();
+  const { handleVisibilitySave } = useConfigurationHandlers();
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -40,24 +22,12 @@ const AdminConfiguracion = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Configuración General</h1>
-        <p className="text-gray-600">Ajustes del portal y configuraciones del sistema farmapro</p>
+        <p className="text-gray-600">Qué secciones son visibles para los usuarios del portal</p>
       </div>
 
-      <ConfigurationTabs
-        platformConfig={getPlatformConfig()}
-        userConfig={getUserConfig()}
-        technicalConfig={getTechnicalConfig()}
-        analyticsConfig={getAnalyticsConfig()}
-        regionalConfig={getRegionalConfig()}
-        emailConfig={getEmailTemplatesConfig()}
-        visibilityConfig={getVisibilityConfig()}
-        onPlatformSave={handlePlatformSave}
-        onUserSave={handleUserSave}
-        onTechnicalSave={handleTechnicalSave}
-        onAnalyticsSave={handleAnalyticsSave}
-        onRegionalSave={handleRegionalSave}
-        onEmailTemplatesSave={handleEmailTemplatesSave}
-        onVisibilitySave={handleVisibilitySave}
+      <SectionVisibilitySettings
+        config={getVisibilityConfig()}
+        onSave={handleVisibilitySave}
       />
     </div>
   );

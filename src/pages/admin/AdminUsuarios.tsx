@@ -11,9 +11,16 @@ import { Label } from '@/components/ui/label';
 import { Search, User, Mail, Calendar, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { logSecurityEvent } from '@/lib/securityLogger';
+import { PAID_ROLES, ROLE_LABELS } from '@/lib/plans';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
+
+// Única fuente de roles del selector: si mañana cambia el modelo de planes en
+// plans.ts, este desplegable se actualiza solo (evita el bug de hoy, donde
+// faltaban 'plus'/'equipo' —los planes de pago reales— por tener la lista
+// duplicada a mano aquí).
+const ROLE_OPTIONS = Object.keys(ROLE_LABELS) as UserRole[];
 
 interface UserProfile {
   id: string;
@@ -84,9 +91,7 @@ const AdminUsuarios = () => {
     
     // Determine subscription status based on role
     const subscriptionStatus: Database['public']['Enums']['subscription_status'] =
-      ['premium', 'profesional', 'estudiante', 'admin'].includes(newRole)
-        ? 'active'
-        : 'trialing';
+      PAID_ROLES.includes(newRole) ? 'active' : 'trialing';
 
     try {
       // Use the secure RPC function
@@ -306,11 +311,9 @@ const AdminUsuarios = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los roles</SelectItem>
-            <SelectItem value="freemium">Freemium</SelectItem>
-            <SelectItem value="estudiante">Estudiante</SelectItem>
-            <SelectItem value="profesional">Profesional</SelectItem>
-            <SelectItem value="premium">Premium</SelectItem>
-            <SelectItem value="admin">Administrador</SelectItem>
+            {ROLE_OPTIONS.map((role) => (
+              <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         
@@ -443,11 +446,9 @@ const AdminUsuarios = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="freemium">Freemium</SelectItem>
-                        <SelectItem value="estudiante">Estudiante</SelectItem>
-                        <SelectItem value="profesional">Profesional</SelectItem>
-                        <SelectItem value="premium">Premium</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
+                        {ROLE_OPTIONS.map((role) => (
+                          <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
