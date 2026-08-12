@@ -372,16 +372,24 @@ async function handleSubscriptionChange(
     .from('subscriptions').select('user_id')
     .eq('stripe_subscription_id', subscriptionId).maybeSingle();
 
-  // Estado normalizado.
-  let newStatus: string = sub.status; // active | past_due | canceled | unpaid | trialing | ...
-  if (eventType === 'customer.subscription.deleted') newStatus = 'canceled';
+  // Filtro suave: si no lleva metadata de portal y tampoco tenemos fila, no es nuestra.
+  if (sub.metadata?.origen !== 'portal' && !row) {
+    log('subscription not from portal and unknown, skipping', { subscriptionId, origen: sub.metadata?.origen });
+    return;
+  }
 
-  await supabase.from('subscriptions').update({
-    status: newStatus,
+  // Estado crudo de Stripe (para lógica) y estado mapeado al enum (para BD).
+  let rawStatus: string = sub.status; // active | past_due | canceled | unpaid | trialing | ...
+  if (eventType === 'customer.subscription.deleted') rawStatus = 'canceled';
+  const dbStatus = toDbStatus(rawStatus);
+
+  const { error: subUpdErr } = await supabase.from('subscriptions').update({
+    status: dbStatus,
     current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
     current_period_end:   sub.current_period_end   ? new Date(sub.current_period_end   * 1000).toISOString() : null,
     updated_at: new Date().toISOString(),
   }).eq('stripe_subscription_id', subscriptionId);
+  if (subUpdErr) throw new Error(`subscriptions update failed: ${subUpdErr.message}`);
 
   if (!row?.user_id) {
     log('subscription change without user row', { subscriptionId });
@@ -391,7 +399,7 @@ async function handleSubscriptionChange(
   // Determinar rol resultante a partir del Price ID (si sigue activo).
   const priceId = sub.items.data[0]?.price.id;
   const priceInfo = priceId ? lookupPrice(priceId) : null;
-  const willDowngrade = ['canceled', 'unpaid', 'incomplete_expired'].includes(newStatus);
+  const willDowngrade = ['canceled', 'unpaid', 'incomplete_expired'].includes(rawStatus);
 
   // Cargar perfil para respetar admin.
   const { data: profile } = await supabase.from('profiles')
@@ -410,15 +418,17 @@ async function handleSubscriptionChange(
     newProfileStatus = 'canceled';
   } else if (priceInfo) {
     newRole = priceInfo.plan;
-    newProfileStatus = newStatus === 'active' ? 'active' : newStatus;
+    newProfileStatus = rawStatus === 'active' ? 'active' : dbStatus;
   } else {
     // Sin info de price → solo actualizar estado, no tocar rol.
-    await supabase.from('profiles').update({
-      subscription_status: newStatus,
+    const { error: profStatusErr } = await supabase.from('profiles').update({
+      subscription_status: dbStatus,
       updated_at: new Date().toISOString(),
     }).eq('id', row.user_id);
+    if (profStatusErr) throw new Error(`profile status update failed: ${profStatusErr.message}`);
     return;
   }
+
 
   // Salir de Equipo (cancelación o downgrade a otro plan): desactivar el equipo
   // ANTES de degradar al titular, para que los miembros pierdan el acceso.
