@@ -169,6 +169,11 @@ async function handleCheckoutCompleted(
     log('checkout mode not handled', { mode: session.mode });
     return;
   }
+  if (session.metadata?.origen !== 'portal') {
+    log('subscription session not from portal, skipping', { sessionId: session.id, origen: session.metadata?.origen });
+    return;
+  }
+
   const userId = session.metadata?.user_id;
   const plan   = session.metadata?.plan;
   const cycle  = session.metadata?.cycle ?? 'monthly';
