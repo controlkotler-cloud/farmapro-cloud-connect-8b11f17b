@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, ExternalLink, ShieldCheck } from 'lucide-react';
+import { CheckCircle, Star, ExternalLink, ShieldCheck, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PLANS, FREE_LIMITS, ROLE_LABELS, getAccessState, getLaunchStatus } from '@/lib/plans';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
@@ -92,6 +92,16 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
               <p className="text-sm text-muted-foreground">
                 Acceso completo: cursos y recursos sin límite, comunidad, retos e IAFarma.
               </p>
+            )}
+            {!isAdmin && isTeamOwner && (
+              <div className="mt-4">
+                <Button asChild variant="outline" className="rounded-full">
+                  <Link to="/mi-farmacia" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Gestionar mi equipo
+                  </Link>
+                </Button>
+              </div>
             )}
           </div>
         </CardContent>
