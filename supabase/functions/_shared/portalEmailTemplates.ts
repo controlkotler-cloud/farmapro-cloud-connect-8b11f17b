@@ -245,8 +245,8 @@ export function renderPortalTemplate(
 
     case 'equipo-plaza-activada': {
       const miembro = (data.miembroNombre ?? '').trim() || (data.miembroEmail ?? '').trim() || 'Un miembro de tu equipo';
-      const ocupadas = data.plazasOcupadas ?? 0;
-      const total = data.plazasTotal ?? 10;
+      const ocupadas = Number(data.plazasOcupadas ?? 0) || 0;
+      const total = Number(data.plazasTotal ?? 10) || 0;
       const subject = `${miembro} ha activado su plaza en el portal farmapro`;
       const html = layout({
         previewText: `${miembro} se ha unido a tu equipo. ${ocupadas} de ${total} personas.`,
@@ -287,7 +287,7 @@ export function renderPortalTemplate(
     case 'rebotica-premio-caduca': {
       const titulo = (data.premioTitulo ?? '').trim() || 'tu premio de la Rebotica';
       const url = data.canjeUrl ?? `${APP_URL}/rebotica`;
-      const horas = data.horasRestantes ?? 48;
+      const horas = Number(data.horasRestantes ?? 48) || 0;
       const subject = `Tu premio en la Rebotica caduca pronto`;
       const html = layout({
         previewText: `Te quedan menos de ${horas} horas para canjear ${titulo}.`,
