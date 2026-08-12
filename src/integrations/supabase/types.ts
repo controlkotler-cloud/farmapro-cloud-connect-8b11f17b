@@ -2621,17 +2621,23 @@ export type Database = {
       }
       stripe_events: {
         Row: {
+          completed_at: string | null
           id: string
+          last_error: string | null
           processed_at: string
           type: string | null
         }
         Insert: {
+          completed_at?: string | null
           id: string
+          last_error?: string | null
           processed_at?: string
           type?: string | null
         }
         Update: {
+          completed_at?: string | null
           id?: string
+          last_error?: string | null
           processed_at?: string
           type?: string | null
         }

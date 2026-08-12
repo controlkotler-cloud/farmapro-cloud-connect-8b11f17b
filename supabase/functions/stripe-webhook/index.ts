@@ -50,18 +50,25 @@ serve(async (req) => {
     return new Response(`Webhook Error: ${(err as Error).message}`, { status: 400 });
   }
 
-  // ⛔ IDEMPOTENCIA FIRST: si el insert falla por unique violation, ya lo procesamos.
+  // ⛔ IDEMPOTENCIA EN DOS TIEMPOS: reclamar ahora, confirmar al final.
   const { error: dupErr } = await supabase
     .from('stripe_events')
-    .insert({ id: event.id, type: event.type });
+    .insert({ id: event.id, type: event.type, completed_at: null });
   if (dupErr) {
-    // 23505 = unique_violation → ya procesado.
     if ((dupErr as any).code === '23505') {
-      log('duplicate event ignored', { id: event.id });
-      return json({ received: true, duplicate: true });
+      const { data: existing } = await supabase
+        .from('stripe_events').select('completed_at').eq('id', event.id).maybeSingle();
+      if ((existing as any)?.completed_at) {
+        log('duplicate event already completed, ignoring', { id: event.id });
+        return json({ received: true, duplicate: true });
+      }
+      log('previous attempt incomplete, reprocessing', { id: event.id });
+    } else {
+      log('stripe_events insert error, asking Stripe to retry', { err: dupErr.message });
+      return json({ received: false, error: dupErr.message }, 500);
     }
-    log('stripe_events insert error (continuing)', { err: dupErr.message });
   }
+
 
   try {
     log('processing', { type: event.type, id: event.id });
@@ -88,13 +95,22 @@ serve(async (req) => {
         log('unhandled event type', { type: event.type });
     }
 
+    // Confirmamos el procesamiento correcto del evento.
+    await supabase.from('stripe_events')
+      .update({ completed_at: new Date().toISOString(), last_error: null })
+      .eq('id', event.id);
+
     return json({ received: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     log('ERROR', { msg });
-    // Devolvemos 200 para no reintentar en bucle en errores lógicos; el error ya queda logueado.
-    return json({ received: true, error: msg });
+    // Dejamos completed_at a null y guardamos el error: devolvemos 500 para que Stripe reintente.
+    await supabase.from('stripe_events')
+      .update({ last_error: msg })
+      .eq('id', event.id);
+    return json({ received: false, error: msg }, 500);
   }
+
 });
 
 // -------------------------------------------------------------------
@@ -106,6 +122,10 @@ async function handleCheckoutCompleted(
 ) {
   // Rama PACKS de imágenes (pago único). No mezclamos con suscripción.
   if (session.mode === 'payment') {
+    if (session.metadata?.origen !== 'portal') {
+      log('payment session not from portal, skipping', { sessionId: session.id, origen: session.metadata?.origen });
+      return;
+    }
     const rawPack = session.metadata?.pack_credits;
     const packCredits = rawPack ? parseInt(rawPack, 10) : NaN;
     const userIdPack = session.metadata?.user_id;
@@ -113,6 +133,7 @@ async function handleCheckoutCompleted(
       log('payment session without pack_credits/user_id, skipping', { sessionId: session.id });
       return;
     }
+
     // Sumar créditos (atómico, service role).
     const { error: creditErr } = await supabase.rpc('add_image_credits', {
       p_user: userIdPack, p_credits: packCredits,
@@ -148,6 +169,11 @@ async function handleCheckoutCompleted(
     log('checkout mode not handled', { mode: session.mode });
     return;
   }
+  if (session.metadata?.origen !== 'portal') {
+    log('subscription session not from portal, skipping', { sessionId: session.id, origen: session.metadata?.origen });
+    return;
+  }
+
   const userId = session.metadata?.user_id;
   const plan   = session.metadata?.plan;
   const cycle  = session.metadata?.cycle ?? 'monthly';
@@ -177,7 +203,7 @@ async function handleCheckoutCompleted(
       stripe_customer_id: customerId,
       updated_at: new Date().toISOString(),
     }).eq('id', userId);
-    if (profErr) log('profile customer_id update error', { err: profErr.message });
+    if (profErr) throw new Error(`profile customer_id update failed: ${profErr.message}`);
   } else {
     const { error: profErr } = await supabase.from('profiles').update({
       subscription_role: plan,
@@ -185,7 +211,7 @@ async function handleCheckoutCompleted(
       stripe_customer_id: customerId,
       updated_at: new Date().toISOString(),
     }).eq('id', userId);
-    if (profErr) log('profile update error', { err: profErr.message });
+    if (profErr) throw new Error(`profile update failed: ${profErr.message}`);
   }
 
   // Upsert en subscriptions.
@@ -202,7 +228,7 @@ async function handleCheckoutCompleted(
     current_period_end: periodEnd,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'stripe_subscription_id' });
-  if (subErr) log('subscriptions upsert error', { err: subErr.message });
+  if (subErr) throw new Error(`subscriptions upsert failed: ${subErr.message}`);
 
   // Plan Equipo: crea o reactiva el equipo del titular (9 plazas de invitación).
   // Idempotente — seguro de relanzar si el webhook se reintenta.
@@ -211,7 +237,7 @@ async function handleCheckoutCompleted(
       p_owner: userId,
       p_stripe_subscription_id: subscriptionId,
     });
-    if (teamErr) log('ensure_team_subscription error', { err: teamErr.message });
+    if (teamErr) throw new Error(`ensure_team_subscription failed: ${teamErr.message}`);
   }
 
   log('checkout completed', { userId, plan, cycle, founder });
@@ -346,16 +372,24 @@ async function handleSubscriptionChange(
     .from('subscriptions').select('user_id')
     .eq('stripe_subscription_id', subscriptionId).maybeSingle();
 
-  // Estado normalizado.
-  let newStatus: string = sub.status; // active | past_due | canceled | unpaid | trialing | ...
-  if (eventType === 'customer.subscription.deleted') newStatus = 'canceled';
+  // Filtro suave: si no lleva metadata de portal y tampoco tenemos fila, no es nuestra.
+  if (sub.metadata?.origen !== 'portal' && !row) {
+    log('subscription not from portal and unknown, skipping', { subscriptionId, origen: sub.metadata?.origen });
+    return;
+  }
 
-  await supabase.from('subscriptions').update({
-    status: newStatus,
+  // Estado crudo de Stripe (para lógica) y estado mapeado al enum (para BD).
+  let rawStatus: string = sub.status; // active | past_due | canceled | unpaid | trialing | ...
+  if (eventType === 'customer.subscription.deleted') rawStatus = 'canceled';
+  const dbStatus = toDbStatus(rawStatus);
+
+  const { error: subUpdErr } = await supabase.from('subscriptions').update({
+    status: dbStatus,
     current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
     current_period_end:   sub.current_period_end   ? new Date(sub.current_period_end   * 1000).toISOString() : null,
     updated_at: new Date().toISOString(),
   }).eq('stripe_subscription_id', subscriptionId);
+  if (subUpdErr) throw new Error(`subscriptions update failed: ${subUpdErr.message}`);
 
   if (!row?.user_id) {
     log('subscription change without user row', { subscriptionId });
@@ -365,7 +399,7 @@ async function handleSubscriptionChange(
   // Determinar rol resultante a partir del Price ID (si sigue activo).
   const priceId = sub.items.data[0]?.price.id;
   const priceInfo = priceId ? lookupPrice(priceId) : null;
-  const willDowngrade = ['canceled', 'unpaid', 'incomplete_expired'].includes(newStatus);
+  const willDowngrade = ['canceled', 'unpaid', 'incomplete_expired'].includes(rawStatus);
 
   // Cargar perfil para respetar admin.
   const { data: profile } = await supabase.from('profiles')
@@ -384,15 +418,17 @@ async function handleSubscriptionChange(
     newProfileStatus = 'canceled';
   } else if (priceInfo) {
     newRole = priceInfo.plan;
-    newProfileStatus = newStatus === 'active' ? 'active' : newStatus;
+    newProfileStatus = rawStatus === 'active' ? 'active' : dbStatus;
   } else {
     // Sin info de price → solo actualizar estado, no tocar rol.
-    await supabase.from('profiles').update({
-      subscription_status: newStatus,
+    const { error: profStatusErr } = await supabase.from('profiles').update({
+      subscription_status: dbStatus,
       updated_at: new Date().toISOString(),
     }).eq('id', row.user_id);
+    if (profStatusErr) throw new Error(`profile status update failed: ${profStatusErr.message}`);
     return;
   }
+
 
   // Salir de Equipo (cancelación o downgrade a otro plan): desactivar el equipo
   // ANTES de degradar al titular, para que los miembros pierdan el acceso.
@@ -401,13 +437,14 @@ async function handleSubscriptionChange(
     if (deactivateErr) log('deactivate_team_for_owner error', { err: deactivateErr.message });
   }
 
-  await supabase.from('profiles').update({
+  const { error: profFinalErr } = await supabase.from('profiles').update({
     subscription_role: newRole,
     subscription_status: newProfileStatus,
     updated_at: new Date().toISOString(),
   }).eq('id', row.user_id);
+  if (profFinalErr) throw new Error(`profile role update failed: ${profFinalErr.message}`);
 
-  log('subscription change applied', { userId: row.user_id, newRole, newStatus });
+  log('subscription change applied', { userId: row.user_id, newRole, rawStatus, dbStatus });
 }
 
 function json(payload: unknown, status = 200) {
@@ -416,3 +453,18 @@ function json(payload: unknown, status = 200) {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
+
+function toDbStatus(stripeStatus: string): string {
+  switch (stripeStatus) {
+    case 'active': return 'active';
+    case 'trialing': return 'trialing';
+    case 'past_due':
+    case 'incomplete': return 'past_due';
+    case 'unpaid':
+    case 'incomplete_expired': return 'expired';
+    case 'canceled':
+    case 'paused': return 'canceled';
+    default: return 'expired';
+  }
+}
+
