@@ -18,7 +18,6 @@ import Promociones from "@/pages/Promociones";
 
 import Precios from "@/pages/Precios";
 import Rebotica from "@/pages/Rebotica";
-import OAuthConsent from "@/pages/OAuthConsent";
 
 /**
  * Destino post-login preservado en ?next= (lo usa el consentimiento OAuth de MCP).
@@ -85,7 +84,6 @@ export const AppRoutes = () => {
       {/* La Rebotica: página pública (elegir cajón sin cuenta; abrir exige registro) */}
       <Route path="/rebotica" element={<Rebotica />} />
       {/* Consentimiento OAuth para clientes MCP (Claude, ChatGPT, Lovable...) */}
-      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
       <Route path="/rebotica/bases-legales" element={<ReboticaBasesLegales />} />
       {/* Páginas legales: públicas, sin sidebar (mismo patrón que /rebotica/bases-legales) */}
       <Route path="/aviso-legal" element={<AvisoLegal />} />
