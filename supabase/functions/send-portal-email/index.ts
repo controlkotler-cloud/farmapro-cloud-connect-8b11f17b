@@ -141,8 +141,11 @@ serve(async (req) => {
   let mailrelayId: string | null = null;
   let ok = false;
 
-  while (attempt < 2 && !ok) {
+  let retryable = true;
+
+  while (attempt < 2 && !ok && retryable) {
     attempt += 1;
+    if (attempt > 1) await new Promise((r) => setTimeout(r, 1000));
     try {
       const res = await fetch(`${mailrelayBase.replace(/\/+$/, '')}/send_emails`, {
         method: 'POST',
@@ -158,6 +161,19 @@ serve(async (req) => {
       if (!res.ok) {
         lastError = `HTTP ${res.status}: ${text.slice(0, 500)}`;
         log('mailrelay non-2xx', { attempt, status: res.status, body: text.slice(0, 300) });
+
+        // A2. Rebote duro: suprimimos la dirección para no volver a golpearla.
+        if (res.status === 422 && /bounced/i.test(text)) {
+          const { error: supErr } = await supabase.from('suppressed_emails').insert({
+            email: toLower,
+            reason: 'hard_bounce',
+            metadata: { template, mailrelay_response: text.slice(0, 300) },
+          });
+          if (supErr) log('suppression insert ignored', { err: supErr.message });
+        }
+
+        // A3. Solo reintentamos ante errores de servidor.
+        retryable = res.status >= 500;
       } else {
         // Mailrelay suele responder { data: { id: ... } } o similar; guardamos lo que venga.
         try {
@@ -171,6 +187,7 @@ serve(async (req) => {
       }
     } catch (err) {
       lastError = (err as Error).message;
+      retryable = true;
       log('mailrelay exception', { attempt, err: lastError });
     }
   }
