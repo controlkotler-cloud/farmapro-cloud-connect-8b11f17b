@@ -122,6 +122,10 @@ async function handleCheckoutCompleted(
 ) {
   // Rama PACKS de imágenes (pago único). No mezclamos con suscripción.
   if (session.mode === 'payment') {
+    if (session.metadata?.origen !== 'portal') {
+      log('payment session not from portal, skipping', { sessionId: session.id, origen: session.metadata?.origen });
+      return;
+    }
     const rawPack = session.metadata?.pack_credits;
     const packCredits = rawPack ? parseInt(rawPack, 10) : NaN;
     const userIdPack = session.metadata?.user_id;
@@ -129,6 +133,7 @@ async function handleCheckoutCompleted(
       log('payment session without pack_credits/user_id, skipping', { sessionId: session.id });
       return;
     }
+
     // Sumar créditos (atómico, service role).
     const { error: creditErr } = await supabase.rpc('add_image_credits', {
       p_user: userIdPack, p_credits: packCredits,
