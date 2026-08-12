@@ -9,7 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useResources, type Resource } from '@/hooks/useResources';
 import { RESOURCE_CATEGORIES } from '@/lib/resourceCategory';
+import { RESOURCE_NEEDS } from '@/lib/resourceNeeds';
 import { ResourcesHeader } from '@/components/resources/ResourcesHeader';
+import { ResourcesNeedsLanding } from '@/components/resources/ResourcesNeedsLanding';
 import { ResourcesSearch } from '@/components/resources/ResourcesSearch';
 import { ResourcesCategoryTabs } from '@/components/resources/ResourcesCategoryTabs';
 import {
@@ -60,6 +62,15 @@ export const Recursos = () => {
   const [selectedType, setSelectedType] = useState('todos');
   const [access, setAccess] = useState<AccessFilter>('todos');
   const [sort, setSort] = useState<SortOrder>('recientes');
+  const [selectedNeed, setSelectedNeed] = useState<string | null>(null);
+
+  // Elegir una necesidad reemplaza la navegación por categoría/tipo (son dos
+  // formas alternativas de entrar al mismo catálogo, no se combinan).
+  const handleSelectNeed = (needId: string | null) => {
+    setSelectedNeed(needId);
+    setSelectedCategory('all');
+    setSelectedType('todos');
+  };
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -67,29 +78,33 @@ export const Recursos = () => {
     setSelectedType('todos');
     setAccess('todos');
     setSort('recientes');
+    setSelectedNeed(null);
   };
 
   const hasActiveFilters =
     searchTerm.trim() !== '' ||
     selectedCategory !== 'all' ||
     selectedType !== 'todos' ||
-    access !== 'todos';
+    access !== 'todos' ||
+    selectedNeed !== null;
 
   // Recursos que pasan TODOS los filtros menos la categoría (para poder contar
   // por categoría de forma coherente con el resto de filtros activos).
   const baseFiltered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
+    const need = selectedNeed ? RESOURCE_NEEDS.find(n => n.id === selectedNeed) : undefined;
     return resources.filter(r => {
       if (term) {
         const haystack = `${r.title} ${r.description}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
+      if (need && !need.match(r)) return false;
       if (selectedType !== 'todos' && r.type !== selectedType) return false;
       if (access === 'gratis' && r.is_premium) return false;
       if (access === 'premium' && !r.is_premium) return false;
       return true;
     });
-  }, [resources, searchTerm, selectedType, access]);
+  }, [resources, searchTerm, selectedType, access, selectedNeed]);
 
   // Contadores por categoría (sobre baseFiltered) para las pestañas.
   const categoryCounts = useMemo(() => {
@@ -261,6 +276,8 @@ export const Recursos = () => {
       transition={{ staggerChildren: 0.1 }}
     >
       <ResourcesHeader />
+
+      <ResourcesNeedsLanding selectedNeed={selectedNeed} onSelectNeed={handleSelectNeed} />
 
       <ResourcesSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 

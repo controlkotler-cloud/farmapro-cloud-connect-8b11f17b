@@ -21,9 +21,16 @@ interface NewThreadDialogProps {
   onCreateThread: (title: string, content: string, showFullName: boolean) => Promise<void>;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Ajusta título y placeholder del diálogo según la intención con la que se abrió (accesos rápidos del foro). */
+  intent?: 'duda' | 'idea' | null;
 }
 
-export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefault, onCreateThread, open, onOpenChange }: NewThreadDialogProps) => {
+const INTENT_COPY = {
+  duda: { dialogTitle: 'Plantea tu duda', contentPlaceholder: 'Describe tu duda a la comunidad...' },
+  idea: { dialogTitle: 'Comparte tu idea', contentPlaceholder: 'Cuenta qué te funciona en tu farmacia...' },
+} as const;
+
+export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefault, onCreateThread, open, onOpenChange, intent }: NewThreadDialogProps) => {
   const [newThreadTitle, setNewThreadTitle] = useState('');
   const [newThreadContent, setNewThreadContent] = useState('');
   const [showFullName, setShowFullName] = useState(showFullNameDefault);
@@ -65,7 +72,7 @@ export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefa
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Crear nuevo hilo</DialogTitle>
+          <DialogTitle>{intent ? INTENT_COPY[intent].dialogTitle : 'Crear nuevo hilo'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Input
@@ -74,7 +81,11 @@ export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefa
             onChange={(e) => setNewThreadTitle(e.target.value)}
           />
           <Textarea
-            placeholder="Contenido del hilo - Comparte tu consulta, experiencia o conocimiento..."
+            placeholder={
+              intent
+                ? INTENT_COPY[intent].contentPlaceholder
+                : 'Contenido del hilo - Comparte tu consulta, experiencia o conocimiento...'
+            }
             value={newThreadContent}
             onChange={(e) => setNewThreadContent(e.target.value)}
             rows={5}

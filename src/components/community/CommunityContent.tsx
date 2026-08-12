@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { MessageSquare, Star, RefreshCw } from 'lucide-react';
+import { MessageSquare, Star, RefreshCw, HelpCircle, Lightbulb, Eye } from 'lucide-react';
 import { ThreadList } from '@/components/forum/ThreadList';
 import { NewThreadDialog } from '@/components/forum/NewThreadDialog';
 
@@ -48,6 +48,16 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showNewThreadDialog, setShowNewThreadDialog] = useState(false);
+  const [newThreadIntent, setNewThreadIntent] = useState<'duda' | 'idea' | null>(null);
+
+  const openNewThread = (intent: 'duda' | 'idea' | null = null) => {
+    setNewThreadIntent(intent);
+    setShowNewThreadDialog(true);
+  };
+
+  const scrollToThreads = () => {
+    document.getElementById('foro-hilos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => {
     loadCategories();
@@ -147,12 +157,59 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
           showFullNameDefault={profile?.name_display_preference !== 'initials'}
           onCreateThread={createThread}
           open={showNewThreadDialog}
-          onOpenChange={setShowNewThreadDialog}
+          onOpenChange={(next) => {
+            setShowNewThreadDialog(next);
+            if (!next) setNewThreadIntent(null);
+          }}
+          intent={newThreadIntent}
         />
       </div>
 
+      {/* Accesos rápidos por intención */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <button
+          type="button"
+          onClick={() => openNewThread('duda')}
+          className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
+        >
+          <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-salvia-soft">
+            <HelpCircle className="h-4 w-4 text-salvia" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">Tengo una duda</p>
+            <p className="text-xs text-muted-foreground">Pregunta a la comunidad</p>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => openNewThread('idea')}
+          className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
+        >
+          <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-miel-soft">
+            <Lightbulb className="h-4 w-4 text-miel" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">Quiero compartir una idea</p>
+            <p className="text-xs text-muted-foreground">Cuenta algo que te funciona</p>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={scrollToThreads}
+          className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
+        >
+          <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-ciruela-soft">
+            <Eye className="h-4 w-4 text-ciruela" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">Quiero ver qué hacen otros</p>
+            <p className="text-xs text-muted-foreground">Descubre preguntas y experiencias</p>
+          </div>
+        </button>
+      </div>
+
       {/* Categorías de discusión */}
-      <Card>
+      <Card id="foro-hilos">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border">
           <CardTitle className="text-base font-extrabold text-foreground">
             Categorías

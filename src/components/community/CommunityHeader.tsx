@@ -8,6 +8,10 @@ export const CommunityHeader = () => {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Dudas, logros y trucos entre compañeros de profesión.
         </p>
+        <p className="mt-3 max-w-xl text-sm text-foreground/80">
+          ¿Necesitas ayuda con algo? Pregunta a otros profesionales de farmacia, comparte
+          experiencias y descubre cómo lo hacen otros.
+        </p>
       </div>
     </div>
   );
