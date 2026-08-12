@@ -177,10 +177,10 @@ export function renderPortalTemplate(
 
     case 'fin-prueba': {
       const esUltimo = data.aviso === 'ultimo';
-      const dias = data.diasRestantes ?? (esUltimo ? 2 : 7);
+      const dias = Number(data.diasRestantes ?? (esUltimo ? 2 : 7)) || 0;
       const subject = esUltimo
-        ? 'Tu prueba del portal farmapro termina en 2 días'
-        : 'A tu prueba del portal farmapro le quedan una semana';
+        ? `Tu prueba del portal farmapro termina en ${dias} ${dias === 1 ? 'día' : 'días'}`
+        : 'A tu prueba del portal farmapro le queda una semana';
       const html = layout({
         previewText: esUltimo
           ? 'Último aviso antes de que se bloquee el acceso.'
