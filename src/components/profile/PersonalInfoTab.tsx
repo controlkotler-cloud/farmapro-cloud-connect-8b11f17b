@@ -40,7 +40,7 @@ export const PersonalInfoTab = ({ profile, user }: PersonalInfoTabProps) => {
       pharmacy_city: profile?.pharmacy_city || '',
     });
     setSpecialtyAreas(profile?.specialty_areas || []);
-  }, [profile, user?.email]);
+  }, [profile]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
