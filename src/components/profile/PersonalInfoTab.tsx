@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { EMPLOYEES_COUNT_OPTIONS, SPECIALTY_OPTIONS } from '@/lib/pharmacyProfile';
+import { useAuth } from '@/hooks/useAuth';
+
 
 interface PersonalInfoTabProps {
   profile: any;
