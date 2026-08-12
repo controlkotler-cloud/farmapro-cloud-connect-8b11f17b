@@ -203,7 +203,7 @@ async function handleCheckoutCompleted(
       stripe_customer_id: customerId,
       updated_at: new Date().toISOString(),
     }).eq('id', userId);
-    if (profErr) log('profile customer_id update error', { err: profErr.message });
+    if (profErr) throw new Error(`profile customer_id update failed: ${profErr.message}`);
   } else {
     const { error: profErr } = await supabase.from('profiles').update({
       subscription_role: plan,
@@ -211,7 +211,7 @@ async function handleCheckoutCompleted(
       stripe_customer_id: customerId,
       updated_at: new Date().toISOString(),
     }).eq('id', userId);
-    if (profErr) log('profile update error', { err: profErr.message });
+    if (profErr) throw new Error(`profile update failed: ${profErr.message}`);
   }
 
   // Upsert en subscriptions.
@@ -228,7 +228,7 @@ async function handleCheckoutCompleted(
     current_period_end: periodEnd,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'stripe_subscription_id' });
-  if (subErr) log('subscriptions upsert error', { err: subErr.message });
+  if (subErr) throw new Error(`subscriptions upsert failed: ${subErr.message}`);
 
   // Plan Equipo: crea o reactiva el equipo del titular (9 plazas de invitación).
   // Idempotente — seguro de relanzar si el webhook se reintenta.
@@ -237,7 +237,7 @@ async function handleCheckoutCompleted(
       p_owner: userId,
       p_stripe_subscription_id: subscriptionId,
     });
-    if (teamErr) log('ensure_team_subscription error', { err: teamErr.message });
+    if (teamErr) throw new Error(`ensure_team_subscription failed: ${teamErr.message}`);
   }
 
   log('checkout completed', { userId, plan, cycle, founder });
