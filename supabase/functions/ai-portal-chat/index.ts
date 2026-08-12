@@ -10,6 +10,47 @@ const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
 const TRIAL_DAYS = 30;
 const DAILY_LIMIT = 100;
 
+const KNOWLEDGE = `QUÉ ES farmapro
+farmapro es el portal de formación, recursos y comunidad para profesionales de farmacia de
+Mkpro Kotler SL (Zaragoza). Se escribe siempre en minúsculas. Va dirigido a profesionales de
+farmacia, nunca al público final.
+
+PLANES Y PRECIOS
+- Gratis (0 €, 1 persona): hasta 2 cursos y 3 recursos, leer la comunidad, 2 textos y 1 imagen
+  con IAFarma, ver los eventos del sector. A los 30 días se ve todo el catálogo pero queda
+  bloqueado: solo lectura.
+- Plus (1 persona): 19,90 €/mes de precio fundador (precio normal 39 €/mes) o 199 €/año.
+  Todo el contenido sin límite, comunidad completa con retos y ranking, IAFarma texto
+  ilimitado, 1 crédito de imagen al mes, eventos exclusivos de farmapro.
+- Equipo (hasta 10 personas): 49 €/mes de precio fundador (precio normal 79 €/mes) o 490 €/año.
+  Todo lo de Plus para toda la farmacia con una sola cuota y gestión de plazas.
+- El precio fundador se mantiene de por vida para las 100 primeras plazas. El plan anual sale
+  como dos meses gratis.
+- Packs de créditos de imagen IAFarma (pago único sobre cualquier plan de pago): 20 por 4,99 €,
+  50 por 9,99 €, 100 por 16,99 €.
+
+CÓMO SE HACEN LAS COSAS
+- Contratar o cambiar de plan: página Precios.
+- Ver facturas, cambiar la tarjeta o dar de baja la suscripción: Perfil → Facturación, botón
+  del portal de cliente de Stripe. La baja surte efecto al final del periodo ya pagado.
+- Invitar a alguien del equipo (solo plan Equipo, lo hace el titular): Mi farmacia, a la que
+  también se llega desde Perfil → Plan, botón "Gestionar mi equipo". Llega un email de
+  invitación; al aceptarlo, esa persona pasa a plan Equipo.
+- Cambiar la contraseña: Perfil → Seguridad. Si no puedes entrar, "¿Olvidaste tu contraseña?"
+  en la pantalla de acceso.
+- IAFarma (asistente creativo): textos ilimitados en los planes de pago; las imágenes gastan
+  créditos.
+
+LA REBOTICA
+Es la campaña quincenal de sorteos del portal: eliges un cajón y lo abres para ver qué te toca.
+Arranca el jueves 10 de septiembre de 2026. Las bases legales están en /rebotica/bases-legales.
+No inventes premios: si te preguntan cuáles hay, remite a las bases legales.
+
+SOPORTE
+- Dudas, incidencias y problemas de pago: soporte@farmapro.es
+- Datos personales y derechos RGPD: entra@farmapro.es
+- Página de contacto dentro del portal: /contacto-soporte`;
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -25,6 +66,11 @@ serve(async (req) => {
 
     if (!Array.isArray(messages) || messages.length === 0) return json({ error: 'Mensajes inválidos' }, 400);
     if (messages.length > 50) return json({ error: 'Conversación demasiado larga' }, 400);
+
+    const safeMessages = messages.filter(
+      (m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string'
+    );
+    if (!safeMessages.length) return json({ error: 'Mensajes inválidos' }, 400);
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) return json({ error: 'No autorizado' }, 401);
@@ -77,20 +123,25 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) return json({ error: 'LOVABLE_API_KEY no configurada' }, 500);
 
     const context = await buildPortalContext(supabaseClient, role);
-    const systemPrompt = `Eres el asistente AI de farmapro, un portal para profesionales de farmacia.
+    const systemPrompt = `Eres el asistente de soporte de farmapro, un portal para profesionales de farmacia.
 
-INFORMACIÓN DEL PORTAL:
+INFORMACIÓN FIJA DE farmapro:
+${KNOWLEDGE}
+
+DATOS ACTUALES DEL PORTAL:
 ${context}
 
 INSTRUCCIONES:
-- Responde preguntas sobre cursos, recursos, eventos, promociones y empleo del portal
-- Proporciona información precisa basada en los datos del portal
-- Si no tienes información específica, indícalo claramente
-- Sé conciso y profesional
-- Si el usuario pregunta sobre contenido premium, indica si necesita suscripción
-- Mantén el tono profesional y amigable
-
-Formato: texto conversacional. Puedes usar negritas y listas sencillas; no uses encabezados (#), tablas ni bloques de código.`;
+- Castellano de España, tratando de "tú". Tono profesional y cercano, respuestas breves.
+- farmapro SIEMPRE en minúsculas. Sin emojis.
+- NUNCA inventes precios, plazos, condiciones, premios ni funciones. Si algo no está en esta
+  información ni en los datos del portal, dilo con claridad y remite a soporte@farmapro.es.
+- No des consejo sanitario ni prometas resultados de salud.
+- No hables de asuntos ajenos al portal.
+- Cuando el usuario tenga plan Gratis y pregunte por contenido de pago, explícale qué incluye
+  Plus y remítele a la página de Precios, sin presionar.
+- Formato: texto conversacional. Puedes usar negritas y listas sencillas; no uses encabezados
+  (#), tablas ni bloques de código.`;
 
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -100,8 +151,8 @@ Formato: texto conversacional. Puedes usar negritas y listas sencillas; no uses 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [{ role: 'system', content: systemPrompt }, ...messages],
+        model: 'google/gemini-3.6-flash',
+        messages: [{ role: 'system', content: systemPrompt }, ...safeMessages],
         stream: true,
       }),
     });
@@ -129,36 +180,56 @@ Formato: texto conversacional. Puedes usar negritas y listas sencillas; no uses 
 async function buildPortalContext(supabase: any, userRole: string | null) {
   let context = '';
   try {
+    const { count: coursesTotal } = await supabase
+      .from('courses').select('*', { count: 'exact', head: true });
+
     const { data: courses } = await supabase
       .from('courses')
-      .select('id, title, category, is_premium')
-      .limit(10);
+      .select('title, category, is_premium, total_lessons')
+      .gt('total_lessons', 0)
+      .order('is_featured', { ascending: false })
+      .order('title', { ascending: true })
+      .limit(20);
+
+    context += `\nCURSOS PUBLICADOS EN TOTAL: ${coursesTotal ?? 0}\n`;
     if (courses?.length) {
-      context += `\nCURSOS DISPONIBLES (${courses.length}):\n`;
+      context += `MUESTRA DE CURSOS (${courses.length} de ${coursesTotal ?? 0}):\n`;
       courses.forEach((c: any) => {
-        context += `- ${c.title} (${c.category})${c.is_premium ? ' [PREMIUM]' : ''}\n`;
+        context += `- ${c.title} (${c.category})${c.is_premium ? ' [PLUS/EQUIPO]' : ' [incluido en Gratis]'}\n`;
       });
+      context += `Si preguntan por un curso que no está en esta muestra, di que el catálogo completo está en la sección Formación.\n`;
     }
+
     const { count: resourcesCount } = await supabase
       .from('resources').select('*', { count: 'exact', head: true });
-    context += `\nRECURSOS TOTALES: ${resourcesCount || 0}\n`;
+    context += `\nRECURSOS DESCARGABLES: ${resourcesCount || 0}\n`;
 
     const { data: events } = await supabase
-      .from('events').select('title, event_type, start_date')
-      .gte('start_date', new Date().toISOString()).limit(5);
+      .from('events')
+      .select('title, event_type, start_date')
+      .eq('is_published', true)
+      .gte('start_date', new Date().toISOString())
+      .order('start_date', { ascending: true })
+      .limit(5);
     if (events?.length) {
-      context += `\nPRÓXIMOS EVENTOS (${events.length}):\n`;
+      context += `\nPRÓXIMOS EVENTOS:\n`;
       events.forEach((e: any) => {
-        context += `- ${e.title} (${e.event_type}) - ${new Date(e.start_date).toLocaleDateString()}\n`;
+        const f = new Date(e.start_date).toLocaleDateString('es-ES',
+          { day: 'numeric', month: 'long', year: 'numeric' });
+        context += `- ${e.title} (${e.event_type}) — ${f}\n`;
       });
     }
+
+    const hoy = new Date().toISOString().slice(0, 10);
     const { count: jobsCount } = await supabase
-      .from('job_listings_public').select('*', { count: 'exact', head: true }).eq('is_active', true);
+      .from('job_listings_public').select('*', { count: 'exact', head: true })
+      .eq('is_active', true).or(`expires_at.is.null,expires_at.gte.${hoy}`);
     context += `\nOFERTAS DE EMPLEO ACTIVAS: ${jobsCount || 0}\n`;
+
     const { count: promotionsCount } = await supabase
       .from('promotions').select('*', { count: 'exact', head: true }).eq('is_active', true);
-    context += `\nPROMOCIONES ACTIVAS: ${promotionsCount || 0}\n`;
-    context += `\nROL DEL USUARIO: ${userRole || 'freemium'}\n`;
+    context += `PROMOCIONES ACTIVAS: ${promotionsCount || 0}\n`;
+    context += `PLAN DEL USUARIO: ${userRole || 'gratis'}\n`;
   } catch (error) {
     console.error('Error building context:', error);
   }
