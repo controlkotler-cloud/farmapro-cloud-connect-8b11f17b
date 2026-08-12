@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Search, User, Mail, Calendar, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { logSecurityEvent } from '@/lib/securityLogger';
-import { PAID_ROLES, ROLE_LABELS } from '@/lib/plans';
+import { PAID_ROLES, ROLE_LABELS, LEGACY_ROLES } from '@/lib/plans';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
@@ -21,6 +21,13 @@ type UserRole = Database['public']['Enums']['user_role'];
 // faltaban 'plus'/'equipo' —los planes de pago reales— por tener la lista
 // duplicada a mano aquí).
 const ROLE_OPTIONS = Object.keys(ROLE_LABELS) as UserRole[];
+
+// Solo para este desplegable de admin: distingue visualmente los roles que ya
+// no se asignan a nadie nuevo. El label compartido (ROLE_LABELS) no lleva
+// este sufijo porque también lo ve el cliente en su propio perfil (PlanTab/
+// BillingTab) — ahí "Premium (no vigente)" no tendría sentido.
+const roleOptionLabel = (role: UserRole) =>
+  LEGACY_ROLES.has(role) ? `${ROLE_LABELS[role]} (no vigente)` : ROLE_LABELS[role];
 
 interface UserProfile {
   id: string;
@@ -312,7 +319,7 @@ const AdminUsuarios = () => {
           <SelectContent>
             <SelectItem value="all">Todos los roles</SelectItem>
             {ROLE_OPTIONS.map((role) => (
-              <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>
+              <SelectItem key={role} value={role}>{roleOptionLabel(role)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -447,7 +454,7 @@ const AdminUsuarios = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {ROLE_OPTIONS.map((role) => (
-                          <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>
+                          <SelectItem key={role} value={role}>{roleOptionLabel(role)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

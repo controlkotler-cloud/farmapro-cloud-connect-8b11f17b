@@ -166,16 +166,24 @@ export const FREE_LIMITS = {
  */
 export const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
 
-/** Nombre visible de cada rol (roles antiguos incluidos hasta migrar todo a Stripe). */
+/**
+ * Nombre visible de cada rol. Orden: planes vigentes primero (el mismo orden
+ * que PLANS, de menor a mayor) + admin, luego los antiguos (premium/
+ * profesional/estudiante) — se mantienen solo para no romper a suscriptores
+ * existentes, ya no se asignan a nadie nuevo.
+ */
 export const ROLE_LABELS: Record<string, string> = {
-  admin: 'Administrador',
-  equipo: 'Equipo',
+  freemium: 'Gratis',
   plus: 'Plus',
+  equipo: 'Equipo',
+  admin: 'Administrador',
   premium: 'Premium',
   profesional: 'Profesional',
   estudiante: 'Estudiante',
-  freemium: 'Gratis',
 };
+
+/** Roles antiguos que ya no se asignan a nadie nuevo (ver PAID_ROLES/ROLE_LABELS). */
+export const LEGACY_ROLES = new Set(['premium', 'profesional', 'estudiante']);
 
 export type AccessState = 'paid' | 'free_trial' | 'free_locked';
 
