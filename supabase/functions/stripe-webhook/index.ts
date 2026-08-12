@@ -437,13 +437,14 @@ async function handleSubscriptionChange(
     if (deactivateErr) log('deactivate_team_for_owner error', { err: deactivateErr.message });
   }
 
-  await supabase.from('profiles').update({
+  const { error: profFinalErr } = await supabase.from('profiles').update({
     subscription_role: newRole,
     subscription_status: newProfileStatus,
     updated_at: new Date().toISOString(),
   }).eq('id', row.user_id);
+  if (profFinalErr) throw new Error(`profile role update failed: ${profFinalErr.message}`);
 
-  log('subscription change applied', { userId: row.user_id, newRole, newStatus });
+  log('subscription change applied', { userId: row.user_id, newRole, rawStatus, dbStatus });
 }
 
 function json(payload: unknown, status = 200) {
@@ -452,3 +453,18 @@ function json(payload: unknown, status = 200) {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
+
+function toDbStatus(stripeStatus: string): string {
+  switch (stripeStatus) {
+    case 'active': return 'active';
+    case 'trialing': return 'trialing';
+    case 'past_due':
+    case 'incomplete': return 'past_due';
+    case 'unpaid':
+    case 'incomplete_expired': return 'expired';
+    case 'canceled':
+    case 'paused': return 'canceled';
+    default: return 'expired';
+  }
+}
+
