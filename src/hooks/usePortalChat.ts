@@ -95,7 +95,13 @@ export const usePortalChat = () => {
         description: error instanceof Error ? error.message : 'Error al enviar el mensaje',
         variant: 'destructive',
       });
-      setMessages(prev => prev.slice(0, -1));
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === 'assistant' && last.content === '') {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
     } finally {
       setIsLoading(false);
     }

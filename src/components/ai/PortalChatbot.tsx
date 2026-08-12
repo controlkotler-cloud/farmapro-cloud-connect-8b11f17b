@@ -22,11 +22,12 @@ export const PortalChatbot = () => {
   };
 
   const suggestedQuestions = [
-    '¿Qué cursos tenéis disponibles?',
-    '¿Cómo puedo acceder a los recursos premium?',
-    '¿Hay eventos próximos?',
-    '¿Qué ofertas de empleo hay?',
+    '¿Cuánto cuesta el plan Plus?',
+    '¿Qué pasa cuando acaban los 30 días de prueba?',
+    '¿Cómo invito a alguien de mi equipo?',
+    '¿Qué cursos tenéis sobre marketing?',
   ];
+
 
   return (
     <>
