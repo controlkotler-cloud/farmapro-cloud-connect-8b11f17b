@@ -5,6 +5,8 @@ import {
   Users,
   HeartHandshake,
   Sparkles,
+  Wallet,
+  Smartphone,
   FileText,
   FileSpreadsheet,
   Image,
@@ -27,27 +29,32 @@ export interface ResourceStyle {
   Icon: LucideIcon;
 }
 
-// Categorías reales del enum resource_category (+ 'impulso' que añadimos).
+// Las 9 categorías reales del enum resource_category en Postgres (verificado en BD).
 export const RESOURCE_CATEGORIES = [
   'ventas',
   'marketing',
   'gestion',
   'liderazgo',
   'atencion',
+  'finanzas',
+  'digital',
   'impulso',
   'otros',
 ] as const;
 
 // Paleta reducida a los tokens de marca (miel/terracota/salvia/ciruela + brand).
-// Con 6 categorías reales + 'otros' y solo 5 tokens disponibles, 'impulso' reutiliza
-// terracota (ya usado por 'ventas'): ambas categorías rara vez coinciden en el mismo
-// filtro visible, así que el choque es mínimo. 'otros' queda neutro (muted), sin acento.
+// Con 8 categorías reales + 'otros' y solo 5 tokens disponibles, varias categorías
+// reutilizan tono con su prima temática más cercana (impulso~ventas, finanzas~gestión,
+// digital~marketing): rara vez coinciden en el mismo filtro visible, así que el choque
+// es mínimo. 'otros' queda neutro (muted), sin acento.
 const STYLES: Record<string, ResourceStyle> = {
   ventas: { label: 'Ventas', bg: 'bg-terracota-soft', text: 'text-terracota', Icon: TrendingUp },
   marketing: { label: 'Marketing', bg: 'bg-miel-soft', text: 'text-miel', Icon: Megaphone },
   gestion: { label: 'Gestión', bg: 'bg-salvia-soft', text: 'text-salvia', Icon: Briefcase },
   liderazgo: { label: 'Liderazgo', bg: 'bg-ciruela-soft', text: 'text-ciruela', Icon: Users },
   atencion: { label: 'Atención', bg: 'bg-brand-soft', text: 'text-brand-dark', Icon: HeartHandshake },
+  finanzas: { label: 'Finanzas', bg: 'bg-salvia-soft', text: 'text-salvia', Icon: Wallet },
+  digital: { label: 'Digital', bg: 'bg-miel-soft', text: 'text-miel', Icon: Smartphone },
   impulso: { label: 'Impulso', bg: 'bg-terracota-soft', text: 'text-terracota', Icon: Sparkles },
   otros: { label: 'Recursos', bg: 'bg-muted', text: 'text-muted-foreground', Icon: FileText },
 };

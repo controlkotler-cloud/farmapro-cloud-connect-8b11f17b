@@ -47,6 +47,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showNewThreadDialog, setShowNewThreadDialog] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -145,6 +146,8 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
           selectedCategory={selectedCategory}
           showFullNameDefault={profile?.name_display_preference !== 'initials'}
           onCreateThread={createThread}
+          open={showNewThreadDialog}
+          onOpenChange={setShowNewThreadDialog}
         />
       </div>
 
@@ -236,7 +239,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
             threads={threads}
             loading={loading}
             onThreadClick={onThreadClick}
-            onCreateThread={() => {/* Handled by NewThreadDialog */}}
+            onCreateThread={() => setShowNewThreadDialog(true)}
           />
         </CardContent>
       </Card>

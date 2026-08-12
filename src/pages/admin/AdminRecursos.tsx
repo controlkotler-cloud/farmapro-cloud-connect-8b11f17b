@@ -45,12 +45,15 @@ const AdminRecursos = () => {
   });
 
   const categories = [
+    { value: 'ventas' as ResourceCategory, label: 'Ventas' },
     { value: 'atencion' as ResourceCategory, label: 'Atención al Cliente' },
     { value: 'marketing' as ResourceCategory, label: 'Marketing' },
     { value: 'gestion' as ResourceCategory, label: 'Gestión' },
     { value: 'liderazgo' as ResourceCategory, label: 'Liderazgo' },
     { value: 'finanzas' as ResourceCategory, label: 'Finanzas' },
-    { value: 'digital' as ResourceCategory, label: 'Digital' }
+    { value: 'digital' as ResourceCategory, label: 'Digital' },
+    { value: 'impulso' as ResourceCategory, label: 'Impulso' },
+    { value: 'otros' as ResourceCategory, label: 'Otros' }
   ];
 
   const types = [

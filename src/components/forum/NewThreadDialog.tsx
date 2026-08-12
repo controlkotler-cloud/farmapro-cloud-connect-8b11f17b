@@ -19,14 +19,20 @@ interface NewThreadDialogProps {
   selectedCategory: string;
   showFullNameDefault: boolean;
   onCreateThread: (title: string, content: string, showFullName: boolean) => Promise<void>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefault, onCreateThread }: NewThreadDialogProps) => {
+export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefault, onCreateThread, open, onOpenChange }: NewThreadDialogProps) => {
   const [newThreadTitle, setNewThreadTitle] = useState('');
   const [newThreadContent, setNewThreadContent] = useState('');
   const [showFullName, setShowFullName] = useState(showFullNameDefault);
-  const [showDialog, setShowDialog] = useState(false);
+  const [internalShowDialog, setInternalShowDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  // Controlado desde fuera si se pasan open/onOpenChange (ej. abrir desde el estado vacío del foro); si no, se maneja solo.
+  const showDialog = open ?? internalShowDialog;
+  const setShowDialog = onOpenChange ?? setInternalShowDialog;
 
   const handleCreateThread = async () => {
     if (!newThreadTitle || !newThreadContent) return;
