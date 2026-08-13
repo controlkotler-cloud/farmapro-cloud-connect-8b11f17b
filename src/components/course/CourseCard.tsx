@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Clock, Award, BookOpen, BarChart3, Play, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCourseCover } from '@/lib/courseCover';
+import { CourseCover } from './CourseCover';
+
 import { useEntitlements } from '@/hooks/useEntitlements';
 import type { Course, CourseEnrollment } from '@/types/course';
 

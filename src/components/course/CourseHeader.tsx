@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Users, BookOpen, CheckCircle, Lock, BarChart3, TrendingUp, Crown, Handshake, Headset, Wallet, Laptop } from 'lucide-react';
-import { getCourseCover } from '@/lib/courseCover';
+import { CourseCover } from './CourseCover';
 import type { Course } from '@/types/course';
 
 interface CourseHeaderProps {
@@ -51,23 +51,25 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
           <div className="flex flex-col md:flex-row gap-6">
             {/* Course Image */}
             <div className="relative flex-shrink-0">
-              <div className={`relative w-full md:w-48 h-32 rounded-lg overflow-hidden shadow-soft ring-1 ring-white/20 ${getCourseCover(course.category).bg} flex items-center justify-center`}>
-                <div
-                  className={`absolute inset-0 flex items-center justify-center ${getCourseCover(course.category).onSolid}`}
-                >
-                  {getCategoryIcon(course.category, 'h-12 w-12')}
-                </div>
+              <div className="relative w-full md:w-48 h-32 rounded-lg overflow-hidden shadow-soft ring-1 ring-white/20">
+                <CourseCover
+                  category={course.category}
+                  concept={course.cover_concept}
+                  iconName={course.cover_icon}
+                  className="h-32 w-full"
+                />
                 {(course.thumbnail_url || course.featured_image_url) && (
                   <img
                     src={course.thumbnail_url || course.featured_image_url}
                     alt={course.title}
-                    className="relative w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}
                   />
                 )}
               </div>
+
               {isCompleted && (
                 <div className="absolute -top-2 -right-2">
                   <div className="bg-success text-white p-2 rounded-full shadow-soft">
