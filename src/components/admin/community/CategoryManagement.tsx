@@ -11,7 +11,8 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  Hash
+  Hash,
+  AlertTriangle
 } from 'lucide-react';
 import {
   Dialog,
@@ -158,8 +159,9 @@ const CategoryManagement = ({
                         <AlertDialogDescription>
                           Esta acción no se puede deshacer. Se eliminará la categoría "{category.name}".
                           {category._count && category._count.threads > 0 && (
-                            <span className="block mt-2 text-destructive font-medium">
-                              ⚠️ Esta categoría tiene {category._count.threads} hilo(s) asociado(s).
+                            <span className="mt-2 flex items-center gap-1.5 text-destructive font-medium">
+                              <AlertTriangle className="h-4 w-4 text-warning" />
+                              Esta categoría tiene {category._count.threads} hilo(s) asociado(s).
                             </span>
                           )}
                         </AlertDialogDescription>
