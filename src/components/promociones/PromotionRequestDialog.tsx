@@ -168,10 +168,14 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
               onCheckedChange={(v) => setConsent(v === true)}
               className="mt-0.5"
             />
-            <Label htmlFor="promo-consent" className="text-sm font-normal leading-relaxed text-muted-foreground">
-              Autorizo a farmapro a enviar mis datos de contacto a {empresa} para gestionar esta
-              solicitud. Puedo revocarlo escribiendo a entra@farmapro.es.
-            </Label>
+            <div className="text-sm font-normal leading-relaxed text-muted-foreground">
+              <Label htmlFor="promo-consent">
+                Autorizo a farmapro (Mkpro Kotler SL) a comunicar a {empresa} mi nombre, el nombre y la ciudad de mi farmacia, mi correo electrónico y, si los he indicado, mi teléfono y mi mensaje, con la única finalidad de que atienda esta solicitud. A partir de ese envío, {empresa} tratará esos datos como responsable propio y bajo su propia política de privacidad. Puedo revocar esta autorización escribiendo a entra@farmapro.es, sin que ello afecte al envío ya realizado.
+              </Label>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Guardamos una copia de esta solicitud como prueba de tu autorización y te enviamos por correo el detalle de lo que se ha compartido.
+              </p>
+            </div>
           </div>
         </div>
 
