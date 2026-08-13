@@ -9,14 +9,16 @@ import { useIsMobile } from '@/hooks/use-mobile';
 // 'servicios' reutiliza terracota (con 'distribuidor'); son categorías que rara vez
 // coinciden en el mismo filtro visible, así que el choque es mínimo. Fondos sólidos:
 // se usan aquí (no -soft) porque estos chips son botones reales de filtro.
+// `onSolid`: color legible ENCIMA del fondo sólido. Sobre miel va tinta (el blanco
+// da ~2:1 de contraste); sobre salvia, terracota, ciruela y brand-dark va blanco.
 export const companyTypes = [
-  { id: 'all', name: 'Todas las Ofertas', icon: Gift, color: 'bg-brand-dark' },
-  { id: 'laboratorio', name: 'Laboratorios', icon: Building2, color: 'bg-salvia' },
-  { id: 'distribuidor', name: 'Distribuidores', icon: Tag, color: 'bg-terracota' },
-  { id: 'software', name: 'Software', icon: ExternalLink, color: 'bg-ciruela' },
-  { id: 'equipos', name: 'Equipos', icon: Star, color: 'bg-miel' },
-  { id: 'formacion', name: 'Formación', icon: Calendar, color: 'bg-salvia' },
-  { id: 'servicios', name: 'Servicios', icon: Clock, color: 'bg-terracota' },
+  { id: 'all', name: 'Todas las Ofertas', icon: Gift, color: 'bg-brand-dark', onSolid: 'text-white' },
+  { id: 'laboratorio', name: 'Laboratorios', icon: Building2, color: 'bg-salvia', onSolid: 'text-white' },
+  { id: 'distribuidor', name: 'Distribuidores', icon: Tag, color: 'bg-terracota', onSolid: 'text-white' },
+  { id: 'software', name: 'Software', icon: ExternalLink, color: 'bg-ciruela', onSolid: 'text-white' },
+  { id: 'equipos', name: 'Equipos', icon: Star, color: 'bg-miel', onSolid: 'text-foreground' },
+  { id: 'formacion', name: 'Formación', icon: Calendar, color: 'bg-salvia', onSolid: 'text-white' },
+  { id: 'servicios', name: 'Servicios', icon: Clock, color: 'bg-terracota', onSolid: 'text-white' },
 ];
 
 interface PromotionCategoryFilterProps {
@@ -38,7 +40,7 @@ export const PromotionCategoryFilter = ({ selectedType, onTypeChange }: Promotio
             <SelectValue>
               <div className="flex items-center">
                 <div className={`p-1 rounded ${selectedCategory.color} mr-2`}>
-                  <selectedCategory.icon className="h-4 w-4 text-primary-foreground" />
+                  <selectedCategory.icon className={`h-4 w-4 ${selectedCategory.onSolid}`} />
                 </div>
                 {selectedCategory.name}
               </div>
@@ -49,7 +51,7 @@ export const PromotionCategoryFilter = ({ selectedType, onTypeChange }: Promotio
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center">
                   <div className={`p-1 rounded ${category.color} mr-2`}>
-                    <category.icon className="h-4 w-4 text-primary-foreground" />
+                    <category.icon className={`h-4 w-4 ${category.onSolid}`} />
                   </div>
                   {category.name}
                 </div>
@@ -81,12 +83,12 @@ export const PromotionCategoryFilter = ({ selectedType, onTypeChange }: Promotio
               onClick={() => onTypeChange(category.id)}
               className={`relative group transition-all duration-300 transform hover:scale-105 ${
                 selectedType === category.id
-                  ? `${category.color} text-primary-foreground shadow-lg`
+                  ? `${category.color} ${category.onSolid} shadow-lg`
                   : 'hover:shadow-md hover:bg-primary hover:text-primary-foreground'
               }`}
             >
               <div className={`p-2 rounded-lg ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
-                <category.icon className="h-4 w-4 text-primary-foreground" />
+                <category.icon className={`h-4 w-4 ${category.onSolid}`} />
               </div>
               {category.name}
             </Button>
