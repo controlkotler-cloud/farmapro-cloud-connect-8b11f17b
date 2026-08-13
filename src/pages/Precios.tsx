@@ -320,8 +320,8 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
             <span className="text-4xl font-bold">Gratis</span>
           ) : (
             <>
-              {/* Precio regular tachado (solo durante el lanzamiento) */}
-              {launchActive && (
+              {/* Precio regular tachado (solo durante el lanzamiento y si es cobrable) */}
+              {launchActive && regularPrice !== undefined && (
                 <span className="text-sm text-muted-foreground line-through">
                   Antes {formatPrice(regularPrice)} €{period}
                 </span>
