@@ -110,6 +110,15 @@ const Promociones = () => {
     });
   };
 
+  const copyPromoCode = (code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      toast({
+        title: 'Código copiado',
+        description: 'Ya lo tienes en el portapapeles.',
+      });
+    });
+  };
+
   // El teaser se muestra cuando, sin filtro aplicado, no hay ninguna promoción activa todavía.
   const noPromotionsAtAll = !loading && selectedType === 'all' && promotions.length === 0;
 
