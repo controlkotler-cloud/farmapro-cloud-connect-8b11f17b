@@ -1,9 +1,8 @@
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, Target, Star, CheckCircle, Gift, MessageSquare, Users, BookOpen } from 'lucide-react';
+import { Trophy, CheckCircle, Gift, MessageSquare, Users, BookOpen, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 interface Challenge {
   id: string;
@@ -22,84 +21,99 @@ interface ChallengeCardProps {
   index: number;
 }
 
+const getChallengeIcon = (type: string) => {
+  switch (type) {
+    case 'course_completed':
+    case 'course_started':
+      return <BookOpen className="h-6 w-6" />;
+    case 'forum_post':
+    case 'forum_reply':
+      return <MessageSquare className="h-6 w-6" />;
+    case 'resource_downloaded':
+      return <Gift className="h-6 w-6" />;
+    case 'community_engagement':
+      return <Users className="h-6 w-6" />;
+    default:
+      return <Trophy className="h-6 w-6" />;
+  }
+};
+
+const getChallengeTypeLabel = (type: string) => {
+  switch (type) {
+    case 'course_completed':
+    case 'course_started':
+      return 'Formación';
+    case 'forum_post':
+    case 'forum_reply':
+      return 'Comunidad';
+    case 'resource_downloaded':
+      return 'Recursos';
+    case 'community_engagement':
+      return 'Participación';
+    default:
+      return 'General';
+  }
+};
+
+const getUnit = (type: string, count: number) => {
+  switch (type) {
+    case 'forum_reply':
+      return count === 1 ? 'respuesta' : 'respuestas';
+    case 'forum_post':
+      return count === 1 ? 'hilo' : 'hilos';
+    case 'course_completed':
+    case 'course_started':
+      return count === 1 ? 'curso' : 'cursos';
+    case 'resource_downloaded':
+      return count === 1 ? 'recurso' : 'recursos';
+    default:
+      return count === 1 ? 'acción' : 'acciones';
+  }
+};
+
+const getStartHelp = (type: string): { text: string; linkLabel: string; to: string } => {
+  switch (type) {
+    case 'forum_reply':
+      return {
+        text: 'Entra en el foro y contesta a compañeros: resuelve una duda, cuenta cómo lo hacéis en tu farmacia o comenta una experiencia. Cuenta cada respuesta publicada.',
+        linkLabel: 'Ir al foro',
+        to: '/comunidad',
+      };
+    case 'forum_post':
+      return {
+        text: 'Abre un hilo nuevo en el foro con una duda, un caso de tu mostrador o una idea que te haya funcionado.',
+        linkLabel: 'Ir al foro',
+        to: '/comunidad',
+      };
+    case 'course_completed':
+      return {
+        text: 'Elige un curso en Formación y complétalo entero, con todos sus módulos.',
+        linkLabel: 'Ver cursos',
+        to: '/formacion',
+      };
+    case 'resource_downloaded':
+      return {
+        text: 'Descarga las plantillas, guías y checklists de la sección Recursos y aplícalas en tu farmacia.',
+        linkLabel: 'Ver recursos',
+        to: '/recursos',
+      };
+    default:
+      return {
+        text: 'Participa en la actividad del portal para avanzar en este reto: formación, recursos y comunidad suman.',
+        linkLabel: 'Ir al inicio',
+        to: '/dashboard',
+      };
+  }
+};
+
 export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps) => {
-  // Un reto está completado SOLO si tiene un completed_at no nulo
+  const navigate = useNavigate();
   const completed = progress?.completed_at !== null && progress?.completed_at !== undefined;
   const currentCount = progress?.current_count || 0;
   const progressPercentage = Math.min((currentCount / challenge.target_count) * 100, 100);
-  const hasProgress = currentCount > 0;
-
-  const getChallengeIcon = (type: string) => {
-    switch (type) {
-      case 'course_completed':
-      case 'course_started':
-        return <BookOpen className="h-6 w-6" />;
-      case 'forum_post':
-      case 'forum_reply':
-        return <MessageSquare className="h-6 w-6" />;
-      case 'resource_downloaded':
-        return <Gift className="h-6 w-6" />;
-      case 'community_engagement':
-        return <Users className="h-6 w-6" />;
-      default:
-        return <Trophy className="h-6 w-6" />;
-    }
-  };
-
-  const getChallengeTypeLabel = (type: string) => {
-    switch (type) {
-      case 'course_completed':
-      case 'course_started':
-        return 'Formación';
-      case 'forum_post':
-      case 'forum_reply':
-        return 'Comunidad';
-      case 'resource_downloaded':
-        return 'Recursos';
-      case 'community_engagement':
-        return 'Participación';
-      default:
-        return 'General';
-    }
-  };
-
-  const getChallengeTitleIcon = (type: string) => {
-    switch (type) {
-      case 'course_completed':
-      case 'course_started':
-        return <BookOpen className="h-4 w-4" />;
-      case 'forum_post':
-      case 'forum_reply':
-        return <MessageSquare className="h-4 w-4" />;
-      case 'resource_downloaded':
-        return <Gift className="h-4 w-4" />;
-      case 'community_engagement':
-        return <Users className="h-4 w-4" />;
-      default:
-        return <Trophy className="h-4 w-4" />;
-    }
-  };
-
-  const getProgressMessage = () => {
-    if (completed) return '¡Reto completado!';
-    if (!hasProgress) return 'Comienza este reto participando en las actividades relacionadas';
-    
-    const remaining = challenge.target_count - currentCount;
-    switch (challenge.type) {
-      case 'forum_post':
-        return `Te faltan ${remaining} hilos por crear`;
-      case 'forum_reply':
-        return `Te faltan ${remaining} respuestas por escribir`;
-      case 'course_completed':
-        return `Te faltan ${remaining} cursos por completar`;
-      case 'course_started':
-        return `Te faltan ${remaining} cursos por iniciar`;
-      case 'resource_downloaded':
-        return `Te faltan ${remaining} recursos por descargar`;
-      default:
-        return `Progreso: ${Math.round(progressPercentage)}% completado`;
-    }
-  };
+  const notStarted = currentCount === 0 && !completed;
+  const remaining = Math.max(challenge.target_count - currentCount, 0);
+  const help = getStartHelp(challenge.type);
 
   return (
     <motion.div
@@ -107,56 +121,71 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className={`relative transition-all ${completed ? 'border-success bg-success/10' : 'hover:shadow-lift'}`}>
+      <Card className={`relative h-full transition-all ${completed ? 'border-success bg-success/10' : 'shadow-soft hover:shadow-lift'}`}>
         {completed && (
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-3 right-3">
             <CheckCircle className="h-6 w-6 text-success" />
           </div>
         )}
-        <CardHeader>
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${completed ? 'bg-success/10 text-success' : 'bg-miel-soft text-miel'}`}>
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className={`rounded-lg p-2 ${completed ? 'bg-success/10 text-success' : 'bg-miel-soft text-miel'}`}>
               {getChallengeIcon(challenge.type)}
             </div>
-            <div>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <span>{getChallengeTitleIcon(challenge.type)}</span>
-                <span>{challenge.name}</span>
-              </CardTitle>
-              <div className="flex items-center space-x-2 mt-1">
-                <Badge variant="outline">{getChallengeTypeLabel(challenge.type)}</Badge>
-                <Badge className="bg-miel-soft text-foreground">
-                  {challenge.points_reward} pts
-                </Badge>
-              </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-miel">
+                {getChallengeTypeLabel(challenge.type)}
+              </p>
+              <h3 className="text-[19px] font-extrabold tracking-tight text-foreground leading-snug">
+                {challenge.name}
+              </h3>
             </div>
           </div>
-          <CardDescription>{challenge.description}</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span>Progreso:</span>
-              <span className="font-medium">
-                {currentCount} / {challenge.target_count}
+
+          <div className="rounded-[0.625rem] bg-brand-soft px-4 py-3">
+            <p className="text-sm font-bold text-foreground">{challenge.description}</p>
+          </div>
+
+          {notStarted && (
+            <p className="text-sm text-muted-foreground">{help.text}</p>
+          )}
+
+          <div>
+            <p className="leading-none">
+              <span className="text-[26px] font-extrabold text-foreground">{currentCount}</span>
+              <span className="ml-2 text-sm text-muted-foreground">
+                de {challenge.target_count} {getUnit(challenge.type, challenge.target_count)}
               </span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full border border-border bg-secondary">
+            </p>
+            <div className="mt-3 h-[11px] overflow-hidden rounded-full border border-border bg-secondary">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
+                className="h-full rounded-full bg-brand transition-all"
                 style={{ width: `${Math.max(progressPercentage, 4)}%` }}
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
             {completed ? (
-              <Button variant="outline" disabled className="w-full">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Completado
+              <span className="text-sm font-semibold text-success">Reto completado</span>
+            ) : notStarted ? (
+              <Button
+                variant="link"
+                className="h-auto p-0 text-sm font-semibold text-brand-dark"
+                onClick={() => navigate(help.to)}
+              >
+                {help.linkLabel}
+                <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             ) : (
-              <div className="text-sm text-muted-foreground">
-                {getProgressMessage()}
-              </div>
+              <span className="text-sm text-muted-foreground">
+                Te faltan <span className="font-extrabold text-brand-dark">{remaining}</span>
+              </span>
             )}
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-miel" />
+              Ganas {challenge.points_reward} puntos
+            </span>
           </div>
         </CardContent>
       </Card>
