@@ -6,8 +6,9 @@
 // - From: "Equipo farmapro <somos@farmapro.es>" (dominio ya autenticado).
 // - Reintenta 1 vez si falla la llamada HTTP o la respuesta no es 2xx.
 // - Deja registro en public.portal_email_log (ok|error).
-// - verify_jwt = false: la invocan otras edges con service role, la BD
-//   (pg_net desde triggers/cron) y no se expone al cliente.
+// - verify_jwt = true y, además, solo se aceptan llamadas con service role
+//   (otras edges y la BD vía pg_net). Nunca se invoca desde el cliente.
+
 // =====================================================================
 
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
@@ -65,7 +66,23 @@ serve(async (req) => {
     { auth: { persistSession: false } },
   );
 
-  let body: SendBody;
+  // Solo callers de confianza (otras edges y la BD, siempre con service role).
+  // Ningún usuario del portal puede usar esta función como relé de correo.
+  const bearer = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '').trim();
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  let esServiceRole = bearer !== '' && bearer === serviceKey;
+  if (!esServiceRole && bearer) {
+    try {
+      const claims = JSON.parse(atob(bearer.split('.')[1] ?? ''));
+      esServiceRole = claims?.role === 'service_role';
+    } catch { /* token no JWT */ }
+  }
+  if (!esServiceRole) {
+    log('forbidden caller');
+    return json({ error: 'Forbidden' }, 403);
+  }
+
+
   try {
     body = await req.json();
   } catch {
