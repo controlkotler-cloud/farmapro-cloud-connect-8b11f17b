@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Award, BookOpen, BarChart3, Play, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getCourseCover } from '@/lib/courseCover';
 import { CourseCover } from './CourseCover';
 
 import { useEntitlements } from '@/hooks/useEntitlements';
@@ -50,7 +49,6 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
   // Si no puede acceder por estar bloqueado/limitado (no por ser premium con
   // plan distinto), ofrecemos un CTA hacia Precios en vez de un botón muerto.
   const showPlanCta = !canAccess && (isLocked || !course.is_premium);
-  const cover = getCourseCover(course.category);
   const difficulty = getDifficulty(course.difficulty);
 
   // Nº de lecciones: usa total_lessons real si está; si no, cuenta módulos.
