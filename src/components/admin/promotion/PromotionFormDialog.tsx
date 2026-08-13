@@ -44,7 +44,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
     is_active: true,
     valid_until: '',
     terms_conditions: '',
-    image_url: ''
+    image_url: '',
+    target_url: ''
   });
 
   useEffect(() => {
@@ -58,7 +59,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
         is_active: editingPromotion.is_active,
         valid_until: editingPromotion.valid_until ? editingPromotion.valid_until.split('T')[0] : '',
         terms_conditions: editingPromotion.terms_conditions || '',
-        image_url: editingPromotion.image_url || ''
+        image_url: editingPromotion.image_url || '',
+        target_url: editingPromotion.target_url || ''
       });
       setOpen(true);
     }
@@ -74,7 +76,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
       is_active: true,
       valid_until: '',
       terms_conditions: '',
-      image_url: ''
+      image_url: '',
+      target_url: ''
     });
   };
 
@@ -91,11 +94,19 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate image URL only if it's not empty
+    // Validate image and target URLs only if they are not empty
     if (formData.image_url.trim() && !isValidUrl(formData.image_url)) {
       toast({
         title: "Error",
         description: "La URL de la imagen no es válida",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (formData.target_url.trim() && !isValidUrl(formData.target_url)) {
+      toast({
+        title: "Error",
+        description: "El enlace de la promoción no es válido",
         variant: "destructive",
       });
       return;
@@ -113,7 +124,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
         is_active: formData.is_active,
         valid_until: formData.valid_until ? new Date(formData.valid_until).toISOString() : null,
         terms_conditions: formData.terms_conditions.trim() || null,
-        image_url: formData.image_url.trim() || null
+        image_url: formData.image_url.trim() || null,
+        target_url: formData.target_url.trim() || null
       };
 
       let error;
