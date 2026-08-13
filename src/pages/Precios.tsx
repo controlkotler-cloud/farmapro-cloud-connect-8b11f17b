@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { extractFunctionErrorMessage } from "@/lib/functionsError";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
 import { supabase } from "@/integrations/supabase/client";
+import { useLaunchStatus } from "@/hooks/useLaunchStatus";
 import {
   PLANS,
   LAUNCH,
-  getLaunchStatus,
+  ANNUAL_REGULAR_AVAILABLE,
   IMAGE_ADDONS,
   FREE_LIMITS,
   type Plan,
@@ -37,9 +39,10 @@ export default function Precios() {
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   // Plan cuyo checkout está en curso (deshabilita su botón e ignora dobles clics).
   const [checkoutLoading, setCheckoutLoading] = useState<PlanId | null>(null);
-  // Estado del lanzamiento: decide si rige el precio de lanzamiento o el normal,
-  // y alimenta el aviso de urgencia (plazas restantes + cuenta atrás).
-  const launch = getLaunchStatus();
+  // Estado del lanzamiento con el recuento REAL de plazas (vista founder_count).
+  const { launch } = useLaunchStatus();
+  // El anual solo se ofrece si sigue el lanzamiento o ya existen los precios anuales regulares.
+  const annualAvailable = launch.active || ANNUAL_REGULAR_AVAILABLE;
   // Miembro de un equipo (no titular): ya tiene acceso completo, sin CTAs de compra.
   // isTeamMember (señal viva) en vez de profile.subscription_role (cacheado).
   const showTeamMemberBanner = isTeamMember && !teamLoading && !isTeamOwner;
@@ -47,6 +50,11 @@ export default function Precios() {
     100,
     Math.round(((LAUNCH.spots - launch.spotsLeft) / LAUNCH.spots) * 100),
   );
+
+  // Si el anual deja de estar disponible, vuelve a mensual.
+  useEffect(() => {
+    if (!annualAvailable && billing === "yearly") setBilling("monthly");
+  }, [annualAvailable, billing]);
 
   const handleSubscribe = async (planId: PlanId) => {
     if (planId === "gratis") return;
@@ -63,17 +71,29 @@ export default function Precios() {
     setCheckoutLoading(null);
 
     if (error || !data?.url) {
+      const detail =
+        (await extractFunctionErrorMessage(error)) ??
+        (typeof data?.error === "string" ? data.error : undefined);
       toast({
         title: "No se ha podido iniciar el pago",
         description:
+          detail ??
           "Inténtalo de nuevo en unos segundos. Si persiste, escríbenos a soporte@farmapro.es.",
         variant: "destructive",
       });
       return;
     }
 
+    if (data.mode === "portal") {
+      toast({
+        title: "Ya tienes una suscripción activa",
+        description: "Te llevamos a tu facturación para cambiar de plan.",
+      });
+    }
+
     window.location.href = data.url;
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -147,31 +167,35 @@ export default function Precios() {
           <p className="text-sm text-muted-foreground mt-3">Todos los precios con IVA incluido.</p>
         </div>
 
-        {/* Toggle Mensual / Anual */}
-        <div className="flex items-center justify-center gap-3 mb-12">
-          <span
-            className={`text-sm font-medium ${
-              billing === "monthly" ? "text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            Mensual
-          </span>
-          <Switch
-            checked={billing === "yearly"}
-            onCheckedChange={(checked) => setBilling(checked ? "yearly" : "monthly")}
-            aria-label="Cambiar entre facturación mensual y anual"
-          />
-          <span
-            className={`text-sm font-medium ${
-              billing === "yearly" ? "text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            Anual
-          </span>
-          <Badge variant="secondary" className="text-primary border-primary/30">
-            2 meses gratis
-          </Badge>
-        </div>
+        {/* Toggle Mensual / Anual (el anual solo si Stripe puede cobrarlo) */}
+        {annualAvailable && (
+          <div className="flex items-center justify-center gap-3 mb-12">
+            <span
+              className={`text-sm font-medium ${
+                billing === "monthly" ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              Mensual
+            </span>
+            <Switch
+              checked={billing === "yearly"}
+              onCheckedChange={(checked) => setBilling(checked ? "yearly" : "monthly")}
+              aria-label="Cambiar entre facturación mensual y anual"
+            />
+            <span
+              className={`text-sm font-medium ${
+                billing === "yearly" ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              Anual
+            </span>
+            <Badge variant="secondary" className="text-primary border-primary/30">
+              2 meses gratis
+            </Badge>
+          </div>
+        )}
+        {!annualAvailable && <div className="mb-12" />}
+
 
         {/* Tarjetas de planes */}
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
@@ -264,11 +288,15 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
   const period = billing === "yearly" ? "/año" : "/mes";
 
   // Precio regular vigente (sin lanzamiento). Anual = 10x mensual (2 meses gratis).
-  const regularPrice = billing === "yearly" ? plan.priceMonthly * 10 : plan.priceMonthly;
+  // El anual regular solo se muestra si Stripe ya puede cobrarlo.
+  const regularAnnualShown = billing !== "yearly" || ANNUAL_REGULAR_AVAILABLE;
+  const regularPriceRaw = billing === "yearly" ? plan.priceMonthly * 10 : plan.priceMonthly;
+  const regularPrice = regularAnnualShown ? regularPriceRaw : undefined;
   const launchPrice =
     billing === "yearly" ? plan.priceYearlyLaunch : plan.priceMonthlyLaunch;
   // Precio que se cobra realmente ahora mismo.
   const currentPrice = launchActive ? launchPrice : regularPrice;
+
 
   return (
     <Card
@@ -292,8 +320,8 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
             <span className="text-4xl font-bold">Gratis</span>
           ) : (
             <>
-              {/* Precio regular tachado (solo durante el lanzamiento) */}
-              {launchActive && (
+              {/* Precio regular tachado (solo durante el lanzamiento y si es cobrable) */}
+              {launchActive && regularPrice !== undefined && (
                 <span className="text-sm text-muted-foreground line-through">
                   Antes {formatPrice(regularPrice)} €{period}
                 </span>

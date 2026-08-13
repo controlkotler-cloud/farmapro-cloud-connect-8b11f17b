@@ -97,9 +97,32 @@ serve(async (req) => {
     // ============================================================
     // RAMA SUSCRIPCIÓN (Plus / Equipo)
     // ============================================================
+
+    // Guard antiduplicado: si ya hay suscripción viva, al portal de cliente.
+    const { data: prof } = await admin
+      .from('profiles')
+      .select('stripe_customer_id')
+      .eq('id', user.id)
+      .maybeSingle();
+    const existingCustomerId = (prof?.stripe_customer_id as string | null) ?? customerId;
+
+    if (existingCustomerId) {
+      const subs = await stripe.subscriptions.list({ customer: existingCustomerId, status: 'all', limit: 100 });
+      const live = subs.data.filter((s) => ['active', 'trialing', 'past_due'].includes(s.status));
+      if (live.length > 0) {
+        const portal = await stripe.billingPortal.sessions.create({
+          customer: existingCustomerId,
+          return_url: `${origin}/perfil?checkout=success`,
+        });
+        log('existing subscription, redirecting to portal', { customer: existingCustomerId });
+        return json({ url: portal.url, mode: 'portal' });
+      }
+    }
+
     const { data: fc } = await admin.from('founder_count').select('spots_taken').maybeSingle();
     const spotsTaken = (fc?.spots_taken ?? 0) as number;
     const founderSpotsLeft = Math.max(0, FOUNDER_TOTAL - spotsTaken);
+
 
     let priceId: string; let founder: boolean;
     try {

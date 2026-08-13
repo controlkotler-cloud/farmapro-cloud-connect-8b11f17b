@@ -28,13 +28,18 @@ export const STRIPE_PRICES = {
     monthly:        Deno.env.get('STRIPE_PRICE_PLUS_MONTHLY')        ?? 'TODO_price_plus_monthly',
     monthly_launch: Deno.env.get('STRIPE_PRICE_PLUS_MONTHLY_LAUNCH') ?? 'TODO_price_plus_monthly_launch',
     yearly_launch:  Deno.env.get('STRIPE_PRICE_PLUS_YEARLY_LAUNCH')  ?? 'TODO_price_plus_yearly_launch',
+    /** Anual regular (fuera de lanzamiento). Vacío mientras no exista en Stripe. */
+    yearly:         Deno.env.get('STRIPE_PRICE_PLUS_YEARLY')         ?? '',
   },
   equipo: {
     monthly:        Deno.env.get('STRIPE_PRICE_EQUIPO_MONTHLY')        ?? 'TODO_price_equipo_monthly',
     monthly_launch: Deno.env.get('STRIPE_PRICE_EQUIPO_MONTHLY_LAUNCH') ?? 'TODO_price_equipo_monthly_launch',
     yearly_launch:  Deno.env.get('STRIPE_PRICE_EQUIPO_YEARLY_LAUNCH')  ?? 'TODO_price_equipo_yearly_launch',
+    /** Anual regular (fuera de lanzamiento). Vacío mientras no exista en Stripe. */
+    yearly:         Deno.env.get('STRIPE_PRICE_EQUIPO_YEARLY')         ?? '',
   },
 } as const;
+
 
 /** Packs de imágenes (pago único). Metadata en Stripe: pack_credits=<n>. */
 export const IMAGE_PACK_PRICES: Record<number, string> = {
@@ -54,11 +59,15 @@ export function pickSubscriptionPrice(
 ): { priceId: string; founder: boolean } {
   const founderActive = founderSpotsLeft > 0;
   if (cycle === 'yearly') {
-    // El precio anual SOLO existe como lanzamiento. Si se agota, no permitimos anual.
-    if (!founderActive) {
-      throw new Error('El precio anual solo está disponible durante el lanzamiento fundador.');
+    if (founderActive) {
+      return { priceId: STRIPE_PRICES[plan].yearly_launch, founder: true };
     }
-    return { priceId: STRIPE_PRICES[plan].yearly_launch, founder: true };
+    // Fuera de lanzamiento: usa el anual regular si ya existe en Stripe.
+    const regularYearly = STRIPE_PRICES[plan].yearly;
+    if (regularYearly) {
+      return { priceId: regularYearly, founder: false };
+    }
+    throw new Error('El precio anual solo está disponible durante el lanzamiento fundador.');
   }
   return founderActive
     ? { priceId: STRIPE_PRICES[plan].monthly_launch, founder: true }
@@ -72,9 +81,11 @@ export function lookupPrice(priceId: string): { plan: PlanId; cycle: Cycle; foun
     if (priceId === p.monthly)        return { plan, cycle: 'monthly', founder: false };
     if (priceId === p.monthly_launch) return { plan, cycle: 'monthly', founder: true };
     if (priceId === p.yearly_launch)  return { plan, cycle: 'yearly',  founder: true };
+    if (p.yearly && priceId === p.yearly) return { plan, cycle: 'yearly', founder: false };
   }
   return null;
 }
+
 
 /** Roles que jamás se degradan por eventos de Stripe. */
 export const PROTECTED_ROLES = ['admin'] as const;

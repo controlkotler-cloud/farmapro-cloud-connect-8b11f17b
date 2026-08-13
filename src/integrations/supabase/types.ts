@@ -125,6 +125,24 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_image_credits: {
+        Row: {
+          balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_image_usage: {
         Row: {
           period: string
