@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PromotionCategoryFilter } from '@/components/admin/promotion/PromotionCategoryFilter';
+import { companyTypes } from '@/components/admin/promotion/PromotionCategoryFilter';
 import { useToast } from '@/hooks/use-toast';
 import { PromotionRequestDialog } from '@/components/promociones/PromotionRequestDialog';
 
@@ -242,7 +243,7 @@ const Promociones = () => {
                         <span
                           className={`absolute top-3 right-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] shadow-soft ${getCompanyTypeColor(promotion.company_type)}`}
                         >
-                          {promotion.company_type}
+                          {companyTypes.find((type) => type.id === promotion.company_type)?.name || promotion.company_type}
                         </span>
                       </div>
                       <CardHeader className="pb-3">

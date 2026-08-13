@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { companyTypes } from './PromotionCategoryFilter';
 
 interface Promotion {
   id: string;
@@ -111,6 +113,14 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
       toast({
         title: "Error",
         description: "El enlace de la promoción no es válido",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!formData.company_type) {
+      toast({
+        title: "Error",
+        description: "Selecciona un tipo de empresa",
         variant: "destructive",
       });
       return;
@@ -232,13 +242,24 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="company_type">Tipo de empresa *</Label>
-              <Input
-                id="company_type"
+              <Select
                 value={formData.company_type}
-                onChange={(e) => setFormData({ ...formData, company_type: e.target.value })}
-                placeholder="ej: Laboratorio, Distribuidora, etc."
+                onValueChange={(value) => setFormData({ ...formData, company_type: value })}
                 required
-              />
+              >
+                <SelectTrigger id="company_type">
+                  <SelectValue placeholder="Selecciona un tipo de empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companyTypes
+                    .filter((type) => type.id !== 'all')
+                    .map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="discount_details">Detalles del descuento</Label>
