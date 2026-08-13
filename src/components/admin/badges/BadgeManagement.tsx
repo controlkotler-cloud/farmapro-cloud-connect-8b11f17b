@@ -58,7 +58,7 @@ export const BadgeManagement = () => {
   const [form, setForm] = useState({
     name: '',
     description: '',
-    icon: '🏆',
+    icon: 'Award',
     category: 'especial',
     requirement_type: 'manual',
     requirement_value: 1,
@@ -120,7 +120,7 @@ export const BadgeManagement = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: '', description: '', icon: '🏆', category: 'especial', requirement_type: 'manual', requirement_value: 1, is_active: true });
+    setForm({ name: '', description: '', icon: 'Award', category: 'especial', requirement_type: 'manual', requirement_value: 1, is_active: true });
     setDialogOpen(true);
   };
 
@@ -145,8 +145,8 @@ export const BadgeManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Gestión de Insignias</h2>
-        <Button onClick={openCreate}><Plus className="h-4 w-4 mr-2" />Nueva Insignia</Button>
+        <h2 className="text-xl font-bold">Gestión de insignias</h2>
+        <Button onClick={openCreate}><Plus className="h-4 w-4 mr-2" />Nueva insignia</Button>
       </div>
 
       {isLoading ? (
@@ -156,11 +156,11 @@ export const BadgeManagement = () => {
           {badges.map(badge => (
             <Card key={badge.id}>
               <CardContent className="p-4 flex items-center gap-4">
-                <span className="text-3xl">{badge.icon}</span>
+                <BadgeMedal icon={badge.icon} category={badge.category} earned size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{badge.name}</p>
-                    <Badge variant="outline" className="text-xs">{badge.category}</Badge>
+                    <Badge variant="outline" className="text-xs">{CATEGORY_LABELS[badge.category] ?? badge.category}</Badge>
                     {!badge.is_active && <Badge variant="secondary" className="text-xs">Inactivo</Badge>}
                   </div>
                   <p className="text-sm text-muted-foreground">{badge.description}</p>
@@ -185,13 +185,28 @@ export const BadgeManagement = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? 'Editar Insignia' : 'Nueva Insignia'}</DialogTitle>
+            <DialogTitle>{editing ? 'Editar insignia' : 'Nueva insignia'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-[60px_1fr] gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Icono</Label>
-                <Input value={form.icon} onChange={e => setForm(f => ({ ...f, icon: e.target.value }))} className="text-center text-2xl" />
+                <Select value={form.icon} onValueChange={v => setForm(f => ({ ...f, icon: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ICON_NAMES.map(nombre => {
+                      const Icon = BADGE_ICONS[nombre];
+                      return (
+                        <SelectItem key={nombre} value={nombre}>
+                          <span className="flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            {nombre}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Nombre</Label>
