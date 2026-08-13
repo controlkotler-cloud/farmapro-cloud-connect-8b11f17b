@@ -28,13 +28,18 @@ export const STRIPE_PRICES = {
     monthly:        Deno.env.get('STRIPE_PRICE_PLUS_MONTHLY')        ?? 'TODO_price_plus_monthly',
     monthly_launch: Deno.env.get('STRIPE_PRICE_PLUS_MONTHLY_LAUNCH') ?? 'TODO_price_plus_monthly_launch',
     yearly_launch:  Deno.env.get('STRIPE_PRICE_PLUS_YEARLY_LAUNCH')  ?? 'TODO_price_plus_yearly_launch',
+    /** Anual regular (fuera de lanzamiento). Vacío mientras no exista en Stripe. */
+    yearly:         Deno.env.get('STRIPE_PRICE_PLUS_YEARLY')         ?? '',
   },
   equipo: {
     monthly:        Deno.env.get('STRIPE_PRICE_EQUIPO_MONTHLY')        ?? 'TODO_price_equipo_monthly',
     monthly_launch: Deno.env.get('STRIPE_PRICE_EQUIPO_MONTHLY_LAUNCH') ?? 'TODO_price_equipo_monthly_launch',
     yearly_launch:  Deno.env.get('STRIPE_PRICE_EQUIPO_YEARLY_LAUNCH')  ?? 'TODO_price_equipo_yearly_launch',
+    /** Anual regular (fuera de lanzamiento). Vacío mientras no exista en Stripe. */
+    yearly:         Deno.env.get('STRIPE_PRICE_EQUIPO_YEARLY')         ?? '',
   },
 } as const;
+
 
 /** Packs de imágenes (pago único). Metadata en Stripe: pack_credits=<n>. */
 export const IMAGE_PACK_PRICES: Record<number, string> = {
