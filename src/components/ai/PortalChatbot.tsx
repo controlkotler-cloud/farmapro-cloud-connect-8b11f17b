@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { MessageCircle, X, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,12 +13,40 @@ export const PortalChatbot = () => {
   const [input, setInput] = useState('');
   const { messages, isLoading, sendMessage, clearChat } = usePortalChat();
 
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const forceScrollRef = useRef(false);
+
+  // El área desplazable real de Radix es el viewport interno, no la raíz.
+  const getViewport = () =>
+    scrollAreaRef.current?.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]') ?? null;
+
+  useEffect(() => {
+    const viewport = getViewport();
+    if (!viewport) return;
+
+    // Si el usuario ha subido a leer historial, no le arrastramos la vista;
+    // salvo que acabe de enviar un mensaje (entonces siempre bajamos).
+    const distanceFromBottom =
+      viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
+    const nearBottom = distanceFromBottom < 120;
+
+    if (forceScrollRef.current || nearBottom) {
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: forceScrollRef.current ? 'smooth' : 'auto',
+      });
+      forceScrollRef.current = false;
+    }
+  }, [messages, isLoading, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    
-    await sendMessage(input);
+
+    forceScrollRef.current = true;
+    const texto = input;
     setInput('');
+    await sendMessage(texto);
   };
 
   const suggestedQuestions = [
@@ -81,7 +109,7 @@ export const PortalChatbot = () => {
           </div>
 
           {/* Messages */}
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
             {messages.length === 0 ? (
               <div className="space-y-4">
                 <p className="text-muted-foreground text-sm">
