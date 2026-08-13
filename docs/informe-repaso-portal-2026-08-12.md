@@ -22,8 +22,8 @@
 | Área | Estado |
 |---|---|
 | Bot de soporte | 🔴 No sirve como soporte: no conoce precios, planes ni cómo hacer nada |
-| Seguridad / RLS | 🔴 Queda el plan Equipo gratis (P1). El relé de correo abierto (P2) está **cerrado** el 12-08 |
-| Pagos (Stripe) | 🔴 El checkout real del 15-07 **no dejó fila en `subscriptions`** y nadie se enteró |
+| Seguridad / RLS | 🟢 P1, P1b y P2 **cerrados** el 12-08 (plan Equipo gratis, créditos de imagen gratis, relé de correo) |
+| Pagos (Stripe) | 🟢 P3 **cerrado** el 12-08: los fallos ya son visibles y reintentables. Quedan A2/A3/A4 |
 | Email | 🔴 18 de 22 envíos del portal han fallado; hoy mismo falló uno |
 | Contenido | 🟢 Los 34 cursos tienen contenido y los 64 recursos su fichero (corregido 12-08) |
 | Bloqueo del plan Gratis | 🟠 El corte a los 30 días es código muerto: no bloquea a nadie |
@@ -156,7 +156,25 @@ cuántos cursos hay · qué es La Rebotica · cuántas imágenes puedo generar a
 
 # 2. Bloqueantes (arreglar antes de abrir al público)
 
-**🔴 P1 — Cualquier usuario registrado puede regalarse el plan Equipo.**
+**✅ P1 — CERRADO el 12-08.** Retiradas las políticas `FOR ALL` de `team_subscriptions` y `team_members`
+(el navegador solo hacía SELECT sobre ambas; todas las escrituras van por `manage-team` con service role) y
+añadida una política de SELECT para el titular, que si no se quedaba sin listar su equipo. Verificado: en
+`team_subscriptions` solo queda un SELECT más la ALL de admin, y en `team_members` tres SELECT. SQL en
+`contenido/fix-P1-rls-equipo-y-creditos-2026-08-12.sql`.
+**No se endureció `is_team_owner_strict`** a propósito: con `subscriptions` vacía (P3) y el único equipo real
+sin `stripe_subscription_id`, exigir prueba de pago dejaría hoy mismo al titular legítimo fuera de su equipo.
+Va después de P3.
+
+**✅ P1b — CERRADO el 12-08. Créditos de imagen gratis para cualquiera (hallazgo nuevo).**
+`add_image_credits(uuid, integer)` es `SECURITY DEFINER`, acepta usuario y cantidad arbitrarios, no comprueba
+ni quién llama ni que haya pago, y tenía `EXECUTE` concedido a `authenticated` **y a `anon`**. Es decir,
+`rpc('add_image_credits', { p_user: '<uid>', p_credits: 999999 })` desde el navegador —sin sesión siquiera—
+daba generación de imágenes ilimitada, con coste real de 0,07-0,11 € por imagen y los packs de 4,99/9,99/16,99 €
+vaciados de sentido. Único invocador legítimo: `stripe-webhook` (service role). Revocado a `anon`,
+`authenticated` y `public`; verificado que `has_function_privilege` devuelve false para los dos primeros.
+`consume_image_credit` no se tocó: usa `auth.uid()` internamente y está bien.
+
+**~~🔴 P1 — Cualquier usuario registrado puede regalarse el plan Equipo.~~**
 Las políticas `Owners can manage team_subscriptions` y `Team owners can manage subscriptions` son
 `FOR ALL TO authenticated` con `USING/WITH CHECK (owner_id = auth.uid())` — verificado hoy en `pg_policies`.
 Eso permite un `INSERT` desde la consola del navegador con `{owner_id: <mi uid>, status:'active', max_members: 999}`.
@@ -185,7 +203,15 @@ Con Mailrelay en warm-up y ya con la cuenta "under review", un script basta para
 *Arreglo:* `verify_jwt = true` (los cuatro invocadores ya mandan la service role key, no rompe nada) y, de
 refuerzo, el patrón `x-internal-key` que ya usa `clientify-sync:181-183`.
 
-**🔴 P3 — El checkout real no dejó fila en `subscriptions`, y el fallo se tragó en silencio.**
+**✅ P3 — CERRADO el 12-08.** Idempotencia en dos tiempos (`completed_at`/`last_error` en `stripe_events`),
+errores de BD que ahora lanzan y devuelven 500 para que Stripe reintente, mapeo de estados de Stripe al enum
+(fallo vivo que se descubrió por el camino) y filtro `origen='portal'` en checkout y suscripciones. Detalle
+y verificación en `docs/fix-P3-webhook-stripe-2026-08-12.md`.
+**Matiz honesto:** la causa concreta del fallo de julio no se pudo reproducir —el pago de prueba de hoy
+recorrió el mismo camino sin problemas— así que lo que se ha arreglado es el problema estructural: que un
+fallo fuera invisible e irrecuperable. Descripción original abajo.
+
+**~~🔴 P3 — El checkout real no dejó fila en `subscriptions`, y el fallo se tragó en silencio.~~**
 `stripe-webhook/index.ts:192-205` hace el `upsert` y solo escribe un `log()` si falla. Estado real: el evento
 `checkout.session.completed` del 15-07 está procesado en `stripe_events`, el perfil quedó actualizado a
 `subscription_role='equipo'`… y **`select count(*) from subscriptions` = 0**. Consecuencias en cadena, todas
@@ -387,9 +413,10 @@ configurado (por casualidad); el día que los actives, seguirán ocultos para to
 
 **Esta semana (bloquean el lanzamiento):**
 1. ~~P2 — `verify_jwt = true` en `send-portal-email`.~~ **HECHO 12-08.**
-2. P1 — Cerrar la RLS de `team_subscriptions`.
-3. P3 — Comprobar el error del upsert en el webhook y reordenar la escritura.
+2. ~~P1 y P1b — RLS de equipo y revocado de `add_image_credits`.~~ **HECHO 12-08.**
+3. ~~P3 — Robustez del webhook de Stripe.~~ **HECHO 12-08.**
 4. P4 — Consultar `suppressed_emails`, reintentar solo 5xx, mover el log de `notify_trial_ending`.
+   **Es el siguiente.**
 5. **Bot**: base de conocimiento + arreglo del contexto (Anexos A y B).
 
 **Siguiente tanda:** A1 (bloqueo del gratis), A5 (filtro `origen`), A8 (guardián de descarga sin fichero), C2 (pestañas de los CTAs de email), C4/C4b (contadores de curso y de quiz), C5 (categorías).

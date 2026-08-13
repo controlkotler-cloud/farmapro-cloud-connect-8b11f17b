@@ -94,19 +94,24 @@ Una sola tanda a Lovable con TODO lo de backend (es lo único que no podemos hac
 
 ### 4.2 Calendario (cruzar con calendario maestro y ESTADO-PRODUCCION antes de fijar)
 
+**AJUSTE 13-08 (Francesc): jerarquía portal-primero.** El lanzamiento es DEL PORTAL; la Rebotica es el instrumento de engagement dentro de él. En toda pieza donde convivan: primero el portal, después el cajón. La presentación del portal (pieza 1) siempre delante de la Rebotica 60s (pieza 2); cuentas atrás ancladas con rótulo "se abre el portal de farmapro"; email D-day reordenado (portal → cajonera → plazas fundador). El manifiesto de LinkedIn se MUEVE del 18-08 al lunes 7-09: sin el teaser 2 delante, "regalamos en vez de descontar" confundía (farmapro vende servicios); el 7-09 ya tiene referente. Cronograma operativo completo (edición + publicaciones + prensa, día a día): `portal-cronograma-lanzamiento-completo.md`.
+
 Cadencia editorial actual (jueves alternos): N25 06-08 · C6 13-08 · N26 20-08 · C7 27-08 · N27 03-09 · **hueco comercial 10-09** · N28 17-09.
 
-| Fecha | Pieza | Contenido Rebotica |
+| Fecha | Pieza | Contenido |
 |---|---|---|
 | 20-08 (N26) | teaser 1 | P.D. enigmática: "estamos montando algo en la rebotica" |
 | 03-09 (N27) | teaser 2 | Bloque propio: la cajonera cerrada, "el jueves 10 se abre, todos tienen premio" |
-| **Jue 10-09** | **D-day: envío especial** (ocupa el hueco de la serie comercial: el lanzamiento ES la campaña C8) | Cajonera + elige tu cajón + 100 plazas fundador. Firma Alejandro |
+| **Lun 07-09** | **Manifiesto** (movido del 18-08) | Blog pilar + LinkedIn Alejandro (rutina lunes): "por qué regalamos en vez de descontar", encuadrado como filosofía del PORTAL + vídeo pieza 3. Mismo día: cuenta atrás 1 en redes |
+| Ma 08-09 | Prensa + carga portal | NdP (embargo 10-09), ángulo "nace el portal de formación y comunidad con IA". Masterclasses al vault, bienvenida, intros |
+| Mi 09-09 | Redes + web | Cuenta atrás 2 · /rebotica live (vídeo pieza 2) · congelar (runbook swap) |
+| **Jue 10-09** | **D-day: envío especial** (ocupa el hueco de la serie comercial: el lanzamiento ES la campaña C8) | **Orden nuevo**: 1) el portal abierto y qué hay dentro (vídeo pieza 1) → 2) la cajonera + elige tu cajón (CTA del día) → 3) 100 plazas fundador. Firma Alejandro. P.D.: link al manifiesto |
 | 14-09 (lun) | RE a no abridores + redes | Social proof: primeros premios entregados (con permiso) |
 | 17-09 (N28) | newsletter | "La Respuesta": qué ha salido de los cajones; recordatorio fundador |
 | 24-09 | Cajón de la Quincena nº 2 | Primer cajón patrocinado (partner fundador) |
 | Oct | quincenal estable | Racha + Fórmula Magistral (fase 2) |
 
-Redes: cuenta atrás semana del 7-09, vídeo de Alejandro el lunes 7-09 (rutina lunes ya existente), post recurrente "lo que ha salido del cajón" cada quincena. Blog: artículo pilar + bases legales enlazadas.
+Redes: cuentas atrás 7-09 y 9-09 (fechas SIEMPRE en rótulo), LinkedIn del D-day con el vídeo del portal primero (la Rebotica 60s, después), post recurrente "lo que ha salido del cajón" cada quincena. Blog: artículo pilar + bases legales enlazadas.
 
 ### 4.3 La capa memorable (≤500 €)
 
