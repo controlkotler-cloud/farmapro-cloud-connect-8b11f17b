@@ -3,7 +3,6 @@ import {
   Megaphone,
   Briefcase,
   Users,
-  HeartHandshake,
   Headset,
   Monitor,
   Sparkles,
