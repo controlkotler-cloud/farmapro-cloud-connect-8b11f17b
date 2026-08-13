@@ -207,14 +207,14 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
         ) : (
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Nueva Promoción
+            Nueva promoción
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingPromotion ? 'Editar Promoción' : 'Nueva Promoción'}
+            {editingPromotion ? 'Editar promoción' : 'Nueva promoción'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -26,7 +26,7 @@ export const SectionVisibilitySettings = ({ config, onSave }: SectionVisibilityS
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Control de Visibilidad de Secciones
+            Control de visibilidad de Secciones
           </CardTitle>
           <CardDescription>
             Controla qué secciones son visibles para los usuarios públicos. Las secciones deshabilitadas no aparecerán en el menú lateral.

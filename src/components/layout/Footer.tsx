@@ -43,7 +43,7 @@ const Footer = () => {
             to="/contacto-soporte"
             className="hover:text-foreground transition-colors"
           >
-            Contacto y Soporte
+            Contacto y soporte
           </Link>
         </div>
       </div>

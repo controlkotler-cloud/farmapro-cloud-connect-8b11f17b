@@ -109,7 +109,7 @@ const ChallengeHistory = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
-          Historial de Retos Completados
+          Historial de retos completados
         </CardTitle>
       </CardHeader>
       <CardContent>

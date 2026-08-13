@@ -34,7 +34,7 @@ export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
             </div>
 
             <div>
-              <h3 className="text-xl font-bold text-foreground">Progreso de Nivel</h3>
+              <h3 className="text-xl font-bold text-foreground">Progreso de nivel</h3>
               <p className="text-muted-foreground">Nivel {current.level} · {current.name}</p>
             </div>
           </div>

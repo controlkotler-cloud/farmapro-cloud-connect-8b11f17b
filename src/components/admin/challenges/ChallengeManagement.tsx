@@ -77,7 +77,7 @@ interface ChallengeManagementProps {
 
 const challengeTypes = [
   { value: 'course_started' as ChallengeType, label: 'Curso Iniciado', icon: BookOpen },
-  { value: 'course_completed' as ChallengeType, label: 'Curso Completado', icon: BookOpen },
+  { value: 'course_completed' as ChallengeType, label: 'Curso completado', icon: BookOpen },
   { value: 'forum_post' as ChallengeType, label: 'Post en Foro', icon: MessageSquare },
   { value: 'forum_reply' as ChallengeType, label: 'Respuesta en Foro', icon: MessageSquare },
   { value: 'resource_downloaded' as ChallengeType, label: 'Recurso Descargado', icon: Gift }
@@ -180,7 +180,7 @@ export const ChallengeManagement = ({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold">Gestión de Retos</h3>
+          <h3 className="text-lg font-semibold">Gestión de retos</h3>
           <p className="text-sm text-muted-foreground">Crea y gestiona los retos de la plataforma</p>
         </div>
         <Button onClick={() => openChallengeDialog()} disabled={creating}>
@@ -320,7 +320,7 @@ export const ChallengeManagement = ({
                 id="challengeName"
                 value={challengeForm.name}
                 onChange={(e) => setChallengeForm({ ...challengeForm, name: e.target.value })}
-                placeholder="Ej: Primer Curso Completado"
+                placeholder="Ej: Primer Curso completado"
                 disabled={creating || updating}
               />
             </div>
@@ -338,7 +338,7 @@ export const ChallengeManagement = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="challengeType">Tipo de Reto *</Label>
+              <Label htmlFor="challengeType">Tipo de reto *</Label>
               <Select 
                 value={challengeForm.type} 
                 onValueChange={(value: ChallengeType) => setChallengeForm({ ...challengeForm, type: value })}

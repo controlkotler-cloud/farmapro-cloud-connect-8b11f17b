@@ -318,7 +318,7 @@ const AdminRetos = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de Retos farmapro</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de retos farmapro</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">Administra el sistema de gamificación y retos de la plataforma</p>
       </div>
 

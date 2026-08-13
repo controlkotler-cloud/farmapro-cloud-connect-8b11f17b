@@ -3,7 +3,7 @@ export const ConfigurationLoading = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Configuración General</h1>
+        <h1 className="text-3xl font-bold text-foreground">Configuración general</h1>
         <p className="text-muted-foreground">Ajustes del portal y configuraciones del sistema</p>
       </div>
       <div className="flex items-center justify-center min-h-[400px]">

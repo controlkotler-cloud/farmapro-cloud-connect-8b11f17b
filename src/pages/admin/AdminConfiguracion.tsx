@@ -21,7 +21,7 @@ const AdminConfiguracion = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Configuración General</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Configuración general</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">Qué secciones son visibles para los usuarios del portal</p>
       </div>
 

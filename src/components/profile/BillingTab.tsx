@@ -116,7 +116,7 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
           {(currentPlan === 'freemium' || currentPlan === 'admin') && (
             <div className={`${currentPlan === 'admin' ? 'bg-info/10 border-info/30' : 'bg-warning/10 border-warning/30'} border rounded-lg p-4 mb-4`}>
               <p className={`${currentPlan === 'admin' ? 'text-info' : 'text-warning'} text-sm`}>
-                <strong>{currentPlan === 'admin' ? 'Cuenta de Administrador:' : 'Plan Gratuito:'}</strong> 
+                <strong>{currentPlan === 'admin' ? 'Cuenta de administrador:' : 'Plan Gratuito:'}</strong> 
                 {currentPlan === 'admin' 
                   ? ' Como administrador, tienes acceso completo al sistema sin necesidad de suscripción ni facturación.'
                   : ' Para acceder a la gestión de pagos y facturas, necesitas suscribirte a uno de nuestros planes de pago. Ve a la pestaña "Plan" para explorar las opciones disponibles.'
