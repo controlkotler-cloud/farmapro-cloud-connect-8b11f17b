@@ -312,10 +312,11 @@ const Promociones = () => {
                             <button
                               type="button"
                               onClick={() => window.open(promotion.target_url!, '_blank', 'noopener,noreferrer')}
-                              className="mx-auto mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
+                              className="mx-auto mt-2 flex max-w-full items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
                             >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              Ver la oferta en su web
+                              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">Ver la web de {promotion.company_name}</span>
+
                             </button>
                           )}
                         </div>

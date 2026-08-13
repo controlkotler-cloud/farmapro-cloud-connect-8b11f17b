@@ -5,6 +5,9 @@ import { PromotionGrid } from '@/components/admin/promotion/PromotionGrid';
 import { EmptyPromotionState } from '@/components/admin/promotion/EmptyPromotionState';
 import { PromotionLoadingSkeleton } from '@/components/admin/promotion/PromotionLoadingSkeleton';
 import { usePromotionManagement } from '@/hooks/usePromotionManagement';
+import { PromotionRequestsList } from '@/components/admin/promotion/PromotionRequestsList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 interface Promotion {
   id: string;
@@ -45,32 +48,49 @@ const AdminPromociones = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Promociones</h1>
-          <p className="text-gray-600">Gestionar ofertas y descuentos para usuarios</p>
-        </div>
-        <PromotionFormDialog 
-          editingPromotion={editingPromotion} 
-          onPromotionUpdated={handlePromotionUpdated} 
-        />
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Gestión de Promociones</h1>
+        <p className="text-gray-600">Gestionar ofertas, descuentos y solicitudes</p>
       </div>
 
-      {loading ? (
-        <PromotionLoadingSkeleton />
-      ) : promotions.length === 0 ? (
-        <EmptyPromotionState onPromotionUpdated={handlePromotionUpdated} />
-      ) : (
-        <PromotionGrid
-          promotions={promotions}
-          onEdit={handleEdit}
-          onToggleStatus={togglePromotionStatus}
-          onDelete={deletePromotion}
-          deletingId={deletingId}
-        />
-      )}
+      <Tabs defaultValue="promociones" className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList>
+            <TabsTrigger value="promociones">Promociones</TabsTrigger>
+            <TabsTrigger value="solicitudes">Solicitudes</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="promociones" className="space-y-6">
+          <div className="flex justify-end">
+            <PromotionFormDialog
+              editingPromotion={editingPromotion}
+              onPromotionUpdated={handlePromotionUpdated}
+            />
+          </div>
+
+          {loading ? (
+            <PromotionLoadingSkeleton />
+          ) : promotions.length === 0 ? (
+            <EmptyPromotionState onPromotionUpdated={handlePromotionUpdated} />
+          ) : (
+            <PromotionGrid
+              promotions={promotions}
+              onEdit={handleEdit}
+              onToggleStatus={togglePromotionStatus}
+              onDelete={deletePromotion}
+              deletingId={deletingId}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="solicitudes">
+          <PromotionRequestsList />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
+
 
 export default AdminPromociones;

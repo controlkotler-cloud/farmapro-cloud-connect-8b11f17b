@@ -328,17 +328,18 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
               </p>
             </div>
             <div>
-              <Label htmlFor="target_url">Enlace de la oferta</Label>
+              <Label htmlFor="target_url">Web del partner</Label>
               <Input
                 id="target_url"
                 type="url"
                 value={formData.target_url}
                 onChange={(e) => setFormData({ ...formData, target_url: e.target.value })}
-                placeholder="https://ejemplo.com/oferta (opcional)"
+                placeholder="https://ejemplo.com (opcional)"
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Enlace informativo a la web del partner. La solicitud se hace dentro del portal.
+                Enlace a su web corporativa, no a la oferta. Opcional: si lo dejas vacío no se muestra.
               </p>
+
             </div>
           </div>
 
