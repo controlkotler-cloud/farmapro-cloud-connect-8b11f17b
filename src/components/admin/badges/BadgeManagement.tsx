@@ -28,6 +28,14 @@ interface BadgeData {
 
 const CATEGORIES = ['formacion', 'comunidad', 'constancia', 'especial'];
 const REQUIREMENT_TYPES = ['courses_completed', 'quizzes_passed', 'forum_posts', 'forum_replies', 'resources_downloaded', 'streak_days', 'points_total', 'level_reached', 'manual'];
+const CATEGORY_LABELS: Record<string, string> = {
+  formacion: 'Formación',
+  comunidad: 'Comunidad',
+  constancia: 'Constancia',
+  especial: 'Especial',
+};
+
+const ICON_NAMES = Object.keys(BADGE_ICONS);
 
 const REQUIREMENT_LABELS: Record<string, string> = {
   courses_completed: 'Cursos completados',
