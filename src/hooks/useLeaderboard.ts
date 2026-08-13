@@ -42,7 +42,7 @@ export const useLeaderboard = () => {
 
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, opt_out_leaderboard')
+        .select('id, full_name, avatar_url, opt_out_leaderboard, is_seed')
         .in('id', userIds);
 
       // Get badge counts (only for users on the board)
@@ -66,7 +66,9 @@ export const useLeaderboard = () => {
       for (const pt of pointsData) {
         if (!pt.user_id) continue;
         const prof = profileMap.get(pt.user_id);
-        if (!prof || prof.opt_out_leaderboard) continue;
+        // Los perfiles de siembra y quienes se han dado de baja del ranking no
+        // aparecen nunca en la clasificación.
+        if (!prof || prof.opt_out_leaderboard || prof.is_seed) continue;
 
         rank++;
         const firstName = (prof.full_name || 'Usuario').split(' ')[0];
