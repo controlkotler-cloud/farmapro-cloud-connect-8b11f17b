@@ -11,8 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-const CONSENT_VERSION = 'promo-cesion-v1';
-const COPIA_INTERNA = 'control@mkpro.es';
 
 interface PromotionLite {
   id: string;
@@ -58,78 +56,39 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
     if (!user || !consent || !promotion.partner_email) return;
     setSending(true);
     try {
-      const { data: refData, error: refError } = await supabase.rpc('next_promotion_reference');
-      if (refError) throw refError;
-      const referencia = String(refData ?? '');
-
-      const { error: insertError } = await supabase.from('promotion_requests').insert({
-        promotion_id: promotion.id,
-        user_id: user.id,
-        referencia,
-        nombre: nombre || email,
-        email,
-        farmacia: farmacia || null,
-        ciudad: ciudad || null,
-        telefono: telefono.trim() || null,
-        mensaje: mensaje.trim() || null,
-        consent_texto_version: CONSENT_VERSION,
-        partner_email: promotion.partner_email,
-        estado: 'enviada',
+      const { data, error } = await supabase.functions.invoke('request-promotion', {
+        body: {
+          promotion_id: promotion.id,
+          telefono: telefono.trim(),
+          mensaje: mensaje.trim(),
+          consent: true,
+        },
       });
 
-      if (insertError) {
-        console.error('Error guardando la solicitud:', insertError);
+      if (error || !data?.ok) {
+        console.error('Error en la solicitud de promoción:', error, data);
         toast({
           title: 'No hemos podido enviar la solicitud',
-          description: 'Vuelve a intentarlo en un momento.',
+          description: 'Vuelve a intentarlo en un momento o escríbenos a soporte@farmapro.es.',
           variant: 'destructive',
         });
         return;
       }
 
-      const partnerData = {
-        referencia,
-        promocionTitulo: promotion.title,
-        companyName: promotion.company_name,
-        solicitanteNombre: nombre,
-        solicitanteEmail: email,
-        solicitanteFarmacia: farmacia,
-        solicitanteCiudad: ciudad,
-        solicitanteTelefono: telefono.trim(),
-        mensaje: mensaje.trim(),
-      };
-
-      const results = await Promise.all([
-        supabase.functions.invoke('send-portal-email', {
-          body: { template: 'promocion-solicitud-partner', to: promotion.partner_email, data: partnerData },
-        }),
-        supabase.functions.invoke('send-portal-email', {
-          body: {
-            template: 'promocion-solicitud-usuario',
-            to: email,
-            data: { ...partnerData, nombre },
-          },
-        }),
-        supabase.functions.invoke('send-portal-email', {
-          body: { template: 'promocion-solicitud-partner', to: COPIA_INTERNA, data: partnerData },
-        }),
-      ]);
-
-      const emailFailed = results.some((r) => r.error);
-
-      if (emailFailed) {
-        await supabase
-          .from('promotion_requests')
-          .update({ estado: 'error_envio' })
-          .eq('referencia', referencia);
+      if (data.duplicada) {
+        toast({
+          title: 'Ya habías solicitado esta oferta',
+          description: `Tu solicitud sigue en curso con la referencia ${data.referencia}.`,
+        });
+      } else if (data.aviso_enviado === false) {
         toast({
           title: 'Hemos recibido tu solicitud',
-          description: `El aviso automático no ha salido, así que la gestionamos nosotros. Tu referencia es ${referencia}.`,
+          description: `El aviso automático no ha salido, así que la gestionamos nosotros. Tu referencia es ${data.referencia}.`,
         });
       } else {
         toast({
           title: 'Solicitud enviada',
-          description: `Solicitud enviada. Tu referencia es ${referencia}.`,
+          description: `Tu referencia es ${data.referencia}.`,
         });
       }
 
@@ -145,6 +104,7 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
       setSending(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
