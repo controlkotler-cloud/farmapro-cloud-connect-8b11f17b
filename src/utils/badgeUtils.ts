@@ -48,6 +48,10 @@ export const checkAndAwardBadges = async (userId: string) => {
       forumRepliesResult,
       downloadsResult,
       pointsResult,
+      replyLikesResult,
+      completedCoursesResult,
+      teamMembersResult,
+      subscriptionResult,
     ] = await Promise.all([
       supabase.from('course_enrollments').select('id', { count: 'exact', head: true }).eq('user_id', userId).not('completed_at', 'is', null),
       supabase.from('quiz_attempts').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('percentage', 100),
@@ -55,9 +59,40 @@ export const checkAndAwardBadges = async (userId: string) => {
       supabase.from('forum_replies').select('id', { count: 'exact', head: true }).eq('author_id', userId),
       supabase.from('resource_downloads').select('id', { count: 'exact', head: true }).eq('user_id', userId),
       supabase.from('user_points').select('total_points, level').eq('user_id', userId).maybeSingle(),
+      supabase.from('forum_reply_likes').select('reply_id, forum_replies!inner(author_id)').eq('forum_replies.author_id', userId),
+      supabase.from('course_enrollments').select('courses!inner(category, is_premium)').eq('user_id', userId).not('completed_at', 'is', null),
+      supabase.from('team_members').select('id, team_subscriptions!inner(owner_id)').eq('status', 'active').eq('team_subscriptions.owner_id', userId),
+      supabase.from('subscriptions').select('created_at').eq('user_id', userId).in('status', ['active', 'trialing']).order('created_at', { ascending: true }).limit(1).maybeSingle(),
     ]);
 
     const streakDays = await calculateStreak(userId);
+
+    // Máximo de "me gusta" en una sola respuesta del usuario
+    const likesByReply = new Map<string, number>();
+    for (const like of (replyLikesResult.data as { reply_id: string }[] | null) || []) {
+      likesByReply.set(like.reply_id, (likesByReply.get(like.reply_id) || 0) + 1);
+    }
+    const replyLikesMax = likesByReply.size ? Math.max(...likesByReply.values()) : 0;
+
+    const completedCourses = ((completedCoursesResult.data as
+      | { courses: { category: string | null; is_premium: boolean | null } | null }[]
+      | null) || []);
+    const courseCategories = new Set(
+      completedCourses.map(row => row.courses?.category).filter(Boolean) as string[],
+    ).size;
+    const premiumCoursesCompleted = completedCourses.filter(row => row.courses?.is_premium).length;
+
+    let monthsSubscribed = 0;
+    if (subscriptionResult.data?.created_at) {
+      const start = new Date(subscriptionResult.data.created_at);
+      const now = new Date();
+      monthsSubscribed = Math.max(
+        0,
+        (now.getFullYear() - start.getFullYear()) * 12 +
+          (now.getMonth() - start.getMonth()) -
+          (now.getDate() < start.getDate() ? 1 : 0),
+      );
+    }
 
     const statsMap: Record<string, number> = {
       courses_completed: coursesResult.count || 0,
@@ -68,7 +103,13 @@ export const checkAndAwardBadges = async (userId: string) => {
       streak_days: streakDays,
       points_total: pointsResult.data?.total_points || 0,
       level_reached: pointsResult.data?.level || 1,
+      reply_likes_max: replyLikesMax,
+      course_categories: courseCategories,
+      premium_courses_completed: premiumCoursesCompleted,
+      team_members_active: teamMembersResult.data?.length || 0,
+      months_subscribed: monthsSubscribed,
     };
+
 
     // Check each badge
     for (const badge of unchecked) {
