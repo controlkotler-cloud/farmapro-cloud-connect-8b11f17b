@@ -28,7 +28,7 @@ const COVERS: Record<string, CourseCover> = {
   atencion_cliente: { gradient: 'bg-salvia', label: 'Atención al cliente', Icon: Headset },
   tecnologia: { gradient: 'bg-brand-dark', label: 'Tecnología', Icon: Monitor },
   // Comodín de respaldo: neutro cálido de la paleta, sin chocar con las seis categorías.
-  otros: { gradient: 'bg-tinta', label: 'Formación', Icon: Sparkles },
+  otros: { gradient: 'bg-foreground', label: 'Formación', Icon: Sparkles },
 };
 
 export const getCourseCover = (category?: string | null): CourseCover =>
