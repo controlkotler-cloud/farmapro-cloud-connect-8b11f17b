@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 
 const NotFound = () => {

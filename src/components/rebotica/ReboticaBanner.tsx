@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { REBOTICA_NEXT_OPENING } from '@/lib/rebotica';
 
 /**

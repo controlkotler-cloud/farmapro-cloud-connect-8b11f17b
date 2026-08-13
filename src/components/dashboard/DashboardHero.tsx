@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Flame } from 'lucide-react';
 import { getLevelInfo } from '@/services/pointsService';
 import { LevelIcon } from '@/components/gamification/LevelIcon';
