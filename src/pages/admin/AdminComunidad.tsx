@@ -317,8 +317,8 @@ const AdminComunidad = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Comunidad</h1>
-          <p className="text-gray-600">Cargando datos de la comunidad...</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de Comunidad</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">Cargando datos de la comunidad...</p>
         </div>
       </div>
     );
@@ -327,8 +327,8 @@ const AdminComunidad = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestión de Comunidad</h1>
-        <p className="text-gray-600">Administra categorías, hilos y modera el contenido del foro</p>
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de Comunidad</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">Administra categorías, hilos y modera el contenido del foro</p>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">

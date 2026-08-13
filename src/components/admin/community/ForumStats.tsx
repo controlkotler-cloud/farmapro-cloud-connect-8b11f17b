@@ -102,13 +102,13 @@ const ForumStatsComponent = ({ stats, threads, onViewThread }: ForumStatsProps) 
         <CardContent>
           <div className="space-y-4">
             {threads.slice(0, 5).map((thread) => (
-              <div key={thread.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+              <div key={thread.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{thread.title}</h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h4 className="font-medium text-foreground">{thread.title}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Por {thread.profiles?.full_name || 'Usuario desconocido'} en {thread.forum_categories?.name}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {new Date(thread.created_at).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
@@ -139,7 +139,7 @@ const ForumStatsComponent = ({ stats, threads, onViewThread }: ForumStatsProps) 
               </div>
             ))}
             {threads.length === 0 && (
-              <p className="text-center text-gray-500 py-8">No hay hilos recientes</p>
+              <p className="text-center text-muted-foreground py-8">No hay hilos recientes</p>
             )}
           </div>
         </CardContent>
