@@ -59,11 +59,15 @@ export function pickSubscriptionPrice(
 ): { priceId: string; founder: boolean } {
   const founderActive = founderSpotsLeft > 0;
   if (cycle === 'yearly') {
-    // El precio anual SOLO existe como lanzamiento. Si se agota, no permitimos anual.
-    if (!founderActive) {
-      throw new Error('El precio anual solo está disponible durante el lanzamiento fundador.');
+    if (founderActive) {
+      return { priceId: STRIPE_PRICES[plan].yearly_launch, founder: true };
     }
-    return { priceId: STRIPE_PRICES[plan].yearly_launch, founder: true };
+    // Fuera de lanzamiento: usa el anual regular si ya existe en Stripe.
+    const regularYearly = STRIPE_PRICES[plan].yearly;
+    if (regularYearly) {
+      return { priceId: regularYearly, founder: false };
+    }
+    throw new Error('El precio anual solo está disponible durante el lanzamiento fundador.');
   }
   return founderActive
     ? { priceId: STRIPE_PRICES[plan].monthly_launch, founder: true }
@@ -77,9 +81,11 @@ export function lookupPrice(priceId: string): { plan: PlanId; cycle: Cycle; foun
     if (priceId === p.monthly)        return { plan, cycle: 'monthly', founder: false };
     if (priceId === p.monthly_launch) return { plan, cycle: 'monthly', founder: true };
     if (priceId === p.yearly_launch)  return { plan, cycle: 'yearly',  founder: true };
+    if (p.yearly && priceId === p.yearly) return { plan, cycle: 'yearly', founder: false };
   }
   return null;
 }
+
 
 /** Roles que jamás se degradan por eventos de Stripe. */
 export const PROTECTED_ROLES = ['admin'] as const;
