@@ -179,7 +179,18 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
               </Button>
             ) : (
               <span className="text-sm text-muted-foreground">
-                Te faltan <span className="font-extrabold text-brand-dark">{remaining}</span>
+                {progressPercentage >= 75 ? (
+                  <>
+                    Ya casi: te quedan{' '}
+                    <span className="font-extrabold text-brand-dark">{remaining}</span>
+                  </>
+                ) : progressPercentage >= 50 ? (
+                  'Más de la mitad hecho'
+                ) : progressPercentage >= 25 ? (
+                  'Ya llevas más de un cuarto'
+                ) : (
+                  'Vas por buen camino'
+                )}
               </span>
             )}
             <span className="flex items-center gap-2 text-sm text-muted-foreground">

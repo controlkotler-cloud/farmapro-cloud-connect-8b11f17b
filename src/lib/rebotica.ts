@@ -38,8 +38,47 @@ export const REBOTICA_NEXT_OPENING = {
   dateLabel: 'jueves 10 de septiembre',
 };
 
+/**
+ * Hora (Europe/Madrid) a la que abre el cajón. `rebotica_campaigns.quincena_inicio`
+ * es un campo de FECHA, sin hora, así que el instante real de apertura se compone
+ * siempre con esta constante. Se cambia aquí y en ningún sitio más.
+ */
+export const HORA_APERTURA_CAJON = 8;
+
 /** Hora de apertura de cada cajón de quincena (hora peninsular). */
-export const REBOTICA_OPENING_TIME_LABEL = '08:00';
+export const REBOTICA_OPENING_TIME_LABEL = `${String(HORA_APERTURA_CAJON).padStart(2, '0')}:00`;
+
+/** Combina una fecha de campaña (YYYY-MM-DD) con la hora de apertura del cajón. */
+export function composeOpeningInstant(dateISO: string): Date {
+  return new Date(`${dateISO}T${String(HORA_APERTURA_CAJON).padStart(2, '0')}:00:00+02:00`);
+}
+
+/**
+ * Cuenta atrás en castellano natural: "Faltan 7 días y 4 horas" y, cuando queda
+ * menos de un día, "Faltan 7 horas y 12 minutos". Devuelve null si ya pasó.
+ */
+export function formatCuentaAtras(target: Date, now: Date = new Date()): string | null {
+  const ms = target.getTime() - now.getTime();
+  if (ms <= 0) return null;
+
+  const totalMinutos = Math.floor(ms / 60_000);
+  const dias = Math.floor(totalMinutos / 1440);
+  const horas = Math.floor((totalMinutos % 1440) / 60);
+  const minutos = totalMinutos % 60;
+
+  const plural = (n: number, singular: string, prural: string) =>
+    `${n} ${n === 1 ? singular : prural}`;
+
+  if (dias > 0) {
+    const resto = horas > 0 ? ` y ${plural(horas, 'hora', 'horas')}` : '';
+    return `Faltan ${plural(dias, 'día', 'días')}${resto}`;
+  }
+  if (horas > 0) {
+    const resto = minutos > 0 ? ` y ${plural(minutos, 'minuto', 'minutos')}` : '';
+    return `Faltan ${plural(horas, 'hora', 'horas')}${resto}`;
+  }
+  return `Falta${minutos === 1 ? '' : 'n'} ${plural(minutos, 'minuto', 'minutos')}`;
+}
 
 /**
  * Fecha-hora objetivo de la próxima apertura para la cuenta atrás de la
@@ -47,7 +86,7 @@ export const REBOTICA_OPENING_TIME_LABEL = '08:00';
  * apertura cayera en horario de invierno, ajustar el offset.
  */
 export function getNextOpeningDate(): Date {
-  return new Date(`${REBOTICA_NEXT_OPENING.dateISO}T${REBOTICA_OPENING_TIME_LABEL}:00+02:00`);
+  return composeOpeningInstant(REBOTICA_NEXT_OPENING.dateISO);
 }
 
 /** Partner de la quincena (patrocinio = presencia pura: logo ENLAZADO a su web). */

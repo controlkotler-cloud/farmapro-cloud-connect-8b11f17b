@@ -12,6 +12,8 @@ import {
   REBOTICA_OPEN_REWARD_ENABLED,
   REBOTICA_CURRENT_PARTNER,
   getNextOpeningDate,
+  formatCuentaAtras,
+  HORA_APERTURA_CAJON,
   readReboticaContextFromUrl,
   storeReboticaContext,
   loadReboticaContext,
@@ -122,6 +124,20 @@ const FAQ_ITEMS = [
   },
 ];
 
+/** Cuenta atrás en castellano natural, refrescada cada minuto. */
+function useCuentaAtrasNatural(): string | null {
+  const [label, setLabel] = useState<string | null>(() => formatCuentaAtras(getNextOpeningDate()));
+
+  useEffect(() => {
+    const tick = () => setLabel(formatCuentaAtras(getNextOpeningDate()));
+    tick();
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return label;
+}
+
 function useOpeningCountdown(): string | null {
   const [label, setLabel] = useState<string | null>(null);
 
@@ -163,6 +179,7 @@ export default function Rebotica() {
   const [campaignOpen, setCampaignOpen] = useState<boolean | null>(null);
 
   const countdown = useOpeningCountdown();
+  const cuentaAtras = useCuentaAtrasNatural();
   const partner = REBOTICA_CURRENT_PARTNER;
 
   // Contexto que llega del email (?c=&cajon=&e=, patrón voto 1-clic) o de una
@@ -300,7 +317,7 @@ export default function Rebotica() {
   const openLabel = !user
     ? 'Crear cuenta gratis y abrir mi cajón'
     : !canAttemptOpen
-      ? 'Todavía no puedes abrir un cajón'
+      ? `Tu cajón se abre el ${REBOTICA_NEXT_OPENING.dateLabel} a las ${HORA_APERTURA_CAJON}:00`
       : opening
         ? 'Abriendo...'
         : 'Abrir mi cajón';
@@ -354,17 +371,17 @@ export default function Rebotica() {
                 onClick={handleOpen}
                 disabled={opening || (selected != null && !canAttemptOpen)}
                 className={
-                  selected
+                  selected && canAttemptOpen
                     ? `${BTN_LIME} w-full text-center text-[16px] disabled:cursor-not-allowed disabled:opacity-70`
-                    : 'w-full cursor-pointer rounded-full bg-[#0B0F0B]/[.06] px-8 py-4 text-center text-[15px] font-bold text-[#5c6660] transition hover:bg-[#0B0F0B]/10'
+                    : selected
+                      ? 'w-full cursor-not-allowed rounded-full bg-muted px-8 py-4 text-center text-[15px] font-bold text-muted-foreground'
+                      : 'w-full cursor-pointer rounded-full bg-[#0B0F0B]/[.06] px-8 py-4 text-center text-[15px] font-bold text-[#5c6660] transition hover:bg-[#0B0F0B]/10'
                 }
               >
                 {selected ? openLabel : 'Elige un cajón para empezar'}
               </button>
-              {selected != null && !canAttemptOpen && (
-                <p className="text-center text-xs text-[#5c6660]">
-                  Vuelve el {REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.
-                </p>
+              {selected != null && !canAttemptOpen && cuentaAtras && (
+                <p className="text-center text-xs text-[#5c6660]">{cuentaAtras}</p>
               )}
               {partner && (
                 <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
@@ -468,9 +485,11 @@ export default function Rebotica() {
                 onClick={handleOpen}
                 disabled={opening || (selected != null && !canAttemptOpen)}
                 className={
-                  selected
+                  selected && canAttemptOpen
                     ? `${BTN_LIME} w-full text-center text-[16px] disabled:cursor-not-allowed disabled:opacity-70`
-                    : 'w-full cursor-pointer rounded-full bg-[#0B0F0B]/[.06] px-8 py-4 text-center text-[15px] font-bold text-[#5c6660] transition hover:bg-[#0B0F0B]/10'
+                    : selected
+                      ? 'w-full cursor-not-allowed rounded-full bg-muted px-8 py-4 text-center text-[15px] font-bold text-muted-foreground'
+                      : 'w-full cursor-pointer rounded-full bg-[#0B0F0B]/[.06] px-8 py-4 text-center text-[15px] font-bold text-[#5c6660] transition hover:bg-[#0B0F0B]/10'
                 }
               >
                 {selected ? openLabel : 'Elige un cajón para empezar'}
@@ -478,10 +497,8 @@ export default function Rebotica() {
               {!user && selected && (
                 <p className="text-center text-xs text-[#5c6660]">No hace falta tarjeta. Solo tu email y una contraseña.</p>
               )}
-              {user && selected != null && !canAttemptOpen && (
-                <p className="text-center text-xs text-[#5c6660]">
-                  Vuelve el {REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.
-                </p>
+              {user && selected != null && !canAttemptOpen && cuentaAtras && (
+                <p className="text-center text-xs text-[#5c6660]">{cuentaAtras}</p>
               )}
               {partner && (
                 <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
