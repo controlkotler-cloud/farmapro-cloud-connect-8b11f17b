@@ -102,7 +102,7 @@ serve(async (req) => {
     const { data: prof } = await admin
       .from('profiles')
       .select('stripe_customer_id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .maybeSingle();
     const existingCustomerId = (prof?.stripe_customer_id as string | null) ?? customerId;
 
