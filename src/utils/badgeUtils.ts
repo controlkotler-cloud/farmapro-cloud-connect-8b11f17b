@@ -121,8 +121,9 @@ export const checkAndAwardBadges = async (userId: string) => {
           .insert({ user_id: userId, badge_id: badge.id });
 
         if (!insertError) {
-          toast.success('🏅 ¡Nueva insignia desbloqueada!', {
-            description: `${badge.icon} ${badge.name}`,
+          toast.success('¡Nueva insignia desbloqueada!', {
+            description: badge.name,
+
             duration: 5000,
           });
         }
