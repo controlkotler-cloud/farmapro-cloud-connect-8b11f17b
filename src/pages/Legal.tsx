@@ -312,6 +312,30 @@ export const PoliticaPrivacidad = () => (
       un premio requiere compartir tus datos con un partner externo a farmapro, te pediremos entonces un
       consentimiento adicional y específico, nunca premarcado.
     </P>
+    <H3>Solicitudes de promociones de partners</H3>
+    <P>
+      En la sección Promociones del Portal publicamos ofertas de laboratorios, distribuidores, proveedores de
+      software, equipamiento, formación y servicios (los «partners»). Si solicitas una de esas ofertas, y
+      únicamente si marcas la casilla de autorización correspondiente, comunicamos al partner tu nombre, el
+      nombre y la ciudad de tu farmacia, tu correo electrónico y, si los facilitas voluntariamente, tu teléfono
+      y el mensaje que escribas. No compartimos ningún otro dato de tu cuenta: ni tu actividad formativa, ni
+      tu participación en la comunidad, ni tus datos de facturación.
+    </P>
+    <P>
+      Esta comunicación es una cesión de datos, no un encargo de tratamiento: desde que recibe tu solicitud, el
+      partner trata esos datos como responsable independiente, conforme a su propia política de privacidad, y es
+      a él a quien debes dirigirte para ejercer tus derechos sobre el tratamiento que haga. MKPRO conserva una
+      copia de cada solicitud, con su referencia, la fecha y la versión exacta del texto que aceptaste, como
+      evidencia del consentimiento conforme al artículo 7.1 del RGPD y para poder ayudarte si el partner no
+      responde. Recibirás siempre por correo el detalle de lo que se ha enviado.
+    </P>
+    <P>
+      Puedes revocar tu autorización en cualquier momento escribiendo a{' '}
+      <a href="mailto:entra@farmapro.es" className={linkCls}>entra@farmapro.es</a>. La revocación impide
+      nuevas comunicaciones, pero no deshace la ya realizada: para el tratamiento que el partner ya esté
+      haciendo, tendrás que dirigirte también a él.
+    </P>
+
     <H3>Soporte</H3>
     <P>
       Si nos escribes a soporte@farmapro.es o a través de cualquier otro canal de contacto del Portal, tratamos
