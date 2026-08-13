@@ -445,6 +445,7 @@ export function renderPortalTemplate(
           <p style="margin:0 0 16px 0;padding:12px 14px;background:#f6f4ec;border:1px solid #ecebe6;border-radius:8px;font-size:15px;">
             Referencia: <strong>${escapeHtml(referencia)}</strong>
           </p>
+          ${bloqueCondicionesHtml(data)}
           <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Nombre</td><td style="padding:4px 0;"><strong>${escapeHtml(sNombre)}</strong></td></tr>
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Farmacia</td><td style="padding:4px 0;">${escapeHtml(sFarmacia)}</td></tr>
@@ -457,7 +458,7 @@ export function renderPortalTemplate(
           <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Este contacto procede de un suscriptor verificado del portal farmapro.</p>
         `,
       });
-      const text = `Nueva solicitud desde el portal farmapro\n\nUn suscriptor del portal de formación de farmapro ha solicitado vuestra promoción "${promo}".\n\nReferencia: ${referencia}\n\nNombre: ${sNombre}\nFarmacia: ${sFarmacia}\nCiudad: ${sCiudad}\nCorreo: ${sEmail}${sTel ? `\nTeléfono: ${sTel}` : ''}${msg ? `\n\nMensaje del solicitante:\n${msg}` : ''}\n\nPodéis responder directamente al suscriptor en su correo. Para cualquier duda sobre la colaboración, escribidnos a somos@farmapro.es.\n\nEste contacto procede de un suscriptor verificado del portal farmapro.${textFooter()}`;
+      const text = `Nueva solicitud desde el portal farmapro\n\nUn suscriptor del portal de formación de farmapro ha solicitado vuestra promoción "${promo}".\n\nReferencia: ${referencia}${bloqueCondicionesText(data)}\n\nNombre: ${sNombre}\nFarmacia: ${sFarmacia}\nCiudad: ${sCiudad}\nCorreo: ${sEmail}${sTel ? `\nTeléfono: ${sTel}` : ''}${msg ? `\n\nMensaje del solicitante:\n${msg}` : ''}\n\nPodéis responder directamente al suscriptor en su correo. Para cualquier duda sobre la colaboración, escribidnos a somos@farmapro.es.\n\nEste contacto procede de un suscriptor verificado del portal farmapro.${textFooter()}`;
       return { subject, html, text };
     }
 
@@ -480,6 +481,7 @@ export function renderPortalTemplate(
           <p style="margin:0 0 16px 0;padding:12px 14px;background:#f6f4ec;border:1px solid #ecebe6;border-radius:8px;font-size:15px;">
             Referencia: <strong>${escapeHtml(referencia)}</strong>
           </p>
+          ${bloqueCondicionesHtml(data)}
           <p style="margin:0 0 8px 0;">Estos son los datos que hemos compartido:</p>
           <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Nombre</td><td style="padding:4px 0;">${escapeHtml(sNombre)}</td></tr>
@@ -492,7 +494,7 @@ export function renderPortalTemplate(
           <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si en unos días no recibes respuesta, escríbenos a soporte@farmapro.es y lo miramos.</p>
         `,
       });
-      const text = `${saludo}\n\nHemos enviado tu solicitud de "${promo}" a ${empresa}.\n\nReferencia: ${referencia}\n\nDatos compartidos:\nNombre: ${sNombre}\nFarmacia: ${sFarmacia}\nCiudad: ${sCiudad}\nCorreo: ${sEmail}${sTel ? `\nTeléfono: ${sTel}` : ''}\n\nEl partner se pondrá en contacto directamente contigo.\n\nSi en unos días no recibes respuesta, escríbenos a soporte@farmapro.es y lo miramos.${textFooter()}`;
+      const text = `${saludo}\n\nHemos enviado tu solicitud de "${promo}" a ${empresa}.\n\nReferencia: ${referencia}${bloqueCondicionesText(data)}\n\nDatos compartidos:\nNombre: ${sNombre}\nFarmacia: ${sFarmacia}\nCiudad: ${sCiudad}\nCorreo: ${sEmail}${sTel ? `\nTeléfono: ${sTel}` : ''}\n\nEl partner se pondrá en contacto directamente contigo.\n\nSi en unos días no recibes respuesta, escríbenos a soporte@farmapro.es y lo miramos.${textFooter()}`;
       return { subject, html, text };
     }
   }
