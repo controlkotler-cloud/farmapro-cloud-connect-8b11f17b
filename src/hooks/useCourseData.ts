@@ -18,7 +18,7 @@ export const useCourseData = (courseSlug?: string) => {
       // Ficha del curso (sin course_modules — la columna está revocada al cliente).
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
-        .select('id, slug, title, description, category, difficulty, duration_minutes, duration_hours, thumbnail_url, featured_image_url, is_premium, is_published, is_featured, order_index, students_count, rating, total_lessons, instructor, content, created_at, updated_at')
+        .select('id, slug, title, description, category, difficulty, duration_minutes, duration_hours, thumbnail_url, featured_image_url, is_premium, is_published, is_featured, order_index, students_count, rating, total_lessons, instructor, content, cover_concept, cover_icon, created_at, updated_at')
         .eq('slug', courseSlug)
         .single();
 

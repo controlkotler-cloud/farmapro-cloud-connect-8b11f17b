@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Award, BookOpen, BarChart3, Play, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getCourseCover } from '@/lib/courseCover';
+import { CourseCover } from './CourseCover';
+
 import { useEntitlements } from '@/hooks/useEntitlements';
 import type { Course, CourseEnrollment } from '@/types/course';
 
@@ -48,7 +49,6 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
   // Si no puede acceder por estar bloqueado/limitado (no por ser premium con
   // plan distinto), ofrecemos un CTA hacia Precios en vez de un botón muerto.
   const showPlanCta = !canAccess && (isLocked || !course.is_premium);
-  const cover = getCourseCover(course.category);
   const difficulty = getDifficulty(course.difficulty);
 
   // Nº de lecciones: usa total_lessons real si está; si no, cuenta módulos.
@@ -66,29 +66,25 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
 
   return (
     <Card className="h-full flex flex-col hover:shadow-lift transition-shadow duration-300">
-      {/* Portada: foto si existe; si no, portada por categoría (color + icono) */}
-      <div className={`relative h-28 overflow-hidden rounded-t-lg ${cover.bg} flex items-center justify-center`}>
-        {(course.featured_image_url || course.thumbnail_url) && !imgError ? (
+      {/* Portada: foto si existe; si no, portada dibujada del curso (concepto + icono) */}
+      {(course.featured_image_url || course.thumbnail_url) && !imgError ? (
+        <div className="relative h-28 overflow-hidden rounded-t-lg">
           <img
             src={course.featured_image_url || course.thumbnail_url}
             alt={course.title}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             onError={() => setImgError(true)}
           />
-        ) : (
-          <>
-            <cover.Icon
-              className={`h-10 w-10 ${cover.onSolid}`}
-              strokeWidth={1.5}
-            />
-            <span
-              className={`absolute bottom-2 left-3 text-xs font-semibold uppercase tracking-wide ${cover.onSolid}`}
-            >
-              {cover.label}
-            </span>
-          </>
-        )}
-      </div>
+        </div>
+      ) : (
+        <CourseCover
+          category={course.category}
+          concept={course.cover_concept}
+          iconName={course.cover_icon}
+          className="rounded-t-lg"
+        />
+      )}
+
 
       <CardHeader className="flex-grow">
         <div className="flex items-start justify-between mb-2">

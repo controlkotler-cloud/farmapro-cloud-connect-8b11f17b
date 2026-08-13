@@ -22,7 +22,10 @@ export interface Course {
   rating?: number;
   instructor?: string;
   order_index?: number;
+  cover_concept: string | null;
+  cover_icon: string | null;
   course_modules?: CourseModule[];
+
 }
 
 export interface CourseModule {
