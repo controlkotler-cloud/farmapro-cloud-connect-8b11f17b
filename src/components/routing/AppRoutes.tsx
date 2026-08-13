@@ -51,9 +51,14 @@ export const AppRoutes = () => {
   const { user, profile, loading } = useAuth();
   const { getSettingsByCategory, isLoading: settingsLoading } = useSystemSettings();
 
-  // Get system settings
-  const systemSettings = getSettingsByCategory('system');
-  const validationMode = systemSettings?.validation_mode || 'beta';
+  // A1: validation_mode vive en la categoría 'subscription', NO en 'system'
+  // (no existe ninguna fila con category='system'). Leerla mal dejaba
+  // validationMode en 'beta' eternamente y el corte del plan Gratis era código
+  // muerto. Además hizo falta una policy de SELECT en system_settings para
+  // usuarios autenticados: antes solo los admin podían leer y todos los demás
+  // recibían {}. Mismo origen que C17 (visibilidad de secciones).
+  const subscriptionSettings = getSettingsByCategory('subscription');
+  const validationMode = subscriptionSettings?.validation_mode || 'beta';
 
   if (loading || settingsLoading) {
     return (
@@ -108,9 +113,11 @@ export const AppRoutes = () => {
           <Route path="/retos" element={<Navigate to="/precios" replace />} />
           <Route path="/farmacias" element={<Navigate to="/precios" replace />} />
           <Route path="/promociones" element={<Navigate to="/precios" replace />} />
-          <Route path="/perfil" element={<Navigate to="/precios" replace />} />
-          <Route path="/mi-farmacia" element={<Navigate to="/precios" replace />} />
-
+          {/* C1: /perfil y /mi-farmacia NO se redirigen. Si a un cliente le
+              caduca la suscripción tiene que poder entrar en Perfil →
+              Facturación a arreglar su tarjeta; redirigirlo a /precios era una
+              trampa cerrada, y además Precios promete que "lo sigues viendo
+              todo". */}
         </>
       )}
       

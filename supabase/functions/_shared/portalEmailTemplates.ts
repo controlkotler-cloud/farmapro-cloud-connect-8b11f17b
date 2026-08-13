@@ -232,30 +232,36 @@ export function renderPortalTemplate(
     }
 
     case 'fin-prueba': {
+      // C16: aviso de SERVICIO, no comunicación comercial. Antes vendía ("precio
+      // fundador mientras queden plazas") y se enviaba sin cruzar consent_ledger,
+      // así que lo recibía también quien había rechazado el consentimiento
+      // comercial. Ahora se limita a informar del estado de la cuenta y de lo que
+      // va a pasar, que es información que el titular necesita tenga o no
+      // activadas las comunicaciones del sector. Si se vuelve a añadir argumento
+      // de venta, deja de ser transaccional y hay que cruzar el consentimiento.
       const esUltimo = data.aviso === 'ultimo';
       const dias = Number(data.diasRestantes ?? (esUltimo ? 2 : 7)) || 0;
+      const diasTxt = `${dias} ${dias === 1 ? 'día' : 'días'}`;
       const subject = esUltimo
-        ? `Tu prueba del portal farmapro termina en ${dias} ${dias === 1 ? 'día' : 'días'}`
+        ? `Tu prueba del portal farmapro termina en ${diasTxt}`
         : 'A tu prueba del portal farmapro le queda una semana';
+      const nota = 'Este es un aviso sobre el estado de tu cuenta en el portal, no una comunicación comercial: lo recibes con independencia de si tienes activadas las comunicaciones del sector.';
       const html = layout({
         previewText: esUltimo
-          ? 'Último aviso antes de que se bloquee el acceso.'
-          : 'Aún estás a tiempo de decidir cómo continuar.',
+          ? `Tu periodo de prueba termina en ${diasTxt}.`
+          : 'Tu periodo de prueba entra en su última semana.',
         bodyHtml: `
-          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">${esUltimo ? 'Último aviso: tu prueba termina en breve' : 'Tu prueba se acerca al final'}</h1>
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">${esUltimo ? 'Tu prueba termina en breve' : 'Tu prueba entra en la última semana'}</h1>
           <p style="margin:0 0 12px 0;">${saludo}</p>
-          <p style="margin:0 0 12px 0;">${esUltimo
-            ? `En unos ${dias} días tu periodo de prueba llegará al final. Pasada esa fecha seguirás pudiendo ver el catálogo, pero el contenido quedará bloqueado hasta que actives un plan.`
-            : `A tu periodo de prueba en el portal farmapro le quedan aproximadamente ${dias} días. Es buen momento para decidir cómo quieres continuar.`}
-          </p>
-          <p style="margin:0 0 12px 0;">Puedes elegir entre el plan Plus (para ti) o el plan Equipo (para toda la farmacia, hasta 10 personas), con precio fundador mientras queden plazas.</p>
-          ${ctaButton(`${APP_URL}/precios`, 'Ver planes y activar')}
-          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si prefieres seguir con la cuenta gratuita, no tienes que hacer nada.</p>
+          <p style="margin:0 0 12px 0;">Te avisamos de que tu periodo de prueba en el portal farmapro termina en <strong>${diasTxt}</strong>.</p>
+          <p style="margin:0 0 12px 0;">A partir de esa fecha tu cuenta sigue existiendo y podrás entrar y ver el catálogo, pero el contenido quedará bloqueado hasta que actives un plan. No se te cobra nada de forma automática.</p>
+          <p style="margin:0 0 12px 0;">Puedes consultar los planes disponibles y activar el que quieras desde tu cuenta.</p>
+          ${ctaButton(`${APP_URL}/precios`, 'Ver los planes')}
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si no quieres hacer nada, no tienes que hacer nada.</p>
+          <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
         `,
       });
-      const text = `${saludo}\n\n${esUltimo
-        ? `En unos ${dias} días tu periodo de prueba en el portal farmapro llegará al final. Pasada esa fecha seguirás pudiendo ver el catálogo, pero el contenido quedará bloqueado hasta que actives un plan.`
-        : `A tu periodo de prueba en el portal farmapro le quedan aproximadamente ${dias} días. Es buen momento para decidir cómo quieres continuar.`}\n\nPuedes elegir entre el plan Plus (para ti) o el plan Equipo (hasta 10 personas), con precio fundador mientras queden plazas.\n\nVer planes: ${APP_URL}/precios\n\nSi prefieres seguir con la cuenta gratuita, no tienes que hacer nada.${textFooter()}`;
+      const text = `${saludo}\n\nTe avisamos de que tu periodo de prueba en el portal farmapro termina en ${diasTxt}.\n\nA partir de esa fecha tu cuenta sigue existiendo y podrás entrar y ver el catálogo, pero el contenido quedará bloqueado hasta que actives un plan. No se te cobra nada de forma automática.\n\nPuedes consultar los planes disponibles y activar el que quieras desde tu cuenta: ${APP_URL}/precios\n\nSi no quieres hacer nada, no tienes que hacer nada.\n\n${nota}${textFooter()}`;
       return { subject, html, text };
     }
 

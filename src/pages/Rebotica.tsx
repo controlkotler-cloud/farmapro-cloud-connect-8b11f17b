@@ -60,48 +60,48 @@ const STEPS = [
   },
 ];
 
+// Premios REALES, cuadrados con la tabla rebotica_prizes (11 premios activos).
+// Antes este array estaba escrito a mano y anunciaba cosas que no existen
+// ("un curso premium para siempre", "multiplicadores, puntos dobles, insignias
+// raras") y se dejaba fuera el tercer premio más probable. Con bases legales
+// publicadas eso es exposición innecesaria (Ley 3/1991). Si cambian los premios
+// en BD, cambia también esta lista.
 const PRIZES = [
   {
-    rar: 'siempre',
-    tone: 'lime' as const,
-    ico: 'M',
-    title: 'Masterclass exclusivas',
-    desc: 'Sesiones que no están en el catálogo: solo salen del cajón.',
-  },
-  {
-    rar: 'siempre',
-    tone: 'lime' as const,
+    rar: 'lo más frecuente',
     ico: 'P',
-    title: 'Plantillas «solo cajón»',
-    desc: 'Herramientas de gestión y mostrador que no se pueden descargar en ningún otro sitio del portal.',
+    title: 'Plantilla exclusiva de la Rebotica',
+    desc: 'Una plantilla de trabajo que no se puede comprar ni descargar en ninguna otra parte del portal. Eliges tú cuál, entre las que no tengas.',
+  },
+  {
+    rar: 'muy frecuente',
+    ico: 'M',
+    title: 'Masterclass del vault',
+    desc: 'Una sesión grabada de 20 a 30 minutos que no está en el catálogo: solo sale de los cajones. Eliges tú cuál.',
+  },
+  {
+    rar: 'frecuente',
+    ico: '3',
+    title: '3 créditos de imagen IAFarma',
+    desc: 'Tres imágenes extra este mes con IAFarma: carteles, publicaciones y promociones para tu farmacia.',
   },
   {
     rar: 'a veces',
-    tone: 'amber' as const,
     ico: '+',
-    title: 'Meses de Plus gratis',
-    desc: 'Temporadas del plan Plus del portal desbloqueadas en tu cuenta, sin pasar por caja.',
+    title: 'Acceso desbloqueado',
+    desc: 'Un recurso premium del catálogo que se queda en tu cuenta aunque estés en el plan Gratis, o un mes entero de Plus o de Equipo, de regalo y sin compromiso.',
   },
   {
-    rar: 'a veces',
-    tone: 'amber' as const,
-    ico: 'C',
-    title: 'Un curso premium para ti',
-    desc: 'Un curso premium del catálogo, desbloqueado para siempre en tu cuenta.',
-  },
-  {
-    rar: 'a veces',
-    tone: 'amber' as const,
-    ico: 'X',
-    title: 'Multiplicadores y extras',
-    desc: 'Puntos dobles, insignias raras y ventajas dentro del portal para tu perfil profesional.',
+    rar: 'poco',
+    ico: 'A',
+    title: 'Servicios con nombre y apellidos',
+    desc: 'Quince minutos de videollamada con Alejandro para una consulta concreta, una radiografía digital de tu farmacia hecha a mano, o tu duda respondida en la próxima Impulso.',
   },
   {
     rar: 'sorteo mensual',
-    tone: 'amber' as const,
     ico: 'B',
     title: 'El Baúl',
-    desc: 'Un baúl de verdad, lleno de regalos, camino de la puerta de una farmacia. Cada cajón que abres ese mes es una participación: lo sorteamos una vez al mes.',
+    desc: 'Una caja con estética de cajón de botica que llega a la puerta de tu farmacia, con productos seleccionados, una carta de Alejandro y un detalle para el equipo. Cada cajón que abres ese mes es una participación.',
   },
 ];
 
@@ -197,12 +197,14 @@ export default function Rebotica() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ctx.cajon, ctx.campaign, ctx.email]);
 
-  // Comprobación previa (evita dejar intentar abrir cuando ya se sabe que no
-  // hay campaña activa hoy). Solo para usuarios logueados: sin sesión, ya se
-  // redirige a /login antes de poder llegar a abrir nada. Ante cualquier
-  // duda (RLS, red) NO bloqueamos: el backend sigue siendo el gate real.
+  // Comprobación previa de campaña. C10: antes solo se hacía con sesión, así
+  // que el anónimo leía "Crear cuenta gratis y abrir mi cajón" aunque no
+  // hubiera campaña abierta: se registraba, volvía y se encontraba con que
+  // tenía que esperar. Ahora se comprueba también sin sesión (la RLS devuelve
+  // 0 filas al anónimo, que es justo la respuesta correcta) y el botón dice la
+  // verdad. Ante cualquier duda (error de red) NO bloqueamos: el backend sigue
+  // siendo el gate real.
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
     const today = new Date().toISOString().slice(0, 10);
     supabase
@@ -315,7 +317,9 @@ export default function Rebotica() {
   const canAttemptOpen = campaignOpen !== false;
 
   const openLabel = !user
-    ? 'Crear cuenta gratis y abrir mi cajón'
+    ? canAttemptOpen
+      ? 'Crear cuenta gratis y abrir mi cajón'
+      : `Crear cuenta gratis · tu cajón se abre el ${REBOTICA_NEXT_OPENING.dateLabel}`
     : !canAttemptOpen
       ? `Tu cajón se abre el ${REBOTICA_NEXT_OPENING.dateLabel} a las ${HORA_APERTURA_CAJON}:00`
       : opening
@@ -369,9 +373,9 @@ export default function Rebotica() {
               <button
                 type="button"
                 onClick={handleOpen}
-                disabled={opening || (selected != null && !canAttemptOpen)}
+                disabled={opening || (!!user && selected != null && !canAttemptOpen)}
                 className={
-                  selected && canAttemptOpen
+                  selected && (canAttemptOpen || !user)
                     ? `${BTN_LIME} w-full text-center text-[16px] disabled:cursor-not-allowed disabled:opacity-70`
                     : selected
                       ? 'w-full cursor-not-allowed rounded-full bg-muted px-8 py-4 text-center text-[15px] font-bold text-muted-foreground'
@@ -483,9 +487,9 @@ export default function Rebotica() {
               <button
                 type="button"
                 onClick={handleOpen}
-                disabled={opening || (selected != null && !canAttemptOpen)}
+                disabled={opening || (!!user && selected != null && !canAttemptOpen)}
                 className={
-                  selected && canAttemptOpen
+                  selected && (canAttemptOpen || !user)
                     ? `${BTN_LIME} w-full text-center text-[16px] disabled:cursor-not-allowed disabled:opacity-70`
                     : selected
                       ? 'w-full cursor-not-allowed rounded-full bg-muted px-8 py-4 text-center text-[15px] font-bold text-muted-foreground'
