@@ -64,7 +64,7 @@ export const updateChallengeProgress = async (userId: string, challengeType: Cha
         
         // Show completion toast
         if (willComplete) {
-          toast.success('🎉 ¡Reto completado!', {
+          toast.success('¡Reto completado!', {
             description: `${challenge.name || 'Reto'} — +${pointsToAward} puntos`,
             duration: 5000,
           });

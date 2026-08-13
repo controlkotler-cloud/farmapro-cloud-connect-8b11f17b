@@ -1,5 +1,5 @@
 import { useState, useCallback, createElement, type ReactNode } from 'react';
-import { MessageSquareReply, Image } from 'lucide-react';
+import { MessageSquareReply, Image, Instagram, Clapperboard, GalleryHorizontalEnd, MapPin, PenLine, BadgePercent, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,13 +28,13 @@ export interface ContentTypeInfo {
 }
 
 export const CONTENT_TYPES: ContentTypeInfo[] = [
-  { id: 'instagram-post', icon: '📱', label: 'Post Instagram', description: 'Copy optimizado para el feed con CTA y sugerencia de imagen' },
-  { id: 'reel-script', icon: '🎬', label: 'Guión de Reel', description: 'Script paso a paso: gancho, desarrollo, cierre y texto en pantalla' },
-  { id: 'carousel', icon: '📖', label: 'Carrusel Instagram', description: 'Contenido slide por slide para carruseles educativos' },
-  { id: 'google-business', icon: '📍', label: 'Post Google Business', description: 'Publicación para tu perfil de Google que mejora tu SEO local' },
-  { id: 'blog', icon: '📝', label: 'Artículo Blog', description: 'Artículo SEO de ~800 palabras para la web de tu farmacia' },
-  { id: 'promotion', icon: '🎯', label: 'Promoción', description: 'Copy promocional para parafarmacia, dermo y servicios' },
-  { id: 'whatsapp', icon: '💬', label: 'Mensaje WhatsApp', description: 'Mensaje para enviar a tus clientes (recordatorios, novedades)' },
+  { id: 'instagram-post', icon: createElement(Instagram, { className: 'h-6 w-6' }), label: 'Post Instagram', description: 'Copy optimizado para el feed con CTA y sugerencia de imagen' },
+  { id: 'reel-script', icon: createElement(Clapperboard, { className: 'h-6 w-6' }), label: 'Guión de Reel', description: 'Script paso a paso: gancho, desarrollo, cierre y texto en pantalla' },
+  { id: 'carousel', icon: createElement(GalleryHorizontalEnd, { className: 'h-6 w-6' }), label: 'Carrusel Instagram', description: 'Contenido slide por slide para carruseles educativos' },
+  { id: 'google-business', icon: createElement(MapPin, { className: 'h-6 w-6' }), label: 'Post Google Business', description: 'Publicación para tu perfil de Google que mejora tu SEO local' },
+  { id: 'blog', icon: createElement(PenLine, { className: 'h-6 w-6' }), label: 'Artículo Blog', description: 'Artículo SEO de ~800 palabras para la web de tu farmacia' },
+  { id: 'promotion', icon: createElement(BadgePercent, { className: 'h-6 w-6' }), label: 'Promoción', description: 'Copy promocional para parafarmacia, dermo y servicios' },
+  { id: 'whatsapp', icon: createElement(MessageCircle, { className: 'h-6 w-6' }), label: 'Mensaje WhatsApp', description: 'Mensaje para enviar a tus clientes (recordatorios, novedades)' },
   { id: 'responder-resena', icon: createElement(MessageSquareReply, { className: 'h-6 w-6' }), label: 'Responder reseña', description: 'Respuesta profesional y empática a una reseña de Google' },
   { id: 'imagen', icon: createElement(Image, { className: 'h-6 w-6' }), label: 'Imagen', description: 'Genera una imagen para tus publicaciones' },
 ];
