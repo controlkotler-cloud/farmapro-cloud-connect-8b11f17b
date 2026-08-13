@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -44,8 +43,52 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Award,
 };
 
+const MEDAL_COLORS: Record<
+  string,
+  { outer: string; inner: string; symbol: string }
+> = {
+  formacion: { outer: 'bg-brand-soft', inner: 'bg-brand', symbol: 'text-foreground' },
+  constancia: { outer: 'bg-miel-soft', inner: 'bg-miel', symbol: 'text-foreground' },
+  comunidad: { outer: 'bg-terracota-soft', inner: 'bg-terracota', symbol: 'text-white' },
+  especial: { outer: 'bg-ciruela-soft', inner: 'bg-ciruela', symbol: 'text-white' },
+};
+
+const BadgeMedal = ({
+  icon,
+  category,
+  earned,
+}: {
+  icon: string;
+  category: string;
+  earned: boolean;
+}) => {
+  const Icon = BADGE_ICONS[icon] ?? Award;
+  const colors = earned ? MEDAL_COLORS[category] ?? MEDAL_COLORS.formacion : null;
+
+  return (
+    <div
+      className={`relative flex h-[72px] w-[72px] items-center justify-center rounded-full ${
+        earned ? colors?.outer : 'bg-muted'
+      }`}
+    >
+      <div
+        className={`flex h-[54px] w-[54px] items-center justify-center rounded-full ${
+          earned ? colors?.inner : 'bg-muted-foreground'
+        }`}
+      >
+        <Icon
+          size={24}
+          strokeWidth={2}
+          className={earned ? colors?.symbol : 'text-white'}
+        />
+      </div>
+    </div>
+  );
+};
+
 const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
-  const Icon = BADGE_ICONS[badge.icon] ?? Award;
+  const earnedStyle =
+    '0 2px 8px rgba(0,0,0,.04), 0 0 0 1.5px hsl(var(--brand)), 0 10px 30px -10px rgba(136,200,53,.55)';
 
   return (
     <motion.div
@@ -53,28 +96,33 @@ const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className={`relative overflow-hidden transition-all ${
-        badge.earned ? 'ring-1 ring-miel/40 bg-miel-soft' : ''
-      }`}>
-        <CardContent className="p-4 text-center space-y-2">
+      <Card
+        className={`relative overflow-hidden rounded-[0.625rem] transition-all ${
+          badge.earned ? 'ring-1 ring-brand' : ''
+        }`}
+        style={badge.earned ? { boxShadow: earnedStyle } : undefined}
+      >
+        <CardContent className="p-4 text-center space-y-3">
           <div className="flex justify-center">
-            <Icon
-              size={28}
-              strokeWidth={1.75}
-              className={badge.earned ? 'text-miel' : 'text-muted-foreground opacity-50'}
-            />
+            <BadgeMedal icon={badge.icon} category={badge.category} earned={badge.earned} />
           </div>
-          <p className="font-semibold text-sm text-foreground">{badge.name}</p>
+          <p
+            className={`text-sm ${
+              badge.earned ? 'font-extrabold text-foreground' : 'font-semibold text-muted-foreground'
+            }`}
+          >
+            {badge.name}
+          </p>
           {badge.earned ? (
             <p className="text-xs text-muted-foreground">
-              {new Date(badge.earned_at!).toLocaleDateString('es-ES')}
+              Conseguida el {new Date(badge.earned_at!).toLocaleDateString('es-ES')}
             </p>
           ) : (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">{badge.description}</p>
               <div className="h-1.5 overflow-hidden rounded-full border border-border bg-secondary">
                 <div
-                  className="h-full rounded-full bg-miel"
+                  className="h-full rounded-full bg-brand"
                   style={{ width: `${Math.max(badge.progress, 4)}%` }}
                 />
               </div>
@@ -100,7 +148,7 @@ export const BadgesSection = () => {
             <Award className="h-6 w-6 text-miel" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Mis Insignias</h2>
+            <h2 className="text-2xl font-bold">Mis insignias</h2>
             <p className="text-sm text-muted-foreground">{earnedCount} de {totalCount} desbloqueadas</p>
           </div>
         </div>
