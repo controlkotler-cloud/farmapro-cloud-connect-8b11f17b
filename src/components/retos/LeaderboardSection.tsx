@@ -21,11 +21,12 @@ interface LeaderboardSectionProps {
 
 export const LeaderboardSection = (props: LeaderboardSectionProps) => {
   // Si la página ya ha consultado el ranking, reutilizamos sus datos por props
-  // para no repetir la consulta; si no, el componente sigue siendo autónomo.
-  const hook = useLeaderboard();
+  // y evitamos repetir la consulta; si no, el componente sigue siendo autónomo.
+  const hook = useLeaderboard({ enabled: props.entries === undefined });
   const entries = props.entries ?? hook.entries;
   const currentUserRank = props.currentUserRank !== undefined ? props.currentUserRank : hook.currentUserRank;
   const loading = props.loading !== undefined ? props.loading : hook.loading;
+
 
 
   return (
