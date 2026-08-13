@@ -66,7 +66,11 @@ export const LeaderboardSection = (props: LeaderboardSectionProps) => {
                     {entry.first_name}
                     {entry.isCurrentUser && <span className="text-miel ml-1">(tú)</span>}
                   </p>
-                  <p className="text-xs text-muted-foreground">{getLevelInfo(entry.total_points).icon} {getLevelInfo(entry.total_points).name}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <LevelIcon totalPoints={entry.total_points} className="h-3.5 w-3.5 text-miel" />
+                    {getLevelInfo(entry.total_points).name}
+                  </p>
+
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm">{entry.total_points} pts</p>
