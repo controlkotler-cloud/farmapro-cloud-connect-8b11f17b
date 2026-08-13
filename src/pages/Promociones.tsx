@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Gift, Calendar, Building2, ExternalLink, Clock, Tag, Bell, BadgePercent,
-  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake, Copy,
+  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake, Copy, Send,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PromotionCategoryFilter } from '@/components/admin/promotion/PromotionCategoryFilter';
 import { useToast } from '@/hooks/use-toast';
+import { PromotionRequestDialog } from '@/components/promociones/PromotionRequestDialog';
 
 interface Promotion {
   id: string;
@@ -25,6 +26,7 @@ interface Promotion {
   is_active: boolean;
   created_at: string;
   target_url: string | null;
+  partner_email: string | null;
   promo_code: string | null;
 }
 
@@ -46,6 +48,7 @@ const Promociones = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('all');
+  const [requesting, setRequesting] = useState<Promotion | null>(null);
 
   useEffect(() => {
     loadPromotions();
@@ -324,6 +327,11 @@ const Promociones = () => {
           )}
         </div>
       )}
+      <PromotionRequestDialog
+        promotion={requesting}
+        open={!!requesting}
+        onOpenChange={(o) => { if (!o) setRequesting(null); }}
+      />
     </div>
   );
 };
