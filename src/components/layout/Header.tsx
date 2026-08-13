@@ -129,18 +129,6 @@ export const Header = () => {
                   ))
                 )}
               </div>
-              {notifications.length > 0 && (
-                <div className="p-2 border-t">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full text-xs"
-                    onClick={() => navigate('/notificaciones')}
-                  >
-                    Ver todas las notificaciones
-                  </Button>
-                </div>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
 

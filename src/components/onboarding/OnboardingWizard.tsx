@@ -32,7 +32,7 @@ const steps: OnboardingStep[] = [
   },
   {
     title: 'Cursos prácticos para tu farmacia',
-    text: 'Desde Instagram y Google hasta gestión financiera y normativa. Cada curso tiene módulos con contenido real, no teoría vacía. Los cursos Premium son exclusivos para titulares.',
+    text: 'Desde Instagram y Google hasta gestión financiera y normativa. Cada curso tiene módulos con contenido real, no teoría vacía. Los cursos Premium están incluidos en los planes Plus y Equipo.',
     highlight: 'Cursos por niveles · Módulos con contenido real · Con cuestionario al final',
     icons: <GraduationCap className="h-20 w-20" />,
     bgClass: 'from-brand-soft to-secondary',

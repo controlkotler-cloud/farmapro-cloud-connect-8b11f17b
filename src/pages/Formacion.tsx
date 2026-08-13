@@ -25,7 +25,7 @@ type AccessFilter = 'todos' | 'gratis' | 'premium';
 type SortOption = 'recientes' | 'alfabetico' | 'dificultad';
 
 // Orden de categorías para las secciones cuando se muestra "Todos".
-const CATEGORY_ORDER = ['ventas', 'marketing', 'gestion', 'liderazgo', 'atencion', 'atencion_cliente', 'tecnologia', 'otros'];
+const CATEGORY_ORDER = ['ventas', 'marketing', 'gestion', 'liderazgo', 'atencion_cliente', 'tecnologia', 'otros'];
 
 // "Recomendado para ti" v0: mapeo del cargo del perfil a categorías de curso
 // afines. Sin motor de recomendación real (eso pide más datos de perfil que
@@ -34,8 +34,8 @@ const POSITION_COURSE_CATEGORIES: Record<string, string[]> = {
   titular: ['liderazgo', 'gestion'],
   gerente: ['liderazgo', 'gestion'],
   administrador: ['gestion', 'tecnologia'],
-  farmaceutico: ['atencion_cliente', 'atencion', 'ventas'],
-  auxiliar: ['atencion_cliente', 'atencion', 'ventas'],
+  farmaceutico: ['atencion_cliente', 'ventas'],
+  auxiliar: ['atencion_cliente', 'ventas'],
 };
 
 // Peso de dificultad para ordenar de menor a mayor exigencia.

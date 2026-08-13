@@ -121,6 +121,7 @@ export const useQuiz = (courseIdOrSlug?: string) => {
           user_id: profile.id,
           quiz_id: quizId,
           max_score: maxScore,
+          total_questions: questions.length,
           attempt_number: attemptNumber
         }])
         .select()

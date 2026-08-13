@@ -3,7 +3,6 @@ import {
   Megaphone,
   Briefcase,
   Users,
-  HeartHandshake,
   Headset,
   Monitor,
   Sparkles,
@@ -26,10 +25,10 @@ const COVERS: Record<string, CourseCover> = {
   marketing: { gradient: 'bg-terracota', label: 'Marketing', Icon: Megaphone },
   gestion: { gradient: 'bg-ciruela', label: 'Gestión', Icon: Briefcase },
   liderazgo: { gradient: 'bg-miel', label: 'Liderazgo', Icon: Users },
-  atencion: { gradient: 'bg-salvia', label: 'Atención', Icon: HeartHandshake },
-  atencion_cliente: { gradient: 'bg-brand-dark', label: 'Atención al cliente', Icon: Headset },
-  tecnologia: { gradient: 'bg-terracota', label: 'Tecnología', Icon: Monitor },
-  otros: { gradient: 'bg-brand-dark', label: 'Formación', Icon: Sparkles },
+  atencion_cliente: { gradient: 'bg-salvia', label: 'Atención al cliente', Icon: Headset },
+  tecnologia: { gradient: 'bg-brand-dark', label: 'Tecnología', Icon: Monitor },
+  // Comodín de respaldo: neutro cálido de la paleta, sin chocar con las seis categorías.
+  otros: { gradient: 'bg-foreground', label: 'Formación', Icon: Sparkles },
 };
 
 export const getCourseCover = (category?: string | null): CourseCover =>

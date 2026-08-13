@@ -3444,6 +3444,10 @@ export type Database = {
         }
         Returns: Json
       }
+      team_owner_has_paid: {
+        Args: { p_owner: string; p_team_id: string }
+        Returns: boolean
+      }
       update_challenge_progress: {
         Args: {
           challenge_id_param: string

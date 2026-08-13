@@ -80,13 +80,20 @@ serve(async (req) => {
           throw new Error('No se ha encontrado el equipo.');
         }
 
-        const { count: activeMemberCount, error: countError } = await supabaseClient
+        // Una plaza se ocupa si el miembro está activo, o si su invitación
+        // sigue pendiente y no ha caducado. Las pendientes caducadas se liberan.
+        const { data: slotRows, error: countError } = await supabaseClient
           .from('team_members')
-          .select('*', { count: 'exact', head: true })
+          .select('status, expires_at')
           .eq('team_id', teamId)
           .neq('status', 'inactive');
 
         if (countError) throw countError;
+
+        const nowIso = new Date().toISOString();
+        const activeMemberCount = (slotRows ?? []).filter((m: { status: string; expires_at: string | null }) =>
+          m.status === 'active' || (m.status === 'pending' && (!m.expires_at || m.expires_at >= nowIso))
+        ).length;
 
         if ((activeMemberCount ?? 0) >= teamSub.max_members) {
           throw new Error(`No quedan plazas: tu plan Equipo incluye al titular y ${teamSub.max_members} personas más.`);
