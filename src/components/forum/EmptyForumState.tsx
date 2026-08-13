@@ -20,8 +20,10 @@ export const EmptyForumState = ({ onCreateThread }: EmptyForumStateProps) => {
           Estrena esta categoría: cuenta cómo va tu farmacia esta semana.
         </p>
         <Button
+          variant="brand"
+          size="pill"
           onClick={onCreateThread}
-          className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+          className="mt-5"
         >
           <Plus className="h-4 w-4" />
           Crear el primer hilo

@@ -71,8 +71,10 @@ export const ResourceCard = ({ resource, index, onDownload }: ResourceCardProps)
             {(resource.format || 'pdf').toUpperCase()}
           </span>
           <Button
+            variant="brand"
+            size="pill"
             onClick={() => onDownload(resource)}
-            className="flex-none gap-2 rounded-full bg-brand-dark px-4 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+            className="flex-none"
           >
             <Download className="h-4 w-4" />
             Descargar

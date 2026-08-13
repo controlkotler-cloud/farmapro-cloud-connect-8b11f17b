@@ -154,10 +154,11 @@ export const JobDetailDialog = ({
             </div>
             
             <Button
+              variant="brand"
+              size="pill"
               onClick={onContact}
               disabled={isExpired || hasApplied}
-              size="lg"
-              className="w-full rounded-full bg-salvia text-white hover:bg-salvia/90 sm:w-auto sm:min-w-[140px] sm:self-end"
+              className="w-full sm:w-auto sm:min-w-[140px] sm:self-end"
             >
               {hasApplied ? 'Ya contactado' : 'Contactar'}
             </Button>

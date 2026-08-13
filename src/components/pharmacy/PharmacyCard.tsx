@@ -135,7 +135,9 @@ export const PharmacyCard = ({ listing, index, onContactClick }: PharmacyCardPro
             </div>
             
             <Button
-              className="mt-4 w-full rounded-full bg-salvia text-white hover:bg-salvia/90"
+              variant="brand"
+              size="pill"
+              className="mt-4 w-full"
               onClick={() => onContactClick ? onContactClick(listing.id, listing.title) : undefined}
             >
               <Mail className="h-4 w-4 mr-2" />
