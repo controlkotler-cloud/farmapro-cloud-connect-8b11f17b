@@ -2,6 +2,8 @@
 import { motion } from 'framer-motion';
 import { useRetosData } from '@/hooks/useRetosData';
 import { useWeeklyChallenges } from '@/hooks/useWeeklyChallenges';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+
 import { LevelProgressCard } from '@/components/retos/LevelProgressCard';
 import { UserStatsCards } from '@/components/retos/UserStatsCards';
 import { ChallengeCard } from '@/components/retos/ChallengeCard';
@@ -20,6 +22,17 @@ export const Retos = () => {
   } = useRetosData();
 
   const { weeklyChallenges, loading: weeklyLoading } = useWeeklyChallenges();
+
+  // El ranking solo se muestra cuando hay una comunidad mínima (ver
+  // MIN_PARTICIPANTES_RANKING): con tres o cuatro nombres desmotiva y delata lo
+  // pequeño que es el portal. No es un bug, es una decisión de producto.
+  const {
+    entries: leaderboardEntries,
+    currentUserRank,
+    loading: leaderboardLoading,
+    rankingActivo,
+  } = useLeaderboard();
+
 
   // Filter out weekly challenges from permanent list
   const permanentChallenges = challenges.filter((c: any) => !c.is_weekly);
@@ -79,13 +92,13 @@ export const Retos = () => {
         <WeeklyChallengesSection challenges={weeklyChallenges} loading={weeklyLoading} />
       </motion.div>
 
-      {/* Tabs: Retos Permanentes | Insignias | Ranking */}
+      {/* Tabs: Retos Permanentes | Insignias | Ranking (solo si hay comunidad) */}
       <motion.div variants={itemVariants}>
         <Tabs defaultValue="challenges" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${rankingActivo ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="challenges">Retos Permanentes</TabsTrigger>
             <TabsTrigger value="badges">Insignias</TabsTrigger>
-            <TabsTrigger value="ranking">Ranking</TabsTrigger>
+            {rankingActivo && <TabsTrigger value="ranking">Ranking</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="challenges">
@@ -119,11 +132,18 @@ export const Retos = () => {
             <BadgesSection />
           </TabsContent>
 
-          <TabsContent value="ranking">
-            <LeaderboardSection />
-          </TabsContent>
+          {rankingActivo && (
+            <TabsContent value="ranking">
+              <LeaderboardSection
+                entries={leaderboardEntries}
+                currentUserRank={currentUserRank}
+                loading={leaderboardLoading}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </motion.div>
+
     </motion.div>
   );
 };

@@ -34,7 +34,7 @@ export const UserStatsCards = ({ userStats }: UserStatsCardsProps) => {
         <CardContent className="p-6">
           <div className="flex items-center">
             <div className="p-3 bg-brand-soft rounded-lg">
-              <Star className="h-8 w-8 text-brand-dark" />
+              <LevelIcon totalPoints={userStats.totalPoints} className="h-8 w-8 text-brand-dark" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground">Nivel Actual</p>
