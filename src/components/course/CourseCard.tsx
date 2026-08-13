@@ -36,11 +36,6 @@ const getDifficulty = (difficulty?: string) => {
   );
 };
 
-// La portada de "ventas" usa el verde claro de marca (bg-brand); ahí el
-// icono/etiqueta necesitan tinta en vez de blanco para mantener contraste
-// (DESIGN.md: nunca texto blanco sobre bg-brand).
-const NEEDS_INK_OVERLAY = new Set(['ventas']);
-
 export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnroll }: CourseCardProps) => {
   const navigate = useNavigate();
   const { isLocked } = useEntitlements();
@@ -72,7 +67,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
       {/* Portada: foto si existe; si no, portada por categoría (color + icono) */}
-      <div className={`relative h-28 overflow-hidden rounded-t-lg bg-gradient-to-br ${cover.gradient} flex items-center justify-center`}>
+      <div className={`relative h-28 overflow-hidden rounded-t-lg ${cover.bg} flex items-center justify-center`}>
         {(course.featured_image_url || course.thumbnail_url) && !imgError ? (
           <img
             src={course.featured_image_url || course.thumbnail_url}
@@ -83,11 +78,11 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
         ) : (
           <>
             <cover.Icon
-              className={`h-10 w-10 ${NEEDS_INK_OVERLAY.has(course.category) ? 'text-foreground/90' : 'text-white/90'}`}
+              className={`h-10 w-10 ${cover.onSolid}`}
               strokeWidth={1.5}
             />
             <span
-              className={`absolute bottom-2 left-3 text-xs font-semibold uppercase tracking-wide ${NEEDS_INK_OVERLAY.has(course.category) ? 'text-foreground/85' : 'text-white/85'}`}
+              className={`absolute bottom-2 left-3 text-xs font-semibold uppercase tracking-wide ${cover.onSolid}`}
             >
               {cover.label}
             </span>

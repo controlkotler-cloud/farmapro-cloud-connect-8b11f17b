@@ -21,6 +21,7 @@ import {
   BookMarked,
   type LucideIcon,
 } from 'lucide-react';
+import { getCategoryColor } from './categoryColors';
 
 export interface ResourceStyle {
   label: string;
@@ -43,25 +44,35 @@ export const RESOURCE_CATEGORIES = [
   'otros',
 ] as const;
 
-// Paleta reducida a los tokens de marca (miel/terracota/salvia/ciruela + brand).
-// Con 8 categorías reales + 'otros' y solo 5 tokens disponibles, varias categorías
-// reutilizan tono con su prima temática más cercana (impulso~ventas, finanzas~gestión,
-// digital~marketing): rara vez coinciden en el mismo filtro visible, así que el choque
-// es mínimo. 'otros' queda neutro (muted), sin acento.
-const STYLES: Record<string, ResourceStyle> = {
-  ventas: { label: 'Ventas', bg: 'bg-terracota-soft', text: 'text-terracota', accent: 'bg-terracota', Icon: TrendingUp },
-  marketing: { label: 'Marketing', bg: 'bg-miel-soft', text: 'text-miel', accent: 'bg-miel', Icon: Megaphone },
-  gestion: { label: 'Gestión', bg: 'bg-salvia-soft', text: 'text-salvia', accent: 'bg-salvia', Icon: Briefcase },
-  liderazgo: { label: 'Liderazgo', bg: 'bg-ciruela-soft', text: 'text-ciruela', accent: 'bg-ciruela', Icon: Users },
-  atencion: { label: 'Atención', bg: 'bg-brand-soft', text: 'text-brand-dark', accent: 'bg-brand', Icon: HeartHandshake },
-  finanzas: { label: 'Finanzas', bg: 'bg-salvia-soft', text: 'text-salvia', accent: 'bg-salvia', Icon: Wallet },
-  digital: { label: 'Digital', bg: 'bg-miel-soft', text: 'text-miel', accent: 'bg-miel', Icon: Smartphone },
-  impulso: { label: 'Impulso', bg: 'bg-terracota-soft', text: 'text-terracota', accent: 'bg-terracota', Icon: Sparkles },
-  otros: { label: 'Recursos', bg: 'bg-muted', text: 'text-muted-foreground', accent: 'bg-muted-foreground/40', Icon: FileText },
+// El color ya NO se decide aquí: sale de la tabla única de materias
+// (src/lib/categoryColors.ts), de modo que "Ventas" o "Gestión" tienen el mismo
+// tono en Recursos que en Formación. Ahí también se documenta la reutilización
+// deliberada de tono entre materias hermanas (digital~marketing, impulso~liderazgo,
+// finanzas con el verde oscuro de marca). 'otros' queda neutro (muted).
+const META: Record<string, { label: string; Icon: LucideIcon }> = {
+  ventas: { label: 'Ventas', Icon: TrendingUp },
+  marketing: { label: 'Marketing', Icon: Megaphone },
+  gestion: { label: 'Gestión', Icon: Briefcase },
+  liderazgo: { label: 'Liderazgo', Icon: Users },
+  atencion: { label: 'Atención', Icon: HeartHandshake },
+  finanzas: { label: 'Finanzas', Icon: Wallet },
+  digital: { label: 'Digital', Icon: Smartphone },
+  impulso: { label: 'Impulso', Icon: Sparkles },
+  otros: { label: 'Recursos', Icon: FileText },
 };
 
-export const getResourceStyle = (category?: string | null): ResourceStyle =>
-  (category && STYLES[category]) || STYLES.otros;
+export const getResourceStyle = (category?: string | null): ResourceStyle => {
+  const key = (category && META[category]) ? category : 'otros';
+  const meta = META[key];
+  const color = getCategoryColor(key);
+  return {
+    label: meta.label,
+    bg: color.soft,
+    text: color.text,
+    accent: key === 'otros' ? 'bg-muted-foreground/40' : color.solid,
+    Icon: meta.Icon,
+  };
+};
 
 // Icono según el formato/extensión del archivo.
 export const getFormatIcon = (format?: string | null): LucideIcon => {

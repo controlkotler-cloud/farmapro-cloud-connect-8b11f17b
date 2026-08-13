@@ -2,12 +2,6 @@ import { getCourseCover } from '@/lib/courseCover';
 import { CourseGrid } from './CourseGrid';
 import type { Course, CourseEnrollment } from '@/types/course';
 
-// La portada de "ventas" usa el verde claro de marca (bg-brand); ahí el icono
-// necesita tinta en vez de blanco para mantener contraste (DESIGN.md: nunca
-// texto blanco sobre bg-brand). El resto de categorías usa tonos donde el
-// blanco sí contrasta.
-const NEEDS_INK_OVERLAY = new Set(['ventas']);
-
 interface CourseSectionProps {
   /** Categoría real (clave del enum) para tomar icono + etiqueta de courseCover. */
   category: string;
@@ -32,9 +26,9 @@ export const CourseSection = ({
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-3">
-        <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${cover.gradient}`}>
+        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${cover.bg}`}>
           <cover.Icon
-            className={`h-5 w-5 ${NEEDS_INK_OVERLAY.has(category) ? 'text-foreground' : 'text-white'}`}
+            className={`h-5 w-5 ${cover.onSolid}`}
             strokeWidth={1.75}
           />
         </div>

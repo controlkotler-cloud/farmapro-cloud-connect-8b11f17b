@@ -12,11 +12,6 @@ interface CourseHeaderProps {
   isCompleted: boolean;
 }
 
-// La portada de "ventas" usa el verde claro de marca (bg-brand); ahí el
-// icono necesita tinta en vez de blanco para mantener contraste (DESIGN.md:
-// nunca texto blanco sobre bg-brand).
-const NEEDS_INK_OVERLAY = new Set(['ventas']);
-
 export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderProps) => {
   const getCategoryIcon = (category: string, className = 'h-4 w-4') => {
     switch (category) {
@@ -56,9 +51,9 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
           <div className="flex flex-col md:flex-row gap-6">
             {/* Course Image */}
             <div className="relative flex-shrink-0">
-              <div className={`relative w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 bg-gradient-to-br ${getCourseCover(course.category).gradient} flex items-center justify-center`}>
+              <div className={`relative w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 ${getCourseCover(course.category).bg} flex items-center justify-center`}>
                 <div
-                  className={`absolute inset-0 flex items-center justify-center ${NEEDS_INK_OVERLAY.has(course.category) ? 'text-foreground' : 'text-white'}`}
+                  className={`absolute inset-0 flex items-center justify-center ${getCourseCover(course.category).onSolid}`}
                 >
                   {getCategoryIcon(course.category, 'h-12 w-12')}
                 </div>

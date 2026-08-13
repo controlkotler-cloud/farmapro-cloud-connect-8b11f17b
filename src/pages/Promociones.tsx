@@ -35,13 +35,14 @@ interface Promotion {
 // Misma paleta reducida y misma reutilización que PromotionCategoryFilter (salvia para
 // laboratorio/formacion, terracota para distribuidor/servicios) para que la categoría
 // se reconozca de un vistazo en todo el flujo de Promociones.
-const PROMO_COVER: Record<string, { bg: string; Icon: LucideIcon }> = {
-  laboratorio: { bg: 'bg-salvia', Icon: FlaskConical },
-  distribuidor: { bg: 'bg-terracota', Icon: Truck },
-  software: { bg: 'bg-ciruela', Icon: Monitor },
-  equipos: { bg: 'bg-miel', Icon: Wrench },
-  formacion: { bg: 'bg-salvia', Icon: GraduationCap },
-  servicios: { bg: 'bg-terracota', Icon: Handshake },
+// `onSolid`: tinta sobre miel (el blanco no contrasta), blanco sobre el resto.
+const PROMO_COVER: Record<string, { bg: string; onSolid: string; Icon: LucideIcon }> = {
+  laboratorio: { bg: 'bg-salvia', onSolid: 'text-white', Icon: FlaskConical },
+  distribuidor: { bg: 'bg-terracota', onSolid: 'text-white', Icon: Truck },
+  software: { bg: 'bg-ciruela', onSolid: 'text-white', Icon: Monitor },
+  equipos: { bg: 'bg-miel', onSolid: 'text-foreground', Icon: Wrench },
+  formacion: { bg: 'bg-salvia', onSolid: 'text-white', Icon: GraduationCap },
+  servicios: { bg: 'bg-terracota', onSolid: 'text-white', Icon: Handshake },
 };
 
 const Promociones = () => {
@@ -199,7 +200,7 @@ const Promociones = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {promotions.map((promotion, index) => {
                 const cover = PROMO_COVER[(promotion.company_type || '').toLowerCase()] || {
-                  bg: 'bg-miel', Icon: Gift,
+                  bg: 'bg-miel', onSolid: 'text-foreground', Icon: Gift,
                 };
                 const featured = index === 0;
                 return (
@@ -224,7 +225,7 @@ const Promociones = () => {
                           />
                         ) : (
                           <div className={`w-full h-full ${cover.bg} flex items-center justify-center`}>
-                            <cover.Icon className="h-14 w-14 text-primary-foreground/90" strokeWidth={1.5} />
+                            <cover.Icon className={`h-14 w-14 ${cover.onSolid}`} strokeWidth={1.5} />
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
