@@ -3,7 +3,22 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useBadges, BadgeWithStatus } from '@/hooks/useBadges';
-import { Award } from 'lucide-react';
+import {
+  Award,
+  CalendarCheck,
+  Crown,
+  Flame,
+  Heart,
+  Layers,
+  Sparkles,
+  Star,
+  ThumbsUp,
+  TrendingUp,
+  Trophy,
+  UserPlus,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 
 const CATEGORIES = [
   { value: 'all', label: 'Todas' },
@@ -13,7 +28,25 @@ const CATEGORIES = [
   { value: 'especial', label: 'Especial' },
 ];
 
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Flame,
+  Star,
+  Sparkles,
+  Layers,
+  Crown,
+  ThumbsUp,
+  Heart,
+  Users,
+  UserPlus,
+  CalendarCheck,
+  TrendingUp,
+  Trophy,
+  Award,
+};
+
 const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
+  const Icon = BADGE_ICONS[badge.icon] ?? Award;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -24,8 +57,12 @@ const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
         badge.earned ? 'ring-1 ring-miel/40 bg-miel-soft' : ''
       }`}>
         <CardContent className="p-4 text-center space-y-2">
-          <div className={`text-4xl ${badge.earned ? '' : 'opacity-40'}`}>
-            {badge.icon}
+          <div className="flex justify-center">
+            <Icon
+              size={28}
+              strokeWidth={1.75}
+              className={badge.earned ? 'text-miel' : 'text-muted-foreground opacity-50'}
+            />
           </div>
           <p className="font-semibold text-sm text-foreground">{badge.name}</p>
           {badge.earned ? (
@@ -35,19 +72,15 @@ const BadgeCard = ({ badge }: { badge: BadgeWithStatus }) => {
           ) : (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">{badge.description}</p>
-              {badge.requirement_type !== 'manual' && (
-                <>
-                  <div className="h-1.5 overflow-hidden rounded-full border border-border bg-secondary">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
-                      style={{ width: `${Math.max(badge.progress, 4)}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {badge.currentValue}/{badge.requirement_value}
-                  </p>
-                </>
-              )}
+              <div className="h-1.5 overflow-hidden rounded-full border border-border bg-secondary">
+                <div
+                  className="h-full rounded-full bg-miel"
+                  style={{ width: `${Math.max(badge.progress, 4)}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {badge.currentValue}/{badge.requirement_value}
+              </p>
             </div>
           )}
         </CardContent>
