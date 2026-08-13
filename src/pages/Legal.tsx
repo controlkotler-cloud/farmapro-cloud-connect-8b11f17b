@@ -347,8 +347,9 @@ export const PoliticaPrivacidad = () => (
     <P>
       MKPRO trata tus datos sobre la base de: (i) la ejecución de la relación de servicio con el Portal (crear
       y mantener tu cuenta, prestarte el plan contratado y facturarlo); (ii) tu consentimiento explícito, para
-      las comunicaciones comerciales, el perfilado con fines estadísticos y tu participación en La Rebotica; y
-      (iii) el interés legítimo de responder a las consultas de soporte que nos envíes.
+      las comunicaciones comerciales, el perfilado con fines estadísticos, tu participación en La Rebotica y
+      la comunicación de tus datos de contacto a un partner cuando solicitas una de sus promociones; y (iii) el
+      interés legítimo de responder a las consultas de soporte que nos envíes.
     </P>
     <P>
       El Usuario podrá retirar su consentimiento en cualquier momento escribiendo a{' '}
