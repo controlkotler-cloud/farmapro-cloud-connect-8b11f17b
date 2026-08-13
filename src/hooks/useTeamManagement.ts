@@ -196,8 +196,13 @@ export const useTeamManagement = () => {
   };
 
   const getTeamStats = () => {
+    // Misma regla que el servidor: una plaza se ocupa si el miembro está activo,
+    // o si su invitación sigue pendiente y no ha caducado.
+    const nowIso = new Date().toISOString();
     const activeMembers = teamMembers.filter(m => m.status === 'active').length;
-    const pendingMembers = teamMembers.filter(m => m.status === 'pending').length;
+    const pendingMembers = teamMembers.filter(
+      m => m.status === 'pending' && (!m.expires_at || m.expires_at >= nowIso)
+    ).length;
     const totalSlots = teamSubscription?.max_members || 0;
 
     return {

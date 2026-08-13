@@ -174,6 +174,15 @@ export const Recursos = () => {
   );
 
   const handleDownload = (resource: Resource) => {
+    // Sin fichero asociado: ni descarga, ni registro, ni consumo de cupo.
+    if (!resource.file_url?.trim()) {
+      toast({
+        title: 'Recurso no disponible',
+        description: 'Este recurso todavía no está disponible para descargar.',
+        variant: 'destructive',
+      });
+      return;
+    }
     // Control de acceso del plan gratis (v1 en cliente).
     // Gratis caducado: nada de descargas.
     if (isLocked) {
