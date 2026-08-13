@@ -306,8 +306,10 @@ serve(async (req) => {
 
         if (removeError) throw removeError;
 
-        // C-SEG8: degradar el perfil del miembro retirado (pierde el acceso del equipo).
-        // Si tuviera una suscripción individual propia, check-subscription la re-sincroniza.
+        // A6: no degradar a quien no debe degradarse. Antes esto ponía 'freemium' a
+        // cualquiera, así que retirar del equipo a un admin lo dejaba en Gratis para
+        // siempre (check-subscription no lo resincroniza: con validation_mode='beta'
+        // ni consulta Stripe). Mismo criterio que accept_invitation.
         const { data: removedMember } = await supabaseClient
           .from('team_members')
           .select('user_id')
@@ -315,11 +317,40 @@ serve(async (req) => {
           .eq('team_id', teamId)
           .maybeSingle();
         if (removedMember?.user_id) {
-          await supabaseClient
+          const { data: removedProfile } = await supabaseClient
             .from('profiles')
-            .update({ subscription_role: 'freemium', subscription_status: 'trialing' })
-            .eq('id', removedMember.user_id);
+            .select('subscription_role')
+            .eq('id', removedMember.user_id)
+            .maybeSingle();
+
+          const isProtected = removedProfile?.subscription_role
+            ? PROTECTED_ROLES.includes(removedProfile.subscription_role as typeof PROTECTED_ROLES[number])
+            : false;
+
+          // ¿Tiene suscripción propia viva? Entonces el equipo no era su única vía de
+          // acceso y retirarlo del equipo no puede quitarle lo que paga de su bolsillo.
+          const { data: ownSubscription } = await supabaseClient
+            .from('subscriptions')
+            .select('id')
+            .eq('user_id', removedMember.user_id)
+            .in('status', ['active', 'trialing', 'past_due'])
+            .limit(1)
+            .maybeSingle();
+
+          if (isProtected || ownSubscription) {
+            logStep('Miembro retirado SIN degradar', {
+              userId: removedMember.user_id,
+              motivo: isProtected ? 'rol protegido' : 'suscripción propia activa',
+            });
+          } else {
+            const { error: degradeError } = await supabaseClient
+              .from('profiles')
+              .update({ subscription_role: 'freemium', subscription_status: 'trialing' })
+              .eq('id', removedMember.user_id);
+            if (degradeError) logStep('Error degradando perfil retirado', { err: degradeError.message });
+          }
         }
+
 
         logStep("Member removed", { email, teamId });
         return new Response(JSON.stringify({ 
