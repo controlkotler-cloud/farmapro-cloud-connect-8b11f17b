@@ -167,31 +167,35 @@ export default function Precios() {
           <p className="text-sm text-muted-foreground mt-3">Todos los precios con IVA incluido.</p>
         </div>
 
-        {/* Toggle Mensual / Anual */}
-        <div className="flex items-center justify-center gap-3 mb-12">
-          <span
-            className={`text-sm font-medium ${
-              billing === "monthly" ? "text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            Mensual
-          </span>
-          <Switch
-            checked={billing === "yearly"}
-            onCheckedChange={(checked) => setBilling(checked ? "yearly" : "monthly")}
-            aria-label="Cambiar entre facturación mensual y anual"
-          />
-          <span
-            className={`text-sm font-medium ${
-              billing === "yearly" ? "text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            Anual
-          </span>
-          <Badge variant="secondary" className="text-primary border-primary/30">
-            2 meses gratis
-          </Badge>
-        </div>
+        {/* Toggle Mensual / Anual (el anual solo si Stripe puede cobrarlo) */}
+        {annualAvailable && (
+          <div className="flex items-center justify-center gap-3 mb-12">
+            <span
+              className={`text-sm font-medium ${
+                billing === "monthly" ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              Mensual
+            </span>
+            <Switch
+              checked={billing === "yearly"}
+              onCheckedChange={(checked) => setBilling(checked ? "yearly" : "monthly")}
+              aria-label="Cambiar entre facturación mensual y anual"
+            />
+            <span
+              className={`text-sm font-medium ${
+                billing === "yearly" ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              Anual
+            </span>
+            <Badge variant="secondary" className="text-primary border-primary/30">
+              2 meses gratis
+            </Badge>
+          </div>
+        )}
+        {!annualAvailable && <div className="mb-12" />}
+
 
         {/* Tarjetas de planes */}
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
