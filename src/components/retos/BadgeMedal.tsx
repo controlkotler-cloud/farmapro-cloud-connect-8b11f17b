@@ -45,27 +45,32 @@ export const BadgeMedal = ({
   icon,
   category,
   earned,
+  size = 'md',
 }: {
   icon: string;
   category: string;
   earned: boolean;
+  size?: 'sm' | 'md';
 }) => {
   const Icon = BADGE_ICONS[icon] ?? Award;
   const colors = earned ? MEDAL_COLORS[category] ?? MEDAL_COLORS.formacion : null;
+  const outerSize = size === 'sm' ? 'h-12 w-12' : 'h-[72px] w-[72px]';
+  const innerSize = size === 'sm' ? 'h-9 w-9' : 'h-[54px] w-[54px]';
+  const iconSize = size === 'sm' ? 18 : 24;
 
   return (
     <div
-      className={`relative flex h-[72px] w-[72px] items-center justify-center rounded-full ${
+      className={`relative flex ${outerSize} items-center justify-center rounded-full ${
         earned ? colors?.outer : 'bg-muted'
       }`}
     >
       <div
-        className={`flex h-[54px] w-[54px] items-center justify-center rounded-full ${
+        className={`flex ${innerSize} items-center justify-center rounded-full ${
           earned ? colors?.inner : 'bg-muted-foreground'
         }`}
       >
         <Icon
-          size={24}
+          size={iconSize}
           strokeWidth={2}
           className={earned ? colors?.symbol : 'text-white'}
         />

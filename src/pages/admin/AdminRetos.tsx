@@ -327,7 +327,7 @@ const AdminRetos = () => {
           <TabsTrigger value="overview">Resumen</TabsTrigger>
           <TabsTrigger value="challenges">Retos</TabsTrigger>
           <TabsTrigger value="weekly">Semanales</TabsTrigger>
-          <TabsTrigger value="badges">Badges</TabsTrigger>
+          <TabsTrigger value="badges">Insignias</TabsTrigger>
           <TabsTrigger value="progress">Progreso</TabsTrigger>
         </TabsList>
 
