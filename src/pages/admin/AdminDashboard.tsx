@@ -118,8 +118,8 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Panel de Administración</h1>
-        <p className="text-muted-foreground">Gestiona todo el contenido y funcionalidades de farmapro</p>
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Panel de Administración</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">Gestiona todo el contenido y funcionalidades de farmapro</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
