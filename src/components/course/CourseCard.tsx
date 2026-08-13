@@ -178,11 +178,11 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
           ) : isEnrolled ? (
             <Button onClick={handleClick} className="w-full">
               <Play className="h-4 w-4 mr-2" />
-              {isCompleted ? 'Revisar Curso' : 'Continuar Curso'}
+              {isCompleted ? 'Revisar curso' : 'Continuar curso'}
             </Button>
           ) : (
             <Button onClick={handleClick} className="w-full" variant="outline">
-              Comenzar Curso
+              Comenzar curso
             </Button>
           )}
         </div>
