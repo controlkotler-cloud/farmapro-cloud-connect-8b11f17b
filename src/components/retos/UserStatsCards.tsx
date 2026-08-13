@@ -1,6 +1,8 @@
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Star, CheckCircle, Flame } from 'lucide-react';
+import { LevelIcon } from '@/components/gamification/LevelIcon';
+import { Trophy, CheckCircle, Flame } from 'lucide-react';
+
 
 interface UserStatsCardsProps {
   userStats: {
