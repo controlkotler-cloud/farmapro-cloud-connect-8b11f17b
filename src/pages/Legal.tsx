@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 /** Fecha de última actualización de los 4 textos legales del portal. Súbela si cambias contenido. */
-const ULTIMA_ACTUALIZACION = '16 de julio de 2026';
+const ULTIMA_ACTUALIZACION = '13 de agosto de 2026';
 
 const linkCls = 'font-medium text-foreground underline underline-offset-2 hover:text-primary';
 
@@ -312,6 +312,30 @@ export const PoliticaPrivacidad = () => (
       un premio requiere compartir tus datos con un partner externo a farmapro, te pediremos entonces un
       consentimiento adicional y específico, nunca premarcado.
     </P>
+    <H3>Solicitudes de promociones de partners</H3>
+    <P>
+      En la sección Promociones del Portal publicamos ofertas de laboratorios, distribuidores, proveedores de
+      software, equipamiento, formación y servicios (los «partners»). Si solicitas una de esas ofertas, y
+      únicamente si marcas la casilla de autorización correspondiente, comunicamos al partner tu nombre, el
+      nombre y la ciudad de tu farmacia, tu correo electrónico y, si los facilitas voluntariamente, tu teléfono
+      y el mensaje que escribas. No compartimos ningún otro dato de tu cuenta: ni tu actividad formativa, ni
+      tu participación en la comunidad, ni tus datos de facturación.
+    </P>
+    <P>
+      Esta comunicación es una cesión de datos, no un encargo de tratamiento: desde que recibe tu solicitud, el
+      partner trata esos datos como responsable independiente, conforme a su propia política de privacidad, y es
+      a él a quien debes dirigirte para ejercer tus derechos sobre el tratamiento que haga. MKPRO conserva una
+      copia de cada solicitud, con su referencia, la fecha y la versión exacta del texto que aceptaste, como
+      evidencia del consentimiento conforme al artículo 7.1 del RGPD y para poder ayudarte si el partner no
+      responde. Recibirás siempre por correo el detalle de lo que se ha enviado.
+    </P>
+    <P>
+      Puedes revocar tu autorización en cualquier momento escribiendo a{' '}
+      <a href="mailto:entra@farmapro.es" className={linkCls}>entra@farmapro.es</a>. La revocación impide
+      nuevas comunicaciones, pero no deshace la ya realizada: para el tratamiento que el partner ya esté
+      haciendo, tendrás que dirigirte también a él.
+    </P>
+
     <H3>Soporte</H3>
     <P>
       Si nos escribes a soporte@farmapro.es o a través de cualquier otro canal de contacto del Portal, tratamos
@@ -323,8 +347,9 @@ export const PoliticaPrivacidad = () => (
     <P>
       MKPRO trata tus datos sobre la base de: (i) la ejecución de la relación de servicio con el Portal (crear
       y mantener tu cuenta, prestarte el plan contratado y facturarlo); (ii) tu consentimiento explícito, para
-      las comunicaciones comerciales, el perfilado con fines estadísticos y tu participación en La Rebotica; y
-      (iii) el interés legítimo de responder a las consultas de soporte que nos envíes.
+      las comunicaciones comerciales, el perfilado con fines estadísticos, tu participación en La Rebotica y
+      la comunicación de tus datos de contacto a un partner cuando solicitas una de sus promociones; y (iii) el
+      interés legítimo de responder a las consultas de soporte que nos envíes.
     </P>
     <P>
       El Usuario podrá retirar su consentimiento en cualquier momento escribiendo a{' '}
@@ -340,7 +365,39 @@ export const PoliticaPrivacidad = () => (
       <Link to="/politica-cookies" className={linkCls}>Política de Cookies</Link>.
     </P>
 
-    <H2>4. Veracidad y calidad de los datos facilitados por los usuarios</H2>
+    <H2>4. ¿A quién comunicamos tus datos?</H2>
+    <P>
+      MKPRO no vende tus datos personales ni los cede a terceros con fines publicitarios propios de esos
+      terceros. Tus datos solo llegan a:
+    </P>
+    <P>
+      <strong className="font-semibold text-foreground">Proveedores que nos prestan servicio (encargados del tratamiento).</strong>{' '}
+      Actúan siguiendo nuestras instrucciones y con contrato de encargo firmado: el proveedor que aloja el
+      Portal y su base de datos, Stripe para el cobro de las suscripciones, Holded para la emisión de facturas,
+      Mailrelay (CIPSA / iPZ Marketing) para el envío de correo, y la pasarela de inteligencia artificial que
+      procesa las consultas que haces a IAFarma y al asistente del Portal. Las consultas a los asistentes de IA
+      no se utilizan para entrenar modelos.
+    </P>
+    <P>
+      <strong className="font-semibold text-foreground">Partners de promociones.</strong> Solo cuando tú lo autorizas
+      expresamente al solicitar una oferta concreta, y solo con los datos descritos en el apartado anterior. En
+      este caso no hay encargo de tratamiento: el partner pasa a ser responsable independiente de los datos que
+      recibe.
+    </P>
+    <P>
+      <strong className="font-semibold text-foreground">Administraciones públicas, juzgados y fuerzas de seguridad</strong>,
+      cuando exista una obligación legal de facilitarlos.
+    </P>
+    <P>
+      Algunos de estos proveedores están establecidos fuera del Espacio Económico Europeo o pueden acceder a los
+      datos desde fuera de él. En esos casos, las transferencias internacionales se amparan en una decisión de
+      adecuación de la Comisión Europea o, en su defecto, en las cláusulas contractuales tipo aprobadas por la
+      Comisión, junto con las medidas complementarias que resulten necesarias. Puedes solicitarnos información
+      sobre las garantías aplicables a cada proveedor escribiendo a{' '}
+      <a href="mailto:entra@farmapro.es" className={linkCls}>entra@farmapro.es</a>.
+    </P>
+
+    <H2>5. Veracidad y calidad de los datos facilitados por los usuarios</H2>
     <P>
       El Usuario garantiza que los datos personales facilitados son exactos y veraces y se hace responsable de
       comunicar a MKPRO cualquier modificación de los mismos.
@@ -351,15 +408,20 @@ export const PoliticaPrivacidad = () => (
       acciones que procedan en Derecho.
     </P>
 
-    <H2>5. Conservación de los datos</H2>
+    <H2>6. Conservación de los datos</H2>
     <P>
       MKPRO conservará tus datos personales mientras mantengas la cuenta activa en el Portal y mientras sea
       necesario para las finalidades para las que se recogieron. Si te das de baja o cancelas tu suscripción,
       MKPRO podrá mantener la información bloqueada durante los plazos legalmente establecidos, por ejemplo a
       efectos fiscales y contables de las facturas emitidas.
     </P>
+    <P>
+      Las solicitudes de promociones y la evidencia del consentimiento asociado se conservan mientras la solicitud
+      pueda dar lugar a una reclamación y, en todo caso, durante los plazos de prescripción legalmente aplicables,
+      aunque hayas cancelado tu cuenta.
+    </P>
 
-    <H2>6. Derechos de los usuarios</H2>
+    <H2>7. Derechos de los usuarios</H2>
     <P>
       El Usuario tiene derecho a (i) acceder a sus datos personales, así como a (ii) solicitar la rectificación
       de los datos inexactos o incompletos o, en su caso, (iii) solicitar su supresión, (iv) solicitar la
@@ -386,7 +448,7 @@ export const PoliticaPrivacidad = () => (
       satisfecho el ejercicio de sus derechos.
     </P>
 
-    <H2>7. Medidas de seguridad de los datos</H2>
+    <H2>8. Medidas de seguridad de los datos</H2>
     <P>
       MKPRO mantiene los niveles de seguridad de protección de datos personales conforme a la normativa
       aplicable y ha establecido todos los medios técnicos a su alcance para evitar la pérdida, mal uso,
@@ -398,7 +460,7 @@ export const PoliticaPrivacidad = () => (
       de acuerdo con la legislación aplicable.
     </P>
 
-    <H2>8. Preguntas</H2>
+    <H2>9. Preguntas</H2>
     <P>
       Si tiene alguna pregunta sobre esta Política de Privacidad o el tratamiento de sus datos, rogamos que se
       ponga en contacto con nosotros mediante correo electrónico dirigido al Delegado de Protección de Datos en
@@ -407,7 +469,7 @@ export const PoliticaPrivacidad = () => (
       <Link to="/contacto-soporte" className={linkCls}>Contacto y soporte</Link>.
     </P>
 
-    <H2>9. Aceptación y consentimiento</H2>
+    <H2>10. Aceptación y consentimiento</H2>
     <P>
       El Usuario declara haber sido informado de las condiciones sobre protección de datos personales,
       aceptando y consintiendo el tratamiento de los mismos por parte de MKPRO, en la forma y para las
