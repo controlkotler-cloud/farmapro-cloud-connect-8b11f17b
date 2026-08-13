@@ -142,7 +142,7 @@ export const BadgesTab = () => {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="flex items-center gap-2">
               <Award className="h-5 w-5 text-miel" />
-              Mis Insignias
+              Mis insignias
               <span className="text-sm font-normal text-muted-foreground">
                 ({earnedCount} de {totalCount})
               </span>
