@@ -44,11 +44,13 @@ export const LAUNCH = {
   windowDays: 15,
   spots: LAUNCH_SPOTS,
   /**
-   * Plazas YA ocupadas por altas de pago REALES. Empieza en 0 y se actualiza a
-   * mano (o se conecta al recuento real cuando esté Stripe). SOLO cuentan pagos
-   * reales: inflarlo sería publicidad engañosa (Ley 3/1991).
+   * SOLO RESPALDO. La cifra buena de plazas ocupadas es la vista
+   * `public.founder_count` (columna `spots_taken`), que es la que consulta el
+   * servidor en create-checkout y la que lee el hook useLaunchStatus. Este valor
+   * únicamente se usa si esa consulta falla.
    */
   spotsTaken: 0,
+
   /**
    * El contador público no se muestra hasta alcanzar este número de plazas
    * ocupadas reales: un contador casi vacío el primer día resta, no suma.
