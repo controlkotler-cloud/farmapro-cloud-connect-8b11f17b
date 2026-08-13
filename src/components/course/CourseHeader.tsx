@@ -56,6 +56,7 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
                   category={course.category}
                   concept={course.cover_concept}
                   iconName={course.cover_icon}
+                  size="sm"
                   className="h-32 w-full"
                 />
                 {(course.thumbnail_url || course.featured_image_url) && (

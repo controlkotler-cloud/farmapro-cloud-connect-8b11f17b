@@ -73,31 +73,34 @@ interface CourseCoverProps {
   concept?: string | null;
   iconName?: string | null;
   className?: string;
+  size?: 'sm' | 'md';
 }
 
 // Portada por curso dibujada con CSS: fondo suave de la materia, icono gigante
 // decorativo y el concepto en tinta (única regla legible en las seis materias).
-export const CourseCover = ({ category, concept, iconName, className }: CourseCoverProps) => {
+export const CourseCover = ({ category, concept, iconName, className, size = 'md' }: CourseCoverProps) => {
   const color = getCategoryColor(category);
   const { label, Icon: FallbackIcon } = getCourseCover(category);
   const Icon = (iconName && COVER_ICONS[iconName]) || FallbackIcon;
 
+  const isSm = size === 'sm';
+
   return (
     <div
-      className={`relative flex h-28 items-center overflow-hidden px-3.5 ${color.soft} ${className ?? ''}`}
+      className={`relative flex h-28 items-center overflow-hidden ${isSm ? 'px-2.5' : 'px-3.5'} ${color.soft} ${className ?? ''}`}
     >
       <Icon
-        className={`pointer-events-none absolute -right-6 -top-6 h-[150px] w-[150px] opacity-30 ${color.text}`}
+        className={`pointer-events-none absolute -right-6 -top-6 opacity-30 ${color.text} ${isSm ? 'h-[96px] w-[96px]' : 'h-[150px] w-[150px]'}`}
         strokeWidth={1.1}
         aria-hidden="true"
       />
       {concept && (
-        <span className="relative text-[27px] font-extrabold leading-none tracking-[-0.045em] text-foreground">
+        <span className={`relative font-extrabold leading-none tracking-[-0.045em] text-foreground ${isSm ? 'text-[17px]' : 'text-[27px]'}`}>
           {concept}
         </span>
       )}
       <span
-        className={`absolute bottom-2.5 left-3.5 text-[9px] font-extrabold uppercase tracking-[0.14em] opacity-80 ${color.text}`}
+        className={`absolute font-extrabold uppercase tracking-[0.14em] opacity-80 ${color.text} ${isSm ? 'bottom-2 left-2.5 text-[8px]' : 'bottom-2.5 left-3.5 text-[9px]'}`}
       >
         {label}
       </span>
