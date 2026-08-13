@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 /** Fecha de última actualización de los 4 textos legales del portal. Súbela si cambias contenido. */
-const ULTIMA_ACTUALIZACION = '16 de julio de 2026';
+const ULTIMA_ACTUALIZACION = '13 de agosto de 2026';
 
 const linkCls = 'font-medium text-foreground underline underline-offset-2 hover:text-primary';
 
