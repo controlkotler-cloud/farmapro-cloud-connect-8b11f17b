@@ -68,7 +68,7 @@ export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefa
         >
           <Plus className="h-4 w-4" />
           Nuevo hilo
-        </button>
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
