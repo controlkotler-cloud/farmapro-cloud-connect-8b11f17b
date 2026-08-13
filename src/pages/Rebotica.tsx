@@ -179,6 +179,7 @@ export default function Rebotica() {
   const [campaignOpen, setCampaignOpen] = useState<boolean | null>(null);
 
   const countdown = useOpeningCountdown();
+  const cuentaAtras = useCuentaAtrasNatural();
   const partner = REBOTICA_CURRENT_PARTNER;
 
   // Contexto que llega del email (?c=&cajon=&e=, patrón voto 1-clic) o de una

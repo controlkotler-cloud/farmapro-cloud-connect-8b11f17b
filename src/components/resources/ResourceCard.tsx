@@ -32,10 +32,12 @@ export const ResourceCard = ({ resource, index, onDownload }: ResourceCardProps)
 
   return (
     <Card
-      className={`flex h-full flex-col shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift ${
+      className={`relative flex h-full flex-col overflow-hidden shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift ${
         featured ? 'bg-gradient-to-br from-salvia-soft to-card' : ''
       }`}
     >
+      {/* Filo superior de 3 px con el color de la categoría (nada de bordes laterales). */}
+      <div className={`h-[3px] w-full ${style.accent}`} aria-hidden="true" />
       <CardContent className="flex h-full flex-col p-6">
         <div className="mb-3 flex items-center justify-between gap-2">
           <span
