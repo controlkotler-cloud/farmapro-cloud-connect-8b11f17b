@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Trophy } from 'lucide-react';
 import { getLevelInfo, getNextLevelInfo, getNextLevelProgress, getPointsToNextLevel } from '@/services/pointsService';
+import { LevelIcon } from '@/components/gamification/LevelIcon';
+
 
 interface WelcomeCardProps {
   userName: string;

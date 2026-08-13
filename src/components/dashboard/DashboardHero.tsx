@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Flame } from 'lucide-react';
 import { getLevelInfo } from '@/services/pointsService';
+import { LevelIcon } from '@/components/gamification/LevelIcon';
+
 import type { HighlightCourse } from '@/hooks/useDashboardHighlights';
 
 interface DashboardHeroProps {
@@ -49,9 +51,11 @@ export const DashboardHero = ({ fullName, streak, totalPoints, course }: Dashboa
           {greetingByHour()}, {firstName}. Hoy toca <em className="italic-display">{phrase}</em>
         </h1>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-          <span>
-            {level.icon} {level.name} · {totalPoints} puntos
+          <span className="inline-flex items-center gap-1.5">
+            <LevelIcon totalPoints={totalPoints} className="h-4 w-4 text-miel" />
+            {level.name} · {totalPoints} puntos
           </span>
+
           {streak >= 2 && (
             <span className="inline-flex items-center gap-1 rounded-full bg-miel-soft px-2.5 py-0.5 text-xs font-bold text-foreground">
               <Flame className="h-3.5 w-3.5 text-miel" />
