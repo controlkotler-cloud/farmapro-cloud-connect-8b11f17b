@@ -38,9 +38,10 @@ export default function Precios() {
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   // Plan cuyo checkout está en curso (deshabilita su botón e ignora dobles clics).
   const [checkoutLoading, setCheckoutLoading] = useState<PlanId | null>(null);
-  // Estado del lanzamiento: decide si rige el precio de lanzamiento o el normal,
-  // y alimenta el aviso de urgencia (plazas restantes + cuenta atrás).
-  const launch = getLaunchStatus();
+  // Estado del lanzamiento con el recuento REAL de plazas (vista founder_count).
+  const { launch } = useLaunchStatus();
+  // El anual solo se ofrece si sigue el lanzamiento o ya existen los precios anuales regulares.
+  const annualAvailable = launch.active || ANNUAL_REGULAR_AVAILABLE;
   // Miembro de un equipo (no titular): ya tiene acceso completo, sin CTAs de compra.
   // isTeamMember (señal viva) en vez de profile.subscription_role (cacheado).
   const showTeamMemberBanner = isTeamMember && !teamLoading && !isTeamOwner;
@@ -48,6 +49,11 @@ export default function Precios() {
     100,
     Math.round(((LAUNCH.spots - launch.spotsLeft) / LAUNCH.spots) * 100),
   );
+
+  // Si el anual deja de estar disponible, vuelve a mensual.
+  useEffect(() => {
+    if (!annualAvailable && billing === "yearly") setBilling("monthly");
+  }, [annualAvailable, billing]);
 
   const handleSubscribe = async (planId: PlanId) => {
     if (planId === "gratis") return;
@@ -64,17 +70,29 @@ export default function Precios() {
     setCheckoutLoading(null);
 
     if (error || !data?.url) {
+      const detail =
+        (await extractFunctionErrorMessage(error)) ??
+        (typeof data?.error === "string" ? data.error : undefined);
       toast({
         title: "No se ha podido iniciar el pago",
         description:
+          detail ??
           "Inténtalo de nuevo en unos segundos. Si persiste, escríbenos a soporte@farmapro.es.",
         variant: "destructive",
       });
       return;
     }
 
+    if (data.mode === "portal") {
+      toast({
+        title: "Ya tienes una suscripción activa",
+        description: "Te llevamos a tu facturación para cambiar de plan.",
+      });
+    }
+
     window.location.href = data.url;
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
