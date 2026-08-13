@@ -11,8 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-const CONSENT_VERSION = 'promo-cesion-v1';
-const COPIA_INTERNA = 'control@mkpro.es';
 
 interface PromotionLite {
   id: string;
