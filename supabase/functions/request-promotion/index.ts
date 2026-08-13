@@ -63,7 +63,7 @@ serve(async (req) => {
   // --- Promoción: debe existir, estar activa, vigente y tener partner_email
   const { data: promo, error: promoErr } = await admin
     .from('promotions')
-    .select('id, title, company_name, partner_email, is_active, valid_until')
+    .select('id, title, company_name, partner_email, is_active, valid_until, discount_details, terms_conditions')
     .eq('id', promotionId)
     .maybeSingle();
 
@@ -113,6 +113,9 @@ serve(async (req) => {
   const nombre = (profile?.full_name ?? '').trim();
   const farmacia = (profile?.pharmacy_name ?? '').trim();
   const ciudad = (profile?.pharmacy_city ?? '').trim();
+  if (!farmacia || !ciudad) {
+    return json({ error: 'Completa el nombre y la ciudad de tu farmacia antes de solicitar la promoción' }, 400);
+  }
 
   // --- Referencia + registro
   const { data: refData, error: refErr } = await admin.rpc('next_promotion_reference');
@@ -153,6 +156,9 @@ serve(async (req) => {
     solicitanteCiudad: ciudad,
     solicitanteTelefono: telefono,
     mensaje,
+    promocionOferta: (promo.discount_details as string | null) ?? '',
+    promocionCondiciones: (promo.terms_conditions as string | null) ?? '',
+    promocionValidaHasta: (promo.valid_until as string | null) ?? '',
   };
 
   const enviar = (template: string, to: string, data: Record<string, unknown>) =>
