@@ -9,10 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
 import { supabase } from "@/integrations/supabase/client";
+import { useLaunchStatus } from "@/hooks/useLaunchStatus";
 import {
   PLANS,
   LAUNCH,
-  getLaunchStatus,
+  ANNUAL_REGULAR_AVAILABLE,
   IMAGE_ADDONS,
   FREE_LIMITS,
   type Plan,
