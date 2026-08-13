@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { BadgeMedal, BADGE_ICONS } from '@/components/retos/BadgeMedal';
 
 interface BadgeData {
   id: string;
