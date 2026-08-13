@@ -16,6 +16,7 @@ interface Promotion {
   terms_conditions: string | null;
   image_url: string | null;
   target_url: string | null;
+  partner_email: string | null;
   created_at: string;
 }
 
