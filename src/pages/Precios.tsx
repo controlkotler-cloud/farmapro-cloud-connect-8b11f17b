@@ -288,11 +288,15 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
   const period = billing === "yearly" ? "/año" : "/mes";
 
   // Precio regular vigente (sin lanzamiento). Anual = 10x mensual (2 meses gratis).
-  const regularPrice = billing === "yearly" ? plan.priceMonthly * 10 : plan.priceMonthly;
+  // El anual regular solo se muestra si Stripe ya puede cobrarlo.
+  const regularAnnualShown = billing !== "yearly" || ANNUAL_REGULAR_AVAILABLE;
+  const regularPriceRaw = billing === "yearly" ? plan.priceMonthly * 10 : plan.priceMonthly;
+  const regularPrice = regularAnnualShown ? regularPriceRaw : undefined;
   const launchPrice =
     billing === "yearly" ? plan.priceYearlyLaunch : plan.priceMonthlyLaunch;
   // Precio que se cobra realmente ahora mismo.
   const currentPrice = launchActive ? launchPrice : regularPrice;
+
 
   return (
     <Card
