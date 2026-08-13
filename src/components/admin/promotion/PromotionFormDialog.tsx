@@ -288,6 +288,19 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
                 placeholder="https://ejemplo.com/imagen.jpg (opcional)"
               />
             </div>
+            <div>
+              <Label htmlFor="target_url">Enlace de la promoción</Label>
+              <Input
+                id="target_url"
+                type="url"
+                value={formData.target_url}
+                onChange={(e) => setFormData({ ...formData, target_url: e.target.value })}
+                placeholder="https://ejemplo.com/oferta (opcional)"
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                A dónde lleva el botón Solicitar. Si lo dejas vacío y tampoco hay código promocional, el botón no aparece.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
