@@ -602,6 +602,8 @@ export type Database = {
           category: Database["public"]["Enums"]["course_category"]
           content: string | null
           course_modules: Json | null
+          cover_concept: string | null
+          cover_icon: string | null
           created_at: string
           description: string | null
           difficulty: string
@@ -626,6 +628,8 @@ export type Database = {
           category?: Database["public"]["Enums"]["course_category"]
           content?: string | null
           course_modules?: Json | null
+          cover_concept?: string | null
+          cover_icon?: string | null
           created_at?: string
           description?: string | null
           difficulty?: string
@@ -650,6 +654,8 @@ export type Database = {
           category?: Database["public"]["Enums"]["course_category"]
           content?: string | null
           course_modules?: Json | null
+          cover_concept?: string | null
+          cover_icon?: string | null
           created_at?: string
           description?: string | null
           difficulty?: string
