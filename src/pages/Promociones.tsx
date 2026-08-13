@@ -164,8 +164,9 @@ const Promociones = () => {
               <span className="inline-flex items-center gap-1.5"><Building2 className="h-4 w-4 text-miel" /> Partners del sector</span>
             </div>
             <Button
+              variant="brand"
+              size="pill"
               onClick={notifyInterest}
-              className="gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
             >
               <Bell className="h-4 w-4" />
               ¿Te interesaría recibir ofertas del sector? Avísame
@@ -302,8 +303,10 @@ const Promociones = () => {
                           )}
                           {promotion.partner_email && (
                             <Button
+                              variant="brand"
+                              size="pill"
                               onClick={() => setRequesting(promotion)}
-                              className="w-full mt-4 gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+                              className="w-full mt-4"
                             >
                               <Send className="h-4 w-4" />
                               Solicitar esta oferta

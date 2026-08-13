@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { REBOTICA_NEXT_OPENING } from '@/lib/rebotica';
 
 /**
@@ -35,9 +36,11 @@ export const ReboticaBanner = () => {
         </p>
       </div>
 
-      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-transform group-hover:-translate-y-0.5">
-        {opened ? 'Entrar a la Rebotica' : 'Descubrir la Rebotica'} →
-      </span>
+      <Button asChild variant="brand" size="pill" className="w-fit">
+        <span>
+          {opened ? 'Entrar a la Rebotica' : 'Descubrir la Rebotica'} →
+        </span>
+      </Button>
     </Link>
   );
 };

@@ -217,8 +217,9 @@ export default function MiFarmacia() {
                 />
                 <Button
                   type="submit"
+                  variant="brand"
+                  size="pill"
                   disabled={inviting}
-                  className="rounded-full bg-brand-dark hover:bg-brand-dark/90"
                 >
                   {inviting ? 'Enviando…' : 'Invitar'}
                 </Button>

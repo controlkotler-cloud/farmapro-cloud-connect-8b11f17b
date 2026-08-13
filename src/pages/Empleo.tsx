@@ -521,15 +521,16 @@ const Empleo = () => {
                             Ver más →
                           </button>
                           {profile?.id && (
-                            <Button
-                              size="sm"
-                              disabled={isJobExpired(job.expires_at) || applications.includes(job.id)}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleContact(job);
-                              }}
-                              className="w-full sm:w-auto text-xs rounded-full bg-salvia text-white hover:bg-salvia/90"
-                            >
+                          <Button
+                            variant="brand"
+                            size="pill"
+                            disabled={isJobExpired(job.expires_at) || applications.includes(job.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleContact(job);
+                            }}
+                            className="w-full sm:w-auto text-xs"
+                          >
                               <Mail className="h-3 w-3 mr-1" />
                               {applications.includes(job.id) ? 'Contactado' : 'Contactar'}
                             </Button>

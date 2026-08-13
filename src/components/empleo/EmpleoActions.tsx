@@ -1,5 +1,6 @@
 
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -24,14 +25,14 @@ export const EmpleoActions = ({ canPostJobs, isPremium, isAdmin, onCreateJob }: 
               }
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="brand"
+            size="pill"
             onClick={onCreateJob}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
           >
             <Plus className="h-4 w-4" />
             Publicar oferta
-          </button>
+          </Button>
         </CardContent>
       </Card>
     );
@@ -46,12 +47,11 @@ export const EmpleoActions = ({ canPostJobs, isPremium, isAdmin, onCreateJob }: 
             Actualiza tu perfil al plan premium para publicar ofertas y encontrar a tu equipo
           </p>
         </div>
-        <Link
-          to="/precios"
-          className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
-        >
-          Ver planes →
-        </Link>
+        <Button asChild variant="brand" size="pill">
+          <Link to="/precios">
+            Ver planes →
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

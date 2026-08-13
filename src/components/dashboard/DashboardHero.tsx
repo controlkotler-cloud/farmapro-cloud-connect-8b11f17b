@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Flame } from 'lucide-react';
 import { getLevelInfo } from '@/services/pointsService';
 import { LevelIcon } from '@/components/gamification/LevelIcon';
@@ -64,12 +65,11 @@ export const DashboardHero = ({ fullName, streak, totalPoints, course }: Dashboa
           )}
         </p>
       </div>
-      <Link
-        to={continueTarget}
-        className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
-      >
-        {course?.progress != null ? 'Continuar donde lo dejé' : 'Explorar la formación'} →
-      </Link>
+      <Button asChild variant="brand" size="pill">
+        <Link to={continueTarget}>
+          {course?.progress != null ? 'Continuar donde lo dejé' : 'Explorar la formación'} →
+        </Link>
+      </Button>
     </div>
   );
 };

@@ -62,13 +62,13 @@ export const NewThreadDialog = ({ categories, selectedCategory, showFullNameDefa
   return (
     <Dialog open={showDialog} onOpenChange={setShowDialog}>
       <DialogTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+        <Button
+          variant="brand"
+          size="pill"
         >
           <Plus className="h-4 w-4" />
           Nuevo hilo
-        </button>
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>

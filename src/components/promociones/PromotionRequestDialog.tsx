@@ -184,9 +184,10 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
             Cancelar
           </Button>
           <Button
+            variant="brand"
+            size="pill"
             onClick={handleSubmit}
             disabled={!consent || sending}
-            className="rounded-full bg-brand-dark px-5 text-sm font-bold text-white hover:bg-brand-dark"
           >
             {sending ? 'Enviando...' : 'Enviar solicitud'}
           </Button>
