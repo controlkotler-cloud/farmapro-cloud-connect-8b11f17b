@@ -22,6 +22,7 @@ interface Promotion {
   terms_conditions: string | null;
   image_url: string | null;
   target_url: string | null;
+  partner_email: string | null;
   created_at: string;
 }
 
@@ -45,7 +46,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
     valid_until: '',
     terms_conditions: '',
     image_url: '',
-    target_url: ''
+    target_url: '',
+    partner_email: ''
   });
 
   useEffect(() => {
@@ -60,7 +62,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
         valid_until: editingPromotion.valid_until ? editingPromotion.valid_until.split('T')[0] : '',
         terms_conditions: editingPromotion.terms_conditions || '',
         image_url: editingPromotion.image_url || '',
-        target_url: editingPromotion.target_url || ''
+        target_url: editingPromotion.target_url || '',
+        partner_email: editingPromotion.partner_email || ''
       });
       setOpen(true);
     }
@@ -77,7 +80,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
       valid_until: '',
       terms_conditions: '',
       image_url: '',
-      target_url: ''
+      target_url: '',
+      partner_email: ''
     });
   };
 
@@ -125,7 +129,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
         valid_until: formData.valid_until ? new Date(formData.valid_until).toISOString() : null,
         terms_conditions: formData.terms_conditions.trim() || null,
         image_url: formData.image_url.trim() || null,
-        target_url: formData.target_url.trim() || null
+        target_url: formData.target_url.trim() || null,
+        partner_email: formData.partner_email.trim() || null
       };
 
       let error;
