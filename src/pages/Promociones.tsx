@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Gift, Calendar, Building2, ExternalLink, Clock, Tag, Bell, BadgePercent,
-  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake,
+  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake, Copy,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -24,6 +24,8 @@ interface Promotion {
   valid_until: string;
   is_active: boolean;
   created_at: string;
+  target_url: string | null;
+  promo_code: string | null;
 }
 
 // Portada de marca por tipo de partner (color plano + icono), nada de fotos de stock.
