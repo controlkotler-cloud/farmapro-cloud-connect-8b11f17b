@@ -17,15 +17,17 @@ export interface LeaderboardEntry {
   isCurrentUser: boolean;
 }
 
-export const useLeaderboard = () => {
+export const useLeaderboard = ({ enabled = true }: { enabled?: boolean } = {}) => {
   const { profile } = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) return;
     loadLeaderboard();
-  }, [profile?.id]);
+  }, [profile?.id, enabled]);
+
 
   const loadLeaderboard = async () => {
     setLoading(true);
