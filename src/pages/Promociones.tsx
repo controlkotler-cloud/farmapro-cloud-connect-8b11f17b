@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Gift, Calendar, Building2, ExternalLink, Clock, Tag, Bell, BadgePercent,
-  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake,
+  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake, Copy,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -24,6 +24,8 @@ interface Promotion {
   valid_until: string;
   is_active: boolean;
   created_at: string;
+  target_url: string | null;
+  promo_code: string | null;
 }
 
 // Portada de marca por tipo de partner (color plano + icono), nada de fotos de stock.
@@ -105,6 +107,15 @@ const Promociones = () => {
     toast({
       title: '¡Genial!',
       description: 'Te avisaremos en cuanto las promociones del sector estén disponibles.',
+    });
+  };
+
+  const copyPromoCode = (code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      toast({
+        title: 'Código copiado',
+        description: 'Ya lo tienes en el portapapeles.',
+      });
     });
   };
 
@@ -264,12 +275,33 @@ const Promociones = () => {
                               <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
                             </details>
                           )}
-                          <Button
-                            className="w-full mt-4 gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Solicitar
-                          </Button>
+                          {promotion.target_url ? (
+                            <Button
+                              onClick={() => window.open(promotion.target_url!, '_blank', 'noopener,noreferrer')}
+                              className="w-full mt-4 gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Solicitar
+                            </Button>
+                          ) : promotion.promo_code ? (
+                            <div className="mt-4 space-y-3">
+                              <div className="flex items-center justify-between rounded-lg border border-dashed border-miel/40 bg-miel-soft px-3 py-2">
+                                <span className="font-mono text-sm font-semibold text-foreground tracking-wide">
+                                  {promotion.promo_code}
+                                </span>
+                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-miel">
+                                  Código
+                                </span>
+                              </div>
+                              <Button
+                                onClick={() => copyPromoCode(promotion.promo_code!)}
+                                className="w-full gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+                              >
+                                <Copy className="h-4 w-4" />
+                                Copiar código
+                              </Button>
+                            </div>
+                          ) : null}
                         </div>
                       </CardContent>
                     </Card>

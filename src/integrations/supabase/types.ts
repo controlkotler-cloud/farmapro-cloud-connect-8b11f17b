@@ -1869,6 +1869,7 @@ export type Database = {
           is_featured: boolean
           promo_code: string | null
           start_date: string | null
+          target_url: string | null
           terms_conditions: string | null
           title: string
           valid_until: string | null
@@ -1888,6 +1889,7 @@ export type Database = {
           is_featured?: boolean
           promo_code?: string | null
           start_date?: string | null
+          target_url?: string | null
           terms_conditions?: string | null
           title: string
           valid_until?: string | null
@@ -1907,6 +1909,7 @@ export type Database = {
           is_featured?: boolean
           promo_code?: string | null
           start_date?: string | null
+          target_url?: string | null
           terms_conditions?: string | null
           title?: string
           valid_until?: string | null
