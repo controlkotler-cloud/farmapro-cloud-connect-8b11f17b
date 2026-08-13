@@ -36,7 +36,7 @@ export const PromotionCard = ({
   isDeleting 
 }: PromotionCardProps) => {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lift transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">

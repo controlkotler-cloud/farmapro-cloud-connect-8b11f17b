@@ -170,7 +170,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
         <button
           type="button"
           onClick={() => openNewThread('duda')}
-          className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
+          className="flex items-center gap-3 rounded-lg border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
         >
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-salvia-soft">
             <HelpCircle className="h-4 w-4 text-salvia" />
@@ -183,7 +183,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
         <button
           type="button"
           onClick={() => openNewThread('idea')}
-          className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
+          className="flex items-center gap-3 rounded-lg border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
         >
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-miel-soft">
             <Lightbulb className="h-4 w-4 text-miel" />
@@ -196,7 +196,7 @@ export const CommunityContent = ({ onThreadClick, onDataChange }: CommunityConte
         <button
           type="button"
           onClick={scrollToThreads}
-          className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
+          className="flex items-center gap-3 rounded-lg border border-border bg-white p-4 text-left transition-colors hover:bg-accent"
         >
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-ciruela-soft">
             <Eye className="h-4 w-4 text-ciruela" />

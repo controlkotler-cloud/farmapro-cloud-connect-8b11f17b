@@ -18,7 +18,7 @@ export const ModuleContentSection = ({ content }: ModuleContentSectionProps) => 
           <BookOpen className="h-5 w-5" /> Contenido del módulo
         </h4>
       </div>
-      <div className="bg-brand-soft rounded-xl p-6 border border-brand/20">
+      <div className="bg-brand-soft rounded-lg p-6 border border-brand/20">
         <div
           className="prose max-w-none text-foreground leading-relaxed"
           dangerouslySetInnerHTML={{ 

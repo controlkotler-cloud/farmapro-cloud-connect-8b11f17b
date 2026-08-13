@@ -51,7 +51,7 @@ export const Retos = () => {
     return (
       <div className="space-y-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="animate-pulse bg-muted h-32 rounded-xl" />
+          <div key={i} className="animate-pulse bg-muted h-32 rounded-lg" />
         ))}
       </div>
     );

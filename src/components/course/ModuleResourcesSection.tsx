@@ -19,10 +19,10 @@ export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProp
           Recursos descargables
         </h4>
       </div>
-      <div className="bg-brand-soft rounded-xl p-6 border border-brand/20">
+      <div className="bg-brand-soft rounded-lg p-6 border border-brand/20">
         <div className="grid gap-4">
           {resources.map((resource, index) => (
-            <div key={index} className="bg-white rounded-lg p-4 border border-brand/20 shadow-sm hover:shadow-md transition-shadow">
+            <div key={index} className="bg-white rounded-lg p-4 border border-brand/20 shadow-sm hover:shadow-lift transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0 p-2 bg-brand-soft rounded-lg">

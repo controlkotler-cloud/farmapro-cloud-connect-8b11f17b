@@ -14,7 +14,7 @@ export const SidebarFooter = () => {
           {profile ? (
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-soft">
                   <User className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar shadow-sm"></div>
@@ -31,7 +31,7 @@ export const SidebarFooter = () => {
           ) : (
             <Link
               to="/login"
-              className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-all duration-300 shadow-lg transform hover:scale-105"
+              className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-all duration-300 shadow-soft hover:-translate-y-0.5"
             >
               Iniciar Sesión
             </Link>

@@ -124,7 +124,7 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {adminSections.map((section) => (
-          <Card key={section.path} className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card key={section.path} className="hover:shadow-lift transition-shadow cursor-pointer">
             <CardHeader className="pb-2">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${section.color}`}>

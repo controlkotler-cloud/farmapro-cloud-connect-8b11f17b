@@ -23,8 +23,8 @@ export const AccessLockedCard = ({
   const navigate = useNavigate();
 
   return (
-    <div className="rounded-2xl bg-ciruela-soft p-10 text-center max-w-xl mx-auto">
-      <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-ciruela text-primary-foreground mx-auto mb-5">
+    <div className="rounded-lg bg-ciruela-soft p-10 text-center max-w-xl mx-auto">
+      <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-ciruela text-primary-foreground mx-auto mb-5">
         <Lock className="h-7 w-7" />
       </div>
       <h2 className="text-xl font-bold text-foreground mb-2">{title}</h2>

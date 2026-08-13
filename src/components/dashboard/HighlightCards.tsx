@@ -73,7 +73,7 @@ export const RetoCard = ({ challenge }: { challenge: HighlightChallenge | null }
           <>
             <div className="mt-4 h-2 overflow-hidden rounded-full border border-border bg-secondary">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
+                className="h-full rounded-full bg-brand"
                 style={{ width: `${Math.max(pct, 4)}%` }}
               />
             </div>

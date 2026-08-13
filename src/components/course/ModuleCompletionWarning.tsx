@@ -10,7 +10,7 @@ export const ModuleCompletionWarning = ({ isLastModule, isCompleted }: ModuleCom
   if (isLastModule || isCompleted) return null;
 
   return (
-    <div className="bg-warning/10 border border-warning/30 rounded-xl p-4">
+    <div className="bg-warning/10 border border-warning/30 rounded-lg p-4">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-warning/10 rounded-lg">
           <AlertTriangle className="h-5 w-5 text-warning" />

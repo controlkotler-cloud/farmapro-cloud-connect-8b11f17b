@@ -123,7 +123,7 @@ export const OnboardingWizard = ({ onComplete }: { onComplete: () => void }) => 
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.97 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className={`relative w-full max-w-lg rounded-2xl bg-gradient-to-br ${step.bgClass} border border-border shadow-2xl overflow-hidden`}
+        className={`relative w-full max-w-lg rounded-lg bg-gradient-to-br ${step.bgClass} border border-border shadow-lift overflow-hidden`}
       >
         {/* Progress dots */}
         <div className="flex justify-center gap-2 pt-6 pb-2">

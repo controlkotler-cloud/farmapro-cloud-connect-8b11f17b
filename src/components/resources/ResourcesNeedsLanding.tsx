@@ -30,7 +30,7 @@ export const ResourcesNeedsLanding = ({ selectedNeed, onSelectNeed }: ResourcesN
               key={need.id}
               type="button"
               onClick={() => onSelectNeed(isActive ? null : need.id)}
-              className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
+              className={`flex items-center gap-3 rounded-lg border p-4 text-left transition-colors ${
                 isActive ? 'border-brand-dark bg-brand-soft' : 'border-border bg-white hover:bg-accent'
               }`}
             >

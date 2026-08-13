@@ -18,8 +18,8 @@ export const ContentTypeGrid = ({ selected, onSelect }: ContentTypeGridProps) =>
           transition={{ delay: i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           onClick={() => onSelect(type.id)}
           className={cn(
-            'text-left rounded-xl p-4 transition-all duration-200 ring-1 cursor-pointer',
-            'hover:shadow-md active:scale-[0.97]',
+            'text-left rounded-lg p-4 transition-all duration-200 ring-1 cursor-pointer',
+            'hover:shadow-lift active:scale-[0.97]',
             selected === type.id
               ? 'bg-ciruela-soft ring-ciruela shadow-sm'
               : 'bg-card ring-border hover:ring-muted-foreground/30'

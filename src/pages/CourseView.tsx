@@ -146,7 +146,7 @@ const CourseView = () => {
               isNextModuleUnlocked={isNextModuleUnlocked()}
             />
           ) : (
-            <div className="rounded-xl border border-dashed border-border bg-card py-12 text-center">
+            <div className="rounded-lg border border-dashed border-border bg-card py-12 text-center">
               <BookOpen className="mx-auto h-8 w-8 text-muted-foreground" />
               <p className="mt-3 text-sm text-muted-foreground">
                 Todavía no hay módulos publicados para este curso. Vuelve pronto.

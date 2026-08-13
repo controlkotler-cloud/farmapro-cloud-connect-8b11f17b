@@ -28,7 +28,7 @@ export const ModuleCard = ({
           ? 'ring-2 ring-brand bg-brand-soft'
           : isLocked
             ? 'opacity-60 cursor-not-allowed bg-muted'
-            : 'hover:shadow-md hover:bg-muted'
+            : 'hover:shadow-lift hover:bg-muted'
       }`}
       onClick={!isLocked ? onClick : undefined}
     >

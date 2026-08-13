@@ -36,7 +36,7 @@ const CountdownTimer = ({ endDate }: { endDate: string }) => {
 
 export const WeeklyChallengesSection = ({ challenges, loading }: WeeklyChallengesSectionProps) => {
   if (loading) {
-    return <div className="animate-pulse bg-muted h-48 rounded-xl" />;
+    return <div className="animate-pulse bg-muted h-48 rounded-lg" />;
   }
 
   if (challenges.length === 0) return null;
@@ -95,7 +95,7 @@ export const WeeklyChallengesSection = ({ challenges, loading }: WeeklyChallenge
                       </div>
                       <div className="h-2 overflow-hidden rounded-full border border-border bg-secondary">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
+                          className="h-full rounded-full bg-brand"
                           style={{ width: `${Math.max(pct, 4)}%` }}
                         />
                       </div>

@@ -150,7 +150,7 @@ const Promociones = () => {
         /* Teaser: aún no hay ofertas cargadas */
         <Card className="border-dashed shadow-soft">
           <CardContent className="text-center py-14 px-6 space-y-5 max-w-2xl mx-auto">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-miel-soft">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-miel-soft">
               <Gift className="h-8 w-8 text-miel" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">Ofertas del sector, muy pronto</h2>

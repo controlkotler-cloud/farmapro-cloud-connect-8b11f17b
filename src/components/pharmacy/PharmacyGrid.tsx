@@ -41,7 +41,7 @@ export const PharmacyGrid = ({ listings, loading, onContactClick }: PharmacyGrid
 
   if (listings.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border py-12 text-center">
+      <div className="rounded-lg border border-dashed border-border py-12 text-center">
         <Building2 className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
         <h3 className="text-base font-extrabold tracking-tight text-foreground">Aún no hay farmacias publicadas</h3>
         <p className="mt-1 text-sm text-muted-foreground">Vuelve pronto para ver las novedades del sector.</p>
