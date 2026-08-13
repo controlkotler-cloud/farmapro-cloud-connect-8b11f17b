@@ -419,7 +419,7 @@ const Empleo = () => {
             ))}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border py-12 text-center">
+          <div className="rounded-lg border border-dashed border-border py-12 text-center">
             <Briefcase className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="text-base font-extrabold tracking-tight text-foreground">Aún no hay ofertas activas</h3>
             <p className="mt-1 text-sm text-muted-foreground">Vuelve pronto o, si buscas equipo, publica la tuya.</p>

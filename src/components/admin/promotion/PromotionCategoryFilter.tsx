@@ -81,13 +81,13 @@ export const PromotionCategoryFilter = ({ selectedType, onTypeChange }: Promotio
             <Button
               variant={selectedType === category.id ? "default" : "outline"}
               onClick={() => onTypeChange(category.id)}
-              className={`relative group transition-all duration-300 transform hover:scale-105 ${
+              className={`relative group transition-all duration-300 hover:-translate-y-0.5 ${
                 selectedType === category.id
-                  ? `${category.color} ${category.onSolid} shadow-lg`
-                  : 'hover:shadow-md hover:bg-primary hover:text-primary-foreground'
+                  ? `${category.color} ${category.onSolid} shadow-soft`
+                  : 'hover:shadow-lift hover:bg-primary hover:text-primary-foreground'
               }`}
             >
-              <div className={`p-2 rounded-lg ${category.color} shadow-lg mr-2 transition-transform group-hover:scale-110`}>
+              <div className={`p-2 rounded-lg ${category.color} shadow-soft mr-2`}>
                 <category.icon className={`h-4 w-4 ${category.onSolid}`} />
               </div>
               {category.name}

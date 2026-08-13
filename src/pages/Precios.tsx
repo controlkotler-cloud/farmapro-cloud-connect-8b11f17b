@@ -101,13 +101,13 @@ export default function Precios() {
         {/* Cabecera */}
         <div className="text-center mb-10">
           {showTeamMemberBanner ? (
-            <div className="mx-auto mb-5 max-w-xl rounded-xl border border-brand-soft bg-brand-soft p-4 text-center">
+            <div className="mx-auto mb-5 max-w-xl rounded-lg border border-brand-soft bg-brand-soft p-4 text-center">
               <p className="text-sm font-semibold text-brand-dark">
                 Ya tienes acceso completo con el plan Equipo de tu farmacia
               </p>
             </div>
           ) : launch.active ? (
-            <div className="mx-auto mb-5 max-w-xl rounded-xl border bg-card p-4 shadow-sm">
+            <div className="mx-auto mb-5 max-w-xl rounded-lg border bg-card p-4 shadow-sm">
               <div className="flex items-center justify-center gap-2 text-sm font-semibold">
                 {launch.almostGone ? (
                   <Flame className="h-4 w-4 text-destructive" />

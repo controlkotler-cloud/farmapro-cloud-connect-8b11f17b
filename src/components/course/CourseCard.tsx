@@ -65,7 +65,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
   };
 
   return (
-    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
+    <Card className="h-full flex flex-col hover:shadow-lift transition-shadow duration-300">
       {/* Portada: foto si existe; si no, portada por categoría (color + icono) */}
       <div className={`relative h-28 overflow-hidden rounded-t-lg ${cover.bg} flex items-center justify-center`}>
         {(course.featured_image_url || course.thumbnail_url) && !imgError ? (

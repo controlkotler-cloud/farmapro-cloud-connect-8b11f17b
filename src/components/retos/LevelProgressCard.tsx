@@ -56,7 +56,7 @@ export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
           </div>
           <div className="h-3 overflow-hidden rounded-full border border-border bg-secondary">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-miel to-brand"
+              className="h-full rounded-full bg-brand"
               style={{ width: `${Math.max(progress, 4)}%` }}
             />
           </div>

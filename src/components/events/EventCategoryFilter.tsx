@@ -83,13 +83,13 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
             <Button
               variant={selectedType === category.id ? "default" : "outline"}
               onClick={() => onTypeChange(category.id)}
-              className={`relative group transition-all transform hover:scale-105 ${
+              className={`relative group transition-all hover:-translate-y-0.5 ${
                 selectedType === category.id
                   ? `${category.soft} ${category.text} shadow-soft hover:opacity-90`
                   : 'hover:shadow-lift hover:bg-accent hover:text-accent-foreground'
               }`}
             >
-              <div className={`p-2 rounded-lg ${category.bg} shadow-soft mr-2 transition-transform group-hover:scale-110`}>
+              <div className={`p-2 rounded-lg ${category.bg} shadow-soft mr-2`}>
                 <category.icon className="h-4 w-4 text-primary-foreground" />
               </div>
               {category.name}

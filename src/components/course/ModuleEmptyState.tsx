@@ -3,7 +3,7 @@ import { Clock } from 'lucide-react';
 
 export const ModuleEmptyState = () => {
   return (
-    <div className="rounded-xl border border-dashed border-border bg-secondary/40 py-12 text-center">
+    <div className="rounded-lg border border-dashed border-border bg-secondary/40 py-12 text-center">
       <div className="mx-auto mb-4 w-fit rounded-full bg-muted p-4">
         <Clock className="h-8 w-8 text-muted-foreground" />
       </div>

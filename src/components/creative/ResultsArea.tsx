@@ -114,7 +114,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
 
   if (messages.length === 0 && !isLoading) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center text-center p-8">
+      <div className="min-h-[500px] rounded-lg border border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center text-center p-8">
         <Sparkles className="h-12 w-12 text-ciruela/60 mb-4" />
         <p className="text-muted-foreground text-lg font-medium">Tu contenido aparecerá aquí</p>
         <p className="text-muted-foreground text-sm mt-1">Rellena el formulario y pulsa "Generar contenido"</p>
@@ -124,7 +124,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
 
   return (
     <div className="space-y-4">
-      <ScrollArea className="h-[600px] rounded-xl border border-border bg-card p-6">
+      <ScrollArea className="h-[600px] rounded-lg border border-border bg-card p-6">
         <AnimatePresence mode="popLayout">
           {messages.map((message, index) => (
             <motion.div
@@ -140,7 +140,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
                   <pre className="whitespace-pre-wrap font-sans">{message.content}</pre>
                 </div>
               ) : (
-                <div className="rounded-xl ring-1 ring-border bg-card p-5 shadow-sm">
+                <div className="rounded-lg ring-1 ring-border bg-card p-5 shadow-sm">
                   <span className="text-xs font-semibold text-ciruela block mb-3">Contenido generado</span>
                   {renderContent(message.content)}
                 </div>

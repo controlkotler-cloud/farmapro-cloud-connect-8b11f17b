@@ -42,7 +42,7 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
   };
 
   return (
-    <Card className="overflow-hidden border-0 shadow-xl bg-brand-soft/30">
+    <Card className="overflow-hidden border-0 shadow-lift bg-brand-soft/30">
       <div className="relative">
         {/* Decorative accent bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-brand"></div>
@@ -51,7 +51,7 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
           <div className="flex flex-col md:flex-row gap-6">
             {/* Course Image */}
             <div className="relative flex-shrink-0">
-              <div className={`relative w-full md:w-48 h-32 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/20 ${getCourseCover(course.category).bg} flex items-center justify-center`}>
+              <div className={`relative w-full md:w-48 h-32 rounded-lg overflow-hidden shadow-soft ring-1 ring-white/20 ${getCourseCover(course.category).bg} flex items-center justify-center`}>
                 <div
                   className={`absolute inset-0 flex items-center justify-center ${getCourseCover(course.category).onSolid}`}
                 >
@@ -70,7 +70,7 @@ export const CourseHeader = ({ course, isEnrolled, isCompleted }: CourseHeaderPr
               </div>
               {isCompleted && (
                 <div className="absolute -top-2 -right-2">
-                  <div className="bg-success text-white p-2 rounded-full shadow-lg">
+                  <div className="bg-success text-white p-2 rounded-full shadow-soft">
                     <CheckCircle className="h-5 w-5" />
                   </div>
                 </div>

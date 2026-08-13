@@ -72,7 +72,7 @@ export const PortalChatbot = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex h-[min(600px,calc(100dvh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-lift">
+        <div className="fixed bottom-6 right-6 z-50 flex h-[min(600px,calc(100dvh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lift">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border bg-card p-4">
             <div className="flex items-center gap-2.5">

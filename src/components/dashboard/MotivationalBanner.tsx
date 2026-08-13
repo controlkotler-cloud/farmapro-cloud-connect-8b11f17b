@@ -102,7 +102,7 @@ export const MotivationalBanner = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl px-6 py-4 text-sm font-medium text-foreground"
+        className="flex items-center gap-3 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg px-6 py-4 text-sm font-medium text-foreground"
       >
         {banner.icon}
         <span>{banner.text}</span>

@@ -10,13 +10,13 @@ export const CreativeHeader = () => {
 
   return (
     <motion.div
-      className="bg-ciruela-soft rounded-2xl p-8 shadow-soft"
+      className="bg-ciruela-soft rounded-lg p-8 shadow-soft"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex items-center gap-3 mb-3">
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-ciruela text-primary-foreground">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-ciruela text-primary-foreground">
           <Sparkles className="h-5 w-5" />
         </div>
         <span className="inline-flex rounded-full bg-ciruela px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-primary-foreground">

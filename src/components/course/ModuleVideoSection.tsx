@@ -17,7 +17,7 @@ export const ModuleVideoSection = ({ videoUrl }: ModuleVideoSectionProps) => {
           Video del módulo
         </h4>
       </div>
-      <div className="bg-brand-soft rounded-xl p-6 border border-brand/20">
+      <div className="bg-brand-soft rounded-lg p-6 border border-brand/20">
         <div className="aspect-video bg-white rounded-lg border-2 border-dashed border-brand/30 flex items-center justify-center shadow-sm">
           <div className="text-center">
             <div className="p-4 bg-brand-soft rounded-full mx-auto mb-4 w-fit">

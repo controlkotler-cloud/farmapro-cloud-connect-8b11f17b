@@ -23,7 +23,7 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
   };
 
   return (
-    <section className="rounded-xl bg-ciruela-soft/60 ring-1 ring-ciruela/20 p-5">
+    <section className="rounded-lg bg-ciruela-soft/60 ring-1 ring-ciruela/20 p-5">
       <div className="flex items-center gap-2 mb-1">
         <Store className="h-4 w-4 text-ciruela" />
         <h2 className="text-sm font-semibold text-foreground">Datos de tu farmacia</h2>

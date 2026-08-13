@@ -213,7 +213,7 @@ export const PromotionRequestsList = () => {
 
   if (requests.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-card px-6 py-16 text-center">
+      <div className="rounded-lg border border-border bg-card px-6 py-16 text-center">
         <h3 className="text-lg font-bold text-foreground">Aún no hay solicitudes</h3>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
           Aquí aparecerán las solicitudes que hagan los suscriptores desde la sección
@@ -270,7 +270,7 @@ export const PromotionRequestsList = () => {
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

@@ -101,7 +101,7 @@ const ChallengeHistory = () => {
     load();
   }, [user?.id]);
 
-  if (loading) return <div className="animate-pulse h-32 bg-muted rounded-xl" />;
+  if (loading) return <div className="animate-pulse h-32 bg-muted rounded-lg" />;
   if (challenges.length === 0) return null;
 
   return (
@@ -165,7 +165,7 @@ export const BadgesTab = () => {
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse bg-muted h-32 rounded-xl" />
+                <div key={i} className="animate-pulse bg-muted h-32 rounded-lg" />
               ))}
             </div>
           ) : badges.length === 0 ? (

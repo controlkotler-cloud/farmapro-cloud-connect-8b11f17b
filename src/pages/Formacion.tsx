@@ -268,7 +268,7 @@ export const Formacion = () => {
         <motion.div variants={itemVariants}>
           <Link
             to={`/curso/${continueCourse.slug}`}
-            className="flex flex-col gap-4 rounded-xl border border-border bg-white p-5 transition-colors hover:bg-accent sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-4 rounded-lg border border-border bg-white p-5 transition-colors hover:bg-accent sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-brand">
@@ -339,7 +339,7 @@ export const Formacion = () => {
       {/* Resultados */}
       <motion.div variants={itemVariants}>
         {sortedCourses.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-white py-16 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-white py-16 text-center">
             <Search className="mx-auto h-8 w-8 text-muted-foreground" />
             <h3 className="mt-4 text-base font-semibold text-foreground">
               No encontramos cursos con estos filtros

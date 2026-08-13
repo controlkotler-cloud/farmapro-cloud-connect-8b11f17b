@@ -44,7 +44,7 @@ export const CategoryTabs = ({
 
   if (isMobile) {
     return (
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-border">
+      <div className="bg-white rounded-lg p-4 shadow-sm border border-border">
         <Select value={selectedCategory} onValueChange={onCategoryChange}>
           <SelectTrigger className="w-full">
             <SelectValue>
@@ -75,7 +75,7 @@ export const CategoryTabs = ({
   }
 
   return (
-    <div className="bg-white rounded-xl p-3 shadow-sm border border-border">
+    <div className="bg-white rounded-lg p-3 shadow-sm border border-border">
       <div className="flex flex-wrap gap-2">
         {tabs.map((tab, index) => {
           const isActive = selectedCategory === tab.value;

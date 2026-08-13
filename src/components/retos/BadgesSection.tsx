@@ -97,7 +97,7 @@ export const BadgesSection = () => {
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="animate-pulse bg-muted h-36 rounded-xl" />
+            <div key={i} className="animate-pulse bg-muted h-36 rounded-lg" />
           ))}
         </div>
       ) : (

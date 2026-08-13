@@ -149,7 +149,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="bg-card rounded-xl ring-1 ring-border shadow-sm p-6 sticky top-4">
+        <div className="bg-card rounded-lg ring-1 ring-border shadow-sm p-6 sticky top-4">
           <div className="flex items-center gap-2 mb-5">
             <ImageIcon className="h-6 w-6 text-ciruela" />
             <h3 className="font-semibold text-foreground">Imagen</h3>
@@ -448,7 +448,7 @@ const ImageResult = ({
 }: ImageResultProps) => {
   if (loading) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-border bg-card flex flex-col items-center justify-center text-center p-8">
+      <div className="min-h-[500px] rounded-lg border border-border bg-card flex flex-col items-center justify-center text-center p-8">
         <div className="h-10 w-10 border-2 border-ciruela border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-muted-foreground text-sm">Creando tu imagen, esto puede tardar unos segundos...</p>
       </div>
@@ -457,8 +457,8 @@ const ImageResult = ({
 
   if (error?.code === 'quota') {
     return (
-      <div className="min-h-[500px] rounded-xl bg-ciruela-soft flex flex-col items-center justify-center text-center p-8">
-        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-ciruela text-primary-foreground mb-5">
+      <div className="min-h-[500px] rounded-lg bg-ciruela-soft flex flex-col items-center justify-center text-center p-8">
+        <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-ciruela text-primary-foreground mb-5">
           <ImageIcon className="h-7 w-7" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
@@ -477,7 +477,7 @@ const ImageResult = ({
 
   if (error) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-dashed border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center text-center p-8">
+      <div className="min-h-[500px] rounded-lg border border-dashed border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center text-center p-8">
         <p className="text-destructive font-medium">No se pudo generar la imagen</p>
         <p className="text-destructive/80 text-sm mt-1 max-w-sm">{error.message}</p>
       </div>
@@ -486,7 +486,7 @@ const ImageResult = ({
 
   if (!imageUrl) {
     return (
-      <div className="min-h-[500px] rounded-xl border border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center text-center p-8">
+      <div className="min-h-[500px] rounded-lg border border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center text-center p-8">
         <ImageIcon className="h-12 w-12 text-ciruela/60 mb-4" />
         <p className="text-muted-foreground text-lg font-medium">Tu imagen aparecerá aquí</p>
         <p className="text-muted-foreground text-sm mt-1">
@@ -502,7 +502,7 @@ const ImageResult = ({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="rounded-xl ring-1 ring-border bg-card p-4 shadow-sm"
+        className="rounded-lg ring-1 ring-border bg-card p-4 shadow-sm"
       >
         <span className="text-xs font-semibold text-ciruela block mb-3">Imagen generada</span>
         <img

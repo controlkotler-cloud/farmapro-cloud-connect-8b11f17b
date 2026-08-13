@@ -13,7 +13,7 @@ const Eventos = () => {
     <div className="space-y-8">
       <EventosHeader />
 
-      <div className="rounded-xl border border-border bg-card p-6 shadow-soft">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-soft">
         <EventCategoryFilter 
           selectedType={selectedType}
           onTypeChange={setSelectedType}
