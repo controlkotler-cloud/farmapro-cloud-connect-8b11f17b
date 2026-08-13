@@ -159,6 +159,46 @@ function fmtFecha(iso?: string): string {
   }
 }
 
+/** Bloque "Promoción solicitada" con las condiciones publicadas en el portal. */
+function bloqueCondicionesHtml(data: PortalTemplateData): string {
+  const titulo = (data.promocionTitulo ?? '').trim();
+  const oferta = (data.promocionOferta ?? '').trim();
+  const condiciones = (data.promocionCondiciones ?? '').trim();
+  const hasta = fmtFecha(data.promocionValidaHasta);
+  if (!titulo && !oferta && !condiciones && !hasta) return '';
+  const fila = (label: string, valor: string) =>
+    valor
+      ? `<tr><td style="padding:4px 12px 4px 0;color:#6b6f68;vertical-align:top;">${escapeHtml(label)}</td><td style="padding:4px 0;">${escapeHtml(valor)}</td></tr>`
+      : '';
+  return `
+          <div style="margin:0 0 16px 0;padding:12px 14px;background:#f6f4ec;border:1px solid #ecebe6;border-radius:8px;font-size:14px;">
+            <strong>Promoción solicitada</strong>
+            <p style="margin:4px 0 10px 0;color:#6b6f68;">Estas son las condiciones publicadas en el portal.</p>
+            ${titulo ? `<p style="margin:0 0 8px 0;"><strong>${escapeHtml(titulo)}</strong></p>` : ''}
+            <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
+              ${fila('Oferta', oferta)}
+              ${fila('Condiciones', condiciones)}
+              ${fila('Válida hasta', hasta)}
+            </table>
+          </div>`;
+}
+
+function bloqueCondicionesText(data: PortalTemplateData): string {
+  const titulo = (data.promocionTitulo ?? '').trim();
+  const oferta = (data.promocionOferta ?? '').trim();
+  const condiciones = (data.promocionCondiciones ?? '').trim();
+  const hasta = fmtFecha(data.promocionValidaHasta);
+  if (!titulo && !oferta && !condiciones && !hasta) return '';
+  let out = `\n\nPromoción solicitada\nEstas son las condiciones publicadas en el portal.`;
+  if (titulo) out += `\n${titulo}`;
+  if (oferta) out += `\nOferta: ${oferta}`;
+  if (condiciones) out += `\nCondiciones: ${condiciones}`;
+  if (hasta) out += `\nVálida hasta: ${hasta}`;
+  return out;
+}
+
+
+
 // --------------------------------------------------------------------- render
 
 export function renderPortalTemplate(
