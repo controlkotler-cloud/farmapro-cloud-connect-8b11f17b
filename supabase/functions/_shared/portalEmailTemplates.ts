@@ -21,7 +21,9 @@ export type PortalTemplateName =
   | 'rebotica-premio-caduca'
   | 'rebotica-baul-ganador'
   | 'rebotica-gordo-ganador'
-  | 'rebotica-aviso-calendario-interno';
+  | 'rebotica-aviso-calendario-interno'
+  | 'promocion-solicitud-partner'
+  | 'promocion-solicitud-usuario';
 
 export interface PortalTemplateData {
   // Comunes
@@ -54,7 +56,18 @@ export interface PortalTemplateData {
   ganadorNombre?: string;
   ganadorFarmacia?: string;
   periodo?: string;
+  // promocion-solicitud-partner / usuario
+  referencia?: string;
+  promocionTitulo?: string;
+  companyName?: string;
+  solicitanteNombre?: string;
+  solicitanteEmail?: string;
+  solicitanteFarmacia?: string;
+  solicitanteCiudad?: string;
+  solicitanteTelefono?: string;
+  mensaje?: string;
 }
+
 
 export interface RenderedEmail {
   subject: string;
