@@ -6,14 +6,17 @@ export interface LevelInfo {
   maxPoints: number;
 }
 
+// `icon` guarda el NOMBRE de un icono de lucide (no un emoji): el canon de marca
+// de farmapro solo admite emojis en redes sociales, nunca en producto.
 export const LEVELS: LevelInfo[] = [
-  { level: 1, name: 'Alumno', icon: '🌱', minPoints: 0, maxPoints: 99 },
-  { level: 2, name: 'Auxiliar Digital', icon: '💊', minPoints: 100, maxPoints: 299 },
-  { level: 3, name: 'Técnico Experto', icon: '🔬', minPoints: 300, maxPoints: 599 },
-  { level: 4, name: 'Farmacéutico Pro', icon: '⚕️', minPoints: 600, maxPoints: 999 },
-  { level: 5, name: 'Farmacéutico Senior', icon: '🏅', minPoints: 1000, maxPoints: 1999 },
-  { level: 6, name: 'Referente del Sector', icon: '👑', minPoints: 2000, maxPoints: Infinity },
+  { level: 1, name: 'Alumno', icon: 'Sprout', minPoints: 0, maxPoints: 99 },
+  { level: 2, name: 'Auxiliar Digital', icon: 'Pill', minPoints: 100, maxPoints: 299 },
+  { level: 3, name: 'Técnico Experto', icon: 'Microscope', minPoints: 300, maxPoints: 599 },
+  { level: 4, name: 'Farmacéutico Pro', icon: 'Stethoscope', minPoints: 600, maxPoints: 999 },
+  { level: 5, name: 'Farmacéutico Senior', icon: 'Medal', minPoints: 1000, maxPoints: 1999 },
+  { level: 6, name: 'Referente del Sector', icon: 'Crown', minPoints: 2000, maxPoints: Infinity },
 ];
+
 
 export const getLevelInfo = (totalPoints: number): LevelInfo => {
   return LEVELS.find(l => totalPoints >= l.minPoints && totalPoints <= l.maxPoints) || LEVELS[0];

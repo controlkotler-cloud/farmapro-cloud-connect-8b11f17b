@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBadges, BadgeWithStatus } from '@/hooks/useBadges';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Progress } from '@/components/ui/progress';
+import { BadgeMedal } from '@/components/retos/BadgeMedal';
 import { Award, Target, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -16,31 +16,50 @@ const CATEGORIES = [
   { value: 'especial', label: 'Especial' },
 ];
 
+const EARNED_SHADOW =
+  '0 2px 8px rgba(0,0,0,.04), 0 0 0 1.5px hsl(var(--brand)), 0 10px 30px -10px rgba(136,200,53,.55)';
+
 const ProfileBadgeCard = ({ badge }: { badge: BadgeWithStatus }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.2 }}
   >
-    <Card className={`transition-all ${
-      badge.earned
-        ? 'ring-2 ring-miel bg-miel-soft shadow-md'
-        : 'opacity-50 grayscale-[40%]'
-    }`}>
-      <CardContent className="p-4 text-center space-y-2">
-        <div className={`text-3xl ${badge.earned ? '' : 'opacity-40'}`}>{badge.icon}</div>
-        <p className="font-semibold text-sm">{badge.name}</p>
+    <Card
+      className={`relative overflow-hidden rounded-[0.625rem] transition-all ${
+        badge.earned ? 'ring-1 ring-brand' : ''
+      }`}
+      style={badge.earned ? { boxShadow: EARNED_SHADOW } : undefined}
+    >
+      <CardContent className="p-4 text-center space-y-3">
+        <div className="flex justify-center">
+          <BadgeMedal icon={badge.icon} category={badge.category} earned={badge.earned} />
+        </div>
+        <p
+          className={`text-sm ${
+            badge.earned ? 'font-extrabold text-foreground' : 'font-semibold text-muted-foreground'
+          }`}
+        >
+          {badge.name}
+        </p>
         {badge.earned ? (
           <p className="text-xs text-muted-foreground">
-            Obtenido el {new Date(badge.earned_at!).toLocaleDateString('es-ES')}
+            Conseguida el {new Date(badge.earned_at!).toLocaleDateString('es-ES')}
           </p>
         ) : (
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">{badge.description}</p>
             {badge.requirement_type !== 'manual' && (
               <>
-                <Progress value={badge.progress} className="h-1.5" />
-                <p className="text-xs text-muted-foreground">{badge.currentValue}/{badge.requirement_value}</p>
+                <div className="h-1.5 overflow-hidden rounded-full border border-border bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-brand"
+                    style={{ width: `${Math.max(badge.progress, 4)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {badge.currentValue}/{badge.requirement_value}
+                </p>
               </>
             )}
           </div>
@@ -49,6 +68,7 @@ const ProfileBadgeCard = ({ badge }: { badge: BadgeWithStatus }) => (
     </Card>
   </motion.div>
 );
+
 
 interface CompletedChallenge {
   id: string;
