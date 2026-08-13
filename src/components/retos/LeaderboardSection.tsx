@@ -1,9 +1,10 @@
 
-import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { useLeaderboard, type LeaderboardEntry } from '@/hooks/useLeaderboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
 import { getLevelInfo } from '@/services/pointsService';
+import { LevelIcon } from '@/components/gamification/LevelIcon';
 
 const RankIcon = ({ rank }: { rank: number }) => {
   if (rank === 1) return <Crown className="h-5 w-5 text-miel" />;
@@ -12,8 +13,21 @@ const RankIcon = ({ rank }: { rank: number }) => {
   return <span className="text-sm font-bold text-muted-foreground w-5 text-center">{rank}</span>;
 };
 
-export const LeaderboardSection = () => {
-  const { entries, currentUserRank, loading } = useLeaderboard();
+interface LeaderboardSectionProps {
+  entries?: LeaderboardEntry[];
+  currentUserRank?: LeaderboardEntry | null;
+  loading?: boolean;
+}
+
+export const LeaderboardSection = (props: LeaderboardSectionProps) => {
+  // Si la página ya ha consultado el ranking, reutilizamos sus datos por props
+  // y evitamos repetir la consulta; si no, el componente sigue siendo autónomo.
+  const hook = useLeaderboard({ enabled: props.entries === undefined });
+  const entries = props.entries ?? hook.entries;
+  const currentUserRank = props.currentUserRank !== undefined ? props.currentUserRank : hook.currentUserRank;
+  const loading = props.loading !== undefined ? props.loading : hook.loading;
+
+
 
   return (
     <Card>
@@ -53,7 +67,11 @@ export const LeaderboardSection = () => {
                     {entry.first_name}
                     {entry.isCurrentUser && <span className="text-miel ml-1">(tú)</span>}
                   </p>
-                  <p className="text-xs text-muted-foreground">{getLevelInfo(entry.total_points).icon} {getLevelInfo(entry.total_points).name}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <LevelIcon totalPoints={entry.total_points} className="h-3.5 w-3.5 text-miel" />
+                    {getLevelInfo(entry.total_points).name}
+                  </p>
+
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm">{entry.total_points} pts</p>

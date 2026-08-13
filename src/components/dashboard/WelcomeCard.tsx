@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Trophy } from 'lucide-react';
 import { getLevelInfo, getNextLevelInfo, getNextLevelProgress, getPointsToNextLevel } from '@/services/pointsService';
+import { LevelIcon } from '@/components/gamification/LevelIcon';
+
 
 interface WelcomeCardProps {
   userName: string;
@@ -39,7 +41,7 @@ export const WelcomeCard = ({
         <CardContent>
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">{currentLevel.icon}</span>
+              <LevelIcon totalPoints={totalPoints} className="h-7 w-7 text-white" />
               <div>
                 <span className="text-lg font-bold text-white">{currentLevel.name}</span>
                 <p className="text-xs text-white/70">Nivel {currentLevel.level}</p>
@@ -49,11 +51,12 @@ export const WelcomeCard = ({
               <div className="flex justify-between text-sm mb-1 text-white">
                 <span>{totalPoints} puntos</span>
                 {nextLevel ? (
-                  <span>Próximo: {nextLevel.icon} {nextLevel.name} (faltan {pointsNeeded})</span>
+                  <span>Próximo: {nextLevel.name} (faltan {pointsNeeded})</span>
                 ) : (
                   <span>¡Nivel máximo alcanzado!</span>
                 )}
               </div>
+
               <Progress value={progress} className="h-2 bg-white/20" />
             </div>
           </div>

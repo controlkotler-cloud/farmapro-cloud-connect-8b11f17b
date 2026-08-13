@@ -1,11 +1,12 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
+import { LevelIcon } from '@/components/gamification/LevelIcon';
 import {
   getLevelInfo,
   getNextLevelInfo,
   getNextLevelProgress,
   getPointsToNextLevel,
 } from '@/services/pointsService';
+
 
 interface LevelProgressCardProps {
   userStats: {
@@ -29,8 +30,9 @@ export const LevelProgressCard = ({ userStats }: LevelProgressCardProps) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <div className="p-3 bg-card rounded-lg mr-4">
-              <TrendingUp className="h-8 w-8 text-miel" />
+              <LevelIcon totalPoints={points} className="h-8 w-8 text-miel" />
             </div>
+
             <div>
               <h3 className="text-xl font-bold text-foreground">Progreso de Nivel</h3>
               <p className="text-muted-foreground">Nivel {current.level} · {current.name}</p>
