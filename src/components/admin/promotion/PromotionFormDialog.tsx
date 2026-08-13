@@ -289,7 +289,20 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
               />
             </div>
             <div>
-              <Label htmlFor="target_url">Enlace de la promoción</Label>
+              <Label htmlFor="partner_email">Correo del partner</Label>
+              <Input
+                id="partner_email"
+                type="email"
+                value={formData.partner_email}
+                onChange={(e) => setFormData({ ...formData, partner_email: e.target.value })}
+                placeholder="contacto@partner.com"
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                A dónde llegan las solicitudes de esta promoción. Sin él, el botón de solicitar no aparece.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="target_url">Enlace de la oferta</Label>
               <Input
                 id="target_url"
                 type="url"
@@ -298,7 +311,7 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
                 placeholder="https://ejemplo.com/oferta (opcional)"
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                A dónde lleva el botón Solicitar. Si lo dejas vacío y tampoco hay código promocional, el botón no aparece.
+                Enlace informativo a la web del partner. La solicitud se hace dentro del portal.
               </p>
             </div>
           </div>
