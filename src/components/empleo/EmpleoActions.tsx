@@ -25,14 +25,14 @@ export const EmpleoActions = ({ canPostJobs, isPremium, isAdmin, onCreateJob }: 
               }
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="brand"
+            size="pill"
             onClick={onCreateJob}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
           >
             <Plus className="h-4 w-4" />
             Publicar oferta
-          </button>
+          </Button>
         </CardContent>
       </Card>
     );
