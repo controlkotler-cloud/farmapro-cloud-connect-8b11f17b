@@ -22,6 +22,7 @@ interface Promotion {
   terms_conditions: string | null;
   image_url: string | null;
   target_url: string | null;
+  partner_email: string | null;
   created_at: string;
 }
 
@@ -45,7 +46,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
     valid_until: '',
     terms_conditions: '',
     image_url: '',
-    target_url: ''
+    target_url: '',
+    partner_email: ''
   });
 
   useEffect(() => {
@@ -60,7 +62,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
         valid_until: editingPromotion.valid_until ? editingPromotion.valid_until.split('T')[0] : '',
         terms_conditions: editingPromotion.terms_conditions || '',
         image_url: editingPromotion.image_url || '',
-        target_url: editingPromotion.target_url || ''
+        target_url: editingPromotion.target_url || '',
+        partner_email: editingPromotion.partner_email || ''
       });
       setOpen(true);
     }
@@ -77,7 +80,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
       valid_until: '',
       terms_conditions: '',
       image_url: '',
-      target_url: ''
+      target_url: '',
+      partner_email: ''
     });
   };
 
@@ -125,7 +129,8 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
         valid_until: formData.valid_until ? new Date(formData.valid_until).toISOString() : null,
         terms_conditions: formData.terms_conditions.trim() || null,
         image_url: formData.image_url.trim() || null,
-        target_url: formData.target_url.trim() || null
+        target_url: formData.target_url.trim() || null,
+        partner_email: formData.partner_email.trim() || null
       };
 
       let error;
@@ -289,7 +294,20 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
               />
             </div>
             <div>
-              <Label htmlFor="target_url">Enlace de la promoción</Label>
+              <Label htmlFor="partner_email">Correo del partner</Label>
+              <Input
+                id="partner_email"
+                type="email"
+                value={formData.partner_email}
+                onChange={(e) => setFormData({ ...formData, partner_email: e.target.value })}
+                placeholder="contacto@partner.com"
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                A dónde llegan las solicitudes de esta promoción. Sin él, el botón de solicitar no aparece.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="target_url">Enlace de la oferta</Label>
               <Input
                 id="target_url"
                 type="url"
@@ -298,7 +316,7 @@ export const PromotionFormDialog = ({ editingPromotion, onPromotionUpdated }: Pr
                 placeholder="https://ejemplo.com/oferta (opcional)"
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                A dónde lleva el botón Solicitar. Si lo dejas vacío y tampoco hay código promocional, el botón no aparece.
+                Enlace informativo a la web del partner. La solicitud se hace dentro del portal.
               </p>
             </div>
           </div>

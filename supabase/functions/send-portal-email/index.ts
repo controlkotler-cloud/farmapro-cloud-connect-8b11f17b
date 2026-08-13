@@ -41,6 +41,8 @@ const VALID_TEMPLATES: PortalTemplateName[] = [
   'rebotica-baul-ganador',
   'rebotica-gordo-ganador',
   'rebotica-aviso-calendario-interno',
+  'promocion-solicitud-partner',
+  'promocion-solicitud-usuario',
 ];
 
 const log = (step: string, details?: unknown) => {

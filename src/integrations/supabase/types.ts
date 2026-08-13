@@ -1854,6 +1854,71 @@ export type Database = {
         }
         Relationships: []
       }
+      promotion_requests: {
+        Row: {
+          ciudad: string | null
+          consent_at: string
+          consent_texto_version: string
+          created_at: string
+          email: string
+          estado: string
+          farmacia: string | null
+          id: string
+          mensaje: string | null
+          nombre: string
+          partner_email: string | null
+          promotion_id: string
+          referencia: string
+          telefono: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ciudad?: string | null
+          consent_at?: string
+          consent_texto_version: string
+          created_at?: string
+          email: string
+          estado?: string
+          farmacia?: string | null
+          id?: string
+          mensaje?: string | null
+          nombre: string
+          partner_email?: string | null
+          promotion_id: string
+          referencia: string
+          telefono?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ciudad?: string | null
+          consent_at?: string
+          consent_texto_version?: string
+          created_at?: string
+          email?: string
+          estado?: string
+          farmacia?: string | null
+          id?: string
+          mensaje?: string | null
+          nombre?: string
+          partner_email?: string | null
+          promotion_id?: string
+          referencia?: string
+          telefono?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_requests_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promotions: {
         Row: {
           company_name: string | null
@@ -1867,6 +1932,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           is_featured: boolean
+          partner_email: string | null
           promo_code: string | null
           start_date: string | null
           target_url: string | null
@@ -1887,6 +1953,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
+          partner_email?: string | null
           promo_code?: string | null
           start_date?: string | null
           target_url?: string | null
@@ -1907,6 +1974,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
+          partner_email?: string | null
           promo_code?: string | null
           start_date?: string | null
           target_url?: string | null
@@ -3411,6 +3479,7 @@ export type Database = {
         }
         Returns: number
       }
+      next_promotion_reference: { Args: never; Returns: string }
       notify_trial_ending: {
         Args: never
         Returns: {

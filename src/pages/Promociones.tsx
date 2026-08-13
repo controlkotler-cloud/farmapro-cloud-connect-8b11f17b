@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Gift, Calendar, Building2, ExternalLink, Clock, Tag, Bell, BadgePercent,
-  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake, Copy,
+  FlaskConical, Truck, Monitor, Wrench, GraduationCap, Handshake, Copy, Send,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PromotionCategoryFilter } from '@/components/admin/promotion/PromotionCategoryFilter';
 import { useToast } from '@/hooks/use-toast';
+import { PromotionRequestDialog } from '@/components/promociones/PromotionRequestDialog';
 
 interface Promotion {
   id: string;
@@ -25,6 +26,7 @@ interface Promotion {
   is_active: boolean;
   created_at: string;
   target_url: string | null;
+  partner_email: string | null;
   promo_code: string | null;
 }
 
@@ -46,6 +48,7 @@ const Promociones = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('all');
+  const [requesting, setRequesting] = useState<Promotion | null>(null);
 
   useEffect(() => {
     loadPromotions();
@@ -275,15 +278,7 @@ const Promociones = () => {
                               <p className="mt-2 pl-4">{promotion.terms_conditions}</p>
                             </details>
                           )}
-                          {promotion.target_url ? (
-                            <Button
-                              onClick={() => window.open(promotion.target_url!, '_blank', 'noopener,noreferrer')}
-                              className="w-full mt-4 gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Solicitar
-                            </Button>
-                          ) : promotion.promo_code ? (
+                          {promotion.promo_code && (
                             <div className="mt-4 space-y-3">
                               <div className="flex items-center justify-between rounded-lg border border-dashed border-miel/40 bg-miel-soft px-3 py-2">
                                 <span className="font-mono text-sm font-semibold text-foreground tracking-wide">
@@ -295,13 +290,33 @@ const Promociones = () => {
                               </div>
                               <Button
                                 onClick={() => copyPromoCode(promotion.promo_code!)}
-                                className="w-full gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+                                variant="outline"
+                                className="w-full gap-2 rounded-full"
                               >
                                 <Copy className="h-4 w-4" />
                                 Copiar código
                               </Button>
                             </div>
-                          ) : null}
+                          )}
+                          {promotion.partner_email && (
+                            <Button
+                              onClick={() => setRequesting(promotion)}
+                              className="w-full mt-4 gap-2 rounded-full bg-brand-dark px-5 py-2.5 text-sm font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lift"
+                            >
+                              <Send className="h-4 w-4" />
+                              Solicitar esta oferta
+                            </Button>
+                          )}
+                          {promotion.target_url && (
+                            <button
+                              type="button"
+                              onClick={() => window.open(promotion.target_url!, '_blank', 'noopener,noreferrer')}
+                              className="mx-auto mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              Ver la oferta en su web
+                            </button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -312,6 +327,11 @@ const Promociones = () => {
           )}
         </div>
       )}
+      <PromotionRequestDialog
+        promotion={requesting}
+        open={!!requesting}
+        onOpenChange={(o) => { if (!o) setRequesting(null); }}
+      />
     </div>
   );
 };
