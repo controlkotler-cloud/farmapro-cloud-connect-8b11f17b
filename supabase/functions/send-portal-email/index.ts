@@ -82,8 +82,9 @@ serve(async (req) => {
     return json({ error: 'Forbidden' }, 403);
   }
 
-
+  let body: SendBody;
   try {
+
     body = await req.json();
   } catch {
     return json({ error: 'Invalid JSON body' }, 400);
