@@ -66,6 +66,9 @@ export interface PortalTemplateData {
   solicitanteCiudad?: string;
   solicitanteTelefono?: string;
   mensaje?: string;
+  promocionOferta?: string;
+  promocionCondiciones?: string;
+  promocionValidaHasta?: string;   // ISO
 }
 
 
