@@ -73,17 +73,32 @@ export interface LaunchStatus {
   showCounter: boolean;
 }
 
-/** Estado del lanzamiento: se cierra al cubrir las primeras `spots` plazas. */
-export function getLaunchStatus(): LaunchStatus {
-  const spotsLeft = Math.max(0, LAUNCH.spots - LAUNCH.spotsTaken);
+/**
+ * Estado del lanzamiento: se cierra al cubrir las primeras `spots` plazas.
+ * `spotsTaken` viene de la vista real `public.founder_count`; si no se pasa,
+ * se usa `LAUNCH.spotsTaken` como respaldo.
+ */
+export function getLaunchStatus(spotsTaken?: number): LaunchStatus {
+  const taken = typeof spotsTaken === 'number' && Number.isFinite(spotsTaken)
+    ? spotsTaken
+    : LAUNCH.spotsTaken;
+  const spotsLeft = Math.max(0, LAUNCH.spots - taken);
   return {
     active: spotsLeft > 0,
-    spotsTaken: LAUNCH.spotsTaken,
+    spotsTaken: taken,
     spotsLeft,
     almostGone: spotsLeft > 0 && spotsLeft <= 15,
-    showCounter: LAUNCH.spotsTaken >= LAUNCH.showCounterFrom,
+    showCounter: taken >= LAUNCH.showCounterFrom,
   };
 }
+
+/**
+ * Ponlo a `true` cuando existan en Stripe los dos precios anuales regulares
+ * (secretos STRIPE_PRICE_PLUS_YEARLY y STRIPE_PRICE_EQUIPO_YEARLY). Mientras
+ * sea `false`, el anual solo se ofrece durante el lanzamiento.
+ */
+export const ANNUAL_REGULAR_AVAILABLE = false;
+
 
 export const PLANS: Plan[] = [
   {
