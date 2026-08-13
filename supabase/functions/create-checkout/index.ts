@@ -108,7 +108,9 @@ serve(async (req) => {
 
     if (existingCustomerId) {
       const subs = await stripe.subscriptions.list({ customer: existingCustomerId, status: 'all', limit: 100 });
-      const live = subs.data.filter((s) => ['active', 'trialing', 'past_due'].includes(s.status));
+      const live = subs.data.filter(
+        (s) => ['active', 'trialing', 'past_due'].includes(s.status) && s.metadata?.origen === 'portal',
+      );
       if (live.length > 0) {
         const portal = await stripe.billingPortal.sessions.create({
           customer: existingCustomerId,
