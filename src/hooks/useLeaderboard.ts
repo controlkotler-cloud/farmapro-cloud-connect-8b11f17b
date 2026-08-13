@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
+// Mínimo de participantes reales para que el ranking tenga sentido mostrarlo.
+export const MIN_PARTICIPANTES_RANKING = 10;
+
 export interface LeaderboardEntry {
   user_id: string;
   first_name: string;
@@ -100,5 +103,10 @@ export const useLeaderboard = () => {
     entries,
     currentUserRank,
     loading,
+    // Umbral deliberado: con menos de 10 personas reales en la clasificación el
+    // ranking enseña lo pequeña que es la comunidad y desmotiva, así que la
+    // pestaña ni se muestra. NO es un bug: no lo quites sin hablarlo.
+    rankingActivo: entries.length >= MIN_PARTICIPANTES_RANKING,
   };
 };
+
