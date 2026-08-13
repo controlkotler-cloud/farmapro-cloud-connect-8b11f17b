@@ -27,11 +27,13 @@ interface Props {
 
 export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props) => {
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, reloadProfile } = useAuth();
   const [telefono, setTelefono] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [consent, setConsent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [farmaciaInput, setFarmaciaInput] = useState('');
+  const [ciudadInput, setCiudadInput] = useState('');
 
   if (!promotion) return null;
 
@@ -41,10 +43,18 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
   const farmacia = (profile?.pharmacy_name || '').trim();
   const ciudad = (profile?.pharmacy_city || '').trim();
 
+  const faltaFarmacia = !farmacia;
+  const faltaCiudad = !ciudad;
+  const farmaciaFinal = faltaFarmacia ? farmaciaInput.trim() : farmacia;
+  const ciudadFinal = faltaCiudad ? ciudadInput.trim() : ciudad;
+  const datosIncompletos = !farmaciaFinal || !ciudadFinal;
+
   const reset = () => {
     setTelefono('');
     setMensaje('');
     setConsent(false);
+    setFarmaciaInput('');
+    setCiudadInput('');
   };
 
   const handleClose = (next: boolean) => {
@@ -53,9 +63,31 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
   };
 
   const handleSubmit = async () => {
-    if (!user || !consent || !promotion.partner_email) return;
+    if (!user || !consent || !promotion.partner_email || datosIncompletos) return;
     setSending(true);
     try {
+      if (faltaFarmacia || faltaCiudad) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            ...(faltaFarmacia ? { pharmacy_name: farmaciaFinal } : {}),
+            ...(faltaCiudad ? { pharmacy_city: ciudadFinal } : {}),
+          } as any)
+          .eq('id', user.id);
+
+        if (profileError) {
+          console.error('Error guardando los datos de la farmacia:', profileError);
+          toast({
+            title: 'No hemos podido guardar los datos de tu farmacia',
+            description: 'Vuelve a intentarlo en un momento.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        await reloadProfile();
+      }
+
       const { data, error } = await supabase.functions.invoke('request-promotion', {
         body: {
           promotion_id: promotion.id,
@@ -122,14 +154,46 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
                 <dt className="w-24 flex-none text-muted-foreground">Nombre</dt>
                 <dd className="text-foreground">{nombre || 'Sin indicar'}</dd>
               </div>
-              <div className="flex gap-2">
-                <dt className="w-24 flex-none text-muted-foreground">Farmacia</dt>
-                <dd className="text-foreground">{farmacia || 'Sin indicar'}</dd>
-              </div>
-              <div className="flex gap-2">
-                <dt className="w-24 flex-none text-muted-foreground">Ciudad</dt>
-                <dd className="text-foreground">{ciudad || 'Sin indicar'}</dd>
-              </div>
+              {faltaFarmacia ? (
+                <div>
+                  <Label htmlFor="promo-farmacia">Nombre de la farmacia</Label>
+                  <Input
+                    id="promo-farmacia"
+                    value={farmaciaInput}
+                    maxLength={120}
+                    onChange={(e) => setFarmaciaInput(e.target.value)}
+                    className="mt-1 bg-background"
+                  />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Lo necesita el partner para atenderte. Lo guardamos en tu perfil.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <dt className="w-24 flex-none text-muted-foreground">Farmacia</dt>
+                  <dd className="text-foreground">{farmacia}</dd>
+                </div>
+              )}
+              {faltaCiudad ? (
+                <div>
+                  <Label htmlFor="promo-ciudad">Ciudad</Label>
+                  <Input
+                    id="promo-ciudad"
+                    value={ciudadInput}
+                    maxLength={120}
+                    onChange={(e) => setCiudadInput(e.target.value)}
+                    className="mt-1 bg-background"
+                  />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Lo necesita el partner para atenderte. Lo guardamos en tu perfil.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <dt className="w-24 flex-none text-muted-foreground">Ciudad</dt>
+                  <dd className="text-foreground">{ciudad}</dd>
+                </div>
+              )}
               <div className="flex gap-2">
                 <dt className="w-24 flex-none text-muted-foreground">Correo</dt>
                 <dd className="break-all text-foreground">{email || 'Sin indicar'}</dd>
@@ -187,7 +251,7 @@ export const PromotionRequestDialog = ({ promotion, open, onOpenChange }: Props)
             variant="brand"
             size="pill"
             onClick={handleSubmit}
-            disabled={!consent || sending}
+            disabled={!consent || sending || datosIncompletos}
           >
             {sending ? 'Enviando...' : 'Enviar solicitud'}
           </Button>
