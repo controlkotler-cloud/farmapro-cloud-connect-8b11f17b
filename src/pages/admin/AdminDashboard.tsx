@@ -79,7 +79,7 @@ const AdminDashboard = () => {
 
   const adminSections = [
     {
-      title: 'Gestión de Usuarios',
+      title: 'Gestión de usuarios',
       description: 'Administrar perfiles y suscripciones',
       icon: Users,
       path: '/admin/usuarios',
@@ -100,14 +100,14 @@ const AdminDashboard = () => {
       color: 'bg-muted'
     },
     {
-      title: 'Retos y Desafíos',
+      title: 'Retos y desafíos',
       description: 'Crear y gestionar retos para usuarios',
       icon: Trophy,
       path: '/admin/retos',
       color: 'bg-muted'
     },
     {
-      title: 'Configuración General',
+      title: 'Configuración general',
       description: 'Ajustes del portal y configuraciones',
       icon: Settings,
       path: '/admin/configuracion',
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Panel de Administración</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Panel de administración</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">Gestiona todo el contenido y funcionalidades de farmapro</p>
       </div>
 

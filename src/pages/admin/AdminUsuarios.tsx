@@ -296,7 +296,7 @@ const AdminUsuarios = () => {
     <div className="space-y-6">
       <div>
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de Usuarios</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de usuarios</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Administra perfiles de usuario y suscripciones</p>
         </div>
       </div>
@@ -333,7 +333,7 @@ const AdminUsuarios = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Crear Usuario Administrador</DialogTitle>
+              <DialogTitle>Crear Usuario administrador</DialogTitle>
               <DialogDescription>
                 Crea un nuevo usuario con permisos de administrador.
               </DialogDescription>

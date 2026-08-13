@@ -49,7 +49,7 @@ const AdminPromociones = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de Promociones</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">Gestión de promociones</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">Gestionar ofertas, descuentos y solicitudes</p>
       </div>
 

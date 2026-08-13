@@ -109,7 +109,7 @@ const CategoryManagement = ({
         </div>
         <Button onClick={() => openCategoryDialog()}>
           <Plus className="h-4 w-4 mr-2" />
-          Nueva Categoría
+          Nueva categoría
         </Button>
       </div>
 
@@ -202,7 +202,7 @@ const CategoryManagement = ({
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
+              {editingCategory ? 'Editar categoría' : 'Nueva categoría'}
             </DialogTitle>
           </DialogHeader>
           

@@ -92,11 +92,11 @@ export const Retos = () => {
         <WeeklyChallengesSection challenges={weeklyChallenges} loading={weeklyLoading} />
       </motion.div>
 
-      {/* Tabs: Retos Permanentes | Insignias | Ranking (solo si hay comunidad) */}
+      {/* Tabs: Retos permanentes | Insignias | Ranking (solo si hay comunidad) */}
       <motion.div variants={itemVariants}>
         <Tabs defaultValue="challenges" className="space-y-6">
           <TabsList className={`grid w-full ${rankingActivo ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            <TabsTrigger value="challenges">Retos Permanentes</TabsTrigger>
+            <TabsTrigger value="challenges">Retos permanentes</TabsTrigger>
             <TabsTrigger value="badges">Insignias</TabsTrigger>
             {rankingActivo && <TabsTrigger value="ranking">Ranking</TabsTrigger>}
           </TabsList>
@@ -108,7 +108,7 @@ export const Retos = () => {
                   <Target className="h-5 w-5 text-miel" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold tracking-tight text-foreground">Retos Permanentes</h2>
+                  <h2 className="text-xl font-extrabold tracking-tight text-foreground">Retos permanentes</h2>
                   <p className="text-sm text-muted-foreground">Estos retos siempre están disponibles.</p>
                 </div>
               </div>

@@ -228,7 +228,7 @@ export const BadgeManagement = () => {
                 </Select>
               </div>
               <div>
-                <Label>Tipo de Requisito</Label>
+                <Label>Tipo de requisito</Label>
                 <Select value={form.requirement_type} onValueChange={v => setForm(f => ({ ...f, requirement_type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -239,7 +239,7 @@ export const BadgeManagement = () => {
             </div>
             <div className="grid grid-cols-2 gap-3 items-end">
               <div>
-                <Label>Valor Requerido</Label>
+                <Label>Valor requerido</Label>
                 <Input type="number" min={1} value={form.requirement_value} onChange={e => setForm(f => ({ ...f, requirement_value: parseInt(e.target.value) || 1 }))} />
               </div>
               <div className="flex items-center gap-2">

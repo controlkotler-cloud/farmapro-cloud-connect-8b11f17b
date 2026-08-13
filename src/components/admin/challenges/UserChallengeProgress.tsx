@@ -84,7 +84,7 @@ export const UserChallengeProgress = ({
   const getChallengeTypeLabel = (type: ChallengeType) => {
     switch (type) {
       case 'course_completed':
-        return 'Curso Completado';
+        return 'Curso completado';
       case 'course_started':
         return 'Curso Iniciado';
       case 'forum_post':

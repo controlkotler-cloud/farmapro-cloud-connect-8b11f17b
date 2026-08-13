@@ -185,7 +185,7 @@ export const ChallengeStats = ({ stats, challenges, challengeProgress }: Challen
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Rendimiento por Tipo de Reto
+            Rendimiento por Tipo de reto
           </CardTitle>
         </CardHeader>
         <CardContent>
