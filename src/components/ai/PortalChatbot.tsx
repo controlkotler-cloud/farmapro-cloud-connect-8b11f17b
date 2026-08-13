@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { MessageCircle, X, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
