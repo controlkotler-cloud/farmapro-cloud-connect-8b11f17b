@@ -60,6 +60,9 @@ export const overlayLogo = async (blob: Blob, logoUrl: string): Promise<Blob> =>
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(pieceBitmap, 0, 0);
 
+    // Sin placa detrás (decisión Francesc): el logo va directo sobre el fondo.
+    // La legibilidad la garantiza la reserva de esquina del prompt (el
+    // rectángulo del logo debe ser solo fondo, sin texto debajo).
     const margin = Math.round(canvas.width * 0.04);
     const logoW = Math.round(canvas.width * 0.16);
     const logoH = Math.round(logoW * (logoBitmap.height / logoBitmap.width));

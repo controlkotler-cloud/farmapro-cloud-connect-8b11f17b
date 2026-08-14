@@ -34,6 +34,29 @@ function mapSizeForGptImage(size: string): string {
   return '1024x1024';
 }
 
+/**
+ * Porcentaje de lienzo que se recortará por cada lado al pasar del formato
+ * generado al pedido (p. ej. 2:3 → 4:5 recorta ~8% arriba y ~8% abajo).
+ * Instrucciones con NÚMEROS: el "área central" abstracta no la respetaba.
+ */
+function trimPercents(genSize: string, reqSize: string): { axis: 'vertical' | 'horizontal'; pct: number } | null {
+  const g = /^(\d+)x(\d+)$/.exec((genSize || '').trim());
+  const r = /^(\d+)x(\d+)$/.exec((reqSize || '').trim());
+  if (!g || !r) return null;
+  const gw = Number(g[1]), gh = Number(g[2]);
+  const rw = Number(r[1]), rh = Number(r[2]);
+  const target = rw / rh;
+  const gen = gw / gh;
+  if (Math.abs(target - gen) < 0.01) return null;
+  if (gen < target) {
+    // El lienzo es más alto que el objetivo: se recorta arriba y abajo.
+    const visibleH = gw / target;
+    return { axis: 'vertical', pct: Math.ceil(((gh - visibleH) / 2 / gh) * 100) };
+  }
+  const visibleW = gh * target;
+  return { axis: 'horizontal', pct: Math.ceil(((gw - visibleW) / 2 / gw) * 100) };
+}
+
 /** '1080x1350' → '4:5'. Para comparar proporción pedida vs generada. */
 function ratioLabel(size: string): string {
   const m = /^(\d+)x(\d+)$/.exec((size || '').trim());
@@ -341,6 +364,9 @@ serve(async (req) => {
     }
 
     // El headline efectivo: el del copy si se generó, o el que envió el cliente.
+    // Máximo 4 líneas de apoyo: con 5 el layout crece hasta el borde y el
+    // recorte a 4:5/9:16 se come la última (visto en pruebas reales).
+    if (copy) copy.lines = copy.lines.slice(0, 4);
     const effectiveHeadline = copy?.headline ?? headline;
     const effectiveLines = copy?.lines ?? [];
     const effectiveArt = artOverride || copy?.art || pickFallbackArt(paletteText);
@@ -390,8 +416,11 @@ serve(async (req) => {
       textBlock = signatureText ? '' : ' Do not include any text or typography in the image.';
     }
 
-    const cropBlock = framed
-      ? ` CRITICAL FRAMING RULE: the canvas is ${generatedRatio}, but the final deliverable will be center-cropped to ${requestedRatio}. Design the artwork as a ${requestedRatio} piece perfectly centered on the canvas: ALL text (headline, supporting items, signature) and every key subject must sit strictly inside that centered ${requestedRatio} design area, with a comfortable inner margin — never touching its edges. The leftover bands of the canvas outside the design area must contain ONLY continuous background (color, texture or scenery), absolutely no text and no important elements: those bands will be trimmed off.`
+    const trim = framed ? trimPercents(generatedSize, size) : null;
+    const cropBlock = trim
+      ? (trim.axis === 'vertical'
+        ? ` CRITICAL FRAMING RULE (numbers, not vibes): the TOP ${trim.pct}% and the BOTTOM ${trim.pct}% of the canvas WILL BE CUT OFF in the final ${requestedRatio} deliverable. Those two horizontal strips must contain ONLY continuous plain background — zero text, zero icons, zero list items, zero products. Every text element and icon must sit at least ${trim.pct + 5}% away from the top and bottom edges of the canvas. If the content does not fit with those margins, make the text smaller or reduce spacing — NEVER push content into the strips.`
+        : ` CRITICAL FRAMING RULE (numbers, not vibes): the LEFT ${trim.pct}% and the RIGHT ${trim.pct}% of the canvas WILL BE CUT OFF in the final ${requestedRatio} deliverable. Those two vertical strips must contain ONLY continuous plain background — zero text, zero icons, zero products. Every text element and icon must sit at least ${trim.pct + 5}% away from the left and right edges of the canvas. If the content does not fit with those margins, make the text smaller — NEVER push content into the strips.`)
       : '';
 
     // Composición llena: sin bandas muertas ni zonas vacías sin tratar.
@@ -399,8 +428,9 @@ serve(async (req) => {
       ' The composition must feel finished and full: treat the entire background (color field, texture, pattern or scene) and balance the layout so there are no large empty dead zones.';
 
     // Esquina reservada para el logo real (se superpone en el cliente).
+    // Con números: el rectángulo exacto que ocupará el logo debe ser solo fondo.
     const logoBlock = logoCorner
-      ? ' Keep the bottom-right corner of the design area clean and free of text, products or key elements: the pharmacy\'s real logo will be overlaid there afterwards. Do not draw any logo or placeholder yourself.'
+      ? ' LOGO RESERVE (mandatory): the rectangle covering the RIGHT 26% of the width and the BOTTOM 15% of the height of the visible design area must contain ONLY plain background — no text, no list items, no icons, no products there. The pharmacy\'s real logo will be overlaid exactly in that corner afterwards. Do not draw any logo or placeholder yourself.'
       : '';
 
     // Paleta corporativa también en el prompt de imagen (no solo en el copy).
