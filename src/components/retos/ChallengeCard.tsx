@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, CheckCircle, Gift, MessageSquare, Users, BookOpen, ArrowRight } from 'lucide-react';
+import { Trophy, CheckCircle, Gift, MessageSquare, Users, BookOpen, ClipboardCheck, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,12 +13,16 @@ interface Challenge {
   target_count: number;
   is_active: boolean;
   created_at: string;
+  familia?: string | null;
+  nivel?: number | null;
 }
 
 interface ChallengeCardProps {
   challenge: Challenge;
   progress: any;
   index: number;
+  /** Cuántos peldaños tiene la familia. Solo para el "Nivel 2 de 4". */
+  totalNiveles?: number;
 }
 
 const getChallengeIcon = (type: string) => {
@@ -29,6 +33,8 @@ const getChallengeIcon = (type: string) => {
     case 'forum_post':
     case 'forum_reply':
       return <MessageSquare className="h-6 w-6" />;
+    case 'quiz_completed':
+      return <ClipboardCheck className="h-6 w-6" />;
     case 'resource_downloaded':
       return <Gift className="h-6 w-6" />;
     case 'community_engagement':
@@ -46,6 +52,8 @@ const getChallengeTypeLabel = (type: string) => {
     case 'forum_post':
     case 'forum_reply':
       return 'Comunidad';
+    case 'quiz_completed':
+      return 'Formación';
     case 'resource_downloaded':
       return 'Recursos';
     case 'community_engagement':
@@ -66,6 +74,8 @@ const getUnit = (type: string, count: number) => {
       return count === 1 ? 'curso' : 'cursos';
     case 'resource_downloaded':
       return count === 1 ? 'recurso' : 'recursos';
+    case 'quiz_completed':
+      return count === 1 ? 'evaluación' : 'evaluaciones';
     default:
       return count === 1 ? 'acción' : 'acciones';
   }
@@ -91,6 +101,18 @@ const getStartHelp = (type: string): { text: string; linkLabel: string; to: stri
         linkLabel: 'Ver cursos',
         to: '/formacion',
       };
+    case 'course_started':
+      return {
+        text: 'Entra en Formación y abre los cursos que te interesen. Cuenta con empezarlos: no hace falta terminarlos para este reto.',
+        linkLabel: 'Ver cursos',
+        to: '/formacion',
+      };
+    case 'quiz_completed':
+      return {
+        text: 'Al final de cada curso hay una evaluación. Hazla y comprueba qué te ha quedado; cuenta cada evaluación completada.',
+        linkLabel: 'Ver cursos',
+        to: '/formacion',
+      };
     case 'resource_downloaded':
       return {
         text: 'Descarga las plantillas, guías y checklists de la sección Recursos y aplícalas en tu farmacia.',
@@ -106,7 +128,7 @@ const getStartHelp = (type: string): { text: string; linkLabel: string; to: stri
   }
 };
 
-export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps) => {
+export const ChallengeCard = ({ challenge, progress, index, totalNiveles }: ChallengeCardProps) => {
   const navigate = useNavigate();
   const completed = progress?.completed_at !== null && progress?.completed_at !== undefined;
   const currentCount = progress?.current_count || 0;
@@ -133,8 +155,13 @@ export const ChallengeCard = ({ challenge, progress, index }: ChallengeCardProps
               {getChallengeIcon(challenge.type)}
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-miel">
+              <p className="flex flex-wrap items-center gap-x-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-miel">
                 {getChallengeTypeLabel(challenge.type)}
+                {challenge.nivel && totalNiveles ? (
+                  <span className="rounded-full bg-miel-soft px-2 py-0.5 text-[10px] text-miel">
+                    Nivel {challenge.nivel} de {totalNiveles}
+                  </span>
+                ) : null}
               </p>
               <h3 className="text-[19px] font-extrabold tracking-tight text-foreground leading-snug">
                 {challenge.name}

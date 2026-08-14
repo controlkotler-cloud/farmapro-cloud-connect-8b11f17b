@@ -34,8 +34,31 @@ export const Retos = () => {
   } = useLeaderboard();
 
 
-  // Filter out weekly challenges from permanent list
-  const permanentChallenges = challenges.filter((c: any) => !c.is_weekly);
+  // Escalera de retos: cada familia tiene 4 peldaños y solo se enseña el que
+  // toca. Antes se mostraban todos los retos activos a la vez, así que con
+  // cuatro de ellos pidiendo "haz 1 cosa" se completaban el primer día y no
+  // aparecía nada nuevo detrás. Ahora, al completar un peldaño aparece el
+  // siguiente; si la familia está entera, se enseña el último como conseguido.
+  const nivelesPorFamilia = challenges.reduce((acc: Record<string, number>, c: any) => {
+    if (c.familia) acc[c.familia] = Math.max(acc[c.familia] ?? 0, c.nivel ?? 1);
+    return acc;
+  }, {});
+
+  const permanentChallenges = (() => {
+    const sueltos = challenges.filter((c: any) => !c.familia);
+    const porFamilia = new Map<string, any>();
+
+    for (const familia of Object.keys(nivelesPorFamilia)) {
+      const escalera = challenges
+        .filter((c: any) => c.familia === familia)
+        .sort((a: any, b: any) => (a.nivel ?? 0) - (b.nivel ?? 0));
+
+      const pendiente = escalera.find((c: any) => !getProgressForChallenge(c.id)?.completed_at);
+      porFamilia.set(familia, pendiente ?? escalera[escalera.length - 1]);
+    }
+
+    return [...porFamilia.values(), ...sueltos].filter(Boolean);
+  })();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -116,7 +139,12 @@ export const Retos = () => {
                 <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" variants={containerVariants}>
                   {permanentChallenges.map((challenge, index) => (
                     <motion.div key={challenge.id} variants={itemVariants} transition={{ delay: index * 0.1 }}>
-                      <ChallengeCard challenge={challenge} progress={getProgressForChallenge(challenge.id)} index={index} />
+                      <ChallengeCard
+                        challenge={challenge}
+                        progress={getProgressForChallenge(challenge.id)}
+                        index={index}
+                        totalNiveles={(challenge as any).familia ? nivelesPorFamilia[(challenge as any).familia] : undefined}
+                      />
                     </motion.div>
                   ))}
                 </motion.div>
