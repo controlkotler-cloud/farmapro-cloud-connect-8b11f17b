@@ -125,6 +125,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_creative_usage: {
+        Row: {
+          content_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_image_credits: {
         Row: {
           balance: number
@@ -226,10 +247,13 @@ export type Database = {
           created_at: string
           description: string | null
           end_date: string | null
+          familia: string | null
           id: string
           is_active: boolean
+          is_weekly: boolean
           max_completions: number | null
           name: string | null
+          nivel: number | null
           points: number
           points_reward: number | null
           start_date: string | null
@@ -242,10 +266,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          familia?: string | null
           id?: string
           is_active?: boolean
+          is_weekly?: boolean
           max_completions?: number | null
           name?: string | null
+          nivel?: number | null
           points?: number
           points_reward?: number | null
           start_date?: string | null
@@ -258,10 +285,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          familia?: string | null
           id?: string
           is_active?: boolean
+          is_weekly?: boolean
           max_completions?: number | null
           name?: string | null
+          nivel?: number | null
           points?: number
           points_reward?: number | null
           start_date?: string | null
@@ -1750,6 +1780,7 @@ export type Database = {
           employees_count: string | null
           full_name: string | null
           has_completed_onboarding: boolean
+          iafarma_tone: string | null
           id: string
           is_seed: boolean
           landing_page: string | null
@@ -1789,6 +1820,7 @@ export type Database = {
           employees_count?: string | null
           full_name?: string | null
           has_completed_onboarding?: boolean
+          iafarma_tone?: string | null
           id: string
           is_seed?: boolean
           landing_page?: string | null
@@ -1828,6 +1860,7 @@ export type Database = {
           employees_count?: string | null
           full_name?: string | null
           has_completed_onboarding?: boolean
+          iafarma_tone?: string | null
           id?: string
           is_seed?: boolean
           landing_page?: string | null
@@ -3349,6 +3382,7 @@ export type Database = {
       }
       cif_disponible: { Args: { p_cif: string }; Returns: boolean }
       consume_image_credit: { Args: { p_limit: number }; Returns: number }
+      consume_image_credit_v2: { Args: { p_limit: number }; Returns: Json }
       consume_text_credit: { Args: { p_limit: number }; Returns: number }
       create_notification_for_user: {
         Args: {
@@ -3508,6 +3542,11 @@ export type Database = {
         Returns: string
       }
       recompute_user_points: { Args: { _user_id: string }; Returns: undefined }
+      refund_image_credit: {
+        Args: { p_source: string; p_user: string }
+        Returns: undefined
+      }
+      refund_text_credit: { Args: { p_user: string }; Returns: undefined }
       revoke_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
