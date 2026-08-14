@@ -88,8 +88,31 @@ const FALLBACK_ART_DIRECTIONS = [
   'Floating product silhouette on a flat pastel color background with a hard drop shadow, minimal text placed asymmetrically, contemporary e-commerce aesthetic.',
 ];
 
-function pickFallbackArt(): string {
-  return FALLBACK_ART_DIRECTIONS[Math.floor(Math.random() * FALLBACK_ART_DIRECTIONS.length)];
+// Paletas para forzar variedad entre generaciones. El modelo de copy tiende a
+// repetir la misma gama para el mismo tema (dos piezas de "botiquín de viaje"
+// salían las dos en terracota/crema): en cada generación se sortea una
+// sugerencia distinta y se le ofrece como punto de partida.
+const PALETTE_HINTS = [
+  'warm terracotta, cream and sage green',
+  'deep navy with coral and off-white',
+  'fresh mint, aqua and soft butter yellow',
+  'lavender, plum and blush pink',
+  'bold red-orange with charcoal and white',
+  'earthy olive, sand and burnt orange',
+  'cool ice blue, crisp white and slate grey',
+  'sunny yellow, tangerine and chalk white',
+  'forest green, warm gold and ivory',
+  'playful bubblegum pink, sky blue and cream',
+  'clean monochrome duotone with one single vibrant accent color',
+];
+
+function pickPaletteHint(): string {
+  return PALETTE_HINTS[Math.floor(Math.random() * PALETTE_HINTS.length)];
+}
+
+function pickFallbackArt(paletteHint: string): string {
+  const base = FALLBACK_ART_DIRECTIONS[Math.floor(Math.random() * FALLBACK_ART_DIRECTIONS.length)];
+  return `${base} Palette: ${paletteHint}.`;
 }
 
 function stripJsonFences(raw: string): string {
@@ -124,6 +147,8 @@ async function generateCopy(
   brief: string,
   pieceType: string,
   forcedHeadline: string | null,
+  sourceText: string,
+  paletteHint: string,
 ): Promise<PieceCopy | null> {
   const systemPrompt =
     'Eres director creativo y redactor publicitario de una farmacia comunitaria en España. Escribes copy corto y defines la dirección de arte visual de piezas de marketing (posts, carteles, stories, promos). ' +
@@ -138,9 +163,15 @@ async function generateCopy(
     'La paleta también debe variar según el tema (verano cálido, invierno frío, infantil suave, dermocosmética elegante, promoción vibrante, etc.), NO uses siempre azul marino con naranja. ' +
     'Nada de texto adicional fuera del JSON, sin markdown.';
 
-  const userPrompt = forcedHeadline
+  const sourceBlock = sourceText
+    ? ` La pieza acompaña a esta publicación ya escrita; headline y lines deben ser COHERENTES con ella (mismo mensaje, mismos consejos si los hay, sin contradecirla):\n"""${sourceText}"""`
+    : '';
+  const paletteBlock = ` Para la dirección de arte, parte de esta paleta si encaja con el tema (si no encaja, elige otra tú, pero JUSTIFICADAMENTE distinta de la típica): ${paletteHint}.`;
+
+  const userPrompt = (forcedHeadline
     ? `Tipo de pieza: ${pieceType}. Tema: ${brief}. El headline ya está decidido: "${forcedHeadline}". Genera SOLO las lines (3-5), coherentes con ese headline. Devuelve el JSON con ese mismo headline y las lines.`
-    : `Tipo de pieza: ${pieceType}. Tema: ${brief}. Genera headline y lines siguiendo las reglas.`;
+    : `Tipo de pieza: ${pieceType}. Tema: ${brief}. Genera headline y lines siguiendo las reglas.`)
+    + sourceBlock + paletteBlock;
 
   const call = async () => {
     const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -234,6 +265,9 @@ serve(async (req) => {
     const brief = briefRaw ? briefRaw.slice(0, 200) : '';
     const pharmacyName = typeof body?.pharmacyName === 'string' ? body.pharmacyName.trim().slice(0, 60) : '';
     const locality = typeof body?.locality === 'string' ? body.locality.trim().slice(0, 60) : '';
+    // Texto de la publicación de origen (botón "Crear esta imagen" del
+    // asistente de texto): el copy de la pieza se escribe coherente con él.
+    const sourceText = typeof body?.sourceText === 'string' ? body.sourceText.trim().slice(0, 1500) : '';
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return json({ error: 'Prompt requerido' }, 400);
@@ -245,20 +279,25 @@ serve(async (req) => {
     // Consumir crédito atómico. v2: gasta primero la imagen mensual del plan y
     // después el saldo de packs (que NO caduca); devuelve de dónde salió para
     // poder devolverlo a esa misma fuente si algo falla.
-    const { data: consumeData, error: creditError } = await userClient.rpc('consume_image_credit_v2', {
-      p_limit: IMAGES_PER_MONTH,
-    });
-    if (creditError) {
-      const msg = (creditError.message || '').toLowerCase();
-      if (msg.includes('quota')) {
-        return json({ error: 'Te has quedado sin créditos de imagen IAFarma.' }, 402);
+    // El ADMIN no consume créditos: pruebas ilimitadas (decisión 14-08).
+    let remaining: number | null = null;
+    let creditSource: 'monthly' | 'pack' | null = null;
+    if (role !== 'admin') {
+      const { data: consumeData, error: creditError } = await userClient.rpc('consume_image_credit_v2', {
+        p_limit: IMAGES_PER_MONTH,
+      });
+      if (creditError) {
+        const msg = (creditError.message || '').toLowerCase();
+        if (msg.includes('quota')) {
+          return json({ error: 'Te has quedado sin créditos de imagen IAFarma.' }, 402);
+        }
+        console.error('consume_image_credit_v2 error:', creditError);
+        return json({ error: 'No se pudo verificar la cuota' }, 500);
       }
-      console.error('consume_image_credit_v2 error:', creditError);
-      return json({ error: 'No se pudo verificar la cuota' }, 500);
+      const consumed = (consumeData ?? {}) as { remaining?: number; source?: string };
+      remaining = Number(consumed.remaining ?? 0);
+      creditSource = consumed.source === 'pack' ? 'pack' : 'monthly';
     }
-    const consumed = (consumeData ?? {}) as { remaining?: number; source?: string };
-    const remaining = Number(consumed.remaining ?? 0);
-    const creditSource = consumed.source === 'pack' ? 'pack' : 'monthly';
 
     const lovableKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableKey) {
@@ -267,15 +306,16 @@ serve(async (req) => {
     }
 
     // PASO 1: si hay brief, generar copy antes de la imagen.
+    const paletteHint = pickPaletteHint();
     let copy: PieceCopy | null = null;
     if (brief) {
-      copy = await generateCopy(lovableKey, brief, pieceType, headline);
+      copy = await generateCopy(lovableKey, brief, pieceType, headline, sourceText, paletteHint);
     }
 
     // El headline efectivo: el del copy si se generó, o el que envió el cliente.
     const effectiveHeadline = copy?.headline ?? headline;
     const effectiveLines = copy?.lines ?? [];
-    const effectiveArt = copy?.art ?? pickFallbackArt();
+    const effectiveArt = copy?.art ?? pickFallbackArt(paletteHint);
     if (copy && !copy.art) copy.art = effectiveArt;
 
     // Prompt de marketing retail de farmacia + guardrails.
@@ -285,12 +325,24 @@ serve(async (req) => {
       'Generic product categories are fine (sun care, skincare/dermocosmetics, vitamins, baby care, oral care). ' +
       'STRICTLY FORBIDDEN: do NOT invent, draw, imagine or render any logo, brand mark, wordmark, isotype, symbol, URL, website address, domain, "www.", ".com", ".es", email address, phone number, QR code, social media handle (@...), Instagram/Facebook/TikTok/Twitter/X icons, or any social media username. No fictional pharmacy logo. If a signature is provided below, render ONLY that exact text — nothing else.';
 
+    // Proporción pedida vs generada: gpt-image-2 solo produce 1:1, 2:3 y 3:2.
+    // Cuando difieren, el cliente recorta al centro; el prompt define un ÁREA
+    // DE DISEÑO explícita para que el recorte nunca corte titular ni firma
+    // (la v1 decía "keep inside the central region" y el modelo lo ignoraba:
+    // el titular salía pegado al borde del lienzo y el recorte lo decapitaba).
+    const generatedSize = mapSizeForGptImage(size);
+    const requestedRatio = ratioLabel(size);
+    const generatedRatio = ratioLabel(generatedSize);
+    const framed = requestedRatio !== generatedRatio;
+
     const signatureText =
       pharmacyName && locality ? `${pharmacyName} · ${locality}` :
       pharmacyName ? pharmacyName :
       locality ? locality : '';
     const signatureBlock = signatureText
-      ? ` At the very bottom of the piece, render this exact small signature line, spelled EXACTLY as written, in small clean sans-serif text, single line, no icons, no logo: "${signatureText}".`
+      ? (framed
+        ? ` Near the bottom edge of the centered ${requestedRatio} design area (NOT at the canvas edge), render this exact small signature line, spelled EXACTLY as written, in small clean sans-serif text, single line, no icons, no logo: "${signatureText}".`
+        : ` At the very bottom of the piece, render this exact small signature line, spelled EXACTLY as written, in small clean sans-serif text, single line, no icons, no logo: "${signatureText}".`)
       : '';
 
     let textBlock: string;
@@ -310,16 +362,13 @@ serve(async (req) => {
       textBlock = signatureText ? '' : ' Do not include any text or typography in the image.';
     }
 
-    // Zona segura: gpt-image-2 solo genera 1:1, 2:3 y 3:2. Cuando el formato
-    // pedido (4:5, 9:16, 16:9...) no coincide con el generado, el cliente
-    // recorta al centro; avisamos al modelo para que componga dentro del área
-    // que sobrevivirá al recorte (titular, líneas y firma incluidos).
-    const generatedSize = mapSizeForGptImage(size);
-    const requestedRatio = ratioLabel(size);
-    const generatedRatio = ratioLabel(generatedSize);
-    const cropBlock = requestedRatio !== generatedRatio
-      ? ` IMPORTANT FRAMING: the final deliverable will be center-cropped to a ${requestedRatio} aspect ratio. Compose for ${requestedRatio}: keep ALL text (headline, supporting items and signature) and key subjects well inside the central ${requestedRatio} region of the canvas; the outer margins beyond that region are bleed that will be trimmed — leave only background there.`
+    const cropBlock = framed
+      ? ` CRITICAL FRAMING RULE: the canvas is ${generatedRatio}, but the final deliverable will be center-cropped to ${requestedRatio}. Design the artwork as a ${requestedRatio} piece perfectly centered on the canvas: ALL text (headline, supporting items, signature) and every key subject must sit strictly inside that centered ${requestedRatio} design area, with a comfortable inner margin — never touching its edges. The leftover bands of the canvas outside the design area must contain ONLY continuous background (color, texture or scenery), absolutely no text and no important elements: those bands will be trimmed off.`
       : '';
+
+    // Composición llena: sin bandas muertas ni zonas vacías sin tratar.
+    const richnessBlock =
+      ' The composition must feel finished and full: treat the entire background (color field, texture, pattern or scene) and balance the layout so there are no large empty dead zones.';
 
     const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
     const artBlock = ` Art direction: ${effectiveArt}`;
@@ -328,7 +377,7 @@ serve(async (req) => {
       `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}.${briefBlock} ` +
       `Commercial, bright, professional aesthetic; suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${artBlock}${textBlock}${signatureBlock}${cropBlock} ${guardrails}`;
+      `${artBlock}${richnessBlock}${textBlock}${signatureBlock}${cropBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)
@@ -456,7 +505,8 @@ serve(async (req) => {
  * La v1 hacía read-then-update sobre ai_image_usage y NO devolvía nunca los
  * créditos de pack (saldo negativo): un fallo de la IA quemaba crédito pagado.
  */
-async function refundCredit(admin: ReturnType<typeof createClient>, userId: string, source: string) {
+async function refundCredit(admin: ReturnType<typeof createClient>, userId: string, source: string | null) {
+  if (!source) return; // admin: no consumió, nada que devolver
   try {
     const { error } = await admin.rpc('refund_image_credit', { p_user: userId, p_source: source });
     if (error) console.error('Refund failed:', error.message);

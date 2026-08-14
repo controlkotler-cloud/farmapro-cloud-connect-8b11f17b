@@ -34,6 +34,12 @@ export interface ImageGenerationOptions {
   pharmacyName?: string;
   /** Localidad para la firma al pie de la imagen. */
   locality?: string;
+  /**
+   * Texto de la publicación de origen (máx. 1500 chars): cuando la imagen se
+   * crea desde "Crear esta imagen" del asistente de texto, el copy de la pieza
+   * se escribe coherente con la publicación, no solo con el brief.
+   */
+  sourceText?: string;
 }
 
 /** Copy generado por el backend (titular + líneas) e incluido en la imagen. */
@@ -139,6 +145,7 @@ export const useImageGeneration = () => {
         const brief = opts?.brief?.trim();
         const pharmacyName = opts?.pharmacyName?.trim();
         const locality = opts?.locality?.trim();
+        const sourceText = opts?.sourceText?.trim();
         const { data, error: invokeError } = await supabase.functions.invoke('ai-generate-image', {
           body: {
             prompt: trimmed,
@@ -149,6 +156,7 @@ export const useImageGeneration = () => {
             ...(brief ? { brief } : {}),
             ...(pharmacyName ? { pharmacyName } : {}),
             ...(locality ? { locality } : {}),
+            ...(sourceText ? { sourceText } : {}),
           },
         });
 

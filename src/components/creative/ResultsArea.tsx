@@ -20,8 +20,11 @@ interface ResultsAreaProps {
   contentType: ContentType;
   onRegenerate: () => void;
   onAdjust: (adjustment: string) => void;
-  /** Salta al workspace de imagen con la sugerencia como brief precargado. */
-  onCreateImage?: (brief: string) => void;
+  /**
+   * Salta al workspace de imagen con la sugerencia como brief precargado y la
+   * publicación completa como contexto (el copy de la pieza sale coherente).
+   */
+  onCreateImage?: (brief: string, sourceText: string) => void;
   /** Textos de prueba restantes este mes (solo plan Gratis; null = sin límite). */
   textsRemaining?: number | null;
 }
@@ -143,7 +146,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
             {onCreateImage && (
               <button
                 type="button"
-                onClick={() => onCreateImage(suggestion)}
+                onClick={() => onCreateImage(suggestion, main)}
                 className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-ciruela hover:text-ciruela/80 underline underline-offset-2"
               >
                 <ImageIcon className="h-3.5 w-3.5" />

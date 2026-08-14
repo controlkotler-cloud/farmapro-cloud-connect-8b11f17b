@@ -34,8 +34,8 @@ import {
 
 interface ImageWorkspaceProps {
   defaults: IAFarmaDefaults;
-  /** Brief precargado (p. ej. desde "Crear esta imagen" del asistente de texto). */
-  initialBrief?: string | null;
+  /** Semilla desde "Crear esta imagen" del asistente de texto. */
+  seed?: { brief: string; sourceText: string; piece: PieceTypeId } | null;
 }
 
 const PIECE_ICONS: Record<PieceTypeId, typeof ImageIcon> = {
@@ -90,7 +90,7 @@ const cropBlobToFormat = async (blob: Blob, targetW: number, targetH: number): P
   }
 };
 
-export const ImageWorkspace = ({ defaults, initialBrief }: ImageWorkspaceProps) => {
+export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const { generate, loading, imageUrl, revisedPrompt, remaining, copy, error, reset } = useImageGeneration();
@@ -119,12 +119,16 @@ export const ImageWorkspace = ({ defaults, initialBrief }: ImageWorkspaceProps) 
     }
   }, [defaults, pieceInfo, touched]);
 
-  // Brief que llega desde "Crear esta imagen" (sugerencia del asistente).
+  // Semilla desde "Crear esta imagen": brief + publicación de origen + pieza.
+  const [sourceText, setSourceText] = useState('');
   useEffect(() => {
-    if (initialBrief) {
-      setBrief(initialBrief.slice(0, 200));
+    if (seed) {
+      setBrief(seed.brief.slice(0, 200));
+      setSourceText(seed.sourceText);
+      setPiece(seed.piece);
+      setFormat(getPieceType(seed.piece).defaultFormat);
     }
-  }, [initialBrief]);
+  }, [seed]);
 
   const handleSelectPiece = (id: PieceTypeId) => {
     setPiece(id);
@@ -149,6 +153,7 @@ export const ImageWorkspace = ({ defaults, initialBrief }: ImageWorkspaceProps) 
       brief,
       pharmacyName: defaults.farmacia,
       locality: defaults.localidad,
+      ...(sourceText ? { sourceText } : {}),
     });
   };
 
@@ -157,6 +162,7 @@ export const ImageWorkspace = ({ defaults, initialBrief }: ImageWorkspaceProps) 
     setTouched(false);
     setBrief('');
     setHeadline('');
+    setSourceText('');
     setGeneratedFormat(null);
     setPrompt(pieceInfo.buildPrompt(defaults));
   };
@@ -241,7 +247,12 @@ export const ImageWorkspace = ({ defaults, initialBrief }: ImageWorkspaceProps) 
                 id="iafarma-brief"
                 value={brief}
                 maxLength={200}
-                onChange={(e) => setBrief(e.target.value)}
+                onChange={(e) => {
+                  setBrief(e.target.value);
+                  // Si el usuario reescribe el tema a mano, la publicación de
+                  // origen deja de ser contexto fiable: se descarta.
+                  setSourceText('');
+                }}
                 placeholder="ej: consejos para cuidar la piel esta temporada"
                 className="min-h-[72px] resize-none"
               />

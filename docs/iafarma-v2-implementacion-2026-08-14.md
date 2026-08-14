@@ -75,6 +75,28 @@ I1 arreglado, y todo el bloque de confirmados). Estado al escribir esto:
      cubierto por RPC.
    - Preguntar al bot: "¿caducan los créditos de imagen?" → debe decir que no.
 
+## Addendum · 2ª tanda (mismo día, tras las primeras pruebas de Francesc)
+
+Feedback real: (1) el admin quiere probar sin límite; (2) el primer Feed 4:5 recortaba el titular
+por arriba; (3) el paso texto→imagen quedaba pobre; (4) la paleta se repetía.
+
+- **Admin sin límite de imágenes**: `role === 'admin'` no consume crédito (ni contador ni refund).
+- **Recorte del titular**: la instrucción de zona segura pasa de "mantente en la región central"
+  (que el modelo ignoraba) a una regla explícita de ÁREA DE DISEÑO: lienzo ${generatedRatio},
+  pieza diseñada como ${requestedRatio} centrada, bandas sobrantes SOLO con fondo continuo, la
+  firma dentro del área (no en el borde del lienzo). Si aun así falla en más pruebas, el paso
+  siguiente es el A/B de modelo (D1: Gemini imagen genera 4:5/9:16 nativos, sin recorte).
+- **Texto→imagen coherente**: el botón "Crear esta imagen" ahora envía también la publicación
+  completa (`sourceText`, máx. 1500) y el tipo de pieza coherente (promoción→promo, resto→post);
+  el copy de la pieza se escribe COHERENTE con el post, no desde una frase suelta. Si el usuario
+  reescribe el brief a mano, el contexto se descarta.
+- **Paleta**: depende de 3 fuentes — la dirección de arte del modelo de copy (instruida a variar
+  por tema), las plantillas estacionales (agosto = cálidos de verano) y el azar del fallback. Con
+  el mismo brief tendía a repetir gama. Ahora cada generación sortea una sugerencia de paleta de
+  una lista de 11 y se la ofrece al director de arte ("úsala si encaja; si no, elige otra
+  justificadamente distinta de la típica"), también en el fallback. Además, instrucción de
+  composición llena: fondo tratado en todo el área, sin zonas muertas.
+
 ## Dudosos que quedan SIN tocar (decisión pendiente)
 - **D1** — Modelo de imagen (gpt-image-2 medium vs Gemini imagen / quality high): pide un A/B con
   5 piezas reales antes de cambiar. El interruptor sigue siendo `IMAGE_MODEL` en la edge.

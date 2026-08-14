@@ -27,9 +27,10 @@ export const CreativeWorkspace = () => {
   const { profile } = useAuth();
   const { defaults, updateDefault } = useIAFarmaDefaults();
 
-  // Brief precargado en el workspace de imagen cuando el usuario pulsa
-  // "Crear esta imagen" sobre una sugerencia del asistente de texto.
-  const [imageBrief, setImageBrief] = useState<string | null>(null);
+  // Semilla del workspace de imagen cuando el usuario pulsa "Crear esta
+  // imagen" sobre una sugerencia del asistente de texto: brief (la sugerencia),
+  // la publicación completa como contexto y el tipo de pieza más coherente.
+  const [imageSeed, setImageSeed] = useState<{ brief: string; sourceText: string; piece: 'promo' | 'post' } | null>(null);
 
   // Pre-rellena desde el perfil la primera vez (localStorage vacío), para no
   // pedir dos veces el mismo dato. Si ya hay algo guardado aquí (editado a
@@ -54,8 +55,14 @@ export const CreativeWorkspace = () => {
   };
 
   // Puente texto → imagen: la sugerencia deja de ser un callejón sin salida.
-  const handleCreateImage = (suggestion: string) => {
-    setImageBrief(suggestion.slice(0, 200));
+  // Se lleva también la publicación completa para que el copy de la pieza sea
+  // coherente con lo ya escrito (no una pieza genérica a partir de una frase).
+  const handleCreateImage = (suggestion: string, sourceText: string) => {
+    setImageSeed({
+      brief: suggestion.slice(0, 200),
+      sourceText: sourceText.slice(0, 1500),
+      piece: contentType === 'promotion' ? 'promo' : 'post',
+    });
     setContentType('imagen');
   };
 
@@ -69,7 +76,7 @@ export const CreativeWorkspace = () => {
       </section>
 
       {contentType === 'imagen' ? (
-        <ImageWorkspace defaults={defaults} initialBrief={imageBrief} />
+        <ImageWorkspace defaults={defaults} seed={imageSeed} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <motion.div
