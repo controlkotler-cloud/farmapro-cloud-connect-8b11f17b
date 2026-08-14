@@ -1780,6 +1780,9 @@ export type Database = {
           employees_count: string | null
           full_name: string | null
           has_completed_onboarding: boolean
+          iafarma_brand_primary: string | null
+          iafarma_brand_secondary: string | null
+          iafarma_logo_url: string | null
           iafarma_tone: string | null
           id: string
           is_seed: boolean
@@ -1820,6 +1823,9 @@ export type Database = {
           employees_count?: string | null
           full_name?: string | null
           has_completed_onboarding?: boolean
+          iafarma_brand_primary?: string | null
+          iafarma_brand_secondary?: string | null
+          iafarma_logo_url?: string | null
           iafarma_tone?: string | null
           id: string
           is_seed?: boolean
@@ -1860,6 +1866,9 @@ export type Database = {
           employees_count?: string | null
           full_name?: string | null
           has_completed_onboarding?: boolean
+          iafarma_brand_primary?: string | null
+          iafarma_brand_secondary?: string | null
+          iafarma_logo_url?: string | null
           iafarma_tone?: string | null
           id?: string
           is_seed?: boolean
