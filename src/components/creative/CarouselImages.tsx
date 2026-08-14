@@ -31,6 +31,37 @@ interface SlideResult {
 const SLIDE_W = 1080;
 const SLIDE_H = 1350;
 
+// Paletas de serie para cuando la farmacia no tiene colores corporativos
+// fijados: se elige UNA por carrusel y se aplica a todas las slides.
+const SERIES_PALETTES = [
+  'soft sage green, cream and charcoal',
+  'deep navy, sky blue and off-white',
+  'warm terracotta, sand and dark brown',
+  'plum, blush pink and ivory',
+  'teal, mint and warm grey',
+];
+
+/**
+ * Dirección de arte FIJA de todo el carrusel (misma cadena para las N slides:
+ * coherencia garantizada, sin depender de lo que improvise el modelo).
+ * Estilo infografía editorial educativa, no cartel promocional: la primera
+ * versión heredaba las direcciones de fallback pensadas para promos (sticker
+ * de oferta, portada de revista...) y salían carteles espectaculares pero
+ * incoherentes entre sí.
+ */
+const buildSeriesArt = (brandPalette: string): string => {
+  const palette = brandPalette
+    ? `STRICT series palette: ${brandPalette} as the dominant colors on a soft neutral background, identical across all slides`
+    : `Series palette, identical across all slides: ${SERIES_PALETTES[Math.floor(Math.random() * SERIES_PALETTES.length)]}`;
+  return (
+    'Educational Instagram carousel slide, editorial infographic style, part of a matched series: ' +
+    'IDENTICAL layout system on every slide — bold clear headline in the upper third, supporting items as a clean vertical list ' +
+    'with small flat illustrated icons, generous even margins, soft flat background with subtle geometric shapes, ' +
+    'minimal, friendly and consistent. NO promo poster look, no starburst badges, no discount stickers, no magazine cover style. ' +
+    palette + '.'
+  );
+};
+
 /**
  * Extrae el copy de cada slide del texto generado. El prompt del asistente
  * garantiza el formato "SLIDE n:" con titular + 1-2 frases; la sección
@@ -81,7 +112,9 @@ export const CarouselImages = ({ content, defaults }: CarouselImagesProps) => {
     setProgress({ current: 0, total: slides.length });
 
     const brandPalette = brandPaletteOf(defaults);
-    let sharedArt = '';
+    // La MISMA dirección de arte para todas las slides, decidida aquí (no por
+    // el modelo): coherencia visual garantizada de la 1 a la N.
+    const seriesArt = buildSeriesArt(brandPalette);
     const collected: SlideResult[] = [];
 
     try {
@@ -96,7 +129,7 @@ export const CarouselImages = ({ content, defaults }: CarouselImagesProps) => {
             headline: slide.headline,
             lines: slide.lines.length ? slide.lines : [],
             pieceType: 'post',
-            ...(sharedArt ? { artOverride: sharedArt } : {}),
+            artOverride: seriesArt,
             ...(brandPalette ? { brandPalette } : {}),
             ...(withLogo ? { logoCorner: true } : {}),
             ...(defaults.farmacia ? { pharmacyName: defaults.farmacia } : {}),
@@ -111,12 +144,10 @@ export const CarouselImages = ({ content, defaults }: CarouselImagesProps) => {
           }
           throw new Error(`No se pudo generar la slide ${i + 1}. Las ya generadas se conservan.`);
         }
-        const result = data as { imageUrl?: string; copy?: { art?: string } };
+        const result = data as { imageUrl?: string };
         if (!result?.imageUrl) {
           throw new Error(`Respuesta vacía en la slide ${i + 1}. Las ya generadas se conservan.`);
         }
-        // La dirección de arte de la primera slide se fija para todas las demás.
-        if (!sharedArt && result.copy?.art) sharedArt = result.copy.art;
         collected.push({ url: result.imageUrl, headline: slide.headline });
         setResults([...collected]);
       }
