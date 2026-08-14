@@ -4,7 +4,7 @@ import { Sparkles, ShieldCheck, TrendingUp, CheckCircle } from 'lucide-react';
 export const CreativeHeader = () => {
   const badges = [
     { icon: ShieldCheck, text: 'Pensado para tu farmacia' },
-    { icon: TrendingUp, text: 'Adaptado al algoritmo actual' },
+    { icon: TrendingUp, text: 'Cumple el código deontológico' },
     { icon: CheckCircle, text: 'Contenido listo para publicar' },
   ];
 

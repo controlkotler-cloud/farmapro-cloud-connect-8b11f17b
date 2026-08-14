@@ -72,6 +72,20 @@ serve(async (req) => {
     // RAMA PACKS DE IMÁGENES (pago único)
     // ============================================================
     if (isPack) {
+      // Los packs solo tienen sentido sobre un plan de pago (así se anuncian en
+      // Precios e ImageWorkspace). Sin este guard, un usuario gratis podía
+      // comprarlos desde la consola aunque la UI no se lo ofreciera.
+      const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
+      const { data: packProfile } = await admin
+        .from('profiles')
+        .select('subscription_role')
+        .eq('id', user.id)
+        .maybeSingle();
+      const packRole = (packProfile?.subscription_role as string | null) ?? null;
+      if (!packRole || !PAID_ROLES.includes(packRole)) {
+        return json({ error: 'Los packs de imágenes están disponibles con los planes Plus y Equipo. Hazte Plus para recargar créditos.' }, 403);
+      }
+
       const packPriceId = IMAGE_PACK_PRICES[pack!];
       if (packPriceId.startsWith('TODO_')) {
         return json({ error: `Stripe Price ID no configurado (${packPriceId})` }, 500);

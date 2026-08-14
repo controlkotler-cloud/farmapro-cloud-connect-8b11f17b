@@ -130,7 +130,7 @@ export const PLANS: Plan[] = [
       'Todo el contenido: cursos y recursos sin límite',
       'Comunidad completa + retos y ranking',
       'IAFarma texto ILIMITADO',
-      '1 crédito de imagen IAFarma al mes (+ packs de recarga)',
+      '1 crédito de imagen IAFarma al mes (+ packs de recarga que no caducan)',
       'Eventos exclusivos farmapro',
     ],
   },
@@ -152,7 +152,7 @@ export const PLANS: Plan[] = [
   },
 ];
 
-/** Packs de recarga de imágenes IAFarma (pago único, sobre cualquier plan de pago). */
+/** Packs de recarga de imágenes IAFarma (pago único, solo sobre planes de pago; los créditos NO caducan). */
 export const IMAGE_ADDONS = [
   { credits: 20, price: 4.99 },
   { credits: 50, price: 9.99 },

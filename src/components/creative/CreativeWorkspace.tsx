@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,14 +21,20 @@ export const CreativeWorkspace = () => {
     sendMessage,
     regenerate,
     clearChat,
+    textsRemaining,
   } = useCreativeChat();
 
   const { profile } = useAuth();
   const { defaults, updateDefault } = useIAFarmaDefaults();
 
+  // Brief precargado en el workspace de imagen cuando el usuario pulsa
+  // "Crear esta imagen" sobre una sugerencia del asistente de texto.
+  const [imageBrief, setImageBrief] = useState<string | null>(null);
+
   // Pre-rellena desde el perfil la primera vez (localStorage vacío), para no
   // pedir dos veces el mismo dato. Si ya hay algo guardado aquí (editado a
-  // mano en IAFarma), no lo tocamos.
+  // mano en IAFarma), no lo tocamos. El tono también viene del perfil
+  // (profiles.iafarma_tone) desde que sincroniza entre dispositivos.
   useEffect(() => {
     if (!defaults.farmacia && profile?.pharmacy_name) {
       updateDefault('farmacia', profile.pharmacy_name);
@@ -36,12 +42,21 @@ export const CreativeWorkspace = () => {
     if (!defaults.localidad && profile?.pharmacy_city) {
       updateDefault('localidad', profile.pharmacy_city);
     }
-  }, [defaults.farmacia, defaults.localidad, profile?.pharmacy_name, profile?.pharmacy_city, updateDefault]);
+    if (!defaults.tono && profile?.iafarma_tone) {
+      updateDefault('tono', profile.iafarma_tone);
+    }
+  }, [defaults.farmacia, defaults.localidad, defaults.tono, profile?.pharmacy_name, profile?.pharmacy_city, profile?.iafarma_tone, updateDefault]);
 
   const selectedInfo = CONTENT_TYPES.find(t => t.id === contentType);
 
   const handleSubmit = (message: string, context: CreativeContext) => {
     sendMessage(message, context);
+  };
+
+  // Puente texto → imagen: la sugerencia deja de ser un callejón sin salida.
+  const handleCreateImage = (suggestion: string) => {
+    setImageBrief(suggestion.slice(0, 200));
+    setContentType('imagen');
   };
 
   return (
@@ -54,7 +69,7 @@ export const CreativeWorkspace = () => {
       </section>
 
       {contentType === 'imagen' ? (
-        <ImageWorkspace defaults={defaults} />
+        <ImageWorkspace defaults={defaults} initialBrief={imageBrief} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <motion.div
@@ -98,6 +113,8 @@ export const CreativeWorkspace = () => {
               contentType={contentType}
               onRegenerate={regenerate}
               onAdjust={(adjustment) => sendMessage(`Ajusta el contenido anterior: ${adjustment}`)}
+              onCreateImage={handleCreateImage}
+              textsRemaining={textsRemaining}
             />
           </div>
         </div>

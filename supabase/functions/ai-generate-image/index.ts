@@ -34,6 +34,17 @@ function mapSizeForGptImage(size: string): string {
   return '1024x1024';
 }
 
+/** '1080x1350' → '4:5'. Para comparar proporción pedida vs generada. */
+function ratioLabel(size: string): string {
+  const m = /^(\d+)x(\d+)$/.exec((size || '').trim());
+  if (!m) return '1:1';
+  const a = Number(m[1]);
+  const b = Number(m[2]);
+  const gcd = (x: number, y: number): number => (y ? gcd(y, x % y) : x);
+  const d = gcd(a, b) || 1;
+  return `${a / d}:${b / d}`;
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -63,7 +74,7 @@ function pieceGuidance(pieceType: string | null): string {
 }
 
 // Modelo de texto para generar el copy (mismo que ai-creative-assistant).
-const COPY_MODEL = 'google/gemini-3-flash-preview';
+const COPY_MODEL = 'google/gemini-3.6-flash';
 
 type PieceCopy = { headline: string; lines: string[]; art?: string };
 
@@ -231,23 +242,27 @@ serve(async (req) => {
       return json({ error: 'Prompt demasiado largo (máx. 1000 caracteres)' }, 400);
     }
 
-    // Consumir crédito atómico
-    const { data: remainingData, error: creditError } = await userClient.rpc('consume_image_credit', {
+    // Consumir crédito atómico. v2: gasta primero la imagen mensual del plan y
+    // después el saldo de packs (que NO caduca); devuelve de dónde salió para
+    // poder devolverlo a esa misma fuente si algo falla.
+    const { data: consumeData, error: creditError } = await userClient.rpc('consume_image_credit_v2', {
       p_limit: IMAGES_PER_MONTH,
     });
     if (creditError) {
       const msg = (creditError.message || '').toLowerCase();
       if (msg.includes('quota')) {
-        return json({ error: 'Has alcanzado el límite mensual de imágenes IAFarma.' }, 402);
+        return json({ error: 'Te has quedado sin créditos de imagen IAFarma.' }, 402);
       }
-      console.error('consume_image_credit error:', creditError);
+      console.error('consume_image_credit_v2 error:', creditError);
       return json({ error: 'No se pudo verificar la cuota' }, 500);
     }
-    const remaining = Number(remainingData ?? 0);
+    const consumed = (consumeData ?? {}) as { remaining?: number; source?: string };
+    const remaining = Number(consumed.remaining ?? 0);
+    const creditSource = consumed.source === 'pack' ? 'pack' : 'monthly';
 
     const lovableKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableKey) {
-      await refundCredit(admin, user.id);
+      await refundCredit(admin, user.id, creditSource);
       return json({ error: 'LOVABLE_API_KEY no configurada' }, 500);
     }
 
@@ -295,6 +310,17 @@ serve(async (req) => {
       textBlock = signatureText ? '' : ' Do not include any text or typography in the image.';
     }
 
+    // Zona segura: gpt-image-2 solo genera 1:1, 2:3 y 3:2. Cuando el formato
+    // pedido (4:5, 9:16, 16:9...) no coincide con el generado, el cliente
+    // recorta al centro; avisamos al modelo para que componga dentro del área
+    // que sobrevivirá al recorte (titular, líneas y firma incluidos).
+    const generatedSize = mapSizeForGptImage(size);
+    const requestedRatio = ratioLabel(size);
+    const generatedRatio = ratioLabel(generatedSize);
+    const cropBlock = requestedRatio !== generatedRatio
+      ? ` IMPORTANT FRAMING: the final deliverable will be center-cropped to a ${requestedRatio} aspect ratio. Compose for ${requestedRatio}: keep ALL text (headline, supporting items and signature) and key subjects well inside the central ${requestedRatio} region of the canvas; the outer margins beyond that region are bleed that will be trimmed — leave only background there.`
+      : '';
+
     const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
     const artBlock = ` Art direction: ${effectiveArt}`;
 
@@ -302,7 +328,7 @@ serve(async (req) => {
       `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}.${briefBlock} ` +
       `Commercial, bright, professional aesthetic; suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${artBlock}${textBlock}${signatureBlock} ${guardrails}`;
+      `${artBlock}${textBlock}${signatureBlock}${cropBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)
@@ -323,7 +349,7 @@ serve(async (req) => {
         model: IMAGE_MODEL,
         prompt: enhancedPrompt,
         n: 1,
-        size: mapSizeForGptImage(size),
+        size: generatedSize,
         quality: IMAGE_QUALITY,
       };
     }
@@ -341,7 +367,7 @@ serve(async (req) => {
     if (!aiRes.ok) {
       const errText = await aiRes.text();
       console.error('Lovable AI image error:', aiRes.status, errText);
-      await refundCredit(admin, user.id);
+      await refundCredit(admin, user.id, creditSource);
       if (aiRes.status === 429) return json({ error: 'Demasiadas solicitudes. Inténtalo en unos minutos.' }, 429);
       if (aiRes.status === 402) return json({ error: 'Créditos de IA agotados.' }, 402);
       return json({ error: 'No se pudo generar la imagen' }, 502);
@@ -374,7 +400,7 @@ serve(async (req) => {
 
     if (!b64) {
       console.error('Empty image payload:', JSON.stringify(aiData).slice(0, 800));
-      await refundCredit(admin, user.id);
+      await refundCredit(admin, user.id, creditSource);
       return json({ error: 'Respuesta de imagen vacía' }, 502);
     }
 
@@ -391,7 +417,7 @@ serve(async (req) => {
     });
     if (uploadError) {
       console.error('Upload error:', uploadError);
-      await refundCredit(admin, user.id);
+      await refundCredit(admin, user.id, creditSource);
       return json({ error: 'No se pudo guardar la imagen' }, 500);
     }
 
@@ -400,7 +426,7 @@ serve(async (req) => {
       .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
     if (signError || !signed?.signedUrl) {
       console.error('Sign URL error:', signError);
-      await refundCredit(admin, user.id);
+      await refundCredit(admin, user.id, creditSource);
       return json({ error: 'No se pudo generar la URL de la imagen' }, 500);
     }
     const imageUrl = signed.signedUrl;
@@ -425,22 +451,15 @@ serve(async (req) => {
   }
 });
 
-async function refundCredit(admin: ReturnType<typeof createClient>, userId: string) {
+/**
+ * Devuelve el crédito consumido a su fuente (mensual o pack) vía RPC atómica.
+ * La v1 hacía read-then-update sobre ai_image_usage y NO devolvía nunca los
+ * créditos de pack (saldo negativo): un fallo de la IA quemaba crédito pagado.
+ */
+async function refundCredit(admin: ReturnType<typeof createClient>, userId: string, source: string) {
   try {
-    const period = new Date().toISOString().slice(0, 7);
-    const { data } = await admin
-      .from('ai_image_usage')
-      .select('used')
-      .eq('user_id', userId)
-      .eq('period', period)
-      .maybeSingle();
-    if (data && typeof data.used === 'number' && data.used > 0) {
-      await admin
-        .from('ai_image_usage')
-        .update({ used: data.used - 1, updated_at: new Date().toISOString() })
-        .eq('user_id', userId)
-        .eq('period', period);
-    }
+    const { error } = await admin.rpc('refund_image_credit', { p_user: userId, p_source: source });
+    if (error) console.error('Refund failed:', error.message);
   } catch (e) {
     console.error('Refund failed:', e);
   }

@@ -237,7 +237,7 @@ export default function Precios() {
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
               ¿Necesitas más imágenes? Recarga cuando quieras, pago único sobre cualquier
-              plan de pago.
+              plan de pago. Los créditos no caducan: quedan en tu cuenta hasta que los usas.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

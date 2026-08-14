@@ -32,7 +32,7 @@ export const CONTENT_TYPES: ContentTypeInfo[] = [
   { id: 'reel-script', icon: createElement(Clapperboard, { className: 'h-6 w-6' }), label: 'Guión de reel', description: 'Script paso a paso: gancho, desarrollo, cierre y texto en pantalla' },
   { id: 'carousel', icon: createElement(GalleryHorizontalEnd, { className: 'h-6 w-6' }), label: 'Carrusel Instagram', description: 'Contenido slide por slide para carruseles educativos' },
   { id: 'google-business', icon: createElement(MapPin, { className: 'h-6 w-6' }), label: 'Post Google Business', description: 'Publicación para tu perfil de Google que mejora tu SEO local' },
-  { id: 'blog', icon: createElement(PenLine, { className: 'h-6 w-6' }), label: 'Artículo blog', description: 'Artículo SEO de ~800 palabras para la web de tu farmacia' },
+  { id: 'blog', icon: createElement(PenLine, { className: 'h-6 w-6' }), label: 'Artículo blog', description: 'Artículo SEO para la web de tu farmacia, con la longitud que elijas' },
   { id: 'promotion', icon: createElement(BadgePercent, { className: 'h-6 w-6' }), label: 'Promoción', description: 'Copy promocional para parafarmacia, dermo y servicios' },
   { id: 'whatsapp', icon: createElement(MessageCircle, { className: 'h-6 w-6' }), label: 'Mensaje WhatsApp', description: 'Mensaje para enviar a tus clientes (recordatorios, novedades)' },
   { id: 'responder-resena', icon: createElement(MessageSquareReply, { className: 'h-6 w-6' }), label: 'Responder reseña', description: 'Respuesta profesional y empática a una reseña de Google' },
@@ -63,23 +63,41 @@ export interface CreativeContext {
   extraInstructions?: string;
 }
 
+// Mensajes de RESPALDO por código HTTP. Solo se usan si el servidor no envía
+// su propio mensaje (errorData.error): antes machacaban siempre al servidor y
+// citaban planes que ya no existen ("Premium, Profesional").
+const FALLBACK_BY_STATUS: Record<number, string> = {
+  401: 'Sesión expirada. Por favor, vuelve a iniciar sesión.',
+  402: 'Has alcanzado el límite de 2 textos mensuales de tu prueba. Hazte Plus para generar sin límite.',
+  403: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir creando contenido con IAFarma.',
+  429: 'Has alcanzado el tope de uso de hoy. Inténtalo de nuevo mañana.',
+};
+
 export const useCreativeChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [contentType, setContentType] = useState<ContentType>('instagram-post');
   const [lastUserMessage, setLastUserMessage] = useState('');
   const [lastContext, setLastContext] = useState<CreativeContext>({});
+  /** Textos de prueba que quedan este mes (solo plan Gratis; null = ilimitado/desconocido). */
+  const [textsRemaining, setTextsRemaining] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const sendMessage = useCallback(async (userMessage: string, context?: CreativeContext) => {
+  /**
+   * Envía un mensaje. `baseMessages` permite fijar explícitamente el historial
+   * sobre el que se construye la petición (lo usa `regenerate` para no arrastrar
+   * la respuesta anterior por culpa del closure obsoleto).
+   */
+  const sendMessage = useCallback(async (userMessage: string, context?: CreativeContext, baseMessages?: Message[]) => {
     if (!userMessage.trim()) return;
 
     const ctx = context || lastContext;
+    const history = baseMessages ?? messages;
     setLastUserMessage(userMessage);
     setLastContext(ctx);
 
     const newUserMessage: Message = { id: crypto.randomUUID(), role: 'user', content: userMessage };
-    setMessages(prev => [...prev, newUserMessage]);
+    setMessages([...history, newUserMessage]);
     setIsLoading(true);
 
     try {
@@ -97,7 +115,7 @@ export const useCreativeChat = () => {
             'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
-            messages: [...messages, newUserMessage].map(({ role, content }) => ({ role, content })),
+            messages: [...history, newUserMessage].map(({ role, content }) => ({ role, content })),
             contentType,
             context: ctx,
           }),
@@ -105,18 +123,22 @@ export const useCreativeChat = () => {
       );
 
       if (!response.ok) {
-        let errorMessage = 'Error al procesar la solicitud';
+        // Prioridad: el mensaje del servidor (es específico y actualizado);
+        // el mapa por estado es solo el respaldo si no llega JSON.
+        let errorMessage = FALLBACK_BY_STATUS[response.status] || 'Error al procesar la solicitud';
         try {
           const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) { /* ignore */ }
-
-        if (response.status === 403) errorMessage = 'No tienes acceso a esta funcionalidad. Necesitas un plan Premium, Profesional o Admin activo.';
-        else if (response.status === 401) errorMessage = 'Sesión expirada. Por favor, vuelve a iniciar sesión.';
-        else if (response.status === 429) errorMessage = 'Límite de uso excedido. Por favor, intenta de nuevo en unos momentos.';
-        else if (response.status === 402) errorMessage = 'Créditos insuficientes. Por favor, contacta con soporte.';
-
+          if (errorData?.error) errorMessage = errorData.error;
+        } catch (e) { /* sin cuerpo JSON: se queda el respaldo */ }
+        if (response.status === 402) setTextsRemaining(0);
         throw new Error(errorMessage);
+      }
+
+      // Contador de textos de la prueba (cabecera solo presente en free_trial).
+      const remainingHeader = response.headers.get('x-iafarma-texts-remaining');
+      if (remainingHeader !== null) {
+        const parsed = Number(remainingHeader);
+        if (Number.isFinite(parsed)) setTextsRemaining(parsed);
       }
 
       const reader = response.body?.getReader();
@@ -203,11 +225,14 @@ export const useCreativeChat = () => {
   }, [messages, contentType, toast, lastContext]);
 
   const regenerate = useCallback(() => {
-    if (lastUserMessage) {
-      setMessages(prev => prev.slice(0, -2));
-      sendMessage(lastUserMessage, lastContext);
-    }
-  }, [lastUserMessage, lastContext, sendMessage]);
+    if (!lastUserMessage) return;
+    // Recorta el último intercambio Y pásalo explícitamente como base: la v1
+    // solo recortaba la UI, pero el closure de sendMessage seguía enviando al
+    // modelo su respuesta anterior + la misma pregunta duplicada, con lo que
+    // tendía a repetirse.
+    const base = messages.slice(0, -2);
+    sendMessage(lastUserMessage, lastContext, base);
+  }, [lastUserMessage, lastContext, sendMessage, messages]);
 
   const clearChat = useCallback(() => {
     setMessages([]);
@@ -224,5 +249,6 @@ export const useCreativeChat = () => {
     regenerate,
     clearChat,
     lastUserMessage,
+    textsRemaining,
   };
 };

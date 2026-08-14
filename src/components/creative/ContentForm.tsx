@@ -102,11 +102,11 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
   };
 
   const buildMessage = (): string => {
-    const parts: string[] = [];
+    // Las instrucciones extra viajan SOLO en context.extraInstructions (van al
+    // system prompt); antes iban duplicadas también en el mensaje del usuario.
     const mainKey = getMainFieldKey();
-    if (mainKey && fields[mainKey]) parts.push(fields[mainKey]);
-    if (extra) parts.push(extra);
-    return parts.join('. ') || 'Genera el contenido';
+    if (mainKey && fields[mainKey]) return fields[mainKey];
+    return 'Genera el contenido';
   };
 
   const handleSubmit = (e: React.FormEvent) => {

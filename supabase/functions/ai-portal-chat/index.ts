@@ -26,8 +26,9 @@ PLANES Y PRECIOS
   Todo lo de Plus para toda la farmacia con una sola cuota y gestión de plazas.
 - El precio fundador se mantiene de por vida para las 100 primeras plazas. El plan anual sale
   como dos meses gratis.
-- Packs de créditos de imagen IAFarma (pago único sobre cualquier plan de pago): 20 por 4,99 €,
-  50 por 9,99 €, 100 por 16,99 €.
+- Packs de créditos de imagen IAFarma (pago único, solo sobre planes de pago): 20 por 4,99 €,
+  50 por 9,99 €, 100 por 16,99 €. Los créditos de los packs NO caducan: quedan en la cuenta
+  hasta que se usan.
 
 CÓMO SE HACEN LAS COSAS
 - Contratar o cambiar de plan: página Precios.

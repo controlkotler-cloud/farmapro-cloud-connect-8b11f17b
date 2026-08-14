@@ -15,9 +15,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 import { useImageGeneration } from '@/hooks/useImageGeneration';
-import { IMAGE_ADDONS, PACKS_CHECKOUT_READY } from '@/lib/plans';
+import { IMAGE_ADDONS, PACKS_CHECKOUT_READY, PAID_ROLES } from '@/lib/plans';
 import {
   FormatId,
   HEADLINE_MAX,
@@ -33,6 +34,8 @@ import {
 
 interface ImageWorkspaceProps {
   defaults: IAFarmaDefaults;
+  /** Brief precargado (p. ej. desde "Crear esta imagen" del asistente de texto). */
+  initialBrief?: string | null;
 }
 
 const PIECE_ICONS: Record<PieceTypeId, typeof ImageIcon> = {
@@ -52,8 +55,44 @@ const formatToday = (): string => {
 
 const formatPrice = (price: number): string => `${price.toFixed(2).replace('.', ',')} €`;
 
-export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
+/**
+ * Recorta el PNG generado a las dimensiones EXACTAS del formato elegido.
+ * gpt-image-2 solo produce 1:1, 2:3 y 3:2; la edge ya avisa al modelo de la
+ * zona segura y aquí se completa el contrato: "Feed 4:5" descarga un PNG
+ * 1080x1350 de verdad (recorte centrado + reescalado), no un 2:3 que
+ * Instagram recortaría a su manera.
+ */
+const cropBlobToFormat = async (blob: Blob, targetW: number, targetH: number): Promise<Blob> => {
+  const bitmap = await createImageBitmap(blob);
+  try {
+    const targetRatio = targetW / targetH;
+    const srcRatio = bitmap.width / bitmap.height;
+    let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height;
+    if (srcRatio > targetRatio) {
+      sw = Math.round(bitmap.height * targetRatio);
+      sx = Math.round((bitmap.width - sw) / 2);
+    } else if (srcRatio < targetRatio) {
+      sh = Math.round(bitmap.width / targetRatio);
+      sy = Math.round((bitmap.height - sh) / 2);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return blob;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, targetW, targetH);
+    return await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('No se pudo procesar la imagen'))), 'image/png'),
+    );
+  } finally {
+    bitmap.close();
+  }
+};
+
+export const ImageWorkspace = ({ defaults, initialBrief }: ImageWorkspaceProps) => {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const { generate, loading, imageUrl, revisedPrompt, remaining, copy, error, reset } = useImageGeneration();
   const [piece, setPiece] = useState<PieceTypeId>('promo');
   const [format, setFormat] = useState<FormatId>(getPieceType('promo').defaultFormat);
@@ -64,6 +103,11 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
   const [touched, setTouched] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  // Formato con el que se generó la imagen visible (para previsualizar y
+  // descargar recortado aunque el usuario cambie el selector después).
+  const [generatedFormat, setGeneratedFormat] = useState<FormatId | null>(null);
+
+  const isPaid = PAID_ROLES.includes((profile?.subscription_role as string) ?? '');
 
   const pieceInfo = getPieceType(piece);
 
@@ -75,16 +119,28 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
     }
   }, [defaults, pieceInfo, touched]);
 
+  // Brief que llega desde "Crear esta imagen" (sugerencia del asistente).
+  useEffect(() => {
+    if (initialBrief) {
+      setBrief(initialBrief.slice(0, 200));
+    }
+  }, [initialBrief]);
+
   const handleSelectPiece = (id: PieceTypeId) => {
     setPiece(id);
     setFormat(getPieceType(id).defaultFormat);
   };
 
-  const canSubmit = Boolean(brief.trim() || prompt.trim());
+  // Sin brief no se genera (salvo que el usuario haya escrito su propia
+  // descripción en avanzados). Antes el prompt precargado —oculto tras
+  // "Ajustes avanzados"— dejaba el botón siempre activo: un clic en vacío
+  // gastaba el único crédito del mes en una pieza genérica.
+  const canSubmit = Boolean(brief.trim() || (touched && prompt.trim()));
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!canSubmit || loading) return;
+    setGeneratedFormat(format);
     generate(prompt, {
       size: getFormat(format).size,
       style: getStyle(style).promptStyle,
@@ -101,6 +157,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
     setTouched(false);
     setBrief('');
     setHeadline('');
+    setGeneratedFormat(null);
     setPrompt(pieceInfo.buildPrompt(defaults));
   };
 
@@ -113,9 +170,21 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
       // abrir/descargar tras un await (window.open tras await queda bloqueado).
       const response = await fetch(imageUrl);
       if (!response.ok) throw new Error('No se pudo descargar la imagen');
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
+      let blob = await response.blob();
 
+      // Recorte al formato exacto elegido (Feed 4:5 = 1080x1350 de verdad).
+      if (generatedFormat) {
+        const [w, h] = getFormat(generatedFormat).size.split('x').map(Number);
+        if (w > 0 && h > 0) {
+          try {
+            blob = await cropBlobToFormat(blob, w, h);
+          } catch (cropErr) {
+            console.error('Crop failed, downloading original:', cropErr);
+          }
+        }
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = objectUrl;
       anchor.download = `iafarma-${piece}-${formatToday()}.png`;
@@ -138,8 +207,13 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
     remaining !== null
       ? `Te ${remaining === 1 ? 'queda' : 'quedan'} ${remaining} ${
           remaining === 1 ? 'crédito' : 'créditos'
-        } de imagen este mes`
+        } de imagen`
       : null;
+
+  // Proporción de la imagen generada, para previsualizar el recorte real.
+  const previewAspect = generatedFormat
+    ? getFormat(generatedFormat).size.split('x').map(Number)
+    : null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -168,7 +242,7 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                 value={brief}
                 maxLength={200}
                 onChange={(e) => setBrief(e.target.value)}
-                placeholder="ej: consejos para tomar el sol este verano"
+                placeholder="ej: consejos para cuidar la piel esta temporada"
                 className="min-h-[72px] resize-none"
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -325,6 +399,11 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
                 </>
               )}
             </Button>
+            {!canSubmit && !loading && (
+              <p className="text-xs text-muted-foreground text-center -mt-2">
+                Escribe qué quieres comunicar para generar (cada imagen gasta 1 crédito).
+              </p>
+            )}
 
             {(imageUrl || error) && (
               <Button
@@ -351,6 +430,8 @@ export const ImageWorkspace = ({ defaults }: ImageWorkspaceProps) => {
           copy={copy}
           error={error}
           downloading={downloading}
+          isPaid={isPaid}
+          previewAspect={previewAspect}
           onDownload={handleDownload}
           onRegenerate={() => handleSubmit()}
         />
@@ -415,8 +496,30 @@ const ImageCreditPacks = () => {
         </button>
       ))}
       <p className="text-xs text-muted-foreground text-left pt-1">
-        Pago único, sin caducidad mensual. Disponible en los planes Plus y Equipo.
+        Pago único. Los créditos no caducan: quedan en tu cuenta hasta que los usas.
       </p>
+    </div>
+  );
+};
+
+/** Mensajes de progreso durante la generación (copy → imagen tarda ~30-60 s). */
+const LOADING_STEPS: { at: number; text: string }[] = [
+  { at: 0, text: 'IAFarma está escribiendo el copy de tu pieza…' },
+  { at: 8, text: 'Dibujando la pieza con tu titular…' },
+  { at: 30, text: 'Últimos retoques: las piezas con texto tardan un poco más…' },
+];
+
+const LoadingSteps = () => {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  const current = [...LOADING_STEPS].reverse().find((s) => elapsed >= s.at) ?? LOADING_STEPS[0];
+  return (
+    <div className="min-h-[500px] rounded-lg border border-border bg-card flex flex-col items-center justify-center text-center p-8">
+      <div className="h-10 w-10 border-2 border-ciruela border-t-transparent rounded-full animate-spin mb-4" />
+      <p className="text-muted-foreground text-sm">{current.text}</p>
     </div>
   );
 };
@@ -430,6 +533,9 @@ interface ImageResultProps {
   copy: ReturnType<typeof useImageGeneration>['copy'];
   error: ReturnType<typeof useImageGeneration>['error'];
   downloading: boolean;
+  isPaid: boolean;
+  /** [ancho, alto] del formato generado, para previsualizar el recorte real. */
+  previewAspect: number[] | null;
   onDownload: () => void;
   onRegenerate: () => void;
 }
@@ -443,16 +549,13 @@ const ImageResult = ({
   copy,
   error,
   downloading,
+  isPaid,
+  previewAspect,
   onDownload,
   onRegenerate,
 }: ImageResultProps) => {
   if (loading) {
-    return (
-      <div className="min-h-[500px] rounded-lg border border-border bg-card flex flex-col items-center justify-center text-center p-8">
-        <div className="h-10 w-10 border-2 border-ciruela border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-muted-foreground text-sm">Creando tu imagen, esto puede tardar unos segundos...</p>
-      </div>
-    );
+    return <LoadingSteps />;
   }
 
   if (error?.code === 'quota') {
@@ -462,15 +565,29 @@ const ImageResult = ({
           <ImageIcon className="h-7 w-7" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
-          Has gastado tus créditos de imagen de este mes
+          Te has quedado sin créditos de imagen
         </h3>
-        <p className="text-muted-foreground mb-6 max-w-sm">
-          Recarga créditos al momento con un pack o mejora tu plan para seguir creando.
-        </p>
-        <ImageCreditPacks />
-        <Button asChild variant="ghost" className="mt-4 text-muted-foreground hover:text-foreground" size="sm">
-          <Link to="/precios">Ver planes</Link>
-        </Button>
+        {isPaid ? (
+          <>
+            <p className="text-muted-foreground mb-6 max-w-sm">
+              Recarga créditos al momento con un pack y sigue creando. No caducan.
+            </p>
+            <ImageCreditPacks />
+            <Button asChild variant="ghost" className="mt-4 text-muted-foreground hover:text-foreground" size="sm">
+              <Link to="/precios">Ver planes</Link>
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className="text-muted-foreground mb-6 max-w-sm">
+              Tu plan Gratis incluye 1 imagen al mes. Con Plus tienes texto ilimitado, 1 imagen al
+              mes y packs de recarga que no caducan.
+            </p>
+            <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Link to="/precios">Hazte Plus</Link>
+            </Button>
+          </>
+        )}
       </div>
     );
   }
@@ -480,6 +597,9 @@ const ImageResult = ({
       <div className="min-h-[500px] rounded-lg border border-dashed border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center text-center p-8">
         <p className="text-destructive font-medium">No se pudo generar la imagen</p>
         <p className="text-destructive/80 text-sm mt-1 max-w-sm">{error.message}</p>
+        <p className="text-muted-foreground text-xs mt-3 max-w-sm">
+          Tranquilidad: cuando la generación falla, el crédito se devuelve solo a tu cuenta.
+        </p>
       </div>
     );
   }
@@ -508,7 +628,8 @@ const ImageResult = ({
         <img
           src={imageUrl}
           alt="Imagen generada por IAFarma"
-          className="w-full rounded-lg ring-1 ring-border"
+          className="w-full rounded-lg ring-1 ring-border object-cover"
+          style={previewAspect ? { aspectRatio: `${previewAspect[0]} / ${previewAspect[1]}` } : undefined}
         />
         {copy && (
           <div className="mt-4 rounded-lg bg-ciruela-soft p-4">
@@ -565,9 +686,14 @@ const ImageResult = ({
             {remainingLabel}
           </span>
         )}
-        {remaining === 0 && (
+        {remaining === 0 && isPaid && (
           <Button asChild variant="outline" size="sm" className="border-ciruela text-ciruela hover:bg-ciruela-soft">
             <Link to="/precios">Recargar créditos</Link>
+          </Button>
+        )}
+        {remaining === 0 && !isPaid && (
+          <Button asChild variant="outline" size="sm" className="border-ciruela text-ciruela hover:bg-ciruela-soft">
+            <Link to="/precios">Hazte Plus</Link>
           </Button>
         )}
       </div>

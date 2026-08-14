@@ -86,14 +86,19 @@ const extractBodyMessage = async (error: unknown): Promise<string | undefined> =
   return undefined;
 };
 
+/**
+ * Normaliza el error. El mensaje del SERVIDOR (fallback, si llega) tiene
+ * prioridad: es específico y está actualizado; los textos de aquí son solo el
+ * respaldo cuando el cuerpo no trae JSON.
+ */
 const messageForStatus = (status: number | undefined, fallback?: string): ImageGenerationError => {
   switch (status) {
     case 402:
-      return { code: 'quota', message: 'Has gastado tus créditos de imagen de este mes' };
+      return { code: 'quota', message: fallback || 'Te has quedado sin créditos de imagen' };
     case 403:
       return {
         code: 'forbidden',
-        message: 'No tienes acceso a la generación de imágenes con tu plan actual.',
+        message: fallback || 'Tu periodo de prueba ha terminado. Hazte Plus para seguir generando imágenes.',
       };
     case 401:
       return { code: 'unauthorized', message: 'Sesión expirada. Por favor, vuelve a iniciar sesión.' };

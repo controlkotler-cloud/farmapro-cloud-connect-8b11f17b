@@ -1,9 +1,12 @@
 import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
+import { getSeasonal } from './seasonal';
 
 // =====================================================================
 // Plantillas de pieza de IAFarma Imagen (promo / cartel / post / story).
 // Cada plantilla define su formato por defecto y una descripción inicial
-// construida con los datos de la farmacia. El usuario puede cambiarlo todo.
+// construida con los datos de la farmacia + el calendario estacional
+// (seasonal.ts): en junio proponen campaña solar, en septiembre vuelta al
+// cole, en diciembre cofres de regalo... El usuario puede cambiarlo todo.
 // =====================================================================
 
 export type PieceTypeId = 'promo' | 'cartel' | 'post' | 'story';
@@ -16,18 +19,21 @@ export interface ImageFormat {
   id: FormatId;
   label: string;
   hint: string;
-  /** Tamaño que se envía a la edge function (campo `size`). Marca la PROPORCIÓN. */
+  /** Tamaño final de la pieza (campo `size` de la edge). Marca la PROPORCIÓN. */
   size: string;
 }
 
 /**
- * Formatos disponibles. Todas las proporciones son de la lista que SOPORTA el
- * modelo de imagen de Gemini (imageConfig.aspectRatio): 1:1, 2:3, 3:2, 3:4,
- * 4:3, 4:5, 5:4, 9:16, 16:9, 21:9.
- *  - Feed y carrusel de Instagram/Facebook = 4:5 vertical (1080x1350).
- *  - El DIN A4 (1:1,41) NO está soportado: el cartel se genera en 2:3, la
- *    proporción soportada más cercana; al imprimir en A4 queda un margen
- *    lateral pequeño (o un recorte mínimo arriba/abajo).
+ * Formatos disponibles. El modelo actual (gpt-image-2) solo genera 1:1, 2:3 y
+ * 3:2; la edge lo sabe (mapSizeForGptImage) y añade al prompt una "zona
+ * segura" con la proporción final. El CLIENTE recorta al centro a la
+ * proporción exacta de aquí (preview con object-cover + canvas al descargar),
+ * así que lo que promete la etiqueta es lo que se descarga:
+ *  - Feed 4:5 (1080x1350) — se genera 2:3 y se recorta a 4:5.
+ *  - Vertical 9:16 (1080x1920) — se genera 2:3 y se recorta a 9:16.
+ *  - Cartel A4 — se genera 2:3, la proporción más cercana al DIN A4 (1:1,41);
+ *    al imprimir queda un margen lateral pequeño.
+ *  - Horizontal 16:9 (1920x1080) — se genera 3:2 y se recorta a 16:9.
  */
 export const IMAGE_FORMATS: ImageFormat[] = [
   { id: 'feed', label: 'Feed 4:5', hint: 'Post y carrusel de Instagram/Facebook', size: '1080x1350' },
@@ -50,6 +56,10 @@ export interface PieceType {
 const tonoDe = (d: IAFarmaDefaults) =>
   d.tono?.trim() ? `tono ${d.tono.trim().toLowerCase()}` : 'tono profesional y cercano';
 
+// Estacionalidad calculada al cargar el módulo: suficiente (nadie tiene la
+// pestaña abierta de un mes a otro) y evita cambiar la firma de PIECE_TYPES.
+const S = getSeasonal();
+
 // OJO: las descripciones NO piden "una farmacia" (eso produce fachadas y
 // farmacéuticos ficticios que no sirven). Describen la PIEZA: qué elementos
 // gráficos tiene y dónde va el titular. Los textos que deban aparecer
@@ -60,41 +70,41 @@ export const PIECE_TYPES: PieceType[] = [
     label: 'Promo de producto',
     hint: 'Oferta o producto destacado',
     defaultFormat: 'feed',
-    headlineExample: 'Protección solar -20%',
+    headlineExample: S.headlines.promo,
     buildPrompt: (d) =>
-      `Pieza de promoción: envase genérico de crema solar como protagonista sobre fondo veraniego limpio, ` +
-      `el titular con la oferta bien grande, etiqueta de descuento destacada, ${tonoDe(d)}`,
+      `Pieza de promoción: envase genérico de ${S.productoPromo} como protagonista sobre fondo limpio, ` +
+      `el titular con la oferta bien grande, etiqueta de descuento destacada, ${S.paleta}, ${tonoDe(d)}`,
   },
   {
     id: 'cartel',
     label: 'Cartel',
     hint: 'Escaparate o interior',
     defaultFormat: 'a4',
-    headlineExample: 'Campaña solar: te asesoramos',
+    headlineExample: S.headlines.cartel,
     buildPrompt: (d) =>
-      `Cartel comercial: titular grande arriba, una ilustración central potente (sol, crema, gafas de sol), ` +
-      `subtítulo corto abajo, composición vertical limpia y legible de lejos, ${tonoDe(d)}`,
+      `Cartel comercial: titular grande arriba, una ilustración central potente (${S.iconos}), ` +
+      `subtítulo corto abajo, composición vertical limpia y legible de lejos, ${S.paleta}, ${tonoDe(d)}`,
   },
   {
     id: 'post',
     label: 'Post para redes',
     hint: 'Instagram o Facebook',
     defaultFormat: 'feed',
-    headlineExample: '5 consejos para tu piel este verano',
+    headlineExample: S.headlines.post,
     buildPrompt: (d) =>
       `Post tipo infografía: el titular grande arriba y debajo una lista de 3 a 5 consejos cortos, cada uno ` +
-      `con su icono ilustrado (sol, crema, gafas, sombrero, agua). Escribe aquí los consejos si quieres que ` +
-      `salgan literales. Colores frescos de verano, ${tonoDe(d)}`,
+      `con su icono ilustrado (${S.iconos}). Escribe aquí los consejos si quieres que ` +
+      `salgan literales. ${S.paleta.charAt(0).toUpperCase() + S.paleta.slice(1)}, ${tonoDe(d)}`,
   },
   {
     id: 'story',
     label: 'Story',
     hint: 'Vertical, a pantalla completa',
     defaultFormat: 'vertical',
-    headlineExample: 'Novedad en dermocosmética',
+    headlineExample: S.headlines.story,
     buildPrompt: (d) =>
       `Story vertical de un solo mensaje: titular grande centrado, fondo llamativo con elementos gráficos ` +
-      `de dermocosmética (texturas de crema, hojas, gotas), espacio libre abajo para sticker, ${tonoDe(d)}`,
+      `del tema (${S.iconos}), espacio libre abajo para sticker, ${S.paleta}, ${tonoDe(d)}`,
   },
 ];
 

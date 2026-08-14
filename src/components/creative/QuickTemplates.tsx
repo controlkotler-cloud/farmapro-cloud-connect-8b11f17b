@@ -1,9 +1,15 @@
 import { ContentType } from '@/hooks/useCreativeChat';
+import { getSeasonal } from './seasonal';
+
+// Ideas rápidas = temas del mes (calendario estacional) + clásicos evergreen.
+// Antes eran listas fijas de verano ("Protección solar primavera") que en
+// otoño seguían proponiendo cremas solares.
+const S = getSeasonal();
 
 const TEMPLATES: Record<ContentType, string[]> = {
   'instagram-post': [
-    'Protección solar primavera',
-    'Nuevo producto en la farmacia',
+    S.temas[0],
+    S.temas[1],
     'Consejo farmacéutico del día',
     'Presentación del equipo',
   ],
@@ -14,9 +20,9 @@ const TEMPLATES: Record<ContentType, string[]> = {
     'Respondo vuestra pregunta',
   ],
   carousel: [
+    S.temas[2],
     'Rutina facial en 5 pasos',
     'Top 5 productos del mes',
-    'Guía de protección solar',
     'Diferencias entre productos',
   ],
   'google-business': [
@@ -25,13 +31,13 @@ const TEMPLATES: Record<ContentType, string[]> = {
     'Oferta de la semana',
   ],
   blog: [
-    'Guía de protección solar',
+    S.temas[0],
     'Cómo elegir tu crema hidratante',
     'Servicios de tu farmacia que no conocías',
   ],
   promotion: [
-    'Campaña protección solar',
-    'Ofertas dermocosméticos',
+    S.temas[3],
+    'Ofertas dermocosmética',
     'Consulta gratuita nutrición',
   ],
   whatsapp: [
