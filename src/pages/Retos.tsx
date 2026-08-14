@@ -39,17 +39,20 @@ export const Retos = () => {
   // cuatro de ellos pidiendo "haz 1 cosa" se completaban el primer día y no
   // aparecía nada nuevo detrás. Ahora, al completar un peldaño aparece el
   // siguiente; si la familia está entera, se enseña el último como conseguido.
-  const nivelesPorFamilia = challenges.reduce((acc: Record<string, number>, c: any) => {
+  // Los semanales viven en su propia sección: fuera de la escalera permanente.
+  const permanentes = challenges.filter((c: any) => !c.is_weekly);
+
+  const nivelesPorFamilia = permanentes.reduce((acc: Record<string, number>, c: any) => {
     if (c.familia) acc[c.familia] = Math.max(acc[c.familia] ?? 0, c.nivel ?? 1);
     return acc;
   }, {});
 
   const permanentChallenges = (() => {
-    const sueltos = challenges.filter((c: any) => !c.familia);
+    const sueltos = permanentes.filter((c: any) => !c.familia);
     const porFamilia = new Map<string, any>();
 
     for (const familia of Object.keys(nivelesPorFamilia)) {
-      const escalera = challenges
+      const escalera = permanentes
         .filter((c: any) => c.familia === familia)
         .sort((a: any, b: any) => (a.nivel ?? 0) - (b.nivel ?? 0));
 

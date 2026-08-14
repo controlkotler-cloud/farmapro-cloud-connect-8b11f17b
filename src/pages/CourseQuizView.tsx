@@ -49,6 +49,10 @@ const CourseQuizView = () => {
 
             const { updateChallengeProgress } = await import('@/utils/challengeUtils');
             await updateChallengeProgress(profile.id, 'course_completed', 1);
+            // La evaluación superada también cuenta como evaluación hecha. Antes
+            // solo se emitía 'course_completed', así que ningún reto de tipo
+            // 'quiz_completed' podía avanzar nunca: no había quien lo disparara.
+            await updateChallengeProgress(profile.id, 'quiz_completed', 1);
           }
         }
       } catch (error) {

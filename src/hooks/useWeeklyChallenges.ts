@@ -34,11 +34,15 @@ export const useWeeklyChallenges = () => {
       // Use raw query to access new columns not yet in types
       const { data: challenges, error } = await supabase
         .from('challenges')
-        .select('id, name, description, type, points_reward, target_count')
+        .select('id, name, description, type, points_reward, target_count, start_date, end_date')
         .eq('is_active', true)
         .filter('is_weekly', 'eq', true)
-        .filter('week_start', 'lte', today)
-        .filter('week_end', 'gte', today) as any;
+        .lte('start_date', today)
+        .gte('end_date', today) as any;
+
+      // Si falla la consulta hay que verlo: antes el error se tragaba en
+      // silencio y la sección salía vacía sin que nadie supiera por qué.
+      if (error) console.error('Error cargando retos semanales:', error);
 
       if (error || !challenges || challenges.length === 0) {
         setWeeklyChallenges([]);
@@ -68,8 +72,8 @@ export const useWeeklyChallenges = () => {
           points_reward: c.points_reward,
           target_count: c.target_count,
           is_weekly: true,
-          week_start: c.week_start || null,
-          week_end: c.week_end || null,
+          week_start: c.start_date || null,
+          week_end: c.end_date || null,
           current_count: p?.current_count || 0,
           completed_at: p?.completed_at || null,
         };

@@ -94,8 +94,8 @@ export const WeeklyTemplatesManagement = () => {
         points: template.points_reward,
         is_active: true,
         is_weekly: true,
-        week_start: weekStart,
-        week_end: weekEnd,
+        start_date: weekStart,
+        end_date: weekEnd,
       } as any);
       if (error) throw error;
     },
@@ -150,7 +150,7 @@ export const WeeklyTemplatesManagement = () => {
                     <div>
                       <p className="font-medium">{c.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {c.week_start} → {c.week_end}
+                        {c.start_date} → {c.end_date}
                       </p>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
