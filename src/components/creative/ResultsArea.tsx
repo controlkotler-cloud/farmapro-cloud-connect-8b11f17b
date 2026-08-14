@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { ContentType } from '@/hooks/useCreativeChat';
+import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
+import { CarouselImages } from './CarouselImages';
 import { useState } from 'react';
 
 interface Message {
@@ -27,6 +29,8 @@ interface ResultsAreaProps {
   onCreateImage?: (brief: string, sourceText: string) => void;
   /** Textos de prueba restantes este mes (solo plan Gratis; null = sin límite). */
   textsRemaining?: number | null;
+  /** Datos de la farmacia (paleta corporativa, logo) para las imágenes del carrusel. */
+  defaults: IAFarmaDefaults;
 }
 
 /**
@@ -43,7 +47,7 @@ const splitImageSuggestion = (content: string): { main: string; suggestion: stri
   return { main, suggestion: suggestion || null };
 };
 
-export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, onAdjust, onCreateImage, textsRemaining }: ResultsAreaProps) => {
+export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, onAdjust, onCreateImage, textsRemaining, defaults }: ResultsAreaProps) => {
   const { toast } = useToast();
   const [adjustInput, setAdjustInput] = useState('');
   const [showAdjust, setShowAdjust] = useState(false);
@@ -240,6 +244,14 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
             </Button>
           )}
         </div>
+      )}
+
+      {/* Un carrusel no es una imagen: son N. Generación en serie coherente. */}
+      {contentType === 'carousel' && lastAssistant && !isLoading && (
+        <CarouselImages
+          content={splitImageSuggestion(lastAssistant.content).main}
+          defaults={defaults}
+        />
       )}
 
       {showAdjust && (

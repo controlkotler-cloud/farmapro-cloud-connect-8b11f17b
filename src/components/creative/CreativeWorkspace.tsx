@@ -46,7 +46,16 @@ export const CreativeWorkspace = () => {
     if (!defaults.tono && profile?.iafarma_tone) {
       updateDefault('tono', profile.iafarma_tone);
     }
-  }, [defaults.farmacia, defaults.localidad, defaults.tono, profile?.pharmacy_name, profile?.pharmacy_city, profile?.iafarma_tone, updateDefault]);
+    if (!defaults.colorPrimario && profile?.iafarma_brand_primary) {
+      updateDefault('colorPrimario', profile.iafarma_brand_primary);
+    }
+    if (!defaults.colorSecundario && profile?.iafarma_brand_secondary) {
+      updateDefault('colorSecundario', profile.iafarma_brand_secondary);
+    }
+    if (!defaults.logoUrl && profile?.iafarma_logo_url) {
+      updateDefault('logoUrl', profile.iafarma_logo_url);
+    }
+  }, [defaults.farmacia, defaults.localidad, defaults.tono, defaults.colorPrimario, defaults.colorSecundario, defaults.logoUrl, profile?.pharmacy_name, profile?.pharmacy_city, profile?.iafarma_tone, profile?.iafarma_brand_primary, profile?.iafarma_brand_secondary, profile?.iafarma_logo_url, updateDefault]);
 
   const selectedInfo = CONTENT_TYPES.find(t => t.id === contentType);
 
@@ -122,6 +131,7 @@ export const CreativeWorkspace = () => {
               onAdjust={(adjustment) => sendMessage(`Ajusta el contenido anterior: ${adjustment}`)}
               onCreateImage={handleCreateImage}
               textsRemaining={textsRemaining}
+              defaults={defaults}
             />
           </div>
         </div>

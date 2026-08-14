@@ -148,7 +148,7 @@ async function generateCopy(
   pieceType: string,
   forcedHeadline: string | null,
   sourceText: string,
-  paletteHint: string,
+  paletteInstruction: string,
 ): Promise<PieceCopy | null> {
   const systemPrompt =
     'Eres director creativo y redactor publicitario de una farmacia comunitaria en España. Escribes copy corto y defines la dirección de arte visual de piezas de marketing (posts, carteles, stories, promos). ' +
@@ -166,7 +166,7 @@ async function generateCopy(
   const sourceBlock = sourceText
     ? ` La pieza acompaña a esta publicación ya escrita; headline y lines deben ser COHERENTES con ella (mismo mensaje, mismos consejos si los hay, sin contradecirla):\n"""${sourceText}"""`
     : '';
-  const paletteBlock = ` Para la dirección de arte, parte de esta paleta si encaja con el tema (si no encaja, elige otra tú, pero JUSTIFICADAMENTE distinta de la típica): ${paletteHint}.`;
+  const paletteBlock = ` ${paletteInstruction}`;
 
   const userPrompt = (forcedHeadline
     ? `Tipo de pieza: ${pieceType}. Tema: ${brief}. El headline ya está decidido: "${forcedHeadline}". Genera SOLO las lines (3-5), coherentes con ese headline. Devuelve el JSON con ese mismo headline y las lines.`
@@ -268,6 +268,23 @@ serve(async (req) => {
     // Texto de la publicación de origen (botón "Crear esta imagen" del
     // asistente de texto): el copy de la pieza se escribe coherente con él.
     const sourceText = typeof body?.sourceText === 'string' ? body.sourceText.trim().slice(0, 1500) : '';
+    // Líneas de apoyo fijadas por el cliente (carrusel: cada slide trae su
+    // titular y sus líneas ya escritos → se salta la generación de copy).
+    const linesInput: string[] = Array.isArray(body?.lines)
+      ? body.lines
+          .filter((l: unknown): l is string => typeof l === 'string')
+          .map((l: string) => l.trim().slice(0, 60))
+          .filter(Boolean)
+          .slice(0, 5)
+      : [];
+    // Dirección de arte compartida (carrusel: todas las slides con el mismo
+    // estilo) y paleta corporativa fija de la farmacia (si la ha configurado).
+    const artOverride = typeof body?.artOverride === 'string' && body.artOverride.trim()
+      ? body.artOverride.trim().slice(0, 400) : '';
+    const brandPalette = typeof body?.brandPalette === 'string' ? body.brandPalette.trim().slice(0, 120) : '';
+    // La esquina inferior derecha se deja limpia: el cliente superpone el logo
+    // real de la farmacia (nunca se le pide al modelo que dibuje logos).
+    const logoCorner = body?.logoCorner === true;
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return json({ error: 'Prompt requerido' }, 400);
@@ -305,18 +322,29 @@ serve(async (req) => {
       return json({ error: 'LOVABLE_API_KEY no configurada' }, 500);
     }
 
-    // PASO 1: si hay brief, generar copy antes de la imagen.
-    const paletteHint = pickPaletteHint();
+    // Paleta: la corporativa de la farmacia manda; si no hay, se sortea una
+    // para variar entre generaciones.
+    const paletteText = brandPalette || pickPaletteHint();
+    const paletteInstruction = brandPalette
+      ? `Usa OBLIGATORIAMENTE la paleta corporativa de la farmacia como gama dominante de la pieza: ${brandPalette}. Puedes apoyarte en neutros (blanco, crema, gris suave), pero los colores protagonistas son esos.`
+      : `Para la dirección de arte, parte de esta paleta si encaja con el tema (si no encaja, elige otra tú, pero JUSTIFICADAMENTE distinta de la típica): ${paletteText}.`;
+
+    // PASO 1: el copy de la pieza.
+    //  - Si el cliente manda headline + lines (slides de carrusel), se usan tal
+    //    cual: sin llamada extra de copy (más rápido y más barato).
+    //  - Si hay brief, se genera con el director creativo.
     let copy: PieceCopy | null = null;
-    if (brief) {
-      copy = await generateCopy(lovableKey, brief, pieceType, headline, sourceText, paletteHint);
+    if (headline && linesInput.length > 0) {
+      copy = { headline, lines: linesInput, art: artOverride || undefined };
+    } else if (brief) {
+      copy = await generateCopy(lovableKey, brief, pieceType, headline, sourceText, paletteInstruction);
     }
 
     // El headline efectivo: el del copy si se generó, o el que envió el cliente.
     const effectiveHeadline = copy?.headline ?? headline;
     const effectiveLines = copy?.lines ?? [];
-    const effectiveArt = copy?.art ?? pickFallbackArt(paletteHint);
-    if (copy && !copy.art) copy.art = effectiveArt;
+    const effectiveArt = artOverride || copy?.art || pickFallbackArt(paletteText);
+    if (copy) copy.art = effectiveArt;
 
     // Prompt de marketing retail de farmacia + guardrails.
     const guardrails =
@@ -339,7 +367,7 @@ serve(async (req) => {
       pharmacyName && locality ? `${pharmacyName} · ${locality}` :
       pharmacyName ? pharmacyName :
       locality ? locality : '';
-    const signatureBlock = signatureText
+    const signatureBlock = (signatureText && !logoCorner)
       ? (framed
         ? ` Near the bottom edge of the centered ${requestedRatio} design area (NOT at the canvas edge), render this exact small signature line, spelled EXACTLY as written, in small clean sans-serif text, single line, no icons, no logo: "${signatureText}".`
         : ` At the very bottom of the piece, render this exact small signature line, spelled EXACTLY as written, in small clean sans-serif text, single line, no icons, no logo: "${signatureText}".`)
@@ -370,6 +398,16 @@ serve(async (req) => {
     const richnessBlock =
       ' The composition must feel finished and full: treat the entire background (color field, texture, pattern or scene) and balance the layout so there are no large empty dead zones.';
 
+    // Esquina reservada para el logo real (se superpone en el cliente).
+    const logoBlock = logoCorner
+      ? ' Keep the bottom-right corner of the design area clean and free of text, products or key elements: the pharmacy\'s real logo will be overlaid there afterwards. Do not draw any logo or placeholder yourself.'
+      : '';
+
+    // Paleta corporativa también en el prompt de imagen (no solo en el copy).
+    const brandBlock = brandPalette
+      ? ` MANDATORY corporate palette: use ${brandPalette} as the dominant colors of the piece (neutrals allowed as support only).`
+      : '';
+
     const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
     const artBlock = ` Art direction: ${effectiveArt}`;
 
@@ -377,7 +415,7 @@ serve(async (req) => {
       `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}.${briefBlock} ` +
       `Commercial, bright, professional aesthetic; suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${artBlock}${richnessBlock}${textBlock}${signatureBlock}${cropBlock} ${guardrails}`;
+      `${artBlock}${brandBlock}${richnessBlock}${textBlock}${signatureBlock}${logoBlock}${cropBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)

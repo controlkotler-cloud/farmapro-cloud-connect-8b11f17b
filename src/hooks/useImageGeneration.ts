@@ -40,12 +40,22 @@ export interface ImageGenerationOptions {
    * se escribe coherente con la publicación, no solo con el brief.
    */
   sourceText?: string;
+  /** Líneas de apoyo ya escritas (con headline: se salta la generación de copy). */
+  lines?: string[];
+  /** Dirección de arte fija (series coherentes, p. ej. slides de carrusel). */
+  artOverride?: string;
+  /** Paleta corporativa fija ('primary #.., secondary #..'). Vacío = variada. */
+  brandPalette?: string;
+  /** Deja limpia la esquina inferior derecha para superponer el logo real. */
+  logoCorner?: boolean;
 }
 
 /** Copy generado por el backend (titular + líneas) e incluido en la imagen. */
 export interface GeneratedCopy {
   headline: string;
   lines: string[];
+  /** Dirección de arte usada (reutilizable como artOverride en series). */
+  art?: string;
 }
 
 /** Código de error normalizado para que la UI pueda reaccionar (p. ej. 402 → /precios). */
@@ -157,6 +167,10 @@ export const useImageGeneration = () => {
             ...(pharmacyName ? { pharmacyName } : {}),
             ...(locality ? { locality } : {}),
             ...(sourceText ? { sourceText } : {}),
+            ...(opts?.lines?.length ? { lines: opts.lines } : {}),
+            ...(opts?.artOverride ? { artOverride: opts.artOverride } : {}),
+            ...(opts?.brandPalette ? { brandPalette: opts.brandPalette } : {}),
+            ...(opts?.logoCorner ? { logoCorner: true } : {}),
           },
         });
 
@@ -195,7 +209,11 @@ export const useImageGeneration = () => {
         setRemaining(typeof result.remaining === 'number' ? result.remaining : null);
         setCopy(
           result.copy && typeof result.copy.headline === 'string'
-            ? { headline: result.copy.headline, lines: Array.isArray(result.copy.lines) ? result.copy.lines : [] }
+            ? {
+                headline: result.copy.headline,
+                lines: Array.isArray(result.copy.lines) ? result.copy.lines : [],
+                art: typeof result.copy.art === 'string' ? result.copy.art : undefined,
+              }
             : null,
         );
       } catch (err) {

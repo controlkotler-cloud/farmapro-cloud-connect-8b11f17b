@@ -16,8 +16,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
+import { IAFarmaDefaults, brandPaletteOf } from '@/hooks/useIAFarmaDefaults';
 import { useImageGeneration } from '@/hooks/useImageGeneration';
+import { cropBlobToFormat, overlayLogo, downloadBlob, fileDate } from './imageUtils';
 import { IMAGE_ADDONS, PACKS_CHECKOUT_READY, PAID_ROLES } from '@/lib/plans';
 import {
   FormatId,
@@ -45,50 +46,7 @@ const PIECE_ICONS: Record<PieceTypeId, typeof ImageIcon> = {
   story: Smartphone,
 };
 
-const formatToday = (): string => {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  return `${yyyy}${mm}${dd}`;
-};
-
 const formatPrice = (price: number): string => `${price.toFixed(2).replace('.', ',')} €`;
-
-/**
- * Recorta el PNG generado a las dimensiones EXACTAS del formato elegido.
- * gpt-image-2 solo produce 1:1, 2:3 y 3:2; la edge ya avisa al modelo de la
- * zona segura y aquí se completa el contrato: "Feed 4:5" descarga un PNG
- * 1080x1350 de verdad (recorte centrado + reescalado), no un 2:3 que
- * Instagram recortaría a su manera.
- */
-const cropBlobToFormat = async (blob: Blob, targetW: number, targetH: number): Promise<Blob> => {
-  const bitmap = await createImageBitmap(blob);
-  try {
-    const targetRatio = targetW / targetH;
-    const srcRatio = bitmap.width / bitmap.height;
-    let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height;
-    if (srcRatio > targetRatio) {
-      sw = Math.round(bitmap.height * targetRatio);
-      sx = Math.round((bitmap.width - sw) / 2);
-    } else if (srcRatio < targetRatio) {
-      sh = Math.round(bitmap.width / targetRatio);
-      sy = Math.round((bitmap.height - sh) / 2);
-    }
-    const canvas = document.createElement('canvas');
-    canvas.width = targetW;
-    canvas.height = targetH;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return blob;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, targetW, targetH);
-    return await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('No se pudo procesar la imagen'))), 'image/png'),
-    );
-  } finally {
-    bitmap.close();
-  }
-};
 
 export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
   const { toast } = useToast();
@@ -106,6 +64,11 @@ export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
   // Formato con el que se generó la imagen visible (para previsualizar y
   // descargar recortado aunque el usuario cambie el selector después).
   const [generatedFormat, setGeneratedFormat] = useState<FormatId | null>(null);
+  // Logo: opcional en cada imagen (por defecto activo si hay logo subido).
+  const [includeLogo, setIncludeLogo] = useState(true);
+  const [generatedWithLogo, setGeneratedWithLogo] = useState(false);
+
+  const withLogo = includeLogo && Boolean(defaults.logoUrl);
 
   const isPaid = PAID_ROLES.includes((profile?.subscription_role as string) ?? '');
 
@@ -145,6 +108,8 @@ export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
     e?.preventDefault();
     if (!canSubmit || loading) return;
     setGeneratedFormat(format);
+    setGeneratedWithLogo(withLogo);
+    const brandPalette = brandPaletteOf(defaults);
     generate(prompt, {
       size: getFormat(format).size,
       style: getStyle(style).promptStyle,
@@ -154,6 +119,8 @@ export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
       pharmacyName: defaults.farmacia,
       locality: defaults.localidad,
       ...(sourceText ? { sourceText } : {}),
+      ...(brandPalette ? { brandPalette } : {}),
+      ...(withLogo ? { logoCorner: true } : {}),
     });
   };
 
@@ -190,14 +157,16 @@ export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
         }
       }
 
-      const objectUrl = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = objectUrl;
-      anchor.download = `iafarma-${piece}-${formatToday()}.png`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      URL.revokeObjectURL(objectUrl);
+      // Logo real superpuesto (píxel-perfecto, nunca dibujado por el modelo).
+      if (generatedWithLogo && defaults.logoUrl) {
+        try {
+          blob = await overlayLogo(blob, defaults.logoUrl);
+        } catch (logoErr) {
+          console.error('Logo overlay failed, downloading without logo:', logoErr);
+        }
+      }
+
+      downloadBlob(blob, `iafarma-${piece}-${fileDate()}.png`);
     } catch (err) {
       toast({
         title: 'Error',
@@ -364,6 +333,19 @@ export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
               </div>
             </div>
 
+            {defaults.logoUrl && (
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeLogo}
+                  onChange={(e) => setIncludeLogo(e.target.checked)}
+                  className="h-4 w-4 accent-[var(--ciruela,#7c3a58)]"
+                />
+                Añadir mi logo a la imagen
+                <img src={defaults.logoUrl} alt="" aria-hidden className="h-5 max-w-[70px] object-contain" />
+              </label>
+            )}
+
             <div>
               <button
                 type="button"
@@ -443,6 +425,7 @@ export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
           downloading={downloading}
           isPaid={isPaid}
           previewAspect={previewAspect}
+          logoOverlayUrl={generatedWithLogo && defaults.logoUrl ? defaults.logoUrl : null}
           onDownload={handleDownload}
           onRegenerate={() => handleSubmit()}
         />
@@ -547,6 +530,8 @@ interface ImageResultProps {
   isPaid: boolean;
   /** [ancho, alto] del formato generado, para previsualizar el recorte real. */
   previewAspect: number[] | null;
+  /** URL del logo para previsualizar el overlay (null = sin logo). */
+  logoOverlayUrl: string | null;
   onDownload: () => void;
   onRegenerate: () => void;
 }
@@ -562,6 +547,7 @@ const ImageResult = ({
   downloading,
   isPaid,
   previewAspect,
+  logoOverlayUrl,
   onDownload,
   onRegenerate,
 }: ImageResultProps) => {
@@ -636,12 +622,23 @@ const ImageResult = ({
         className="rounded-lg ring-1 ring-border bg-card p-4 shadow-sm"
       >
         <span className="text-xs font-semibold text-ciruela block mb-3">Imagen generada</span>
-        <img
-          src={imageUrl}
-          alt="Imagen generada por IAFarma"
-          className="w-full rounded-lg ring-1 ring-border object-cover"
-          style={previewAspect ? { aspectRatio: `${previewAspect[0]} / ${previewAspect[1]}` } : undefined}
-        />
+        <div className="relative">
+          <img
+            src={imageUrl}
+            alt="Imagen generada por IAFarma"
+            className="w-full rounded-lg ring-1 ring-border object-cover"
+            style={previewAspect ? { aspectRatio: `${previewAspect[0]} / ${previewAspect[1]}` } : undefined}
+          />
+          {logoOverlayUrl && (
+            <img
+              src={logoOverlayUrl}
+              alt=""
+              aria-hidden
+              className="absolute object-contain"
+              style={{ right: '4%', bottom: '4%', width: '16%' }}
+            />
+          )}
+        </div>
         {copy && (
           <div className="mt-4 rounded-lg bg-ciruela-soft p-4">
             <span className="text-xs font-semibold text-ciruela block mb-2">

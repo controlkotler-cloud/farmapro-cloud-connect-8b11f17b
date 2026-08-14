@@ -97,6 +97,34 @@ por arriba; (3) el paso texto→imagen quedaba pobre; (4) la paleta se repetía.
   justificadamente distinta de la típica"), también en el fallback. Además, instrucción de
   composición llena: fondo tratado en todo el área, sin zonas muertas.
 
+## Addendum · 3ª tanda: marca (paleta fija + logo) y carrusel multi-imagen
+
+Peticiones de Francesc tras probar en real.
+
+**Paleta corporativa fija.** En "Datos de tu farmacia" hay dos selectores de color (principal +
+secundario) persistidos en `profiles.iafarma_brand_*`. Si están fijados, TODAS las piezas los usan
+como gama dominante (instrucción obligatoria en el copy Y en el prompt de imagen); si no, IAFarma
+sigue variando la paleta automáticamente. "Quitar" vuelve al modo variado.
+
+**Logo.** Subida en "Datos de tu farmacia" → bucket público `iafarma-logos` ({uid}/logo.png) +
+`profiles.iafarma_logo_url`. Requisitos que ve el usuario: PNG con fondo transparente (también
+WebP/SVG), mejor horizontal, ≥600 px de ancho, máx. 2 MB. En cada imagen hay un checkbox "Añadir
+mi logo" (por defecto activo): el modelo deja limpia la esquina inferior derecha (`logoCorner`) y
+el logo REAL se superpone en el cliente (~16 % del ancho, margen 4 %) en la preview y en la
+descarga — nunca se le pide al modelo que dibuje el logo, porque los deforma. Con logo activo se
+suprime la firma de texto (nombre · localidad) para no duplicar identidad.
+
+**Carrusel multi-imagen.** Un carrusel son N imágenes, no una. Bajo el resultado de texto del
+carrusel aparece "Crear las N imágenes del carrusel (N créditos)": parsea las SLIDE 1..N (titular
++ líneas de cada una, descartando CAPTION), y las genera EN SERIE compartiendo la misma dirección
+de arte (la de la primera slide se fija como `artOverride` para el resto) y la paleta (corporativa
+si existe), en formato 4:5. Progreso "slide X de N", grid con descarga individual (recorte 1080x1350
++ logo) y "Descargar las N". Si un crédito falla a mitad, las ya generadas se conservan. En la edge:
+`lines[]` + `headline` fijados se usan tal cual (sin llamada de copy: más rápido y barato) y
+`artOverride`/`brandPalette`/`logoCorner` son campos nuevos del contrato.
+
+BD de esta tanda (ya ejecutada): `20260814150000_iafarma_marca.sql`.
+
 ## Dudosos que quedan SIN tocar (decisión pendiente)
 - **D1** — Modelo de imagen (gpt-image-2 medium vs Gemini imagen / quality high): pide un A/B con
   5 piezas reales antes de cambiar. El interruptor sigue siendo `IMAGE_MODEL` en la edge.
