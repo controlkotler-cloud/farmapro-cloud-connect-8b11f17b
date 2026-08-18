@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Edit } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { companyTypes } from './PromotionCategoryFilter';
+import { companyTypes } from '@/components/promotions/PromotionCategoryFilter';
 
 interface Promotion {
   id: string;

@@ -13,18 +13,16 @@ const Eventos = () => {
     <div className="space-y-8">
       <EventosHeader />
 
-      <div className="rounded-lg border border-border bg-card p-6 shadow-soft">
-        <EventCategoryFilter 
-          selectedType={selectedType}
-          onTypeChange={setSelectedType}
-        />
+      <EventCategoryFilter
+        selectedType={selectedType}
+        onTypeChange={setSelectedType}
+      />
 
-        <EventGrid 
-          events={events}
-          loading={loading}
-          selectedType={selectedType}
-        />
-      </div>
+      <EventGrid
+        events={events}
+        loading={loading}
+        selectedType={selectedType}
+      />
     </div>
   );
 };

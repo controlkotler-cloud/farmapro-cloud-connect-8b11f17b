@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Gift, Calendar, Building2, ExternalLink, Clock, Tag, Bell, BadgePercent,
@@ -9,8 +8,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { PromotionCategoryFilter } from '@/components/admin/promotion/PromotionCategoryFilter';
-import { companyTypes } from '@/components/admin/promotion/PromotionCategoryFilter';
+import { PromotionCategoryFilter } from '@/components/promotions/PromotionCategoryFilter';
+import { companyTypes } from '@/components/promotions/PromotionCategoryFilter';
 import { useToast } from '@/hooks/use-toast';
 import { PromotionRequestDialog } from '@/components/promociones/PromotionRequestDialog';
 
@@ -218,28 +217,31 @@ const Promociones = () => {
                     >
                       <div className="relative h-44 overflow-hidden rounded-t-lg">
                         {promotion.image_url ? (
-                          <img
-                            src={promotion.image_url}
-                            alt={promotion.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                          />
+                          <>
+                            <img
+                              src={promotion.image_url}
+                              alt={promotion.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                            {/* Velo solo sobre foto real: las portadas de color ya contrastan. */}
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-foreground/25 to-transparent" />
+                          </>
                         ) : (
                           <div className={`w-full h-full ${cover.bg} flex items-center justify-center`}>
                             <cover.Icon className={`h-14 w-14 ${cover.onSolid}`} strokeWidth={1.5} />
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                         <div className="absolute top-3 left-3 flex flex-col items-start gap-2">
                           <span className="inline-flex items-center gap-1 rounded-full bg-miel-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-miel shadow-soft">
                             <Gift className="h-3 w-3" />
                             Oferta
                           </span>
                           {promotion.valid_until && isExpiringSoon(promotion.valid_until) && (
-                            <Badge className="bg-warning text-warning-foreground shadow-soft text-[10.5px] font-extrabold uppercase tracking-[0.12em]">
-                              <Clock className="h-3 w-3 mr-1" />
+                            <span className="inline-flex items-center gap-1 rounded-full bg-warning px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-warning-foreground shadow-soft">
+                              <Clock className="h-3 w-3" />
                               ¡Últimos días!
-                            </Badge>
+                            </span>
                           )}
                         </div>
                         <span

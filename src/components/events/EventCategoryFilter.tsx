@@ -10,10 +10,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 // acento de la sección; los 5 tipos reales se reparten 1:1 entre los tokens
 // restantes, y "Cursos" reutiliza brand-dark (variante de workshop) porque
 // solo hay 5 tokens disponibles para 5 categorías + "Todos".
-// `bg` es solo para el icono de portada (glifo, no texto, admite blanco);
-// `soft`/`text` es el par usado en el botón de filtro seleccionado, para no
-// poner nunca texto blanco sobre un acento (prohibido en brand y de bajo
-// contraste en el resto).
+// `soft`/`text` es el par usado en todas partes (tile del selector móvil y
+// pastilla activa) para no poner nunca blanco sobre un acento: prohibido en
+// brand y de bajo contraste en el resto.
 export const eventTypes = [
   { id: 'all', name: 'Todos', icon: Calendar, bg: 'bg-terracota', soft: 'bg-terracota-soft', text: 'text-terracota' },
   { id: 'webinar', name: 'Webinars', icon: Video, bg: 'bg-salvia', soft: 'bg-salvia-soft', text: 'text-salvia' },
@@ -35,14 +34,14 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
 
   if (isMobile) {
     return (
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Categorías</h2>
+      <div>
+        <h2 className="mb-4 text-xl font-extrabold tracking-tight text-foreground">Categorías</h2>
         <Select value={selectedType} onValueChange={onTypeChange}>
           <SelectTrigger className="w-full">
             <SelectValue>
               <div className="flex items-center">
-                <div className={`p-1 rounded ${selectedCategory.bg} mr-2`}>
-                  <selectedCategory.icon className="h-4 w-4 text-primary-foreground" />
+                <div className={`p-2 rounded-lg ${selectedCategory.soft} shadow-soft mr-3`}>
+                  <selectedCategory.icon className={`h-4 w-4 ${selectedCategory.text}`} />
                 </div>
                 {selectedCategory.name}
               </div>
@@ -52,8 +51,8 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
             {eventTypes.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center">
-                  <div className={`p-1 rounded ${category.bg} mr-2`}>
-                    <category.icon className="h-4 w-4 text-primary-foreground" />
+                  <div className={`p-2 rounded-lg ${category.soft} shadow-soft mr-3`}>
+                    <category.icon className={`h-4 w-4 ${category.text}`} />
                   </div>
                   {category.name}
                 </div>
@@ -66,35 +65,23 @@ export const EventCategoryFilter = ({ selectedType, onTypeChange }: EventCategor
   }
 
   return (
-    <div className="mb-8">
-      <h2 className="text-lg font-semibold text-foreground mb-4">Categorías</h2>
+    <div>
+      <h2 className="mb-4 text-xl font-extrabold tracking-tight text-foreground">Categorías</h2>
       <motion.div
         className="flex flex-wrap gap-2"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {eventTypes.map((category, index) => (
-          <motion.div
+        {eventTypes.map((category) => (
+          <Button
             key={category.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
+            variant={selectedType === category.id ? 'default' : 'outline'}
+            onClick={() => onTypeChange(category.id)}
+            className="gap-2 rounded-full transition-all"
           >
-            <Button
-              variant={selectedType === category.id ? "default" : "outline"}
-              onClick={() => onTypeChange(category.id)}
-              className={`relative group transition-all hover:-translate-y-0.5 ${
-                selectedType === category.id
-                  ? `${category.soft} ${category.text} shadow-soft hover:opacity-90`
-                  : 'hover:shadow-lift hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              <div className={`p-2 rounded-lg ${category.bg} shadow-soft mr-2`}>
-                <category.icon className="h-4 w-4 text-primary-foreground" />
-              </div>
-              {category.name}
-            </Button>
-          </motion.div>
+            <category.icon className="h-4 w-4" />
+            {category.name}
+          </Button>
         ))}
       </motion.div>
     </div>

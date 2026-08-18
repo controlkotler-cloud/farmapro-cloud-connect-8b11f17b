@@ -45,20 +45,27 @@ interface EventCardProps {
 // "Feria", "Jornada") que si no, caen siempre al fallback neutro sin icono.
 // Solo hay 5 tokens de marca (brand, miel, terracota, salvia, ciruela) para 7
 // tipos de evento: salvia y ciruela se reutilizan una vez cada una.
-const EVENT_COVER: Record<string, { bg: string; Icon: LucideIcon }> = {
-  webinar: { bg: 'bg-salvia', Icon: Video },
-  conferencia: { bg: 'bg-ciruela', Icon: Users },
-  congreso: { bg: 'bg-terracota', Icon: Landmark },
-  workshop: { bg: 'bg-brand', Icon: Wrench },
-  jornada: { bg: 'bg-miel', Icon: GraduationCap },
-  feria: { bg: 'bg-salvia', Icon: ShoppingBag },
-  curso: { bg: 'bg-ciruela', Icon: BookOpen },
+// `onSolid`: tinta sobre brand y miel (el blanco no contrasta — regla del
+// DESIGN.md), blanco sobre salvia/terracota/ciruela.
+const EVENT_COVER: Record<string, { bg: string; onSolid: string; Icon: LucideIcon }> = {
+  webinar: { bg: 'bg-salvia', onSolid: 'text-white', Icon: Video },
+  conferencia: { bg: 'bg-ciruela', onSolid: 'text-white', Icon: Users },
+  congreso: { bg: 'bg-terracota', onSolid: 'text-white', Icon: Landmark },
+  workshop: { bg: 'bg-brand', onSolid: 'text-foreground', Icon: Wrench },
+  jornada: { bg: 'bg-miel', onSolid: 'text-foreground', Icon: GraduationCap },
+  feria: { bg: 'bg-salvia', onSolid: 'text-white', Icon: ShoppingBag },
+  curso: { bg: 'bg-ciruela', onSolid: 'text-white', Icon: BookOpen },
 };
 
 export const EventCard = ({ event, index }: EventCardProps) => {
   const [imgError, setImgError] = useState(false);
   const normalizedType = event.event_type?.toLowerCase().trim();
-  const cover = EVENT_COVER[normalizedType] || { bg: 'bg-muted', Icon: Calendar };
+  const cover = EVENT_COVER[normalizedType] || {
+    bg: 'bg-muted',
+    onSolid: 'text-muted-foreground',
+    Icon: Calendar,
+  };
+  const featured = index === 0;
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -92,21 +99,28 @@ export const EventCard = ({ event, index }: EventCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: Math.min(index, 8) * 0.1 }}
     >
-      <Card className="h-full transition-all hover:shadow-lift group">
+      <Card
+        className={`group h-full overflow-hidden border-border shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift ${
+          featured ? 'bg-gradient-to-br from-terracota-soft to-card' : ''
+        }`}
+      >
         <div className="relative h-44 overflow-hidden rounded-t-lg">
           {event.image_url && !imgError ? (
-            <img
-              src={event.image_url}
-              alt={event.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={() => setImgError(true)}
-            />
+            <>
+              <img
+                src={event.image_url}
+                alt={event.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                onError={() => setImgError(true)}
+              />
+              {/* Velo solo sobre foto real: las portadas de color ya contrastan. */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-foreground/25 to-transparent" />
+            </>
           ) : (
             <div className={`w-full h-full ${cover.bg} flex items-center justify-center`}>
-              <cover.Icon className="h-14 w-14 text-primary-foreground/90" strokeWidth={1.5} />
+              <cover.Icon className={`h-14 w-14 ${cover.onSolid}`} strokeWidth={1.5} />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
           <div className="absolute top-3 left-3 space-y-2">
             {event.is_featured && (
               <Badge className="rounded-full bg-miel-soft px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-foreground shadow-soft">

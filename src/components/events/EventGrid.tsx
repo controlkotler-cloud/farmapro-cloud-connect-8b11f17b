@@ -29,8 +29,8 @@ export const EventGrid = ({ events, loading, selectedType }: EventGridProps) => 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <div className="h-48 rounded-t-lg bg-muted"></div>
+          <Card key={i} className="animate-pulse overflow-hidden border-border shadow-soft">
+            <div className="h-44 rounded-t-lg bg-muted"></div>
             <CardContent className="p-6">
               <div className="h-4 rounded bg-muted mb-2"></div>
               <div className="h-3 rounded bg-muted"></div>
@@ -43,7 +43,7 @@ export const EventGrid = ({ events, loading, selectedType }: EventGridProps) => 
 
   if (events.length === 0) {
     return (
-      <Card className="text-center py-12 shadow-sm">
+      <Card className="border-border py-12 text-center shadow-soft">
         <CardContent>
           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">Todavía no hay eventos</h3>
