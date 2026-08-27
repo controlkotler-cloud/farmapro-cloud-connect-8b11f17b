@@ -1,14 +1,21 @@
 // =====================================================================
-// send-portal-email: envía un email transaccional del portal farmapro
-// vía la API transaccional de Mailrelay (POST /send_emails).
+// send-portal-email: encola un email transaccional del portal farmapro
+// en la cola `transactional_emails`, que despacha `process-email-queue`
+// contra la API transaccional de Lovable.
 //
 // - Entrada: { template, to, data?, meta? }.
-// - From: "Equipo farmapro <somos@farmapro.es>" (dominio ya autenticado).
-// - Reintenta 1 vez si falla la llamada HTTP o la respuesta no es 2xx.
-// - Deja registro en public.portal_email_log (ok|error).
+// - From: "Portal farmapro <noreply@notify.portal.farmapro.es>"
+//   (mismo remitente y dominio que los correos de autenticación).
+// - No envía de forma síncrona: ENCOLA. El despachador (cron cada 5 s) se
+//   encarga del envío real, del rate limit 429, de hasta 5 reintentos y
+//   de la cola de mensajes muertos.
+// - Deja registro en public.portal_email_log (ok = encolado | error).
 // - verify_jwt = true y, además, solo se aceptan llamadas con service role
 //   (otras edges y la BD vía pg_net). Nunca se invoca desde el cliente.
-
+//
+// Histórico: hasta el 27-08-2026 esta función enviaba por la API de un
+// proveedor externo. Se migró a la infraestructura de cola propia del
+// portal, que ya despachaba los correos de autenticación.
 // =====================================================================
 
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
@@ -24,12 +31,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const FROM_EMAIL = 'somos@farmapro.es';
-const FROM_NAME = 'Equipo farmapro';
+// Mismo remitente que auth-email-hook: dominio verificado en la API de Lovable.
+const SITE_NAME = 'Portal farmapro';
+const FROM_DOMAIN = 'notify.portal.farmapro.es';
+const SENDER_DOMAIN = 'notify.portal.farmapro.es';
+const FROM = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`;
 
-// Mailrelay está calentando el remitente: ~500 envíos/día sin ráfagas.
-// Subir este tope cuando termine el periodo de calentamiento.
-const DAILY_CAP = 450;
+const QUEUE_NAME = 'transactional_emails';
+
+// Salvaguarda anti-bucle, no un límite de proveedor: el volumen real del
+// portal son decenas de correos al mes. Si algún día se superan, es que algo
+// está disparando envíos en bucle y conviene que se corte solo.
+const DAILY_CAP = 2000;
 
 const VALID_TEMPLATES: PortalTemplateName[] = [
   'bienvenida',
@@ -84,7 +97,6 @@ serve(async (req) => {
 
   let body: SendBody;
   try {
-
     body = await req.json();
   } catch {
     return json({ error: 'Invalid JSON body' }, 400);
@@ -99,20 +111,9 @@ serve(async (req) => {
     return json({ error: 'Invalid "to" email' }, 400);
   }
 
-  const mailrelayBase = Deno.env.get('MAILRELAY_API_BASE') ?? '';
-  const mailrelayKey = Deno.env.get('MAILRELAY_API_KEY') ?? '';
-  if (!mailrelayBase || !mailrelayKey) {
-    log('missing Mailrelay secrets');
-    await logResult(supabase, {
-      template, recipient: to, subject: null, status: 'error',
-      mailrelayId: null, error: 'MAILRELAY secrets not configured', attempts: 0, meta,
-    });
-    return json({ error: 'MAILRELAY secrets not configured' }, 500);
-  }
-
   const toLower = to.toLowerCase();
 
-  // A1. Lista de supresión: nunca enviamos a direcciones suprimidas.
+  // A1. Lista de supresión: nunca encolamos hacia direcciones suprimidas.
   const { data: suppressed } = await supabase
     .from('suppressed_emails')
     .select('reason')
@@ -123,12 +124,12 @@ serve(async (req) => {
     log('suppressed recipient', { to: toLower, reason: suppressed.reason });
     await logResult(supabase, {
       template, recipient: to, subject: null, status: 'error',
-      mailrelayId: null, error: `suppressed: ${suppressed.reason ?? 'unknown'}`, attempts: 0, meta,
+      messageId: null, error: `suppressed: ${suppressed.reason ?? 'unknown'}`, attempts: 0, meta,
     });
     return json({ ok: false, suppressed: true }, 200);
   }
 
-  // A4. Tope diario de calentamiento del remitente.
+  // A2. Salvaguarda diaria (ver nota en DAILY_CAP).
   const startOfDay = new Date();
   startOfDay.setUTCHours(0, 0, 0, 0);
   const { count: sentToday } = await supabase
@@ -141,75 +142,42 @@ serve(async (req) => {
     log('daily cap reached', { sentToday });
     await logResult(supabase, {
       template, recipient: to, subject: null, status: 'error',
-      mailrelayId: null, error: 'daily_cap_reached', attempts: 0, meta,
+      messageId: null, error: 'daily_cap_reached', attempts: 0, meta,
     });
     return json({ ok: false, deferred: true }, 200);
   }
 
   const rendered = renderPortalTemplate(template, data ?? {});
 
-  const payload = {
-    from: { email: FROM_EMAIL, name: FROM_NAME },
-    to: [{ email: to }],
-    subject: rendered.subject,
-    html_part: rendered.html,
-    text_part: rendered.text,
-  };
+  // A3. Encolar. El despachador `process-email-queue` (cron cada 5 s) hace el
+  // envío real: gestiona el 429 con enfriamiento, reintenta hasta 5 veces y
+  // mueve a `transactional_emails_dlq` lo que no sale. Aquí no reintentamos:
+  // duplicaría mensajes en la cola.
+  const messageId = crypto.randomUUID();
+  const runId = crypto.randomUUID();
 
-  let attempt = 0;
-  let lastError = '';
-  let mailrelayId: string | null = null;
-  let ok = false;
+  const { error: enqueueError } = await supabase.rpc('enqueue_email', {
+    queue_name: QUEUE_NAME,
+    payload: {
+      run_id: runId,
+      message_id: messageId,
+      to,
+      from: FROM,
+      sender_domain: SENDER_DOMAIN,
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+      purpose: 'transactional',
+      label: template,
+      queued_at: new Date().toISOString(),
+    },
+  });
 
-  let retryable = true;
-
-  while (attempt < 2 && !ok && retryable) {
-    attempt += 1;
-    if (attempt > 1) await new Promise((r) => setTimeout(r, 1000));
-    try {
-      const res = await fetch(`${mailrelayBase.replace(/\/+$/, '')}/send_emails`, {
-        method: 'POST',
-        headers: {
-          'X-AUTH-TOKEN': mailrelayKey,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const text = await res.text();
-      if (!res.ok) {
-        lastError = `HTTP ${res.status}: ${text.slice(0, 500)}`;
-        log('mailrelay non-2xx', { attempt, status: res.status, body: text.slice(0, 300) });
-
-        // A2. Rebote duro: suprimimos la dirección para no volver a golpearla.
-        if (res.status === 422 && /bounced/i.test(text)) {
-          const { error: supErr } = await supabase.from('suppressed_emails').insert({
-            email: toLower,
-            reason: 'hard_bounce',
-            metadata: { template, mailrelay_response: text.slice(0, 300) },
-          });
-          if (supErr) log('suppression insert ignored', { err: supErr.message });
-        }
-
-        // A3. Solo reintentamos ante errores de servidor.
-        retryable = res.status >= 500;
-      } else {
-        // Mailrelay suele responder { data: { id: ... } } o similar; guardamos lo que venga.
-        try {
-          const parsed = JSON.parse(text);
-          mailrelayId = String(
-            parsed?.data?.id ?? parsed?.id ?? parsed?.message_id ?? parsed?.data?.message_id ?? '',
-          ) || null;
-        } catch { /* respuesta no-JSON, ignorar */ }
-        ok = true;
-        log('sent', { template, to, attempt, mailrelayId });
-      }
-    } catch (err) {
-      lastError = (err as Error).message;
-      retryable = true;
-      log('mailrelay exception', { attempt, err: lastError });
-    }
+  const ok = !enqueueError;
+  if (ok) {
+    log('queued', { template, to, messageId });
+  } else {
+    log('enqueue failed', { template, to, err: enqueueError.message });
   }
 
   await logResult(supabase, {
@@ -217,13 +185,13 @@ serve(async (req) => {
     recipient: to,
     subject: rendered.subject,
     status: ok ? 'ok' : 'error',
-    mailrelayId,
-    error: ok ? null : lastError,
-    attempts: attempt,
+    messageId: ok ? messageId : null,
+    error: ok ? null : enqueueError.message,
+    attempts: 1,
     meta,
   });
 
-  // A5. Confirmamos el aviso de fin de prueba solo si el envío ha ido bien.
+  // A4. Confirmamos el aviso de fin de prueba solo si el mensaje quedó encolado.
   if (ok && (meta as Record<string, unknown> | undefined)?.trigger === 'notify_trial_ending') {
     const m = meta as Record<string, unknown>;
     const { error: noticeErr } = await supabase
@@ -236,8 +204,8 @@ serve(async (req) => {
 
   return json(
     ok
-      ? { ok: true, mailrelay_id: mailrelayId, attempts: attempt }
-      : { ok: false, error: lastError, attempts: attempt },
+      ? { ok: true, queued: true, message_id: messageId }
+      : { ok: false, error: enqueueError.message },
     ok ? 200 : 502,
   );
 });
@@ -249,7 +217,7 @@ async function logResult(
     recipient: string;
     subject: string | null;
     status: 'ok' | 'error';
-    mailrelayId: string | null;
+    messageId: string | null;
     error: string | null;
     attempts: number;
     meta?: Record<string, unknown>;
@@ -261,7 +229,7 @@ async function logResult(
       recipient: row.recipient,
       subject: row.subject,
       status: row.status,
-      mailrelay_id: row.mailrelayId,
+      message_id: row.messageId,
       error: row.error,
       attempts: row.attempts,
       meta: row.meta ?? null,

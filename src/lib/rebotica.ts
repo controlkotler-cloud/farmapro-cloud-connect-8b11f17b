@@ -112,7 +112,7 @@ export interface ReboticaContext {
   campaign?: string;
   /** Cajón preseleccionado desde el email (`?cajon=`), 1..REBOTICA_DRAWER_COUNT. */
   cajon?: number;
-  /** Email de atribución (`?e={{email}}` en Mailrelay). */
+  /** Email de atribución (`?e={{email}}` en el enlace del correo). */
   email?: string;
 }
 

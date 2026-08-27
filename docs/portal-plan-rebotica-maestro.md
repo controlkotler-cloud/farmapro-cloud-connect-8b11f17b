@@ -2,7 +2,7 @@
 
 > Lanzamiento del portal farmapro con la Rebotica como pieza central.
 > Escrito 2026-07-08 (Cowork) tras validación de concepto con Francesc.
-> Decisiones de partida: **lanzamiento septiembre** · **500 € de capa memorable** · **jerarquía de ejecución SQL → código directo → Lovable (último recurso, solo edge functions/secrets)** · **Email: MAILRELAY para todo el masivo (GO LIMPIO 10-07; sustituye al "Clientify cañón" original — Clientify solo envía ya N24/C5 y queda como CRM)**.
+> Decisiones de partida: **lanzamiento septiembre** · **500 € de capa memorable** · **jerarquía de ejecución SQL → código directo → Lovable (último recurso, solo edge functions/secrets)** · **Email masivo: plataforma de email masivo de farmapro (GO LIMPIO 10-07; sustituye al "Clientify cañón" original — Clientify solo envía ya N24/C5 y queda como CRM; detalle en `impulso/CLAUDE.md`). El transaccional del portal es aparte y va por §8 (superado 27-08-2026).**
 > Contexto completo: `impulso/memory/project_rebotica_portal.md` · Dossier: `dossier-partner-rebotica/`.
 
 ---
@@ -58,7 +58,7 @@ Una sola tanda a Lovable con TODO lo de backend (es lo único que no podemos hac
 
 1. **Edge `open-reward`**: valida sesión + campaña activa + no abierto ya (idempotente) → sorteo ponderado por `peso` **SOLO entre premios con peso > 0** (los de peso 0 son de calendario: baúl/Gordo, los sortea el cron) con decremento atómico de `stock_restante` (patrón `consume_image_credit`) → inserta `opening` con `expires_at` → devuelve premio. Si el usuario llega con `?e=` sin cuenta, responde 401 con redirect a registro conservando la elección de cajón en query.
 2. **Edge `redeem-reward`**: marca canje, dispara template email correspondiente y, si el premio es de partner, exige el check `partner_optin` y lo escribe en `consent_ledger`.
-3. **Cron diario**: activa/cierra campañas, avisa premios a 48h de caducar, y **SORTEOS DE CALENDARIO (v4, 13-07)**: baúl 1/MES (último día de mes, entre las aperturas del mes) y Gordo 1/TRIMESTRE (30-11, entre toda la temporada, excluidos ganadores de baúl; nadie gana 2 baúles/temporada). Adjudicaciones en `rebotica_calendar_draws` (tanda SQL 3, pendiente). Emails por `send-portal-email` (Mailrelay).
+3. **Cron diario**: activa/cierra campañas, avisa premios a 48h de caducar, y **SORTEOS DE CALENDARIO (v4, 13-07)**: baúl 1/MES (último día de mes, entre las aperturas del mes) y Gordo 1/TRIMESTRE (30-11, entre toda la temporada, excluidos ganadores de baúl; nadie gana 2 baúles/temporada). Adjudicaciones en `rebotica_calendar_draws` (tanda SQL 3, pendiente). Emails por `send-portal-email` (cola `transactional_emails` + API transaccional de Lovable).
 4. **Templates nuevos** en el registry (premio ganado, premio a punto de caducar, baúl ganador, Gordo ganador — sobrio, pide móvil por respuesta para la llamada de Alejandro, sin guardarlo en BD —, aviso interno a alejandro+control por cada adjudicación de calendario).
 5. Escritura de `consent_ledger` en el registro (hook en `handle_new_user` puede ser SQL puro: valorar antes de dárselo a Lovable).
 
@@ -155,7 +155,7 @@ Justificación de precio: cada quincena pone la marca ante ~2.400 lectores verif
 
 ### 6.1 · Ritmo de valor mensual (anti-churn, decidido 08-07)
 
-Para que nadie tenga motivo de baja, cada mes hay **"Estreno del mes"** garantizado y visible: 1 curso o masterclass nuevo + 2-4 recursos nuevos + 1 reto o evento (el calendario de eventos de 12 meses ya existe) + créditos IAFarma renovados + 2 cajones de la Rebotica. La cadencia coincide con la ya decidida en el plan de 30 días (2-4 recursos y 1-2 cursos/mes). Dos piezas de retención con timing quirúrgico: **email "lo que llega el mes que viene"** enviado unos días ANTES de cada renovación (automatizable vía Mailrelay/cron cuando esté la prueba) y **Cajón de Aniversario** en el momento de renovar. En el portal, sección/bloque "Nuevo este mes".
+Para que nadie tenga motivo de baja, cada mes hay **"Estreno del mes"** garantizado y visible: 1 curso o masterclass nuevo + 2-4 recursos nuevos + 1 reto o evento (el calendario de eventos de 12 meses ya existe) + créditos IAFarma renovados + 2 cajones de la Rebotica. La cadencia coincide con la ya decidida en el plan de 30 días (2-4 recursos y 1-2 cursos/mes). Dos piezas de retención con timing quirúrgico: **email "lo que llega el mes que viene"** enviado unos días ANTES de cada renovación (automatizable vía cron + `send-portal-email`, cola `transactional_emails` + API de Lovable) y **Cajón de Aniversario** en el momento de renovar. En el portal, sección/bloque "Nuevo este mes".
 
 ### 6.2 · Retos y Rebotica: UNIDOS, en dos tiempos (aclarado 08-07)
 
@@ -177,13 +177,11 @@ No son sistemas separados: los retos alimentan la Rebotica. **Tiempo 1 (lanzamie
 
 Regla de ejecución permanente: **1º SQL (F) · 2º código directo en repo (CW/CC) · 3º Lovable solo edge functions/secrets/storage, agrupado en el mínimo de prompts** (gasta créditos; lo demás no).
 
-## 8 · Capa de email: Mailrelay favorito (actualizado 08-07; prueba pendiente, calendario adelantable)
+## 8 · Capa de email del portal (transaccional)
 
-Hallazgo que cambia el plan original: la API de Clientify no permite crear campañas ni automatizaciones (todo manual para siempre), mientras que **Mailrelay** (propuesto por Francesc) tiene **API completa verificada** (campañas + envío + test, suscriptores con upsert, grupos, stats por suscriptor para calcular no-abridores y montar el RE, A/B tests, webhooks, transaccional, SMS/WhatsApp) y **plan gratuito de 80.000 emails/mes + 20.000 contactos** (nuestro volumen cabe 4 veces, a 0 €). Empresa española, soporte en castellano. Sin conector Claude, pero con API key lo operan Claude Code y las edge functions directamente: la automatización vive en nuestro Supabase.
+**Superado el 27-08-2026:** el portal ya no usa el proveedor de email masivo externo para el transaccional. El envío lo hace `send-portal-email`, que encola en la cola `transactional_emails` (pgmq); el despachador `process-email-queue` (cron cada 5 s) hace el envío real contra la API transaccional de Lovable (`sendLovableEmail`, paquete `@lovable.dev/email-js`) — la misma infraestructura que ya usaban los correos de autenticación (`auth-email-hook`). Remitente: `Portal farmapro <noreply@notify.portal.farmapro.es>`. Ventajas: coste 0, sin add-on de pago, rate limit 429 gestionado, 5 reintentos y cola de mensajes muertos. La columna de log que guardaba el id del proveedor anterior se renombró a `message_id`.
 
-Secuencia si la prueba pasa: cuenta + dominio + API key (Francesc) → simulacro end-to-end (Claude Code) → import de activos + calentamiento con A/B parcial en N25/N26 (agosto) → **temporada Rebotica entera sobre Mailrelay desde el D-day** → Clientify queda solo como CRM. Detalle y checklist en la ficha de memoria. MailerLite/Brevo quedan como plan B documentado.
-
-**Simulacro end-to-end HECHO (09-07) y RE-PROBADO (10-07, Claude Code): GO LIMPIO, sin bloqueantes.** El merge tag correcto es `{{ subscriber.email }}` (ni `{email}` ni `{{email}}`), `use_premailer:false` obligatorio, wrapper 680px y footer `{{unsubscribe_url}}` ya integrados en `impulso/01-newsletters/_partials/BASE-email-inline.html` (verificado con envío real, voto 1-clic resuelto). Detalle completo en `impulso/memory/project_rebotica_portal.md`.
+El email masivo de farmapro (Impulso/Comercial/Rebotica) sigue en su plataforma propia, documentada en `impulso/CLAUDE.md`; esta sección cubre solo el transaccional del portal, que ya no depende de ella.
 
 ## 9 · Riesgos y colchones
 
@@ -195,7 +193,7 @@ Secuencia si la prueba pasa: cuenta + dominio + API key (Francesc) → simulacro
 | Partners no llegan al D-day | El lanzamiento no depende de ellos: cajón nº 1 es 100% farmapro; el patrocinado entra el 24-09 |
 | Fatiga de la mecánica | Cadencia quincenal estricta + pool renovado + fase 2 escalonada |
 | Contador fundador vs realidad | Contador real desde 20 altas (ya implementado así) |
-| Entregabilidad del D-day | **Mailrelay** con dominio autenticado desde el 09-07 (SPF/DKIM/DMARC verdes) + calentamiento real con N25/N26 en agosto + RE probado; el D-day NO estrena dominio |
+| Entregabilidad del D-day | Masivo de la Rebotica por la plataforma de email masivo de farmapro, con dominio autenticado desde el 09-07 (SPF/DKIM/DMARC verdes) + calentamiento real con N25/N26 en agosto + RE probado, el D-day NO estrena dominio; el transaccional del portal (premios, canjes) va aparte por la cola `transactional_emails` + API de Lovable |
 
 ## 10 · Presupuesto (capa memorable: tope 500 €)
 
@@ -230,13 +228,13 @@ Paquetes instalables en Cowork: `herramientas/skills-rebotica/*.skill` (botón "
 ### TABLERO · qué queda y quién (actualizado 08-07 noche)
 
 **Francesc (su lista personal, en orden):**
-1. Cuenta gratuita de Mailrelay + verificar dominio remitente (DNS) + generar API key → desbloquea la prueba.
+1. ~~Cuenta gratuita del proveedor de email masivo + verificar dominio remitente (DNS) + generar API key → desbloquea la prueba.~~ **Superado 27-08-2026**: el transaccional del portal ya no depende de ese proveedor (ver §8); el masivo de farmapro sigue en su plataforma propia (`impulso/CLAUDE.md`).
 2. PDF del dossier (abrir HTML → Cmd+P) → desbloquea el outreach.
 3. Pasar los logos (farmapro, Apotheka, eOnbox) para la demo + decidir cajón físico personalizado vs genérico.
 4. ~~Ejecutar SQL tanda 1~~ **HECHO (09-07)** — verificado en vivo contra `jeysistgdajopfruqpbc.supabase.co` vía PostgREST: 5 tablas responden 200/[] (RLS activa), las 2 vistas responden 401 permission denied a anon (grant restringido a authenticated tal cual la migración).
 
 **Sesiones de Claude (cada una = un objetivo, con su skill):**
-- Prueba Mailrelay end-to-end (Claude Code, cuando haya API key) → si pasa, migración + automatizaciones (RE, "mes que viene", sync consentimientos) son cron + API, no trabajo manual.
+- ~~Prueba del proveedor de email masivo end-to-end (Claude Code, cuando haya API key) → si pasa, migración + automatizaciones...~~ **Superado 27-08-2026**: el transaccional del portal quedó resuelto por la cola `transactional_emails` + API de Lovable (ver §8); las automatizaciones (RE, "mes que viene", sync consentimientos) van por cron + esa misma vía.
 - SQL tanda 1 + UI cajonera + landing de lanzamiento (skill rebotica-tecnica).
 - Contenido por tandas con antelación: píldoras, reto 21 días, emails de campaña, posts (skills rebotica-contenido y rebotica-quincena, ejecutables con Sonnet).
 - Cargar hitos en Google Calendar "02. farmapro contenidos" al validar Francesc el conjunto.

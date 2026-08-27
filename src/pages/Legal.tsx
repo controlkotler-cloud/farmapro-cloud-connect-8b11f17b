@@ -253,7 +253,7 @@ export const AvisoLegal = () => (
 // ---------------------------------------------------------------------------
 // Política de privacidad — mismo responsable y misma base legal que direct,
 // pero con los tratamientos REALES del portal (cuenta, consentimientos con
-// fecha/versión, Stripe, Mailrelay, Rebotica, ARCO+).
+// fecha/versión, Stripe, correo transaccional, Rebotica, ARCO+).
 // ---------------------------------------------------------------------------
 export const PoliticaPrivacidad = () => (
   <LegalShell
@@ -300,8 +300,8 @@ export const PoliticaPrivacidad = () => (
     <P>
       Usamos tu email para enviarte las comunicaciones necesarias para el servicio (confirmación de cuenta,
       avisos, invitaciones de equipo) y, solo si diste tu consentimiento comercial, la newsletter y
-      comunicaciones del sector. El envío técnico de estos correos lo realiza Mailrelay (CIPSA / iPZ Marketing)
-      como encargado del tratamiento, por cuenta y siguiendo instrucciones de MKPRO.
+      comunicaciones del sector. El envío técnico de estos correos lo realiza el mismo proveedor que aloja el
+      Portal, como encargado del tratamiento, por cuenta y siguiendo instrucciones de MKPRO.
     </P>
     <H3>La Rebotica</H3>
     <P>
@@ -373,10 +373,10 @@ export const PoliticaPrivacidad = () => (
     <P>
       <strong className="font-semibold text-foreground">Proveedores que nos prestan servicio (encargados del tratamiento).</strong>{' '}
       Actúan siguiendo nuestras instrucciones y con contrato de encargo firmado: el proveedor que aloja el
-      Portal y su base de datos, Stripe para el cobro de las suscripciones, Holded para la emisión de facturas,
-      Mailrelay (CIPSA / iPZ Marketing) para el envío de correo, y la pasarela de inteligencia artificial que
-      procesa las consultas que haces a IAFarma y al asistente del Portal. Las consultas a los asistentes de IA
-      no se utilizan para entrenar modelos.
+      Portal, su base de datos y el envío de sus correos, Stripe para el cobro de las suscripciones, Holded
+      para la emisión de facturas, y la pasarela de inteligencia artificial que procesa las consultas que
+      haces a IAFarma y al asistente del Portal. Las consultas a los asistentes de IA no se utilizan para
+      entrenar modelos.
     </P>
     <P>
       <strong className="font-semibold text-foreground">Partners de promociones.</strong> Solo cuando tú lo autorizas

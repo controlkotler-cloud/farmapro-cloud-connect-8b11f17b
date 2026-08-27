@@ -1662,7 +1662,7 @@ export type Database = {
           created_at: string
           error: string | null
           id: string
-          mailrelay_id: string | null
+          message_id: string | null
           meta: Json | null
           recipient: string
           status: string
@@ -1674,7 +1674,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
-          mailrelay_id?: string | null
+          message_id?: string | null
           meta?: Json | null
           recipient: string
           status: string
@@ -1686,7 +1686,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
-          mailrelay_id?: string | null
+          message_id?: string | null
           meta?: Json | null
           recipient?: string
           status?: string

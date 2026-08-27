@@ -17,20 +17,19 @@
 | Modelo | Cuándo | Por qué |
 |---|---|---|
 | **Sonnet 5 + skill** | TODO lo tandeable: SQL ya especificada, UI con spec, píldoras, emails, posts, informes, quincenas | Las skills llevan el conocimiento; el modelo solo ejecuta. Rápido y barato |
-| **Opus 4.8 / Fable 5** | Primeras veces con decisión: prueba Mailrelay (go/no-go), cambios de spec, problemas raros de deploy | Criterio y diagnóstico valen más que velocidad |
+| **Opus 4.8 / Fable 5** | Primeras veces con decisión: pruebas de proveedor externo (go/no-go), cambios de spec, problemas raros de deploy | Criterio y diagnóstico valen más que velocidad |
 
 **Dónde:**
 
 | | Cowork | Claude Code |
 |---|---|---|
 | Redacción (emails, píldoras, posts, informes), UI en código, navegador, Google Calendar, organización | ✓ | |
-| Prueba y operación de Mailrelay (API), git pull/push, PDFs (Chrome headless), MCP Clientify, scripts locales | | ✓ |
+| Pruebas de proveedores externos (API), git pull/push, PDFs (Chrome headless), MCP Clientify, scripts locales | | ✓ |
 
 ## 2 · Las sesiones, una a una (prompt literal para copiar)
 
-### A · Prueba Mailrelay (Claude Code · Opus/Fable · SIN skill, va por ficha)
-Prerequisito TUYO: cuenta gratuita en mailrelay.com + verificar dominio remitente (te dará registros DNS, como hicimos con Clientify) + generar API key (Configuración → API).
-> "Lee el CLAUDE.md raíz y la ficha de la Rebotica (sección Mailrelay). Prueba end-to-end según el plan §8 con esta API key: [KEY] y cuenta [subdominio]. Grupo de prueba, 20 contactos con sync, campaña con nuestro HTML real de N22, send_test a control@mkpro.es, lee stats, prueba un webhook. Informe go/no-go y deja el estado escrito."
+### A · Prueba del proveedor de email transaccional (Claude Code · Opus/Fable · SIN skill, va por ficha)
+**Superado el 27-08-2026:** esta sesión describía la prueba end-to-end del proveedor de email masivo externo para el transaccional del portal. Ya no aplica: el transaccional va por `send-portal-email` → cola `transactional_emails` (pgmq) → despachador `process-email-queue` → API transaccional de Lovable, la misma infraestructura que ya usaban los correos de autenticación. Detalle en `portal-plan-rebotica-maestro.md` §8.
 
 ### B · SQL tanda 1 (Cowork o Code · Sonnet 5 · skill rebotica-tecnica)
 > "Tanda SQL de la Rebotica: prepara la tanda 1 completa (esquema §2.1 del plan + consent_ledger + vista v_rebotica_dashboard), idempotente, en un solo fichero listo para que yo lo ejecute en el SQL editor."
@@ -67,13 +66,13 @@ Materiales listos: dossier PDF (te falta el Cmd+P), demo eOnbox, plantillas en `
 
 | Día | Tú (poco y crítico) | Claude/Lovable (en paralelo) |
 |---|---|---|
-| Jue 9 - Vie 10 | Cuenta Mailrelay + DNS + API key (20 min) · PDF dossier Cmd+P (5 min) · logo Apotheka si lo tienes | Sesión B (SQL tanda 1) lista para ti |
-| Vie 10 - Lun 13 | Ejecutar SQL tanda 1 (10 min) | Sesión A (prueba Mailrelay) · Sesión C (UI + landing) |
+| Jue 9 - Vie 10 | Cuenta del proveedor externo + DNS + API key (20 min) · PDF dossier Cmd+P (5 min) · logo Apotheka si lo tienes | Sesión B (SQL tanda 1) lista para ti |
+| Vie 10 - Lun 13 | Ejecutar SQL tanda 1 (10 min) | Sesión A (prueba del proveedor externo) · Sesión C (UI + landing) |
 | Lun 13 - Mar 14 | OK al prompt Lovable backend (5 min) | Sesión D enviada + verificada · Sesión E preparada |
 | Mar 14 - Mié 15 | OK al prompt Stripe + **pago test** (15 min) | Sesión F tanda 1 (píldoras + emails borrador) |
 | Mié 15 - Jue 16 | Prueba tú mismo el flujo: email test → cajón → registro → premio (10 min) · email al equipo (ya redactado) | Cierre: estado escrito + calendario Google actualizado |
 
-Si algo se cae del sprint, que sea contenido (se recupera en agosto), nunca: Mailrelay key, SQL, Stripe test. Eso solo puedes tú.
+Si algo se cae del sprint, que sea contenido (se recupera en agosto), nunca: la API key del proveedor externo, SQL, Stripe test. Eso solo puedes tú.
 
 ## 4 · Mientras estás fuera (17-07 → 10-08)
 

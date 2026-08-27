@@ -27,7 +27,7 @@ Existía un esqueleto de marzo: tablas `team_subscriptions` (max_members default
 1. **Nada creaba el equipo al pagar**: el webhook (prompt nº 1 v3) asignaba rol al titular pero no insertaba `team_subscriptions` → `isTeamOwner` siempre false → la gestión no aparecía nunca. FIX: `ensure_team_subscription()` (tanda 4) + webhook la llama (prompt v4).
 2. **Aceptar la invitación estaba roto**: `/invitation` no envía `team_id` y `validate_team_invitation` lo exigía → error siempre. FIX: v2 de la RPC solo con token + email (tanda 4) + manage-team adaptado (prompt v4).
 3. **`check-subscription` en modo real degradaría a los miembros a Gratis** (no tienen Stripe propio; solo protegía 'admin'). FIX: rama de membresía de equipo antes de degradar (prompt v4).
-4. **La invitación salía por Clientify** (`clientify-sync`, plataforma que ya no envía) y asignaba roles legacy. FIX: plantilla `equipo-invitacion` por `send-portal-email` (Mailrelay) y rol `equipo` al aceptar (prompt v4). `member_role` queda vestigial (comentario SQL en tanda 4).
+4. **La invitación salía por Clientify** (`clientify-sync`, plataforma que ya no envía) y asignaba roles legacy. FIX: plantilla `equipo-invitacion` por `send-portal-email` (cola `transactional_emails` + API transaccional de Lovable) y rol `equipo` al aceptar (prompt v4). `member_role` queda vestigial (comentario SQL en tanda 4).
 5. **Cupo solo en cliente** y `max_members` 5 ≠ pricing (10 personas). FIX: default 9 (titular aparte) + check server-side + índice único anti-duplicados (tanda 4 + prompt v4).
 6. **No existía ninguna vista de progreso del equipo.** FIX: RPC `get_team_progress()` (tanda 4) + bloque de UI (§5).
 
@@ -46,7 +46,7 @@ Además, la cancelación no tenía cascada (titular deja de pagar → los 9 segu
 | Evento | Qué pasa |
 |---|---|
 | Titular compra Equipo en /precios | Stripe checkout (metadata `origen='portal'`, `plan='equipo'`) → webhook: rol `equipo` + fila `subscriptions` + **`ensure_team_subscription()`** → "Mi farmacia" aparece en su menú. |
-| Titular invita (email) | manage-team `invite_member`: valida titularidad + **cupo server-side** (plazas vivas < max_members) + inserta pendiente (caduca 14 días; índice único impide duplicar email vivo) + email `equipo-invitacion` por Mailrelay con `APP_URL/invitation?token=…`. |
+| Titular invita (email) | manage-team `invite_member`: valida titularidad + **cupo server-side** (plazas vivas < max_members) + inserta pendiente (caduca 14 días; índice único impide duplicar email vivo) + email `equipo-invitacion` (cola `transactional_emails` + API de Lovable) con `APP_URL/invitation?token=…`. |
 | Invitado acepta | `/invitation` → login o registro CON EL EMAIL INVITADO (el registro normal, con su doble check RGPD) → manage-team `accept_invitation`: `validate_team_invitation(token, email)` → plaza activa + `subscription_role='equipo'` → email `equipo-plaza-activada` al titular. Si el invitado ya tenía plan de pago propio, se le muestra el aviso de §4.3. |
 | Titular retira una plaza | manage-team `remove_member`: plaza `inactive` + perfil degradado a freemium (si tiene suscripción propia activa, `check-subscription` se la restaura). La plaza queda libre al instante. Se puede reinvitar más adelante (el índice único solo bloquea filas vivas). |
 | Titular deja de pagar / baja a Plus | webhook `customer.subscription.deleted/updated` → **`deactivate_team_for_owner()`**: equipo `canceled`, plazas `inactive`, miembros degradados (salvo admin o suscripción propia). El titular queda freemium (deleted) o plus (downgrade). |
@@ -71,7 +71,7 @@ Aplicar el canon `DESIGN.md` (Manrope, verde canónico, pill CTAs, un acento por
 - **Pantallas del miembro**: PlanTab variante "Plan Equipo — plaza de [farmacia]. La gestiona tu titular" (sin CTA de precios); pestaña Facturación OCULTA si es miembro sin `stripe_customer_id`; /precios con banner "Ya tienes acceso completo con el plan Equipo de tu farmacia" y sin botones de compra; `/invitation` con el texto de transparencia (§7) antes de aceptar.
 - **Limpieza**: borrar `SubscriptionPlans.tsx`, `TeamPlanCard.tsx` y `config/PlanConfig.ts` si nada más los usa (modelo viejo; el prompt v4 retira `create-team-checkout`).
 
-## 6 · Emails (registry de send-portal-email, Mailrelay)
+## 6 · Emails (registry de send-portal-email, cola `transactional_emails` + API transaccional de Lovable)
 
 | Plantilla | Destinatario | Contenido |
 |---|---|---|
@@ -90,7 +90,7 @@ Estilo casa: castellano de España, firma "El equipo de farmapro", farmapro en m
 ## 8 · Checklist de verificación E2E (tras prompt nº 1 v4 + UI)
 
 1. Pago test Equipo (4242) → fila en `subscriptions` + fila en `team_subscriptions` (max_members 9) + rol titular `equipo` + factura Holded del portal (y NINGUNA en direct).
-2. "Mi farmacia" visible para el titular; invitar un email → email de invitación llega por Mailrelay con URL de `APP_URL` (no supabase.co).
+2. "Mi farmacia" visible para el titular; invitar un email → email de invitación llega por la cola `transactional_emails` (API de Lovable) con URL de `APP_URL` (no supabase.co).
 3. Intentar invitar el mismo email otra vez → error claro (duplicado). Invitar hasta cupo → la plaza 10 (novena invitación) entra, la 11 se rechaza server-side.
 4. Aceptar invitación con cuenta nueva (email invitado) → rol `equipo`, acceso total, banner de transparencia visto; el titular recibe `equipo-plaza-activada`; "X de 10" sube.
 5. El miembro NO ve: Mi farmacia, Facturación, precios de compra; su PlanTab dice "plaza de [farmacia]".

@@ -7,7 +7,7 @@ Portal de formación, recursos, comunidad y empleo para profesionales de farmaci
 - **Frontend:** React 18 + Vite + TypeScript + Tailwind + shadcn/ui
 - **Backend:** Supabase (Postgres + RLS + Edge Functions en Deno)
 - **Pagos:** Stripe (planes individuales y de equipo)
-- **CRM:** Clientify (vía edge function `clientify-sync`, solo CRM) · **Email:** Mailrelay (masivo + transaccional del portal; la edge `send-portal-email` llega con el prompt Lovable nº 1 — la invitación de equipo ya sale por Mailrelay)
+- **CRM:** Clientify (vía edge function `clientify-sync`, solo CRM) · **Email transaccional del portal:** `send-portal-email` encola en la cola `transactional_emails` (pgmq); el despachador `process-email-queue` la envía por la API transaccional de Lovable
 - **Build/Deploy:** Lovable (auto-commit al repo conectado)
 
 ## Desarrollo
