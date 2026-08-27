@@ -165,11 +165,25 @@ serve(async (req) => {
   const idempotencyKey =
     (body as Record<string, unknown>)?.idempotency_key as string | undefined ?? messageId;
 
+  // La API tambien EXIGE `unsubscribe_token` en los correos con purpose 'transactional'
+  // (400 missing_unsubscribe si falta). Un token por direccion, reutilizable mientras no
+  // se haya usado; misma tabla y mismo patron que `send-transactional-email` de direct.
+  const unsubscribeToken = await obtenerUnsubscribeToken(supabase, toLower);
+  if (!unsubscribeToken) {
+    log('unsubscribe token failed', { to: toLower });
+    await logResult(supabase, {
+      template, recipient: to, subject: rendered.subject, status: 'error',
+      messageId: null, error: 'no se pudo obtener unsubscribe_token', attempts: 0, meta,
+    });
+    return json({ error: 'Could not resolve unsubscribe token' }, 500);
+  }
+
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
     queue_name: QUEUE_NAME,
     payload: {
       message_id: messageId,
       idempotency_key: idempotencyKey,
+      unsubscribe_token: unsubscribeToken,
       to,
       from: FROM,
       sender_domain: SENDER_DOMAIN,
@@ -218,6 +232,42 @@ serve(async (req) => {
     ok ? 200 : 502,
   );
 });
+
+// Devuelve el token de baja de esa direccion: reutiliza el que haya sin usar y, si no
+// hay, crea uno. El upsert con ignoreDuplicates absorbe las carreras entre dos envios
+// simultaneos al mismo destinatario (la tabla tiene unique en `email`).
+async function obtenerUnsubscribeToken(
+  supabase: ReturnType<typeof createClient>,
+  email: string,
+): Promise<string | null> {
+  const { data: existente } = await supabase
+    .from('email_unsubscribe_tokens')
+    .select('token, used_at')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (existente && !existente.used_at) return existente.token as string;
+
+  const nuevo = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+
+  const { error } = await supabase
+    .from('email_unsubscribe_tokens')
+    .upsert({ token: nuevo, email }, { onConflict: 'email', ignoreDuplicates: true });
+
+  if (error) {
+    log('unsubscribe token upsert failed', { err: error.message });
+    return null;
+  }
+
+  // Releemos: si otro proceso gano la carrera, el token bueno es el suyo.
+  const { data: guardado } = await supabase
+    .from('email_unsubscribe_tokens')
+    .select('token')
+    .eq('email', email)
+    .maybeSingle();
+
+  return (guardado?.token as string) ?? nuevo;
+}
 
 async function logResult(
   supabase: ReturnType<typeof createClient>,
