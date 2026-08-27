@@ -109,8 +109,8 @@ function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: bool
                   <td style="vertical-align:middle;">
                     <img src="https://farmapro.es/email-logo-farmapro.png" alt="farmapro" width="132" height="26" style="display:block;width:132px;height:26px;border:0;outline:none;">
                   </td>
-                  <td style="vertical-align:middle;padding-left:10px;">
-                    <span style="display:inline-block;border-left:1px solid #ecebe6;padding-left:10px;font-size:15px;font-weight:600;letter-spacing:-0.01em;color:#6b6f68;">Portal</span>
+                  <td style="vertical-align:middle;padding-left:4px;">
+                    <span style="display:inline-block;border-left:1px solid #ecebe6;padding-left:8px;font-size:15px;font-weight:600;letter-spacing:-0.01em;color:#6b6f68;">Portal</span>
                   </td>
                 </tr></table>
               </td>
