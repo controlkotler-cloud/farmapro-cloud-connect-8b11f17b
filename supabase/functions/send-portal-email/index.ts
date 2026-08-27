@@ -153,13 +153,16 @@ serve(async (req) => {
   // envío real: gestiona el 429 con enfriamiento, reintenta hasta 5 veces y
   // mueve a `transactional_emails_dlq` lo que no sale. Aquí no reintentamos:
   // duplicaría mensajes en la cola.
+  // OJO: NO se manda `run_id`. Ese campo identifica una ejecución real de la API de
+  // Lovable y solo lo tienen los correos de autenticación, que llegan por un webhook
+  // firmado (`auth-email-hook` lo saca del payload verificado). Inventar un UUID hace
+  // que la API responda 404 run_not_found y el correo no sale — comprobado el 27-08-2026.
+  // Los transaccionales genéricos van sin él, igual que `send-transactional-email` de direct.
   const messageId = crypto.randomUUID();
-  const runId = crypto.randomUUID();
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
     queue_name: QUEUE_NAME,
     payload: {
-      run_id: runId,
       message_id: messageId,
       to,
       from: FROM,
