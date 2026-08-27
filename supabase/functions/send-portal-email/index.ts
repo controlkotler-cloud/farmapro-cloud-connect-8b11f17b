@@ -64,6 +64,7 @@ const log = (step: string, details?: unknown) => {
 };
 
 interface SendBody {
+  idempotency_key?: string;
   template: PortalTemplateName;
   to: string;
   data?: PortalTemplateData;
@@ -153,17 +154,22 @@ serve(async (req) => {
   // envío real: gestiona el 429 con enfriamiento, reintenta hasta 5 veces y
   // mueve a `transactional_emails_dlq` lo que no sale. Aquí no reintentamos:
   // duplicaría mensajes en la cola.
-  // OJO: NO se manda `run_id`. Ese campo identifica una ejecución real de la API de
-  // Lovable y solo lo tienen los correos de autenticación, que llegan por un webhook
-  // firmado (`auth-email-hook` lo saca del payload verificado). Inventar un UUID hace
-  // que la API responda 404 run_not_found y el correo no sale — comprobado el 27-08-2026.
-  // Los transaccionales genéricos van sin él, igual que `send-transactional-email` de direct.
+  // La API de Lovable EXIGE `run_id` O `idempotency_key` (400 missing_parameter si
+  // faltan los dos). `run_id` identifica una ejecución real suya y solo lo tienen los
+  // correos de autenticación, que llegan por un webhook firmado (`auth-email-hook` lo
+  // saca del payload verificado): inventar un UUID da 404 run_not_found. Los
+  // transaccionales genéricos van con `idempotency_key`, igual que
+  // `send-transactional-email` de direct. Ambas cosas comprobadas con envíos reales
+  // el 27-08-2026 — no tocar sin volver a probar de punta a punta.
   const messageId = crypto.randomUUID();
+  const idempotencyKey =
+    (body as Record<string, unknown>)?.idempotency_key as string | undefined ?? messageId;
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
     queue_name: QUEUE_NAME,
     payload: {
       message_id: messageId,
+      idempotency_key: idempotencyKey,
       to,
       from: FROM,
       sender_domain: SENDER_DOMAIN,
