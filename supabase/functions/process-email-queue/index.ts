@@ -260,6 +260,9 @@ Deno.serve(async (req) => {
             text: payload.text,
             purpose: payload.purpose,
             label: payload.label,
+            // Opcional: si el que encola no lo pone (los correos de autenticacion no lo
+            // ponen), va undefined y la API lo ignora, igual que antes.
+            reply_to: payload.reply_to,
             idempotency_key: payload.idempotency_key,
             unsubscribe_token: payload.unsubscribe_token,
             message_id: payload.message_id,

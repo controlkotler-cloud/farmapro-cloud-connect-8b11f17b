@@ -36,6 +36,9 @@ const SITE_NAME = 'Portal farmapro';
 const FROM_DOMAIN = 'notify.portal.farmapro.es';
 const SENDER_DOMAIN = 'notify.portal.farmapro.es';
 const FROM = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`;
+// El cuerpo de varias plantillas invita a responder al correo, pero se envia desde
+// noreply@. Sin `reply_to` esa respuesta va a un buzon que no lee nadie.
+const REPLY_TO = 'somos@farmapro.es';
 
 const QUEUE_NAME = 'transactional_emails';
 
@@ -186,6 +189,7 @@ serve(async (req) => {
       unsubscribe_token: unsubscribeToken,
       to,
       from: FROM,
+      reply_to: REPLY_TO,
       sender_domain: SENDER_DOMAIN,
       subject: rendered.subject,
       html: rendered.html,

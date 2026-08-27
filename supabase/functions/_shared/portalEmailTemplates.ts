@@ -87,7 +87,7 @@ function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: bool
     ? ''
     : `<tr>
               <td style="padding:20px 32px 28px 32px;border-top:1px solid #ecebe6;font-size:11px;line-height:1.5;color:#6b6f68;">
-                Este correo se envía en relación con tu cuenta en el portal farmapro. Responsable del tratamiento: <strong>Mkpro Kotler SL</strong> (B99554446), somos@farmapro.es. Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad y limitación escribiendo a esa dirección. Más información en <a href="${APP_URL}/legal" style="color:#3a5f16;text-decoration:underline;">${APP_URL}/legal</a>.
+                Este correo se envía en relación con tu cuenta en el portal farmapro. Responsable del tratamiento: <strong>Mkpro Kotler SL</strong> (B99554446), somos@farmapro.es. Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad y limitación escribiendo a esa dirección. Más información en <a href="${APP_URL}/legal" style="color:#5F8F20;text-decoration:underline;">${APP_URL}/legal</a>.
               </td>
             </tr>`;
   return `<!doctype html>
@@ -105,7 +105,14 @@ function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: bool
           <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #ecebe6;border-radius:12px;">
             <tr>
               <td style="padding:28px 32px 8px 32px;">
-                <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;color:#1a1f1a;">farmapro</div>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="vertical-align:middle;">
+                    <img src="https://farmapro.es/email-logo-farmapro.png" alt="farmapro" width="132" height="26" style="display:block;width:132px;height:26px;border:0;outline:none;">
+                  </td>
+                  <td style="vertical-align:middle;padding-left:10px;">
+                    <span style="display:inline-block;border-left:1px solid #ecebe6;padding-left:10px;font-size:15px;font-weight:600;letter-spacing:-0.01em;color:#6b6f68;">Portal</span>
+                  </td>
+                </tr></table>
               </td>
             </tr>
             <tr>
@@ -132,7 +139,7 @@ function safeHref(href: string): string {
 
 function ctaButton(href: string, label: string): string {
   return `<p style="margin:24px 0;">
-    <a href="${escapeHtml(safeHref(href))}" style="display:inline-block;background:#3a5f16;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;">${escapeHtml(label)}</a>
+    <a href="${escapeHtml(safeHref(href))}" style="display:inline-block;background:#5F8F20;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;">${escapeHtml(label)}</a>
   </p>`;
 }
 
@@ -295,7 +302,7 @@ export function renderPortalTemplate(
           <p style="margin:0 0 12px 0;"><strong>${escapeHtml(invitadoPor)}</strong> te ha reservado una plaza en el portal farmapro para formarte junto al resto de tu equipo.</p>
           <p style="margin:0 0 12px 0;">Para activarla, crea tu cuenta con <strong>este mismo email</strong> desde el enlace de abajo. La invitación caduca en ${caducidad} días.</p>
           ${ctaButton(url, 'Activar mi plaza')}
-          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si el botón no funciona, copia y pega esta dirección en tu navegador:<br/><span style="word-break:break-all;color:#3a5f16;">${escapeHtml(url)}</span></p>
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si el botón no funciona, copia y pega esta dirección en tu navegador:<br/><span style="word-break:break-all;color:#5F8F20;">${escapeHtml(url)}</span></p>
           <p style="margin:20px 0 0 0;padding:12px 14px;background:#f6f4ec;border:1px solid #ecebe6;border-radius:8px;font-size:13px;color:#3a3f3a;">
             <strong>Transparencia:</strong> al unirte, el titular verá tu progreso formativo (cursos y evaluaciones) y tu última actividad en el portal. Tu actividad en la comunidad, IAFarma y la Rebotica es privada.
           </p>
