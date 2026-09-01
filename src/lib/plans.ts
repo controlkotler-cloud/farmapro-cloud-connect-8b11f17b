@@ -130,7 +130,7 @@ export const PLANS: Plan[] = [
       'Todo el contenido: cursos y recursos sin límite',
       'Comunidad completa + retos y ranking',
       'IAFarma texto ILIMITADO',
-      '1 crédito de imagen IAFarma al mes (+ packs de recarga que no caducan)',
+      '10 imágenes al mes con IAFarma (+ packs de recarga que no caducan)',
       'Eventos exclusivos farmapro',
     ],
   },
@@ -148,6 +148,7 @@ export const PLANS: Plan[] = [
       'Una sola cuota para toda la farmacia',
       'Gestiona las plazas de tu equipo',
       'IAFarma texto ilimitado para el equipo',
+      '25 imágenes al mes para toda la farmacia (+ packs de recarga)',
     ],
   },
 ];
