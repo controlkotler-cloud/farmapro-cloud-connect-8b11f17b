@@ -3370,6 +3370,12 @@ export type Database = {
         Returns: undefined
       }
       anonymize_old_applications: { Args: never; Returns: undefined }
+      billing_account_members: {
+        Args: { p_acct: string }
+        Returns: {
+          user_id: string
+        }[]
+      }
       calculate_quiz_stats: {
         Args: { quiz_id_param: string }
         Returns: {
@@ -3389,6 +3395,7 @@ export type Database = {
         Args: { thread_author_id: string }
         Returns: boolean
       }
+      check_text_quota: { Args: never; Returns: Json }
       cif_disponible: { Args: { p_cif: string }; Returns: boolean }
       consume_image_credit: { Args: { p_limit: number }; Returns: number }
       consume_image_credit_v2: { Args: { p_limit: number }; Returns: Json }
@@ -3601,6 +3608,13 @@ export type Database = {
       team_owner_has_paid: {
         Args: { p_owner: string; p_team_id: string }
         Returns: boolean
+      }
+      text_limits_for_role: {
+        Args: { p_role: string }
+        Returns: {
+          day_limit: number
+          month_limit: number
+        }[]
       }
       update_challenge_progress: {
         Args: {
