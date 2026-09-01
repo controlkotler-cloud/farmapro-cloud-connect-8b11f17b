@@ -8,6 +8,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 import { Formacion } from "@/pages/Formacion";
 import { Recursos } from "@/pages/Recursos";
+import { VaultMasterclass } from "@/pages/VaultMasterclass";
 import { getAccessState } from "@/lib/plans";
 import Comunidad from "@/pages/Comunidad";
 import { Retos } from "@/pages/Retos";
@@ -161,6 +162,12 @@ export const AppRoutes = () => {
       <Route path="/recursos" element={
         <ProtectedRoute>
           <Recursos />
+        </ProtectedRoute>
+      } />
+      {/* Vault de la Rebotica: página oculta, solo con sesión, sin enlaces desde el menú */}
+      <Route path="/vault/masterclass-5-palancas" element={
+        <ProtectedRoute>
+          <VaultMasterclass />
         </ProtectedRoute>
       } />
       <Route path="/comunidad" element={
