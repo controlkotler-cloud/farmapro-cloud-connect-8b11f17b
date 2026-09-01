@@ -278,7 +278,7 @@ Dentro de cada sección incluye una línea "TEXTO EN PANTALLA:" con los rótulos
     }
 
     case 'carousel': {
-      const slides = Number(context?.slides) >= 3 && Number(context?.slides) <= 10 ? Number(context.slides) : 6;
+      const slides = Number(context?.slides) >= 3 && Number(context?.slides) <= 5 ? Number(context.slides) : 4;
       const style = s(context?.style, 40);
       return `${baseRules}${formatBase}${imageSuggestion}${contextInfo}
 TAREA: Genera el contenido completo de un carrusel de Instagram de ${slides} slides.

@@ -142,7 +142,7 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
         return (
           <>
             <Field label="Tema del carrusel *" value={fields.tema} onChange={v => setField('tema', v)} placeholder="ej: Rutina de cuidado facial" />
-            <SelectField label="Número de slides" value={fields.slides} onChange={v => setField('slides', v)} options={['4', '5', '6', '8', '10']} />
+            <SelectField label="Número de slides" value={fields.slides} onChange={v => setField('slides', v)} options={['3', '4', '5']} />
             <SelectField label="Estilo" value={fields.estilo} onChange={v => setField('estilo', v)} options={['Educativo', 'Antes/Después', 'Listado', 'Paso a paso']} />
           </>
         );
