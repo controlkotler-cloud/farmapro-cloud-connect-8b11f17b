@@ -3563,6 +3563,7 @@ export type Database = {
         }[]
       }
       rebotica_cron_daily: { Args: never; Returns: undefined }
+      rebotica_digest_interno: { Args: never; Returns: undefined }
       rebotica_pick_and_consume_prize: {
         Args: { p_campaign_id: string; p_tier: string }
         Returns: string
