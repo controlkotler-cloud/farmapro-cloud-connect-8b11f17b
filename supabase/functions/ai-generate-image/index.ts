@@ -9,6 +9,11 @@ const corsHeaders = {
 
 const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
 const TRIAL_DAYS = 30;
+// 31-08-2026: el limite real lo decide la BD (image_limits_for_role):
+// Gratis 1/mes · Plus 10/mes · Equipo 25/mes COMPARTIDAS por farmacia.
+// consume_image_credit_v2 IGNORA a proposito este p_limit, para que ajustar
+// la cuota sea un CREATE OR REPLACE (gratis) y no un redeploy. Se deja el
+// valor por compatibilidad de la firma: cambiarlo aqui NO tiene efecto.
 const IMAGES_PER_MONTH = 1;
 const BUCKET = 'iafarma-images';
 

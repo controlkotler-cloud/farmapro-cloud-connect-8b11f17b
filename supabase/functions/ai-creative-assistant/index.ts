@@ -13,10 +13,17 @@ const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
 const TRIAL_DAYS = 30;
 const TEXTS_PER_MONTH_TRIAL = 2;
 
-// Techo diario anti-abuso para planes de pago. El texto es "ilimitado" para un
-// humano (nadie genera 150 piezas/día a mano), pero un script sí: sin tope el
-// coste del gateway queda abierto. Mismo patrón que ai-portal-chat.
-const PAID_DAILY_LIMIT = 150;
+// Techo anti-abuso para planes de pago. El texto es "ilimitado" para un humano
+// (nadie genera 300 piezas al mes a mano), pero un script sí: sin tope el coste
+// del gateway queda abierto.
+//
+// 31-08-2026: los números viven ahora en la BD (text_limits_for_role), no aquí.
+// Motivo: a 0,012 EUR/texto el tope anterior de 150/día permitía 54 EUR/mes de
+// coste por un Plus de 19,90 EUR. Al estar en la BD, ajustar la cuota es un
+// CREATE OR REPLACE (gratis) en vez de un redeploy. La bolsa de Equipo es
+// compartida por farmacia, igual que la de imagen.
+// Este valor solo se usa como red de seguridad si la RPC no está disponible.
+const PAID_DAILY_FALLBACK = 30;
 
 // Modelo de texto. ai-portal-chat migró a 3.6-flash el 12-08 (B8); aquí igual.
 const TEXT_MODEL = 'google/gemini-3.6-flash';
@@ -113,16 +120,30 @@ Deno.serve(async (req) => {
       }
       textsRemaining = Number(remainingData ?? 0);
     } else {
-      // Techo diario para planes de pago.
-      const since = new Date();
-      since.setHours(0, 0, 0, 0);
-      const { count: usedToday } = await admin
-        .from('ai_creative_usage')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', since.toISOString());
-      if ((usedToday ?? 0) >= PAID_DAILY_LIMIT) {
-        return json({ error: 'Has alcanzado el tope de uso de hoy. Inténtalo de nuevo mañana.' }, 429);
+      // Cuota de los planes de pago: la decide la BD (check_text_quota), que
+      // cuenta día y mes contra la cuenta de cargo (el titular, si el usuario
+      // pertenece a un equipo) y aplica los límites de text_limits_for_role.
+      const { data: quota, error: quotaError } = await userClient.rpc('check_text_quota');
+      if (quotaError) {
+        // La RPC no respondió: no se bloquea al cliente por un fallo nuestro,
+        // pero se mantiene una red de seguridad con el conteo diario propio.
+        console.error('check_text_quota error:', quotaError);
+        const since = new Date();
+        since.setHours(0, 0, 0, 0);
+        const { count: usedToday } = await admin
+          .from('ai_creative_usage')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .gte('created_at', since.toISOString());
+        if ((usedToday ?? 0) >= PAID_DAILY_FALLBACK) {
+          return json({ error: 'Has alcanzado el tope de uso de hoy. Inténtalo de nuevo mañana.' }, 429);
+        }
+      } else if (quota && quota.allowed === false) {
+        return json({
+          error: quota.reason === 'month'
+            ? 'Has alcanzado el tope de uso de este mes. Se renueva el día 1.'
+            : 'Has alcanzado el tope de uso de hoy. Inténtalo de nuevo mañana.',
+        }, 429);
       }
     }
 
