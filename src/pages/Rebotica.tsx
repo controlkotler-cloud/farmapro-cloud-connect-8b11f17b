@@ -101,7 +101,7 @@ const PRIZES = [
     rar: 'sorteo mensual',
     ico: 'B',
     title: 'El Baúl',
-    desc: 'Una caja con estética de cajón de botica que llega a la puerta de tu farmacia, con productos seleccionados, una carta de Alejandro y un detalle para el equipo. Cada cajón que abres ese mes es una participación.',
+    desc: 'Una mañana, sin avisar, llega a una farmacia un desayuno dulce para todo el equipo. Sin más adorno que una tarjeta de la Rebotica. Cada cajón que abres ese mes es una participación.',
   },
 ];
 

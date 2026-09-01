@@ -58,6 +58,7 @@ const VALID_TEMPLATES: PortalTemplateName[] = [
   'rebotica-baul-ganador',
   'rebotica-gordo-ganador',
   'rebotica-aviso-calendario-interno',
+  'rebotica-digest-interno',
   'promocion-solicitud-partner',
   'promocion-solicitud-usuario',
 ];

@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const BASE_URL = "https://portal.farmapro.es";
-const DEFAULT_TITLE = "farmapro - Impulsando la excelencia farmacéutica en España";
+const DEFAULT_TITLE = "Portal farmapro · Formación, recursos y comunidad para equipos de farmacia";
 const DEFAULT_DESCRIPTION =
-  "farmapro - El ecosistema digital que impulsa el potencial de las farmacias en España";
+  "Cursos, plantillas y píldoras de gestión y marketing para farmacias españolas. Comunidad de titulares y equipos, y la Rebotica: cada quincena, un cajón con premio.";
 
 interface RouteMeta {
   title: string;

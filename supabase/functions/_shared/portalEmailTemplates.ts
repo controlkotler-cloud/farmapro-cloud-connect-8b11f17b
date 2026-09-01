@@ -22,6 +22,7 @@ export type PortalTemplateName =
   | 'rebotica-baul-ganador'
   | 'rebotica-gordo-ganador'
   | 'rebotica-aviso-calendario-interno'
+  | 'rebotica-digest-interno'
   | 'promocion-solicitud-partner'
   | 'promocion-solicitud-usuario';
 
@@ -55,7 +56,13 @@ export interface PortalTemplateData {
   ganadorEmail?: string;
   ganadorNombre?: string;
   ganadorFarmacia?: string;
+  ganadorCiudad?: string;
   periodo?: string;
+  // rebotica-digest-interno
+  fecha?: string;
+  aperturas?: number;
+  canjes?: Array<Record<string, unknown>>;
+  pendientes?: Array<Record<string, unknown>>;
   // promocion-solicitud-partner / usuario
   referencia?: string;
   promocionTitulo?: string;
@@ -372,6 +379,9 @@ export function renderPortalTemplate(
     }
 
     case 'rebotica-baul-ganador': {
+      // DESDE 01-09-2026 NO SE ENVÍA: el Baúl llega por sorpresa a la farmacia
+      // (decisión Francesc). El cron solo manda el aviso interno. Se conserva
+      // la plantilla por si se reactiva.
       const mes = (data.mes ?? '').trim();
       const subject = 'Has ganado El Baúl de la Rebotica';
       const html = layout({
@@ -415,6 +425,7 @@ export function renderPortalTemplate(
       const email = (data.ganadorEmail ?? '').trim();
       const nombre = (data.ganadorNombre ?? '').trim() || '(sin nombre)';
       const farmacia = (data.ganadorFarmacia ?? '').trim() || '(sin farmacia)';
+      const ciudad = (data.ganadorCiudad ?? '').trim() || '(sin ciudad)';
       const temporada = (data.temporada ?? '').trim();
       const periodo = (data.periodo ?? '').trim();
       const premio = (data.premioTitulo ?? '').trim() || '(sin detallar)';
@@ -428,6 +439,7 @@ export function renderPortalTemplate(
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Ganador</td><td style="padding:4px 0;"><strong>${escapeHtml(nombre)}</strong></td></tr>
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Email</td><td style="padding:4px 0;">${escapeHtml(email)}</td></tr>
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Farmacia</td><td style="padding:4px 0;">${escapeHtml(farmacia)}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Ciudad</td><td style="padding:4px 0;">${escapeHtml(ciudad)}</td></tr>
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Temporada</td><td style="padding:4px 0;">${escapeHtml(temporada)}</td></tr>
             ${periodo ? `<tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Periodo</td><td style="padding:4px 0;">${escapeHtml(periodo)}</td></tr>` : ''}
             <tr><td style="padding:4px 12px 4px 0;color:#6b6f68;">Premio</td><td style="padding:4px 0;">${escapeHtml(premio)}</td></tr>
@@ -435,7 +447,46 @@ export function renderPortalTemplate(
           <p style="margin:20px 0 0 0;font-size:13px;color:#6b6f68;">Aviso interno automático — no se envía enlace de baja.</p>
         `,
       });
-      const text = `Adjudicado ${tipo}\n\nGanador: ${nombre}\nEmail: ${email}\nFarmacia: ${farmacia}\nTemporada: ${temporada}${periodo ? '\nPeriodo: ' + periodo : ''}\nPremio: ${premio}\n\nAviso interno automático.`;
+      const text = `Adjudicado ${tipo}\n\nGanador: ${nombre}\nEmail: ${email}\nFarmacia: ${farmacia}\nCiudad: ${ciudad}\nTemporada: ${temporada}${periodo ? '\nPeriodo: ' + periodo : ''}\nPremio: ${premio}\n\nAviso interno automático.`;
+      return { subject, html, text };
+    }
+
+    case 'rebotica-digest-interno': {
+      // Resumen diario para alejandro@mkpro.es (cc control@). Lo dispara
+      // rebotica_digest_interno() (cron 05:15 UTC) solo si hubo actividad.
+      // El canje de premios es MANUAL: este correo es la lista de tareas.
+      const fecha = (data.fecha ?? '').trim();
+      const aperturas = Number(data.aperturas ?? 0) || 0;
+      const canjes = Array.isArray(data.canjes) ? data.canjes : [];
+      const pendientes = Array.isArray(data.pendientes) ? data.pendientes : [];
+      const s = (v: unknown) => escapeHtml(String(v ?? '').trim() || '—');
+      const subject = `[Rebotica] ${fecha}: ${aperturas} cajones abiertos, ${canjes.length} canjes por cumplir`;
+      const filasCanjes = canjes.map((c) => `
+            <tr>
+              <td style="padding:6px 10px 6px 0;border-bottom:1px solid #e6e8e3;">${s(c.cuando)}</td>
+              <td style="padding:6px 10px 6px 0;border-bottom:1px solid #e6e8e3;"><strong>${s(c.premio)}</strong><br><span style="color:#6b6f68;">${s(c.tipo)}</span></td>
+              <td style="padding:6px 0;border-bottom:1px solid #e6e8e3;">${s(c.nombre)}<br>${s(c.email)}<br><span style="color:#6b6f68;">${s(c.farmacia)} · ${s(c.ciudad)}</span></td>
+            </tr>`).join('');
+      const filasPend = pendientes.map((p) => `
+            <tr>
+              <td style="padding:4px 10px 4px 0;">${s(p.caduca)}</td>
+              <td style="padding:4px 10px 4px 0;">${s(p.premio)}</td>
+              <td style="padding:4px 0;">${s(p.email)}</td>
+            </tr>`).join('');
+      const html = layout({
+        hideFooter: true,
+        previewText: `${aperturas} aperturas y ${canjes.length} canjes en las últimas 24 h.`,
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Rebotica · ${escapeHtml(fecha)}</h1>
+          <p style="margin:0 0 16px 0;">Últimas 24 h: <strong>${aperturas}</strong> cajones abiertos y <strong>${canjes.length}</strong> canjes.</p>
+          <h2 style="margin:20px 0 8px 0;font-size:16px;font-weight:700;">Canjes por cumplir a mano</h2>
+          ${canjes.length ? `<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;width:100%;">${filasCanjes}</table>` : '<p style="margin:0;color:#6b6f68;">Ninguno.</p>'}
+          <h2 style="margin:24px 0 8px 0;font-size:16px;font-weight:700;">Premios abiertos y aún sin canjear (${pendientes.length})</h2>
+          ${pendientes.length ? `<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;width:100%;"><tr><td style="padding:4px 10px 4px 0;color:#6b6f68;">Caduca</td><td style="padding:4px 10px 4px 0;color:#6b6f68;">Premio</td><td style="padding:4px 0;color:#6b6f68;">Usuario</td></tr>${filasPend}</table>` : '<p style="margin:0;color:#6b6f68;">Ninguno.</p>'}
+          <p style="margin:20px 0 0 0;font-size:13px;color:#6b6f68;">Aviso interno automático — no se envía enlace de baja.</p>
+        `,
+      });
+      const text = `Rebotica · ${fecha}\n\nÚltimas 24 h: ${aperturas} cajones abiertos y ${canjes.length} canjes.\n\nCANJES POR CUMPLIR A MANO:\n${canjes.length ? canjes.map((c) => `- ${String(c.cuando ?? '')} · ${String(c.premio ?? '')} (${String(c.tipo ?? '')}) · ${String(c.nombre ?? '')} <${String(c.email ?? '')}> · ${String(c.farmacia ?? '')} · ${String(c.ciudad ?? '')}`).join('\n') : 'Ninguno.'}\n\nPREMIOS ABIERTOS SIN CANJEAR (${pendientes.length}):\n${pendientes.length ? pendientes.map((p) => `- caduca ${String(p.caduca ?? '')} · ${String(p.premio ?? '')} · ${String(p.email ?? '')}`).join('\n') : 'Ninguno.'}\n\nAviso interno automático.`;
       return { subject, html, text };
     }
 
