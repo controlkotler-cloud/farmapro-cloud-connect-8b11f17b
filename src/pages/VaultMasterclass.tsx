@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Lock, Play } from 'lucide-react';
+import { ArrowLeft, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { resolveVideoEmbed } from '@/components/course/ModuleVideoSection';
+import { VideoEmbed } from '@/components/media/VideoEmbed';
 
 /**
  * Vault de la Rebotica · Masterclass 1.
@@ -49,8 +49,6 @@ const PALANCAS = [
 ];
 
 export const VaultMasterclass = () => {
-  const embed = resolveVideoEmbed(VIDEO_URL);
-
   return (
     <div className="mx-auto w-full max-w-4xl">
       <Link
@@ -75,33 +73,7 @@ export const VaultMasterclass = () => {
         </p>
       </header>
 
-      {embed.kind === 'iframe' && (
-        <div className="aspect-video overflow-hidden rounded-xl border border-brand/20 bg-black shadow-sm">
-          <iframe
-            src={embed.src}
-            title="Masterclass: Las 5 palancas de la rentabilidad, aplicadas"
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
-        </div>
-      )}
-      {embed.kind === 'file' && (
-        <div className="aspect-video overflow-hidden rounded-xl border border-brand/20 bg-black shadow-sm">
-          <video src={embed.src} controls playsInline preload="metadata" controlsList="nodownload" className="h-full w-full" />
-        </div>
-      )}
-      {embed.kind === 'link' && (
-        <div className="rounded-xl border border-brand/20 bg-brand-soft p-8 text-center">
-          <Button asChild>
-            <a href={embed.src} target="_blank" rel="noopener noreferrer">
-              <Play className="mr-2 h-4 w-4" />
-              Ver la masterclass
-            </a>
-          </Button>
-        </div>
-      )}
+      <VideoEmbed url={VIDEO_URL} title="Ver la masterclass" className="rounded-xl" />
 
       <section className="mt-10">
         <h2 className="font-serif text-2xl font-semibold text-foreground">Antes de darle al play</h2>

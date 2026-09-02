@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, type MotionProps } from 'framer-motion';
+import { VideoEmbed } from '@/components/media/VideoEmbed';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,11 @@ const BTN_PRIMARY =
 const BTN_LIME =
   'inline-block rounded-full bg-[#A3D338] px-8 py-4 text-[17px] font-bold text-[#0B0F0B] shadow-[0_8px_28px_rgba(123,177,33,.35)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(123,177,33,.45)] active:scale-[.97]';
 
+// Pieza 2 de la jornada de grabación: «La Rebotica en 60 segundos».
+// En cuanto esté editada y subida a Drive (compartida con enlace), pega aquí
+// su URL y el bloque de vídeo aparece solo. Vacío = no se renderiza nada.
+const REBOTICA_VIDEO_URL = '';
+
 const STEPS = [
   {
     n: '1',
@@ -71,13 +77,13 @@ const PRIZES = [
     rar: 'lo más frecuente',
     ico: 'P',
     title: 'Plantilla exclusiva de la Rebotica',
-    desc: 'Una plantilla de trabajo que no se puede comprar ni descargar en ninguna otra parte del portal. Eliges tú cuál, entre las que no tengas.',
+    desc: 'Una plantilla de trabajo que no se puede comprar ni descargar en ninguna otra parte del portal. Lista para usar mañana mismo en tu farmacia.',
   },
   {
     rar: 'muy frecuente',
     ico: 'M',
     title: 'Masterclass del vault',
-    desc: 'Una sesión grabada de 20 a 30 minutos que no está en el catálogo: solo sale de los cajones. Eliges tú cuál.',
+    desc: 'Una sesión grabada de unos 25 minutos que no está en el catálogo: solo sale de los cajones.',
   },
   {
     rar: 'frecuente',
@@ -550,6 +556,11 @@ export default function Rebotica() {
               La trastienda de la farmacia es donde pasan las cosas buenas. Aquí también.
             </p>
           </motion.div>
+          {REBOTICA_VIDEO_URL && (
+            <motion.div className="mx-auto mb-11 max-w-[760px]" {...reveal}>
+              <VideoEmbed url={REBOTICA_VIDEO_URL} title="La Rebotica en 60 segundos" className="rounded-[18px]" />
+            </motion.div>
+          )}
           <div className="grid gap-4 sm:grid-cols-3">
             {STEPS.map((step) => (
               <motion.div

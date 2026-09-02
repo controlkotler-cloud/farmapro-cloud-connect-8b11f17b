@@ -10,6 +10,11 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { EMPLOYEES_COUNT_OPTIONS, SPECIALTY_OPTIONS } from '@/lib/pharmacyProfile';
+import { VideoEmbed } from '@/components/media/VideoEmbed';
+
+// Vídeo de bienvenida (pieza 4 de la jornada de grabación, Drive compartido).
+// Se muestra en el primer paso en lugar del icono.
+const BIENVENIDA_VIDEO_URL = 'https://drive.google.com/file/d/1pcwbHVzV0cCSB5bezyvt6rbUxMh4O97X/view';
 
 interface OnboardingStep {
   title: string;
@@ -17,6 +22,8 @@ interface OnboardingStep {
   text: string;
   highlight?: string;
   icons: React.ReactNode;
+  /** Si el paso tiene vídeo, sustituye al icono. */
+  videoUrl?: string;
   bgClass: string;
   cta?: string;
 }
@@ -27,6 +34,7 @@ const steps: OnboardingStep[] = [
     subtitle: 'Tu plataforma de formación y herramientas para farmacia',
     text: 'Vamos a enseñarte en 1 minuto todo lo que puedes hacer aquí. ¿Empezamos?',
     icons: <Pill className="h-20 w-20" />,
+    videoUrl: BIENVENIDA_VIDEO_URL,
     bgClass: 'from-brand-soft to-secondary',
     cta: 'Empezar tour',
   },
@@ -143,7 +151,13 @@ export const OnboardingWizard = ({ onComplete }: { onComplete: () => void }) => 
 
         <div className="px-6 md:px-10 pt-6 pb-8 flex flex-col items-center text-center">
           {/* Icon */}
-          <div className="text-primary mb-6">{step.icons}</div>
+          {step.videoUrl ? (
+            <div className="mb-6 w-full">
+              <VideoEmbed url={step.videoUrl} title="Ver la bienvenida" />
+            </div>
+          ) : (
+            <div className="text-primary mb-6">{step.icons}</div>
+          )}
 
           {/* Title */}
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
