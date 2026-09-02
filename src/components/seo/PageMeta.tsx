@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 const BASE_URL = "https://portal.farmapro.es";
 const DEFAULT_TITLE = "Portal farmapro · Formación, recursos y comunidad para equipos de farmacia";
 const DEFAULT_DESCRIPTION =
-  "Cursos, plantillas y píldoras de gestión y marketing para farmacias españolas. Comunidad de titulares y equipos, y la Rebotica: cada quincena, un cajón con premio.";
+  "Cursos, plantillas y píldoras de gestión y marketing para farmacias españolas. Comunidad de titulares y equipos, y la Rebotica: cada mes, un cajón con premio.";
 
 interface RouteMeta {
   title: string;
@@ -19,7 +19,7 @@ const PUBLIC_META: Record<string, RouteMeta> = {
   "/rebotica": {
     title: "La Rebotica: recompensas para tu farmacia | farmapro",
     description:
-      "Cada quincena, un cajón con premios para profesionales de farmacia: masterclasses, plantillas y sorteos. Elige tu cajón con tu cuenta del portal farmapro.",
+      "Cada mes, un cajón con premios para profesionales de farmacia: masterclasses, plantillas y sorteos. Elige tu cajón con tu cuenta del portal farmapro.",
   },
   "/rebotica/bases-legales": {
     title: "Bases legales de La Rebotica | portal farmapro",

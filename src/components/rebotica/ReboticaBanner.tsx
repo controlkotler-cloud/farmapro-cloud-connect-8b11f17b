@@ -32,7 +32,7 @@ export const ReboticaBanner = () => {
           </em>
         </h2>
         <p className="mt-0.5 text-sm text-[#5a4b32]/75">
-          Cada quincena, un cajón con premios de nuestros partners para quienes están al día.
+          Cada mes, un cajón con premios de nuestros partners para quienes están al día.
         </p>
       </div>
 

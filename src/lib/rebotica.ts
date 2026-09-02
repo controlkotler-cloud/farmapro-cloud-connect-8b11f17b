@@ -29,7 +29,7 @@ export const REBOTICA_DRAWER_LABELS = [
 ];
 
 /**
- * Próxima apertura de la Rebotica de la quincena (D-day, plan §4.2, jueves
+ * Próxima apertura de la Rebotica del mes (D-day, plan §4.2, jueves
  * 10-09-2026). Es una fecha real planificada, no una promesa de stock: solo
  * anuncia cuándo se abre la mecánica, no cuántos premios hay.
  */
@@ -45,7 +45,7 @@ export const REBOTICA_NEXT_OPENING = {
  */
 export const HORA_APERTURA_CAJON = 8;
 
-/** Hora de apertura de cada cajón de quincena (hora peninsular). */
+/** Hora de apertura de cada cajón mensual (hora peninsular). */
 export const REBOTICA_OPENING_TIME_LABEL = `${String(HORA_APERTURA_CAJON).padStart(2, '0')}:00`;
 
 /** Combina una fecha de campaña (YYYY-MM-DD) con la hora de apertura del cajón. */
@@ -89,7 +89,7 @@ export function getNextOpeningDate(): Date {
   return composeOpeningInstant(REBOTICA_NEXT_OPENING.dateISO);
 }
 
-/** Partner de la quincena (patrocinio = presencia pura: logo ENLAZADO a su web). */
+/** Partner del mes (patrocinio = presencia pura: logo ENLAZADO a su web). */
 export interface ReboticaPartner {
   name: string;
   logoUrl: string;
@@ -100,7 +100,7 @@ export interface ReboticaPartner {
 /**
  * Partner de la campaña actual. El D-day (cajón nº 1) va SIN partner a
  * propósito: 100% farmapro, primera impresión sin sabor comercial (plan §5).
- * Cuando haya campaña patrocinada real (quincena 2+), esto se alimentará de
+ * Cuando haya campaña patrocinada real (mes 2+), esto se alimentará de
  * `rebotica_campaigns.partner_id`; mientras sea null, la landing oculta los
  * 3 huecos de partner (hero, strip de cuenta atrás y tarjeta del pie).
  */

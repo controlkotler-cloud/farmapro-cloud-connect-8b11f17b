@@ -62,7 +62,7 @@ const STEPS = [
     n: '3',
     tag: 'tuyo',
     title: 'Canjea y repite',
-    desc: 'Lo canjeas cuando quieras y vuelves el siguiente jueves de quincena. Los usuarios Plus abren además el cajón de aniversario.',
+    desc: 'Lo canjeas cuando quieras y vuelves el primer jueves del mes siguiente. Los usuarios Plus abren además el cajón de aniversario.',
   },
 ];
 
@@ -114,7 +114,7 @@ const PRIZES = [
 const FAQ_ITEMS = [
   {
     q: '¿Cuánto cuesta participar?',
-    a: 'Nada. Eliges tu cajón sin cuenta y lo abres con tu registro gratuito del portal. Los usuarios Plus tienen ventajas (como el cajón de aniversario), pero el cajón de la quincena es para todos.',
+    a: 'Nada. Eliges tu cajón sin cuenta y lo abres con tu registro gratuito del portal. Los usuarios Plus tienen ventajas (como el cajón de aniversario), pero el cajón del mes es para todos.',
   },
   {
     q: '¿Seguro que siempre hay premio?',
@@ -126,7 +126,7 @@ const FAQ_ITEMS = [
   },
   {
     q: '¿Cada cuánto hay cajón nuevo?',
-    a: 'Cada dos semanas, el jueves a las 08:00, con el email de farmapro. Una quincena, un cajón, un premio.',
+    a: 'Una vez al mes, en jueves y a las 08:00, con el email de farmapro. Un mes, un cajón, un premio.',
   },
 ];
 
@@ -367,10 +367,10 @@ export default function Rebotica() {
           <p className="mb-2 text-[13px] font-bold uppercase tracking-[0.16em] text-[#7BB121]">
             {countdown
               ? `Próximo cajón: ${REBOTICA_NEXT_OPENING.dateLabel} · ${REBOTICA_OPENING_TIME_LABEL}`
-              : `Próximo cajón: jueves de quincena · ${REBOTICA_OPENING_TIME_LABEL}`}
+              : `Próximo cajón: jueves · ${REBOTICA_OPENING_TIME_LABEL}`}
           </p>
           <h1 className="font-serif text-[clamp(28px,3.6vw,40px)] font-semibold leading-[1.15]">
-            El cajón de esta quincena
+            El cajón de este mes
           </h1>
 
           <div className="mt-8">
@@ -395,7 +395,7 @@ export default function Rebotica() {
               )}
               {partner && (
                 <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
-                  El cajón de esta quincena lo presenta {partnerSlot}
+                  El cajón de este mes lo presenta {partnerSlot}
                 </div>
               )}
             </div>
@@ -445,10 +445,10 @@ export default function Rebotica() {
           <div>
             <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#EAF5D0] px-3.5 py-1.5 text-[13px] font-bold uppercase tracking-[0.08em] text-[#3c5a10]">
               <span className="h-2 w-2 animate-pulse rounded-full bg-[#7BB121]" aria-hidden />
-              Premio seguro · cada quincena
+              Premio seguro · cada mes
             </span>
             <h1 className="font-serif text-[clamp(40px,5.2vw,64px)] font-semibold leading-[1.04] tracking-[-0.01em]">
-              Cada quincena, un cajón.
+              Cada mes, un cajón.
               <br />
               Dentro, <em className="italic text-[#7BB121]">siempre</em> hay premio.
             </h1>
@@ -512,7 +512,7 @@ export default function Rebotica() {
               )}
               {partner && (
                 <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
-                  El cajón de esta quincena lo presenta {partnerSlot}
+                  El cajón de este mes lo presenta {partnerSlot}
                 </div>
               )}
             </div>
@@ -528,7 +528,7 @@ export default function Rebotica() {
             <b className="text-[#A3D338]">
               {countdown
                 ? `${REBOTICA_NEXT_OPENING.dateLabel} · ${REBOTICA_OPENING_TIME_LABEL}`
-                : `jueves de quincena · ${REBOTICA_OPENING_TIME_LABEL}`}
+                : `jueves · ${REBOTICA_OPENING_TIME_LABEL}`}
             </b>
           </span>
           {countdown && (
@@ -538,7 +538,7 @@ export default function Rebotica() {
           )}
           {partner && (
             <span className="flex items-center gap-2.5 text-[13px] text-[#c9d1c9]">
-              El cajón de esta quincena lo presenta {partnerSlot}
+              El cajón de este mes lo presenta {partnerSlot}
             </span>
           )}
         </div>
@@ -688,11 +688,11 @@ export default function Rebotica() {
       {/* PARTNER DE LA QUINCENA */}
       <section className="pb-[64px]">
         <div className="mx-auto max-w-[720px] px-6 text-center">
-          <div className="text-[12px] font-bold uppercase tracking-[0.16em] text-[#7BB121]">Partner de la quincena</div>
+          <div className="text-[12px] font-bold uppercase tracking-[0.16em] text-[#7BB121]">Partner del mes</div>
           {partner && (
             <div className="mx-auto mt-5 inline-block rounded-[18px] border border-[#e7e9e4] bg-white px-10 py-6 shadow-[0_14px_34px_rgba(11,15,11,.07)]">
               <div className="mb-3 text-[12px] uppercase tracking-[0.1em] text-[#5c6660]">
-                El cajón de esta quincena lo presenta
+                El cajón de este mes lo presenta
               </div>
               <a href={partner.url} target="_blank" rel="noopener noreferrer" className="inline-block">
                 <img src={partner.logoUrl} alt={partner.name} className="mx-auto h-12" />
@@ -700,7 +700,7 @@ export default function Rebotica() {
             </div>
           )}
           <p className="mt-6 text-[14.5px] text-[#5c6660]">
-            <b className="text-[#0B0F0B]">¿Tienes una marca del sector?</b> Cada quincena, un solo partner presenta el
+            <b className="text-[#0B0F0B]">¿Tienes una marca del sector?</b> Cada mes, un solo partner presenta el
             cajón ante miles de profesionales de farmacia. Sin subastas, sin banners, sin ruido: tu logo y el enlace a
             tu web. Escríbenos:{' '}
             <a href="mailto:somos@farmapro.es" className="font-bold text-[#0B0F0B] underline underline-offset-4">

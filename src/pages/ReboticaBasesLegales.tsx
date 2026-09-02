@@ -13,7 +13,7 @@ const SECTIONS = [
   },
   {
     title: '3. Mecánica',
-    body: 'En cada campaña (quincenal) se publica una cajonera con varios cajones. Elegir un cajón es gratuito y no altera en ningún caso las probabilidades de premio: la elección es una forma de participar, no una jugada. El resultado se calcula en nuestros servidores, de forma ponderada según el stock real disponible en ese momento, y queda asignado de forma inmediata y definitiva al abrir el cajón. Cada participante puede abrir un cajón por campaña. Además del premio instantáneo, cada cajón abierto es también una participación automática en los sorteos periódicos de EL BAÚL y EL GORDO, con las condiciones descritas en la sección 6.',
+    body: 'En cada campaña (mensual) se publica una cajonera con varios cajones. Elegir un cajón es gratuito y no altera en ningún caso las probabilidades de premio: la elección es una forma de participar, no una jugada. El resultado se calcula en nuestros servidores, de forma ponderada según el stock real disponible en ese momento, y queda asignado de forma inmediata y definitiva al abrir el cajón. Cada participante puede abrir un cajón por campaña. Además del premio instantáneo, cada cajón abierto es también una participación automática en los sorteos periódicos de EL BAÚL y EL GORDO, con las condiciones descritas en la sección 6.',
   },
   {
     title: '4. Premios',
