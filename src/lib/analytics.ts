@@ -14,7 +14,7 @@ export const ANALYTICS_CONFIG = {
   /** ID del píxel de Meta (Events Manager → Orígenes de datos). Ej: '123456789012345'. */
   metaPixelId: '',
   /** ID de medición de GA4 (Administrar → Flujos de datos). Ej: 'G-XXXXXXXXXX'. */
-  ga4MeasurementId: '',
+  ga4MeasurementId: 'G-968HG3ZZC0',
 };
 
 interface ConsentPrefs {
