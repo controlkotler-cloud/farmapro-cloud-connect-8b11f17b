@@ -166,6 +166,7 @@ serve(async (req) => {
       const { data, error } = await supabase.rpc("rebotica_pick_and_consume_prize", {
         p_campaign_id: campaign.id,
         p_tier: tier,
+        p_user_id: user.id,
       });
       if (error) {
         log("rpc error", { attempt, err: error.message });
