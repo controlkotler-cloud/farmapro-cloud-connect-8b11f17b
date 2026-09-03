@@ -73,17 +73,22 @@ const loadGa4 = () => {
   if (ga4Loaded || !ANALYTICS_CONFIG.ga4MeasurementId) return;
   ga4Loaded = true;
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer!.push(args);
+  // OJO: gtag.js solo reconoce como comando el objeto `arguments`. Empujar un
+  // array normal (rest params) no envía nada, sin error ni aviso. Verificado
+  // en vivo el 03-09-2026 contra la propiedad real.
+  window.gtag = function gtag() {
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer!.push(arguments);
   };
-  window.gtag('js', new Date());
-  // Consent Mode: solo llegamos aquí con consentimiento de análisis concedido.
+  // Consent Mode: se declara antes que nada. Solo llegamos aquí con
+  // consentimiento de análisis concedido.
   window.gtag('consent', 'default', {
     ad_storage: 'denied',
     ad_user_data: 'denied',
     ad_personalization: 'denied',
     analytics_storage: 'granted',
   });
+  window.gtag('js', new Date());
   window.gtag('config', ANALYTICS_CONFIG.ga4MeasurementId, { anonymize_ip: true });
   loadScript(`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_CONFIG.ga4MeasurementId}`);
 };
