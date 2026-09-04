@@ -16,6 +16,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const HOLDED_API = 'https://api.holded.com/api/invoicing/v1';
 
+// Dirección fiscal tal y como la devuelve Stripe en customer_details.address
+// / invoice.customer_address. Se traduce a billAddress de Holded.
+export interface HoldedAddress {
+  line1?: string | null;
+  line2?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  province?: string | null;
+  countryCode?: string | null;   // ISO-2, p.ej. 'ES'
+}
+
 export interface HoldedInvoiceInput {
   sourceId: string;               // Stripe invoice.id o checkout session id (unique)
   sourceType: 'stripe_invoice' | 'stripe_checkout_session';
@@ -23,6 +34,7 @@ export interface HoldedInvoiceInput {
   email: string;
   name?: string | null;
   cif?: string | null;
+  address?: HoldedAddress | null;
   concept: string;
   totalEur: number;               // con IVA incluido
   meta?: Record<string, unknown>;
@@ -46,8 +58,30 @@ function admin() {
   );
 }
 
-async function findOrCreateContact(email: string, name?: string | null, cif?: string | null): Promise<string | null> {
+// billAddress de Holded. Devuelve null si no hay ni calle ni CP: mandar un
+// objeto vacío no aporta nada y ensucia la ficha.
+function toBillAddress(addr?: HoldedAddress | null): Record<string, unknown> | null {
+  if (!addr) return null;
+  const street = [addr.line1, addr.line2].filter(Boolean).join(', ');
+  if (!street && !addr.postalCode) return null;
+  return {
+    address: street || undefined,
+    city: addr.city ?? undefined,
+    postalCode: addr.postalCode ?? undefined,
+    province: addr.province ?? undefined,
+    countryCode: addr.countryCode ?? undefined,
+  };
+}
+
+async function findOrCreateContact(
+  email: string,
+  name?: string | null,
+  cif?: string | null,
+  address?: HoldedAddress | null,
+): Promise<string | null> {
   const key = Deno.env.get('HOLDED_API_KEY') ?? '';
+  const billAddress = toBillAddress(address);
+
   // Buscar por email
   try {
     const res = await fetch(`${HOLDED_API}/contacts?email=${encodeURIComponent(email)}`, {
@@ -55,7 +89,25 @@ async function findOrCreateContact(email: string, name?: string | null, cif?: st
     });
     if (res.ok) {
       const list = await res.json();
-      if (Array.isArray(list) && list.length > 0 && list[0]?.id) return list[0].id;
+      const found = Array.isArray(list) && list.length > 0 ? list[0] : null;
+      if (found?.id) {
+        // Completar SOLO lo que falte. Nunca pisar datos que ya tiene la ficha:
+        // estos contactos los comparte el CRM con farmapro-direct.
+        const patch: Record<string, unknown> = {};
+        if (cif && !found.code) { patch.code = cif; patch.isperson = false; }
+        if (billAddress && !found.billAddress?.address) patch.billAddress = billAddress;
+        if (Object.keys(patch).length > 0) {
+          try {
+            const upd = await fetch(`${HOLDED_API}/contacts/${found.id}`, {
+              method: 'PUT',
+              headers: { 'key': key, 'content-type': 'application/json', 'accept': 'application/json' },
+              body: JSON.stringify(patch),
+            });
+            log('contact completed', { id: found.id, ok: upd.ok, fields: Object.keys(patch) });
+          } catch (e) { log('contact update failed', { err: (e as Error).message }); }
+        }
+        return found.id;
+      }
     }
   } catch (e) { log('contact lookup failed', { err: (e as Error).message }); }
 
@@ -67,6 +119,7 @@ async function findOrCreateContact(email: string, name?: string | null, cif?: st
     isperson: !cif,
   };
   if (cif) body.code = cif;
+  if (billAddress) body.billAddress = billAddress;
 
   const res = await fetch(`${HOLDED_API}/contacts`, {
     method: 'POST',
@@ -120,7 +173,7 @@ export async function createHoldedInvoice(input: HoldedInvoiceInput): Promise<Ho
 
   // 2) contacto + factura
   try {
-    const contactId = await findOrCreateContact(input.email, input.name, input.cif);
+    const contactId = await findOrCreateContact(input.email, input.name, input.cif, input.address);
     if (!contactId) throw new Error('holded contact not resolved');
 
     const base = Math.round((input.totalEur / 1.21) * 100) / 100;

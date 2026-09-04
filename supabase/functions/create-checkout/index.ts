@@ -66,6 +66,40 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     const customerId = customers.data[0]?.id;
 
+    // Perfil: rol (gate de packs), customer guardado y datos fiscales.
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('subscription_role, stripe_customer_id, cif, full_name')
+      .eq('id', user.id)
+      .maybeSingle();
+    const profileCif = ((profile?.cif as string | null) ?? '').trim() || null;
+
+    // El CIF/NIF se pide obligatorio y validado en el registro, así que casi
+    // siempre lo tenemos ya: se lo adjuntamos al customer de Stripe para que el
+    // checkout no se lo vuelva a pedir (Stripe oculta el campo cuando el
+    // customer ya tiene un tax_id). Si el perfil no lo tiene —altas anteriores
+    // a que el campo existiera— el checkout lo pedirá en pantalla.
+    if (customerId && profileCif) {
+      try {
+        const taxIds = await stripe.customers.listTaxIds(customerId, { limit: 1 });
+        if (taxIds.data.length === 0) {
+          await stripe.customers.createTaxId(customerId, { type: 'es_cif', value: profileCif });
+          log('tax id attached', { customerId });
+        }
+      } catch (e) {
+        // Un NIF que Stripe no valide nunca puede tumbar el cobro.
+        log('tax id attach failed', { err: (e as Error).message });
+      }
+    }
+
+    // Datos de facturación obligatorios en TODAS las modalidades: sin dirección
+    // fiscal y NIF no sale una factura española válida en Holded.
+    const billingFields = {
+      billing_address_collection: 'required' as const,
+      tax_id_collection: { enabled: true },
+      ...(customerId ? { customer_update: { name: 'auto' as const, address: 'auto' as const } } : {}),
+    };
+
     const origin = req.headers.get('origin') ?? Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
 
     // ============================================================
@@ -76,12 +110,7 @@ serve(async (req) => {
       // Precios e ImageWorkspace). Sin este guard, un usuario gratis podía
       // comprarlos desde la consola aunque la UI no se lo ofreciera.
       const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
-      const { data: packProfile } = await admin
-        .from('profiles')
-        .select('subscription_role')
-        .eq('id', user.id)
-        .maybeSingle();
-      const packRole = (packProfile?.subscription_role as string | null) ?? null;
+      const packRole = (profile?.subscription_role as string | null) ?? null;
       if (!packRole || !PAID_ROLES.includes(packRole)) {
         return json({ error: 'Los packs de imágenes están disponibles con los planes Plus y Equipo. Hazte Plus para recargar créditos.' }, 403);
       }
@@ -96,6 +125,7 @@ serve(async (req) => {
         line_items: [{ price: packPriceId, quantity: 1 }],
         mode: 'payment',
         allow_promotion_codes: true,
+        ...billingFields,
         success_url: `${origin}/asistente-creativo?pack=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url:  `${origin}/asistente-creativo?pack=cancelled`,
         metadata: {
@@ -113,12 +143,7 @@ serve(async (req) => {
     // ============================================================
 
     // Guard antiduplicado: si ya hay suscripción viva, al portal de cliente.
-    const { data: prof } = await admin
-      .from('profiles')
-      .select('stripe_customer_id')
-      .eq('id', user.id)
-      .maybeSingle();
-    const existingCustomerId = (prof?.stripe_customer_id as string | null) ?? customerId;
+    const existingCustomerId = (profile?.stripe_customer_id as string | null) ?? customerId;
 
     if (existingCustomerId) {
       const subs = await stripe.subscriptions.list({ customer: existingCustomerId, status: 'all', limit: 100 });
@@ -156,6 +181,7 @@ serve(async (req) => {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
       allow_promotion_codes: true,
+      ...billingFields,
       success_url: `${origin}/perfil?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${origin}/precios?checkout=cancelled`,
       metadata: {

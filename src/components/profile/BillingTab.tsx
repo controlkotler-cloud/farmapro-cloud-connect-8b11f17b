@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings, FileText } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ROLE_LABELS } from '@/lib/plans';
@@ -15,7 +15,6 @@ interface BillingTabProps {
 
 export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
   const [managementLoading, setManagementLoading] = useState(false);
-  const [invoiceLoading, setInvoiceLoading] = useState(false);
 
   const getCurrentPlan = () => {
     if (isAdmin) return 'admin';
@@ -45,29 +44,6 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
       toast.error('No se pudo abrir el portal de gestión');
     } finally {
       setManagementLoading(false);
-    }
-  };
-
-  const handleViewInvoices = async () => {
-    if (currentPlan === 'freemium') {
-      toast.error('Necesitas tener una suscripción activa para ver el historial de facturas');
-      return;
-    }
-
-    setInvoiceLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-
-      if (error) throw error;
-
-      window.open(data.url, '_blank');
-      
-      toast.success('Abriendo historial de facturas');
-    } catch (error) {
-      console.error('Error opening customer portal:', error);
-      toast.error('No se pudo abrir el historial de facturas');
-    } finally {
-      setInvoiceLoading(false);
     }
   };
 
@@ -136,23 +112,16 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
                 {managementLoading ? 'Abriendo...' : 'Gestionar Método de Pago'}
               </Button>
 
-              <Button
-                variant="outline"
-                className="w-full rounded-full"
-                onClick={handleViewInvoices}
-                disabled={invoiceLoading}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                {invoiceLoading ? 'Abriendo...' : 'Ver Historial de Facturas'}
-              </Button>
             </div>
           )}
 
           {currentPlan !== 'admin' && (
             <div className="bg-info/10 border border-info/30 rounded-lg p-4">
               <p className="text-sm text-info">
-                <strong>Gestión de pagos:</strong> Ambos botones te llevarán al portal seguro de Stripe donde podrás 
-                gestionar tu método de pago, ver y descargar facturas, y administrar tu suscripción.
+                <strong>Tus facturas:</strong> te las enviamos por email cada vez que se
+                cobra la suscripción, con tu NIF y tu dirección fiscal. El botón de arriba
+                abre el portal seguro de Stripe, que sirve para cambiar la tarjeta o
+                cancelar la suscripción.
               </p>
             </div>
           )}

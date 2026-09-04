@@ -16,6 +16,45 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { lookupPrice, PROTECTED_ROLES } from "../_shared/stripePrices.ts";
 import { createHoldedInvoice } from "../_shared/holded.ts";
 
+// Stripe address (snake_case) → HoldedAddress. Sirve igual para
+// session.customer_details.address y para invoice.customer_address.
+function toStripeAddress(a: any) {
+  if (!a) return null;
+  return {
+    line1: a.line1 ?? null,
+    line2: a.line2 ?? null,
+    city: a.city ?? null,
+    postalCode: a.postal_code ?? null,
+    province: a.state ?? null,
+    countryCode: a.country ?? null,
+  };
+}
+
+// El NIF y la razón social que el cliente teclea en el checkout valen para
+// todas las facturas siguientes: se guardan en profiles si estaban vacíos.
+// Nunca pisa un dato que ya existe.
+async function backfillFiscalData(
+  supabase: any,
+  userId: string | null,
+  cif: string | null,
+  name: string | null,
+) {
+  if (!userId || (!cif && !name)) return;
+  try {
+    const { data: prof } = await supabase.from('profiles')
+      .select('cif, full_name').eq('id', userId).maybeSingle();
+    const patch: Record<string, unknown> = {};
+    if (cif && !prof?.cif) patch.cif = cif;
+    if (name && !prof?.full_name) patch.full_name = name;
+    if (Object.keys(patch).length === 0) return;
+    patch.updated_at = new Date().toISOString();
+    await supabase.from('profiles').update(patch).eq('id', userId);
+    log('fiscal data backfilled', { userId, fields: Object.keys(patch) });
+  } catch (e) {
+    log('fiscal backfill failed', { err: (e as Error).message });
+  }
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
@@ -147,14 +186,22 @@ async function handleCheckoutCompleted(
         ?? '';
       const { data: prof } = await supabase.from('profiles')
         .select('full_name, cif, email').eq('id', userIdPack).maybeSingle();
+
+      // Datos fiscales: manda lo que el cliente puso en el checkout de Stripe;
+      // el perfil es el respaldo. El NIF ya suele venir del registro.
+      const details = (session as any).customer_details;
+      const stripeCif = details?.tax_ids?.[0]?.value ?? null;
+      const stripeName = details?.name ?? null;
+      await backfillFiscalData(supabase, userIdPack, stripeCif, stripeName);
       const total = ((session.amount_total ?? 0) / 100);
       await createHoldedInvoice({
         sourceId: session.id,
         sourceType: 'stripe_checkout_session',
         userId: userIdPack,
         email: (prof as any)?.email ?? email,
-        name: (prof as any)?.full_name ?? null,
-        cif: (prof as any)?.cif ?? null,
+        name: stripeName ?? (prof as any)?.full_name ?? null,
+        cif: (prof as any)?.cif ?? stripeCif ?? null,
+        address: toStripeAddress(details?.address),
         concept: `Portal farmapro · Pack ${packCredits} imágenes IAFarma`,
         totalEur: total,
         meta: { pack_credits: packCredits, origen: 'portal' },
@@ -343,6 +390,15 @@ async function handleInvoicePaid(
     profEmail = (prof as any)?.email ?? null;
   }
 
+  // Stripe manda en la propia factura lo que el cliente rellenó en el
+  // checkout. Si el perfil no tenía NIF o nombre, este es el bueno.
+  const invAny = invoice as any;
+  const stripeCif = invAny.customer_tax_ids?.[0]?.value ?? null;
+  const stripeName = invAny.customer_name ?? null;
+  cif = cif ?? stripeCif;
+  name = name ?? stripeName;
+  await backfillFiscalData(supabase, userId, stripeCif, stripeName);
+
   await createHoldedInvoice({
     sourceId: invoice.id,
     sourceType: 'stripe_invoice',
@@ -350,6 +406,7 @@ async function handleInvoicePaid(
     email: profEmail ?? (email as string),
     name,
     cif,
+    address: toStripeAddress(invAny.customer_address),
     concept,
     totalEur: total,
     meta: { plan, cycle, founder, subscription_id: subscriptionId, origen: 'portal' },
