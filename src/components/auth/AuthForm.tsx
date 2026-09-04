@@ -164,10 +164,20 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
             setLoading(false);
             return;
           }
-          // Security: Don't expose internal error details
-          const errorMessage = error.message.includes('already registered')
-            ? 'Este email ya está registrado'
-            : error.message.includes('invalid')
+          // Supabase devuelve motivos concretos y accionables (contraseña filtrada
+          // en brechas, contraseña corta, limite de envios). Colapsarlos todos en
+          // "Error al registrarse. Intenta de nuevo" deja al usuario reintentando
+          // lo mismo sin saber que corregir: es abandono directo en el alta.
+          const raw = (error.message ?? '').toLowerCase();
+          const errorMessage = raw.includes('already registered') || raw.includes('already been registered')
+            ? 'Este email ya está registrado. Entra con tu contraseña o pide una nueva.'
+            : raw.includes('weak') || raw.includes('pwned')
+            ? 'Esa contraseña aparece en filtraciones conocidas y no es segura. Elige otra distinta.'
+            : raw.includes('at least') || raw.includes('should be')
+            ? 'La contraseña es demasiado corta. Usa al menos 8 caracteres.'
+            : raw.includes('rate limit') || raw.includes('for security purposes')
+            ? 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.'
+            : raw.includes('invalid')
             ? 'Datos inválidos. Por favor, verifica la información'
             : 'Error al registrarse. Intenta de nuevo';
 
