@@ -22,7 +22,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    // Conserva el destino: tras entrar se vuelve a donde iba, no al dashboard.
+    const next = window.location.pathname + window.location.search;
+    const to = next && next !== "/" ? `/login?next=${encodeURIComponent(next)}` : "/login";
+    return <Navigate to={to} replace />;
   }
 
   return <DashboardLayout>{children}</DashboardLayout>;

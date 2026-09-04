@@ -60,7 +60,9 @@ export default function Precios() {
     if (planId === "gratis") return;
 
     if (!user) {
-      navigate("/login");
+      // Alta directa (no login) y vuelta a Precios al confirmar: sin el next
+      // el comprador acababa en el dashboard y tenia que buscar el plan otra vez.
+      navigate(`/login?modo=registro&next=${encodeURIComponent("/precios")}`);
       return;
     }
 

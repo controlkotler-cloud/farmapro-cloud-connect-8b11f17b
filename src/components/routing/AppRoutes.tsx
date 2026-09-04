@@ -122,7 +122,9 @@ export const AppRoutes = () => {
         </>
       )}
       
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
+      {/* Sin sesion la raiz lleva al escaparate (planes y que incluye), no a un
+          formulario de login: quien llega desde el email todavia no es cliente. */}
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/precios" replace />} />
       <Route 
         path="/login" 
         element={user ? <Navigate to={safeNext() ?? "/dashboard"} replace /> : <LoginForm />} 

@@ -179,9 +179,12 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
         } else {
           // Conversión del lanzamiento: registro completado (GA4 + píxel Meta).
           trackRegistration();
+          // La confirmación de email es obligatoria: decir "puedes iniciar
+          // sesión ahora" hacía que el recién registrado intentara entrar,
+          // fallara y creyera que el alta no había funcionado.
           toast({
-            title: "¡Registro exitoso!",
-            description: "Tu cuenta ha sido creada correctamente. Puedes iniciar sesión ahora.",
+            title: "Revisa tu correo",
+            description: `Te hemos enviado un email a ${email} para confirmar tu cuenta. Pincha el enlace y entrarás directamente.`,
           });
           onToggleMode();
           setFullName('');
