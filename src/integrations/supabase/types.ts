@@ -3493,6 +3493,7 @@ export type Database = {
         Returns: boolean
       }
       image_billing_account: { Args: { p_user: string }; Returns: string }
+      image_credit_status: { Args: never; Returns: Json }
       image_day_limit: { Args: { p_user: string }; Returns: number }
       image_limits_for_role: {
         Args: { p_role: string }
