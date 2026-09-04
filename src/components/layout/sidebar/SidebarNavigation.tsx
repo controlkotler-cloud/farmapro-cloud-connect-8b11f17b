@@ -13,6 +13,7 @@ import {
   Bot,
   Store,
   Archive,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -76,7 +77,7 @@ export const SidebarNavigation = () => {
   const isMobile = useIsMobile();
   const { isEmpleoVisible, isFarmaciasVisible } = useSectionVisibility();
   const { isAdmin } = useAuth();
-  const { isTeamOwner, loading: teamLoading } = useTeamManagement();
+  const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
 
   const handleNavClick = () => {
     if (isMobile) {
@@ -97,6 +98,13 @@ export const SidebarNavigation = () => {
         let items = group.items.filter(isItemVisible);
         if (group.label === 'Tu farmacia' && isTeamOwner && !teamLoading) {
           items = [...items, { name: 'Mi farmacia', icon: Store, path: '/mi-farmacia' }];
+        }
+        // Sin esta entrada, un usuario con sesion no tiene NINGUNA forma de
+        // llegar a /precios: ni para contratar desde la prueba gratis ni para
+        // subir de Plus a Equipo. Se oculta al admin y a las plazas de equipo,
+        // que no contratan nada.
+        if (group.label === 'Crecer' && !isAdmin && !teamLoading && !(isTeamMember && !isTeamOwner)) {
+          items = [...items, { name: 'Planes y precios', icon: Sparkles, path: '/precios' }];
         }
         return { ...group, items };
       })

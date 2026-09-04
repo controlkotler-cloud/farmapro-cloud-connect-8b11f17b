@@ -6,6 +6,7 @@ import { CheckCircle, Star, ExternalLink, ShieldCheck, Users } from 'lucide-reac
 import { Link } from 'react-router-dom';
 import { PLANS, FREE_LIMITS, ROLE_LABELS, getAccessState, getLaunchStatus } from '@/lib/plans';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
+import { ImageCreditsCard } from '@/components/profile/ImageCreditsCard';
 
 interface PlanTabProps {
   profile: any;
@@ -37,6 +38,10 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
 
   const freePlan = PLANS.find((p) => p.id === 'gratis');
   const isPaid = access === 'paid';
+  // Quien ya paga Plus tambien necesita salida hacia Precios: si no, no hay
+  // ninguna forma de subir a Equipo desde dentro del portal (no hay enlace a
+  // /precios en la navegacion de usuario logueado).
+  const canUpgrade = !isAdmin && !isTeamMemberPlaza && role !== 'equipo';
 
   return (
     <div className="space-y-6">
@@ -107,8 +112,11 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
         </CardContent>
       </Card>
 
+      {/* Créditos de IAFarma: saldo y recarga (solo planes de pago) */}
+      <ImageCreditsCard isPaid={isPaid} />
+
       {/* CTA a Precios (la contratación vive allí) */}
-      {!isAdmin && !isPaid && (
+      {canUpgrade && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="p-6">
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
@@ -117,19 +125,23 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
               </div>
               <div className="flex-1">
                 <h3 className="mb-1 text-lg font-semibold">
-                  {access === 'free_locked'
+                  {isPaid
+                    ? 'Amplía a Equipo y suma a tu plantilla'
+                    : access === 'free_locked'
                     ? 'Recupera tu acceso con el plan Plus'
                     : '¿Listo para dar el siguiente paso?'}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {launch.active
+                  {isPaid
+                    ? 'El plan Equipo da acceso a varias personas de la farmacia con una sola cuota, y la bolsa de créditos de IAFarma se comparte.'
+                    : launch.active
                     ? 'Precio de lanzamiento para las 100 primeras plazas, para siempre. Sin permanencia: cancela cuando quieras.'
                     : 'Todo el contenido, la comunidad e IAFarma por una cuota mensual. Sin permanencia.'}
                 </p>
               </div>
               <Button asChild className="rounded-full">
                 <Link to="/precios" className="flex items-center gap-2">
-                  Ver planes
+                  {isPaid ? 'Ver plan Equipo' : 'Ver planes'}
                   <ExternalLink className="h-4 w-4" />
                 </Link>
               </Button>
