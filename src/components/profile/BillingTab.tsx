@@ -109,7 +109,7 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
                 className="flex items-center gap-2 w-full rounded-full"
               >
                 <Settings className="h-4 w-4" />
-                {managementLoading ? 'Abriendo...' : 'Gestionar Método de Pago'}
+                {managementLoading ? 'Abriendo...' : 'Gestionar o cancelar mi suscripción'}
               </Button>
 
             </div>
@@ -118,10 +118,13 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
           {currentPlan !== 'admin' && (
             <div className="bg-info/10 border border-info/30 rounded-lg p-4">
               <p className="text-sm text-info">
-                <strong>Tus facturas:</strong> te las enviamos por email cada vez que se
-                cobra la suscripción, con tu NIF y tu dirección fiscal. El botón de arriba
-                abre el portal seguro de Stripe, que sirve para cambiar la tarjeta o
-                cancelar la suscripción.
+                <strong>Qué hay detrás del botón:</strong> el portal seguro de Stripe, donde
+                puedes cambiar la tarjeta, actualizar tus datos fiscales o cancelar la
+                suscripción cuando quieras. La cancelación se hace efectiva al final del
+                periodo que ya tienes pagado; hasta entonces conservas el acceso.
+                <br />
+                <strong>Tus facturas</strong> te llegan por email cada vez que se cobra la
+                suscripción, con tu NIF y tu dirección fiscal.
               </p>
             </div>
           )}
