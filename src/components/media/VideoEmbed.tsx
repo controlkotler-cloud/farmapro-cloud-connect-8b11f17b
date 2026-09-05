@@ -18,11 +18,18 @@ interface VideoEmbedProps {
  */
 export const VideoEmbed = ({ url, title = 'Vídeo', className = '' }: VideoEmbedProps) => {
   const embed = resolveVideoEmbed(url);
-  const frame = `aspect-video overflow-hidden rounded-lg border border-brand/20 bg-black shadow-sm ${className}`;
+  const frame = `mx-auto w-full aspect-video overflow-hidden rounded-lg border border-brand/20 bg-black shadow-sm ${className}`;
+  /**
+   * Tope de altura: en móvil apaisado un 16:9 a ancho completo pide más alto que
+   * la pantalla (812 de ancho → 457 de alto sobre 375 disponibles) y el vídeo se
+   * sale del viewport. Limitando el ANCHO en función del alto de pantalla, el
+   * bloque sigue siendo 16:9 y nunca pasa de 78svh.
+   */
+  const frameStyle = { maxWidth: 'calc(78svh * 16 / 9)' };
 
   if (embed.kind === 'iframe') {
     return (
-      <div className={frame}>
+      <div className={frame} style={frameStyle}>
         <iframe
           src={embed.src}
           title={title}
@@ -38,7 +45,7 @@ export const VideoEmbed = ({ url, title = 'Vídeo', className = '' }: VideoEmbed
 
   if (embed.kind === 'file') {
     return (
-      <div className={frame}>
+      <div className={frame} style={frameStyle}>
         <video
           src={embed.src}
           controls
