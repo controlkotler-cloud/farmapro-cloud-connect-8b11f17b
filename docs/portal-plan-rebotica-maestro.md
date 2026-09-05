@@ -5,6 +5,15 @@
 > Decisiones de partida: **lanzamiento septiembre** · **500 € de capa memorable** · **jerarquía de ejecución SQL → código directo → Lovable (último recurso, solo edge functions/secrets)** · **Email masivo: plataforma de email masivo de farmapro (GO LIMPIO 10-07; sustituye al "Clientify cañón" original — Clientify solo envía ya N24/C5 y queda como CRM; detalle en `impulso/CLAUDE.md`). El transaccional del portal es aparte y va por §8 (superado 27-08-2026).**
 > Contexto completo: `impulso/memory/project_rebotica_portal.md` · Dossier: `dossier-partner-rebotica/`.
 
+> **AVISO 05-09-2026 · el tablero de este documento está desfasado.** Se escribió el
+> 08-07 y su reparto de tareas ya no refleja la producción: hay cosas marcadas
+> pendientes que llevan semanas hechas. El estado técnico **se consulta en vivo**
+> (BD por MCP de Lovable, repo, Stripe), nunca aquí. Estado verificado y plan de la
+> semana del lanzamiento: nota de memoria
+> `project_auditoria_lanzamiento_portal_03_09.md`, bloque «RE-VERIFICACIÓN 05-09-2026».
+> Lo que sigue vale como **plan y criterio de diseño**, que es a lo que hay que venir
+> a este documento; el estado, no.
+
 ---
 
 ## 0 · Principios innegociables
