@@ -41,9 +41,9 @@ const BTN_LIME =
   'inline-block rounded-full bg-[#A3D338] px-8 py-4 text-[17px] font-bold text-[#0B0F0B] shadow-[0_8px_28px_rgba(123,177,33,.35)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(123,177,33,.45)] active:scale-[.97]';
 
 // Pieza 2 de la jornada de grabación: «La Rebotica en 60 segundos».
-// En cuanto esté editada y subida a Drive (compartida con enlace), pega aquí
-// su URL y el bloque de vídeo aparece solo. Vacío = no se renderiza nada.
-const REBOTICA_VIDEO_URL = '';
+// Editada por Laura el 04-09-2026 y subida a Drive con enlace público.
+// Vacío = el bloque de vídeo no se renderiza.
+const REBOTICA_VIDEO_URL = 'https://drive.google.com/file/d/1J_60PEy8zginrF0BSpDDdsKrX1FE7H2a/view';
 
 const STEPS = [
   {
