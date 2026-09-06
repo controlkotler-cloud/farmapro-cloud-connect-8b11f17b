@@ -147,7 +147,7 @@ export default function Precios() {
                 ) : (
                   <>
                     Las primeras <strong className="text-foreground">{LAUNCH.spots} plazas</strong>{" "}
-                    conservan este precio para siempre
+                    conservan este precio mientras mantengan la suscripción activa
                   </>
                 )}
               </div>
@@ -163,7 +163,7 @@ export default function Precios() {
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             {launch.active
-              ? "Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu plaza al precio de lanzamiento y consérvalo para siempre."
+              ? "Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu plaza al precio de lanzamiento y consérvalo mientras mantengas la suscripción activa."
               : "Todo el contenido, la comunidad y IAFarma en un único sitio, por una cuota mensual."}
           </p>
           <p className="text-sm text-muted-foreground mt-3">Todos los precios con IVA incluido.</p>
@@ -337,7 +337,7 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
               </div>
               {launchActive && (
                 <span className="mt-2 text-xs font-medium text-primary">
-                  Precio de lanzamiento · {LAUNCH.spots} primeras plazas, para siempre
+                  Precio de lanzamiento · {LAUNCH.spots} primeras plazas. No sube mientras mantengas la suscripción activa
                 </span>
               )}
               {billing === "yearly" && (

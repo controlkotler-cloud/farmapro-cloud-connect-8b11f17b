@@ -11,7 +11,8 @@ export interface Plan {
   name: string;
   /** Precio regular mensual (€). Es el que se muestra TACHADO durante el lanzamiento. */
   priceMonthly: number;
-  /** Precio de lanzamiento mensual (€) para las primeras plazas, bloqueado de por vida. */
+  /** Precio de lanzamiento mensual (€) para las primeras plazas. Se mantiene mientras la
+ *  suscripción siga activa: si se cancela, se pierde (regla Francesc 06-09-2026). */
   priceMonthlyLaunch?: number;
   /** Precio anual (€) = 2 meses gratis sobre el precio vigente. */
   priceYearlyLaunch?: number;
@@ -23,7 +24,7 @@ export interface Plan {
   cta: string;
 }
 
-/** Plazas con precio de lanzamiento bloqueado de por vida. */
+/** Plazas con precio de lanzamiento. Lo conserva quien mantenga la suscripción activa. */
 export const LAUNCH_SPOTS = 100;
 
 /**

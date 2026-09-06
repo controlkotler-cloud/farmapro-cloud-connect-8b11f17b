@@ -135,7 +135,7 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                   {isPaid
                     ? 'El plan Equipo da acceso a varias personas de la farmacia con una sola cuota, y la bolsa de créditos de IAFarma se comparte.'
                     : launch.active
-                    ? 'Precio de lanzamiento para las 100 primeras plazas, para siempre. Sin permanencia: cancela cuando quieras.'
+                    ? 'Precio de lanzamiento para las 100 primeras plazas. No sube mientras mantengas la suscripción activa; si la cancelas, se pierde.'
                     : 'Todo el contenido, la comunidad e IAFarma por una cuota mensual. Sin permanencia.'}
                 </p>
               </div>
