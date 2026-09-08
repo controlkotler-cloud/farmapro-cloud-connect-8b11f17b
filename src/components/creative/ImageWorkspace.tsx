@@ -37,6 +37,8 @@ interface ImageWorkspaceProps {
   defaults: IAFarmaDefaults;
   /** Semilla desde "Crear esta imagen" del asistente de texto. */
   seed?: { brief: string; sourceText: string; piece: PieceTypeId } | null;
+  /** Imagen terminada: el workspace refresca contador de créditos e historial. */
+  onGenerated?: () => void;
 }
 
 const PIECE_ICONS: Record<PieceTypeId, typeof ImageIcon> = {
@@ -48,10 +50,15 @@ const PIECE_ICONS: Record<PieceTypeId, typeof ImageIcon> = {
 
 const formatPrice = (price: number): string => `${price.toFixed(2).replace('.', ',')} €`;
 
-export const ImageWorkspace = ({ defaults, seed }: ImageWorkspaceProps) => {
+export const ImageWorkspace = ({ defaults, seed, onGenerated }: ImageWorkspaceProps) => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const { generate, loading, imageUrl, revisedPrompt, remaining, copy, error, reset } = useImageGeneration();
+
+  useEffect(() => {
+    if (imageUrl) onGenerated?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageUrl]);
   const [piece, setPiece] = useState<PieceTypeId>('promo');
   const [format, setFormat] = useState<FormatId>(getPieceType('promo').defaultFormat);
   const [style, setStyle] = useState<StyleId>('diseno');

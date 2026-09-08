@@ -11,55 +11,16 @@ export const loadUserStats = async (userId: string): Promise<DashboardStats> => 
     const { totalPoints, level } = await calculateTotalPointsFromChallenges(userId);
     console.log('Calculated total points from challenges:', { totalPoints, level });
 
-    console.log('Searching for course completion challenge...');
-    const { data: challenges, error: challengeError } = await supabase
-      .from('challenges')
-      .select('id, name, type')
-      .eq('type', 'course_completed');
-
-    if (challengeError) {
-      console.error('Error fetching challenges:', challengeError);
-    } else {
-      console.log('Found challenges:', challenges);
-    }
-
-    let coursesCompleted = 0;
-    if (challenges && challenges.length > 0) {
-      const challenge = challenges.find(c => c.name === 'Estudiante Dedicado') || challenges[0];
-      console.log('Using challenge:', challenge);
-      
-      const { data: courseProgress } = await supabase
-        .from('user_challenge_progress')
-        .select('current_count')
-        .eq('user_id', userId)
-        .eq('challenge_id', challenge.id)
-        .maybeSingle();
-
-      if (courseProgress) {
-        coursesCompleted = courseProgress.current_count;
-        console.log('Using challenge progress for courses completed:', coursesCompleted);
-      } else {
-        console.log('No challenge progress found, checking enrollments...');
-        const { data: enrollments } = await supabase
-          .from('course_enrollments')
-          .select('id')
-          .eq('user_id', userId)
-          .not('completed_at', 'is', null);
-        
-        coursesCompleted = enrollments?.length || 0;
-        console.log('Using enrollment count as fallback:', coursesCompleted);
-      }
-    } else {
-      console.log('No course_completed challenges found, using enrollment count');
-      const { data: enrollments } = await supabase
-        .from('course_enrollments')
-        .select('id')
-        .eq('user_id', userId)
-        .not('completed_at', 'is', null);
-      
-      coursesCompleted = enrollments?.length || 0;
-      console.log('Using enrollment count:', coursesCompleted);
-    }
+    // Cursos completados = inscripciones con completed_at. Antes se leía el
+    // current_count del reto "course_completed", que es un dato derivado y
+    // se quedaba desfasado (Francesc 08-09-2026: dos cursos terminados y el
+    // panel decía 1 porque el reto seguía en 1).
+    const { data: enrollments } = await supabase
+      .from('course_enrollments')
+      .select('id')
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null);
+    const coursesCompleted = enrollments?.length || 0;
 
     const { data: resources, error: resourcesError } = await supabase
       .from('resource_downloads')

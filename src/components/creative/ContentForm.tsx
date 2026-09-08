@@ -9,13 +9,15 @@ import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 import { QuickTemplates } from './QuickTemplates';
 
 interface ContentFormProps {
+  /** Si viene, sustituye el botón Generar: cupo agotado explicado con CTA, sin dejar chocar contra el 402. */
+  blocked?: React.ReactNode;
   contentType: ContentType;
   isLoading: boolean;
   defaults: IAFarmaDefaults;
   onSubmit: (message: string, context: CreativeContext) => void;
 }
 
-export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: ContentFormProps) => {
+export const ContentForm = ({ contentType, isLoading, defaults, onSubmit, blocked }: ContentFormProps) => {
   const [fields, setFields] = useState<Record<string, string>>({});
   const [extra, setExtra] = useState('');
 
@@ -221,6 +223,9 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
         />
       </div>
 
+      {blocked ? (
+        <div role="status">{blocked}</div>
+      ) : (
       <Button
         type="submit"
         disabled={isLoading || !canSubmit()}
@@ -239,6 +244,7 @@ export const ContentForm = ({ contentType, isLoading, defaults, onSubmit }: Cont
           </>
         )}
       </Button>
+      )}
     </form>
   );
 };

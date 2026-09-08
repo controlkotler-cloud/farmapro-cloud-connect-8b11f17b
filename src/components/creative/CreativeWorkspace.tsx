@@ -1,18 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { useCreativeChat, CreativeContext } from '@/hooks/useCreativeChat';
+import { useCreativeChat, CreativeContext, type ContentType } from '@/hooks/useCreativeChat';
 import { useIAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
+import { useTextQuota } from '@/hooks/useTextQuota';
+import { useImageCredits } from '@/hooks/useImageCredits';
+import { useIAFarmaHistory } from '@/hooks/useIAFarmaHistory';
+import { getAccessState } from '@/lib/plans';
 import { ContentTypeGrid } from './ContentTypeGrid';
 import { ContentForm } from './ContentForm';
 import { ImageWorkspace } from './ImageWorkspace';
 import { PharmacyDefaults } from './PharmacyDefaults';
 import { ResultsArea } from './ResultsArea';
+import { QuotaBar } from './QuotaBar';
+import { HistoryPanel } from './HistoryPanel';
 import { CONTENT_TYPES } from '@/hooks/useCreativeChat';
 
 export const CreativeWorkspace = () => {
+  const { profile, isAdmin } = useAuth();
+  const { defaults, updateDefault } = useIAFarmaDefaults();
+
+  // Contador de cupo (textos e imágenes) e historial: visibles desde que se
+  // entra, no solo tras generar (petición de Francesc 08-09-2026).
+  const textQuota = useTextQuota();
+  const imageCredits = useImageCredits();
+  const history = useIAFarmaHistory();
+
+  const handleGenerated = useCallback((type: ContentType, brief: string, output: string) => {
+    void history.saveText(type, brief, output);
+    void textQuota.refresh();
+  }, [history.saveText, textQuota.refresh]);
+
   const {
     messages,
     isLoading,
@@ -22,10 +43,12 @@ export const CreativeWorkspace = () => {
     regenerate,
     clearChat,
     textsRemaining,
-  } = useCreativeChat();
+  } = useCreativeChat({ onGenerated: handleGenerated, onQuotaExceeded: textQuota.refresh });
 
-  const { profile } = useAuth();
-  const { defaults, updateDefault } = useIAFarmaDefaults();
+  const isFree = !isAdmin && getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null) !== 'paid';
+  const textsExhausted = textQuota.status ? !textQuota.status.allowed : textsRemaining === 0;
+  // Lo que queda según la RPC al entrar; la cabecera de la última generación manda si ya hubo una.
+  const remainingForUi = textsRemaining ?? (isFree && textQuota.status ? textQuota.status.monthlyLeft : null);
 
   // Semilla del workspace de imagen cuando el usuario pulsa "Crear esta
   // imagen" sobre una sugerencia del asistente de texto: brief (la sugerencia),
@@ -77,6 +100,8 @@ export const CreativeWorkspace = () => {
 
   return (
     <div className="space-y-8">
+      <QuotaBar text={textQuota.status} image={imageCredits.status} isFree={isFree} />
+
       <PharmacyDefaults defaults={defaults} onChange={updateDefault} />
 
       <section>
@@ -85,7 +110,11 @@ export const CreativeWorkspace = () => {
       </section>
 
       {contentType === 'imagen' ? (
-        <ImageWorkspace defaults={defaults} seed={imageSeed} />
+        <ImageWorkspace
+          defaults={defaults}
+          seed={imageSeed}
+          onGenerated={() => { void imageCredits.refresh(); void history.refresh(); }}
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <motion.div
@@ -106,6 +135,25 @@ export const CreativeWorkspace = () => {
                 isLoading={isLoading}
                 defaults={defaults}
                 onSubmit={handleSubmit}
+                blocked={textsExhausted ? (
+                  <div className="rounded-lg bg-ciruela-soft ring-1 ring-ciruela/30 p-4 text-sm space-y-3">
+                    <p className="font-semibold text-foreground">
+                      {textQuota.status?.reason === 'day' && !isFree
+                        ? 'Has llegado al tope de textos de hoy'
+                        : `Has usado tus ${textQuota.status?.monthLimit ?? 2} textos gratis de este mes`}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {textQuota.status?.reason === 'day' && !isFree
+                        ? 'Mañana vuelves a tener disponibles los de tu plan.'
+                        : 'Con Plus generas sin límite. Tus textos ya creados siguen en el historial de abajo.'}
+                    </p>
+                    {isFree && (
+                      <Button asChild className="w-full">
+                        <Link to="/precios">Hazte Plus: sin límite</Link>
+                      </Button>
+                    )}
+                  </div>
+                ) : undefined}
               />
 
               {messages.length > 0 && (
@@ -130,12 +178,14 @@ export const CreativeWorkspace = () => {
               onRegenerate={regenerate}
               onAdjust={(adjustment) => sendMessage(`Ajusta el contenido anterior: ${adjustment}`)}
               onCreateImage={handleCreateImage}
-              textsRemaining={textsRemaining}
+              textsRemaining={remainingForUi}
               defaults={defaults}
             />
           </div>
         </div>
       )}
+
+      <HistoryPanel texts={history.texts} images={history.images} onDeleteText={history.deleteText} />
     </div>
   );
 };

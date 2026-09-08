@@ -195,6 +195,20 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
   };
 
   if (messages.length === 0 && !isLoading) {
+    if (textsRemaining === 0) {
+      return (
+        <div className="min-h-[500px] rounded-lg border border-dashed border-ciruela/40 bg-ciruela-soft/40 flex flex-col items-center justify-center text-center p-8">
+          <Sparkles className="h-12 w-12 text-ciruela/60 mb-4" />
+          <p className="text-foreground text-lg font-semibold">Has usado tus {FREE_LIMITS.aiTextPerMonth} textos gratis de este mes</p>
+          <p className="text-muted-foreground text-sm mt-1 max-w-md">
+            Con Plus generas textos sin límite y tienes 12 imágenes al mes. Lo que ya has creado sigue abajo, en tu historial.
+          </p>
+          <Button asChild className="mt-5">
+            <Link to="/precios">Hazte Plus: sin límite</Link>
+          </Button>
+        </div>
+      );
+    }
     return (
       <div className="min-h-[500px] rounded-lg border border-dashed border-border bg-secondary/50 flex flex-col items-center justify-center text-center p-8">
         <Sparkles className="h-12 w-12 text-ciruela/60 mb-4" />

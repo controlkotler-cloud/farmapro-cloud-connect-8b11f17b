@@ -73,7 +73,15 @@ const FALLBACK_BY_STATUS: Record<number, string> = {
   429: 'Has alcanzado el tope de uso de hoy. Inténtalo de nuevo mañana.',
 };
 
-export const useCreativeChat = () => {
+export interface UseCreativeChatOptions {
+  /** Se llama con cada texto terminado (para el historial y el contador de cupo). */
+  onGenerated?: (contentType: ContentType, brief: string, output: string) => void;
+  /** Se llama cuando el servidor rechaza por cupo (402/429): la UI enseña el estado, no un toast rojo. */
+  onQuotaExceeded?: () => void;
+}
+
+export const useCreativeChat = (options: UseCreativeChatOptions = {}) => {
+  const { onGenerated, onQuotaExceeded } = options;
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [contentType, setContentType] = useState<ContentType>('instagram-post');
@@ -105,6 +113,7 @@ export const useCreativeChat = () => {
     // 429), no hay nada que retirar y el `slice(0, -1)` de la v1 borraba el
     // mensaje del propio usuario (fix 07-09-2026).
     let assistantId: string | null = null;
+    let quotaExceeded = false;
 
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -137,6 +146,13 @@ export const useCreativeChat = () => {
           if (errorData?.error) errorMessage = errorData.error;
         } catch (e) { /* sin cuerpo JSON: se queda el respaldo */ }
         if (response.status === 402) setTextsRemaining(0);
+        if (response.status === 402 || response.status === 429) {
+          // Cupo agotado: no es un error del sistema. La UI (contador, formulario
+          // bloqueado con CTA) ya lo explica; un toast rojo "Error" asustaba
+          // (lo vio Francesc 08-09-2026).
+          quotaExceeded = true;
+          onQuotaExceeded?.();
+        }
         throw new Error(errorMessage);
       }
 
@@ -217,13 +233,22 @@ export const useCreativeChat = () => {
           } catch { /* ignore */ }
         }
       }
+
+      if (assistantMessage.trim()) onGenerated?.(contentType, userMessage, assistantMessage);
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Error al enviar el mensaje',
-        variant: 'destructive',
-      });
+      if (quotaExceeded) {
+        toast({
+          title: 'Has usado los textos de tu plan',
+          description: error instanceof Error ? error.message : 'Hazte Plus para generar sin límite.',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Error al enviar el mensaje',
+          variant: 'destructive',
+        });
+      }
       // Retira SOLO el hueco vacío del asistente, y solo si existe y sigue vacío.
       setMessages(prev => {
         const last = prev[prev.length - 1];
@@ -233,7 +258,7 @@ export const useCreativeChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, contentType, toast, lastContext]);
+  }, [messages, contentType, toast, lastContext, onGenerated, onQuotaExceeded]);
 
   const regenerate = useCallback(() => {
     if (!lastUserMessage) return;

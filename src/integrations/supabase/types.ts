@@ -125,6 +125,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_creative_generations: {
+        Row: {
+          brief: string | null
+          content_type: string
+          created_at: string
+          id: string
+          output: string
+          user_id: string
+        }
+        Insert: {
+          brief?: string | null
+          content_type: string
+          created_at?: string
+          id?: string
+          output: string
+          user_id: string
+        }
+        Update: {
+          brief?: string | null
+          content_type?: string
+          created_at?: string
+          id?: string
+          output?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_creative_usage: {
         Row: {
           content_type: string

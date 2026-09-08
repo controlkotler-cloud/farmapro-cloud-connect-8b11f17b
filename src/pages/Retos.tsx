@@ -10,7 +10,7 @@ import { ChallengeCard } from '@/components/retos/ChallengeCard';
 import { BadgesSection } from '@/components/retos/BadgesSection';
 import { LeaderboardSection } from '@/components/retos/LeaderboardSection';
 import { WeeklyChallengesSection } from '@/components/retos/WeeklyChallengesSection';
-import { Target } from 'lucide-react';
+import { Target, Trophy } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const Retos = () => {
@@ -62,6 +62,17 @@ export const Retos = () => {
 
     return [...porFamilia.values(), ...sueltos].filter(Boolean);
   })();
+
+  // Conseguidos: los peldaños ya completados que la escalera oculta (al
+  // completar "Primer curso" aparece "Cinco cursos" y el logro desaparecía;
+  // Francesc 08-09-2026: "le quita la gracia de ver que he conseguido").
+  const visibles = new Set(permanentChallenges.map((c: any) => c.id));
+  const conseguidos = permanentes
+    .filter((c: any) => !visibles.has(c.id) && getProgressForChallenge(c.id)?.completed_at)
+    .sort((a: any, b: any) =>
+      new Date(getProgressForChallenge(b.id)?.completed_at ?? 0).getTime() -
+      new Date(getProgressForChallenge(a.id)?.completed_at ?? 0).getTime(),
+    );
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -155,6 +166,34 @@ export const Retos = () => {
                 <p className="text-sm text-muted-foreground">
                   Los retos vuelven en breve. Mientras tanto, suma puntos completando cursos y participando en el foro.
                 </p>
+              )}
+
+              {conseguidos.length > 0 && (
+                <div className="mt-10">
+                  <div className="mb-6 flex items-center gap-3">
+                    <div className="rounded-lg bg-success/10 p-2">
+                      <Trophy className="h-5 w-5 text-success" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-extrabold tracking-tight text-foreground">Conseguidos</h2>
+                      <p className="text-sm text-muted-foreground tabular-nums">
+                        {conseguidos.length} {conseguidos.length === 1 ? 'reto completado' : 'retos completados'}. Ya son tuyos.
+                      </p>
+                    </div>
+                  </div>
+                  <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" variants={containerVariants}>
+                    {conseguidos.map((challenge: any, index: number) => (
+                      <motion.div key={challenge.id} variants={itemVariants} transition={{ delay: index * 0.05 }}>
+                        <ChallengeCard
+                          challenge={challenge}
+                          progress={getProgressForChallenge(challenge.id)}
+                          index={index}
+                          totalNiveles={challenge.familia ? nivelesPorFamilia[challenge.familia] : undefined}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
               )}
             </div>
           </TabsContent>
