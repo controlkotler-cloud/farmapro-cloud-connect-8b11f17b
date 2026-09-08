@@ -84,11 +84,17 @@ serve(async (req) => {
     let campaign: { id: string; estado: string; quincena_inicio: string; quincena_fin: string } | null = null;
 
     if (campaignIdRaw) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("rebotica_campaigns")
         .select("id, estado, quincena_inicio, quincena_fin")
         .eq("id", campaignIdRaw)
         .maybeSingle();
+      // Un error de Postgres NO es "no encontrada": antes se descartaba y salía
+      // un 404 engañoso (fix 08-09-2026). Se loguea y se devuelve 500.
+      if (error) {
+        log("campaign lookup error", { campaignIdRaw, err: error.message });
+        return json({ error: "Error consultando la campaña" }, 500);
+      }
       campaign = data;
       if (!campaign) return json({ error: "Campaña no encontrada" }, 404);
       if (campaign.estado !== "activa") {
@@ -100,7 +106,7 @@ serve(async (req) => {
     } else {
       // Sin campaign_id: resuelve la campaña activa cuya ventana incluye hoy;
       // si hubiera varias, la de quincena_inicio más reciente.
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("rebotica_campaigns")
         .select("id, estado, quincena_inicio, quincena_fin")
         .eq("estado", "activa")
@@ -109,6 +115,10 @@ serve(async (req) => {
         .order("quincena_inicio", { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (error) {
+        log("active campaign lookup error", { err: error.message });
+        return json({ error: "Error consultando la campaña" }, 500);
+      }
       campaign = data;
       if (!campaign) return json({ error: "No hay campaña activa ahora mismo" }, 409);
     }

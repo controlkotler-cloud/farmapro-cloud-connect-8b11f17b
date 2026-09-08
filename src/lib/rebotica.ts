@@ -118,13 +118,27 @@ export interface ReboticaContext {
 
 const STORAGE_KEY = 'rebotica_context';
 
-/** Lee `?c=&cajon=&e=` de la URL actual (patrón `farmapro.es/rebotica?c={campaña}&cajon={n}&e={email}`). */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * `c` solo vale si tiene forma de uuid: `open-reward` lo usa como clave primaria
+ * de `rebotica_campaigns`, así que un nombre ("dday") rompía la apertura con un
+ * 400/404 y, peor, se persistía en localStorage (fix 08-09-2026). Sin `c` la edge
+ * resuelve sola la campaña activa por fecha, que es lo correcto.
+ */
+function sanitizeCampaign(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const v = value.trim();
+  return UUID_RE.test(v) ? v : undefined;
+}
+
+/** Lee `?c=&cajon=&e=` de la URL actual. `c` es OPCIONAL y debe ser el uuid de la campaña; cualquier otro valor se ignora. */
 export function readReboticaContextFromUrl(search: string): ReboticaContext {
   const params = new URLSearchParams(search);
   const ctx: ReboticaContext = {};
 
-  const campaign = params.get('c')?.trim();
-  if (campaign) ctx.campaign = campaign.slice(0, 80);
+  const campaign = sanitizeCampaign(params.get('c'));
+  if (campaign) ctx.campaign = campaign;
 
   const cajonRaw = params.get('cajon');
   const cajon = cajonRaw ? parseInt(cajonRaw, 10) : NaN;
@@ -153,7 +167,13 @@ export function storeReboticaContext(ctx: ReboticaContext) {
 export function loadReboticaContext(): ReboticaContext | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as ReboticaContext) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ReboticaContext;
+    // Un `campaign` no-uuid guardado antes del fix seguiría rompiendo cada apertura.
+    const campaign = sanitizeCampaign(parsed.campaign);
+    if (campaign) parsed.campaign = campaign;
+    else delete parsed.campaign;
+    return parsed;
   } catch {
     return null;
   }
