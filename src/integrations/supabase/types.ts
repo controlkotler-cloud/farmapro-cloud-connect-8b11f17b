@@ -3638,6 +3638,15 @@ export type Database = {
         Args: { body_param: string; conversation_id_param: string }
         Returns: string
       }
+      send_welcome_email: {
+        Args: {
+          p_email: string
+          p_nombre: string
+          p_trigger: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       start_job_conversation: {
         Args: { job_id_param: string }
         Returns: string
