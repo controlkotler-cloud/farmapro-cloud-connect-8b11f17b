@@ -108,7 +108,7 @@ serve(async (req) => {
       access = days <= TRIAL_DAYS ? 'free_trial' : 'free_locked';
     }
     if (access === 'free_locked') {
-      return json({ error: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir usando el asistente.' }, 403);
+      return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir usando el asistente.' }, 403);
     }
 
     // Rate-limit diario por usuario (aplica a trial y a pago).

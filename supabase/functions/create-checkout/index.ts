@@ -112,7 +112,7 @@ serve(async (req) => {
       const PAID_ROLES = ['plus', 'equipo', 'premium', 'profesional', 'admin'];
       const packRole = (profile?.subscription_role as string | null) ?? null;
       if (!packRole || !PAID_ROLES.includes(packRole)) {
-        return json({ error: 'Los packs de imágenes están disponibles con los planes Plus y Equipo. Hazte Plus para recargar créditos.' }, 403);
+        return json({ error: 'Los packs de imágenes están disponibles con los planes Plus y Equipo. Mira los planes para recargar créditos.' }, 403);
       }
 
       const packPriceId = IMAGE_PACK_PRICES[pack!];
