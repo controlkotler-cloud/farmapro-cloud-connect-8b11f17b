@@ -146,6 +146,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_image_credit_grants: {
+        Row: {
+          created_at: string
+          credits: number
+          ref: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits: number
+          ref: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          ref?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_image_credits: {
         Row: {
           balance: number
@@ -3364,6 +3385,10 @@ export type Database = {
       add_image_credits: {
         Args: { p_credits: number; p_user: string }
         Returns: number
+      }
+      add_image_credits_once: {
+        Args: { p_credits: number; p_ref: string; p_user: string }
+        Returns: Json
       }
       add_user_points: {
         Args: { _points: number; _user_id: string }
