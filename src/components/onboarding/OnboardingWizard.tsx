@@ -192,7 +192,10 @@ export const OnboardingWizard = ({ onComplete }: { onComplete: () => void }) => 
                   <SelectTrigger id="onboarding-employees" className="bg-background/70">
                     <SelectValue placeholder="Selecciona..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  {/* El overlay del wizard va a z-[100]; el menú del Select
+                      se pinta por defecto a z-50 y quedaba DEBAJO, así que el
+                      desplegable "no se abría" (fallo visto por Francesc 08-09). */}
+                  <SelectContent className="z-[110]">
                     {EMPLOYEES_COUNT_OPTIONS.map((o) => (
                       <SelectItem key={o.value} value={o.value}>
                         {o.label}
