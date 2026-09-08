@@ -55,7 +55,7 @@ export const QuotaBar = ({ text, image, isFree }: QuotaBarProps) => {
           variant={textsExhausted ? 'default' : 'outline'}
           className={textsExhausted ? 'ml-auto' : 'ml-auto border-ciruela text-ciruela hover:bg-ciruela-soft'}
         >
-          <Link to="/precios">{textsExhausted ? 'Hazte Plus: sin límite' : 'Ver planes'}</Link>
+          <Link to="/precios">Ver planes</Link>
         </Button>
       )}
     </div>

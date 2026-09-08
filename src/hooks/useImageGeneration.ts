@@ -135,7 +135,7 @@ const messageForStatus = (
     case 403:
       return {
         code: 'forbidden',
-        message: fallback || 'Tu periodo de prueba ha terminado. Hazte Plus para seguir generando imágenes.',
+        message: fallback || 'Tu periodo de prueba ha terminado. Mira los planes para seguir generando imágenes.',
       };
     case 401:
       return { code: 'unauthorized', message: 'Sesión expirada. Por favor, vuelve a iniciar sesión.' };

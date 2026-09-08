@@ -201,10 +201,10 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
           <Sparkles className="h-12 w-12 text-ciruela/60 mb-4" />
           <p className="text-foreground text-lg font-semibold">Has usado tus {FREE_LIMITS.aiTextPerMonth} textos gratis de este mes</p>
           <p className="text-muted-foreground text-sm mt-1 max-w-md">
-            Con Plus generas textos sin límite y tienes 12 imágenes al mes. Lo que ya has creado sigue abajo, en tu historial.
+            Los planes Plus y Equipo incluyen muchos más textos e imágenes al mes. Lo que ya has creado sigue abajo, en tu historial.
           </p>
           <Button asChild className="mt-5">
-            <Link to="/precios">Hazte Plus: sin límite</Link>
+            <Link to="/precios">Ver planes</Link>
           </Button>
         </div>
       );
@@ -286,7 +286,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
           )}
           {textsRemaining === 0 && (
             <Button asChild variant="outline" size="sm" className="border-ciruela text-ciruela hover:bg-ciruela-soft">
-              <Link to="/precios">Hazte Plus: sin límite</Link>
+              <Link to="/precios">Ver planes</Link>
             </Button>
           )}
         </div>

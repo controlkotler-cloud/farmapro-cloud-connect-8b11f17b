@@ -588,12 +588,11 @@ const ImageResult = ({
         ) : (
           <>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Tu plan Gratis incluye 1 imagen al mes. Con Plus tienes texto ilimitado, 12
-              imágenes al mes y packs de recarga que no caducan. En Equipo son 25 al mes para
-              toda la farmacia.
+              Tu plan Gratis incluye 1 imagen al mes. Plus incluye 12 imágenes al mes y packs de
+              recarga que no caducan; Equipo, 25 al mes para toda la farmacia.
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link to="/precios">Hazte Plus</Link>
+              <Link to="/precios">Ver planes</Link>
             </Button>
           </>
         )}
@@ -716,7 +715,7 @@ const ImageResult = ({
         )}
         {remaining === 0 && !isPaid && (
           <Button asChild variant="outline" size="sm" className="border-ciruela text-ciruela hover:bg-ciruela-soft">
-            <Link to="/precios">Hazte Plus</Link>
+            <Link to="/precios">Ver planes</Link>
           </Button>
         )}
       </div>

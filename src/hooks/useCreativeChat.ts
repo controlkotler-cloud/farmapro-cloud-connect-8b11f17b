@@ -68,8 +68,8 @@ export interface CreativeContext {
 // citaban planes que ya no existen ("Premium, Profesional").
 const FALLBACK_BY_STATUS: Record<number, string> = {
   401: 'Sesión expirada. Por favor, vuelve a iniciar sesión.',
-  402: 'Has alcanzado el límite de 2 textos mensuales de tu prueba. Hazte Plus para generar sin límite.',
-  403: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir creando contenido con IAFarma.',
+  402: 'Has usado los 2 textos al mes de tu plan Gratis. Mira los planes para seguir generando.',
+  403: 'Tu periodo de prueba ha terminado. Mira los planes para seguir creando contenido con IAFarma.',
   429: 'Has alcanzado el tope de uso de hoy. Inténtalo de nuevo mañana.',
 };
 
@@ -240,7 +240,7 @@ export const useCreativeChat = (options: UseCreativeChatOptions = {}) => {
       if (quotaExceeded) {
         toast({
           title: 'Has usado los textos de tu plan',
-          description: error instanceof Error ? error.message : 'Hazte Plus para generar sin límite.',
+          description: error instanceof Error ? error.message : 'Mira los planes para seguir generando.',
         });
       } else {
         toast({

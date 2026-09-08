@@ -145,11 +145,11 @@ export const CreativeWorkspace = () => {
                     <p className="text-muted-foreground">
                       {textQuota.status?.reason === 'day' && !isFree
                         ? 'Mañana vuelves a tener disponibles los de tu plan.'
-                        : 'Con Plus generas sin límite. Tus textos ya creados siguen en el historial de abajo.'}
+                        : 'Los planes Plus y Equipo incluyen muchos más textos e imágenes al mes. Tus textos ya creados siguen en el historial de abajo.'}
                     </p>
                     {isFree && (
                       <Button asChild className="w-full">
-                        <Link to="/precios">Hazte Plus: sin límite</Link>
+                        <Link to="/precios">Ver planes</Link>
                       </Button>
                     )}
                   </div>
