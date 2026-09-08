@@ -78,7 +78,7 @@ Una sola tanda a Lovable con TODO lo de backend (es lo único que no podemos hac
 - Bloque "Tu cajón" en el dashboard + badge de racha (fase 2).
 - Página `/rebotica/bases-legales` (bases + política de premios + RGPD).
 - Registro: ya tiene doble check y CIF; añadir `texto_version` del consentimiento al metadata (SQL/código).
-- Flujo email→portal: links `farmapro.es/rebotica?c={campaña}&cajon={n}&e={email}` (patrón voto v2); la elección viaja al registro.
+- Flujo email→portal: links `farmapro.es/rebotica?c={campaña}&cajon={n}&e={email}` (patrón voto v2); la elección viaja al registro. **OJO (08-09-2026): `c` debe ser el uuid de `rebotica_campaigns.id` o no ponerse; cualquier otro valor se ignora desde el fix 88894c6. Sin `c`, la edge resuelve sola la campaña activa por fecha. `e={email}` retirado por privacidad el 07-09: los enlaces reales llevan solo UTM.**
 
 ### 2.4 Medición
 
