@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useModuleProgress } from '@/hooks/useModuleProgress';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import type { Course, CourseEnrollment, CourseModule } from '@/types/course';
 
 interface CourseActionsProps {
@@ -29,19 +30,19 @@ export const useCourseActions = ({
   const handleCompleteModule = async (moduleId: string) => {
     await markModuleAsCompleted(moduleId);
     
-    if (course && enrollment) {
+    // Upsert y no update: si el usuario entró por enlace directo y aún no hay
+    // inscripción, se crea aquí con el progreso (UNIQUE user_id+course_id).
+    if (course && profile?.id) {
       const totalModules = course.course_modules?.length || 0;
       const newProgress = getCompletionPercentage(totalModules);
-      
-      try {
-        await supabase
-          .from('course_enrollments')
-          .update({ progress: newProgress })
-          .eq('course_id', course.id)
-          .eq('user_id', profile?.id);
-      } catch (error) {
-        console.error('Error updating course progress:', error);
-      }
+
+      const { error } = await supabase
+        .from('course_enrollments')
+        .upsert(
+          { user_id: profile.id, course_id: course.id, progress: newProgress },
+          { onConflict: 'user_id,course_id' },
+        );
+      if (error) console.error('Error updating course progress:', error);
     }
   };
 
@@ -49,27 +50,38 @@ export const useCourseActions = ({
     if (hasQuiz) {
       window.location.href = `/curso/${courseSlug}/quiz`;
     } else {
-      // Mark course as completed
-      if (course && enrollment && profile?.id) {
-        try {
-          await supabase
-            .from('course_enrollments')
-            .update({ 
+      // Marcar el curso como completado. Antes exigía `enrollment` y, si el
+      // usuario había entrado por enlace directo (sin inscripción), el botón
+      // Finalizar no hacía NADA (fallo visto 08-09-2026). Ahora: upsert, y
+      // si falla se avisa en vez de callar.
+      if (!course || !profile?.id) return;
+      try {
+        const { error } = await supabase
+          .from('course_enrollments')
+          .upsert(
+            {
+              user_id: profile.id,
+              course_id: course.id,
               completed_at: new Date().toISOString(),
-              progress: 100 
-            })
-            .eq('course_id', course.id)
-            .eq('user_id', profile.id);
-          
-          // Update challenge progress for course completion
-          const { updateChallengeProgress } = await import('@/utils/challengeUtils');
-          await updateChallengeProgress(profile.id, 'course_completed', 1);
-          
-          // Redirect to courses page
-          window.location.href = '/formacion';
-        } catch (error) {
-          console.error('Error completing course:', error);
-        }
+              progress: 100,
+            },
+            { onConflict: 'user_id,course_id' },
+          );
+        if (error) throw error;
+
+        // Update challenge progress for course completion
+        const { updateChallengeProgress } = await import('@/utils/challengeUtils');
+        await updateChallengeProgress(profile.id, 'course_completed', 1);
+
+        // Redirect to courses page
+        window.location.href = '/formacion';
+      } catch (error) {
+        console.error('Error completing course:', error);
+        toast({
+          title: 'No se ha podido guardar el curso como finalizado',
+          description: 'Vuelve a intentarlo en unos segundos. Si sigue fallando, escríbenos.',
+          variant: 'destructive',
+        });
       }
     }
   };

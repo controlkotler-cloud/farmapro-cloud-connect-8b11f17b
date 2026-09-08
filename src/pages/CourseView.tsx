@@ -23,7 +23,9 @@ const CourseView = () => {
   const moduleContentRef = useRef<HTMLDivElement>(null);
   const { isLocked } = useEntitlements();
 
-  const { course, enrollment, loading: courseLoading, hasQuiz } = useCourseData(courseSlug);
+  // Inscripción al vuelo si se entra por enlace directo (panel, buscador). Si el
+  // acceso gratis ha caducado no se inscribe: abajo se muestra el muro.
+  const { course, enrollment, loading: courseLoading, hasQuiz } = useCourseData(courseSlug, { autoEnroll: !isLocked });
 
   const {
     isModuleCompleted,
@@ -93,7 +95,8 @@ const CourseView = () => {
   }
 
   const isEnrolled = !!enrollment;
-  const isCompleted = enrollment?.completed_at !== null;
+  // Sin inscripción, `undefined !== null` daba true y el curso salía como completado.
+  const isCompleted = !!enrollment?.completed_at;
   const currentModule = modules[currentModuleIndex];
   const moduleProgress = getCompletionPercentage(modules.length);
   const allModulesCompleted = modules.every(m => isModuleCompleted(m.id));

@@ -4,7 +4,17 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import type { Course, CourseEnrollment, CourseModule } from '@/types/course';
 
-export const useCourseData = (courseSlug?: string) => {
+interface UseCourseDataOptions {
+  /**
+   * Si el usuario abre el curso sin estar inscrito (enlace directo desde el
+   * panel, el buscador o "continuar"), se inscribe al vuelo. Sin esto,
+   * "Finalizar" y el progreso no escribían nada y fallaban en silencio
+   * (fallo visto por Francesc 08-09-2026 con una cuenta free en IAFarma).
+   */
+  autoEnroll?: boolean;
+}
+
+export const useCourseData = (courseSlug?: string, options: UseCourseDataOptions = {}) => {
   const { profile } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
@@ -67,6 +77,26 @@ export const useCourseData = (courseSlug?: string) => {
 
           if (enrollmentError) {
             console.error('Error loading enrollment:', enrollmentError);
+          } else if (!enrollmentData && options.autoEnroll) {
+            // Inscripción al vuelo. UNIQUE(user_id, course_id) en la tabla:
+            // si otra pestaña se adelantó, el upsert no duplica.
+            const { error: enrollError } = await supabase
+              .from('course_enrollments')
+              .upsert(
+                { user_id: profile.id, course_id: transformedCourse.id, started_at: new Date().toISOString() },
+                { onConflict: 'user_id,course_id', ignoreDuplicates: true },
+              );
+            if (enrollError) {
+              console.error('Error auto-enrolling:', enrollError);
+            } else {
+              const { data: created } = await supabase
+                .from('course_enrollments')
+                .select('*')
+                .eq('course_id', transformedCourse.id)
+                .eq('user_id', profile.id)
+                .maybeSingle();
+              setEnrollment(created);
+            }
           } else {
             setEnrollment(enrollmentData);
           }
