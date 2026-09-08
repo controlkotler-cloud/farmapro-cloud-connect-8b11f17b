@@ -21,6 +21,17 @@ import {
 } from '@/components/resources/ResourcesFilters';
 import { ResourcesCategorySection } from '@/components/resources/ResourcesCategorySection';
 import { ResourcesGrid } from '@/components/resources/ResourcesGrid';
+import { FreeDownloadsBanner } from '@/components/resources/FreeDownloadsBanner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const Recursos = () => {
   const { profile } = useAuth();
@@ -33,6 +44,9 @@ export const Recursos = () => {
   // hueco del tope gratis al re-descargar lo mismo) y total de descargas.
   const [downloadedIds, setDownloadedIds] = useState<Set<string>>(new Set());
   const [downloadCount, setDownloadCount] = useState(0);
+  // Diálogo de "límite del plan Gratis alcanzado". Antes era un toast que
+  // desaparecía solo y no dejaba claro qué hacer (feedback Francesc 08-09-2026).
+  const [limitDialogOpen, setLimitDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -198,12 +212,7 @@ export const Recursos = () => {
     // Periodo de prueba: tope de descargas. Re-descargar algo ya descargado no
     // consume hueco; un recurso nuevo sí, y si ya está en el tope se bloquea.
     if (isTrial && !downloadedIds.has(resource.id) && downloadCount >= limits.resources) {
-      toast({
-        title: 'Has alcanzado el límite del plan Gratis',
-        description: `El plan Gratis incluye ${limits.resources} descargas. Hazte Plus para descargar sin límite.`,
-        variant: 'destructive',
-        action: pricingCta,
-      });
+      setLimitDialogOpen(true);
       return;
     }
 
@@ -286,6 +295,14 @@ export const Recursos = () => {
     >
       <ResourcesHeader />
 
+      {isTrial && (
+        <FreeDownloadsBanner
+          used={downloadCount}
+          limit={limits.resources}
+          onSeePlans={() => navigate('/precios')}
+        />
+      )}
+
       <ResourcesNeedsLanding selectedNeed={selectedNeed} onSelectNeed={handleSelectNeed} />
 
       <ResourcesSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
@@ -328,6 +345,30 @@ export const Recursos = () => {
           onClearFilters={clearFilters}
         />
       )}
+
+      <AlertDialog open={limitDialogOpen} onOpenChange={setLimitDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Has usado tus {limits.resources} descargas del plan Gratis</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  El plan Gratis incluye {limits.resources} recursos. Los que ya has descargado puedes
+                  volver a bajarlos cuando quieras.
+                </p>
+                <p>
+                  Con el plan Plus descargas todos los recursos del portal sin límite, y además
+                  tienes los cursos Premium e IAFarma sin tope.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Seguir con el plan Gratis</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate('/precios')}>Ver planes</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };

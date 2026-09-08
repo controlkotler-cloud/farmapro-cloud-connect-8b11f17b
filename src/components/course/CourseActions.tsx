@@ -63,6 +63,10 @@ export const useCourseActions = ({
               user_id: profile.id,
               course_id: course.id,
               completed_at: new Date().toISOString(),
+              // is_completed es lo que leen recompute_user_points (+50 puntos) y
+              // "Continuar curso" del panel; solo con completed_at el curso
+              // seguía contando como pendiente y sin sus puntos.
+              is_completed: true,
               progress: 100,
             },
             { onConflict: 'user_id,course_id' },

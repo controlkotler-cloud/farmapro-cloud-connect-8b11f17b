@@ -266,6 +266,55 @@ export default function Precios() {
             </a>
           </p>
         </div>
+
+        {/* Condiciones de contratación y enlaces legales. El Aviso Legal remite
+            a esta página para las condiciones de cada plan, así que tienen que
+            estar aquí, visibles en el momento de contratar (LSSI art. 27 y
+            normativa de consumo). Es una página pública sin sidebar ni footer:
+            sin este bloque no había ningún enlace legal a la vista. */}
+        <section
+          aria-labelledby="condiciones-contratacion"
+          className="mx-auto mt-16 max-w-3xl border-t border-border pt-8 text-xs leading-relaxed text-muted-foreground"
+        >
+          <h2 id="condiciones-contratacion" className="mb-3 text-sm font-semibold text-foreground">
+            Condiciones de contratación
+          </h2>
+          <ul className="list-disc space-y-1.5 pl-5">
+            <li>
+              Los planes Plus y Equipo son suscripciones que se renuevan automáticamente al final de cada
+              periodo (mensual o anual, según lo elegido) por el precio vigente para tu suscripción. El plan
+              Gratis no requiere tarjeta.
+            </li>
+            <li>
+              Puedes cancelar en cualquier momento desde tu perfil, en la pestaña de facturación. La
+              cancelación surte efecto al final del periodo ya pagado: mantienes el acceso hasta entonces y
+              no se cobran renovaciones posteriores.
+            </li>
+            <li>
+              El precio de fundador se conserva mientras la suscripción se mantenga activa. Si se cancela,
+              la plaza se libera y una nueva suscripción se contrata al precio vigente en ese momento.
+            </li>
+            <li>
+              Todos los precios incluyen IVA. El cobro se realiza a través de Stripe y la factura la emite
+              Mkpro Kotler SL (CIF B99554446), titular del portal. Los packs de créditos de IAFarma son
+              pagos únicos, no suscripciones.
+            </li>
+            <li>
+              Al suscribirte aceptas el{" "}
+              <Link to="/aviso-legal" className="text-primary hover:underline">Aviso Legal</Link> y la{" "}
+              <Link to="/politica-privacidad" className="text-primary hover:underline">Política de Privacidad</Link>{" "}
+              del portal.
+            </li>
+          </ul>
+          <nav aria-label="Enlaces legales" className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span>© {new Date().getFullYear()} farmapro</span>
+            <Link to="/aviso-legal" className="hover:text-foreground">Aviso Legal</Link>
+            <Link to="/politica-privacidad" className="hover:text-foreground">Política de Privacidad</Link>
+            <Link to="/politica-cookies" className="hover:text-foreground">Política de Cookies</Link>
+            <Link to="/contacto-soporte" className="hover:text-foreground">Contacto y soporte</Link>
+            <a href="https://farmapro.es" className="hover:text-foreground">farmapro.es</a>
+          </nav>
+        </section>
       </div>
     </div>
   );

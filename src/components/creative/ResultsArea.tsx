@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ContentType } from '@/hooks/useCreativeChat';
 import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 import { CarouselImages } from './CarouselImages';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { FREE_LIMITS } from '@/lib/plans';
 
 interface Message {
   id?: string;
@@ -39,6 +40,9 @@ interface ResultsAreaProps {
  * Instagram/WhatsApp el bloque de la sugerencia) y la sugerencia se vuelve
  * accionable con el botón "Crear esta imagen".
  */
+/** Tipos de contenido que no llevan imagen: el puente texto → imagen no aplica. */
+const IMAGELESS_TYPES = new Set<ContentType>(['imagen', 'carousel', 'whatsapp', 'responder-resena']);
+
 const splitImageSuggestion = (content: string): { main: string; suggestion: string | null } => {
   const match = /SUGERENCIA DE IMAGEN\s*:/i.exec(content);
   if (!match) return { main: content, suggestion: null };
@@ -51,6 +55,18 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
   const { toast } = useToast();
   const [adjustInput, setAdjustInput] = useState('');
   const [showAdjust, setShowAdjust] = useState(false);
+  // "Ajustar" abre un campo DEBAJO de la zona de resultados (600 px de alto):
+  // en pantallas normales quedaba fuera de la vista y parecía que el botón no
+  // hacía nada (Francesc, 08-09-2026). Al abrirlo, se desplaza y toma el foco.
+  const adjustInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!showAdjust) return;
+    const t = window.setTimeout(() => {
+      adjustInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      adjustInputRef.current?.focus();
+    }, 120);
+    return () => window.clearTimeout(t);
+  }, [showAdjust]);
 
   const handleCopy = (content: string) => {
     navigator.clipboard.writeText(splitImageSuggestion(content).main);
@@ -143,6 +159,21 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
     return (
       <>
         {renderContent(main)}
+        {/* Si el modelo no cerró con "SUGERENCIA DE IMAGEN:", el puente a la
+            imagen no aparecía y el post se quedaba sin visual. Se ofrece igual
+            con la propia publicación como brief. */}
+        {!suggestion && onCreateImage && !IMAGELESS_TYPES.has(contentType) && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => onCreateImage(main.slice(0, 200), main)}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-ciruela hover:text-ciruela/80 underline underline-offset-2"
+            >
+              <ImageIcon className="h-3.5 w-3.5" />
+              Crear una imagen para esta publicación con IAFarma (gasta 1 crédito)
+            </button>
+          </div>
+        )}
         {suggestion && (
           <div className="mt-4 rounded-lg bg-ciruela-soft ring-1 ring-ciruela/20 p-4">
             <span className="text-xs font-semibold text-ciruela block mb-1.5">Sugerencia de imagen</span>
@@ -226,7 +257,8 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
           <Button
             variant="outline"
             onClick={() => setShowAdjust(!showAdjust)}
-            className="text-muted-foreground"
+            aria-expanded={showAdjust}
+            className={showAdjust ? 'border-ciruela text-ciruela bg-ciruela-soft' : 'text-muted-foreground'}
           >
             <MessageSquarePlus className="h-4 w-4 mr-2" />
             Ajustar
@@ -235,7 +267,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
             <span className="inline-flex items-center rounded-full bg-ciruela-soft px-3 py-1 text-xs font-bold tabular-nums text-ciruela">
               {textsRemaining > 0
                 ? `Te ${textsRemaining === 1 ? 'queda' : 'quedan'} ${textsRemaining} ${textsRemaining === 1 ? 'texto' : 'textos'} gratis este mes`
-                : 'Has usado tus 2 textos gratis de este mes'}
+                : `Has usado tus ${FREE_LIMITS.aiTextPerMonth} textos gratis de este mes`}
             </span>
           )}
           {textsRemaining === 0 && (
@@ -261,6 +293,7 @@ export const ResultsArea = ({ messages, isLoading, contentType, onRegenerate, on
           className="flex gap-2"
         >
           <Input
+            ref={adjustInputRef}
             value={adjustInput}
             onChange={e => setAdjustInput(e.target.value)}
             placeholder="Describe los cambios que quieres..."

@@ -42,6 +42,7 @@ const CourseQuizView = () => {
               .from('course_enrollments')
               .update({
                 completed_at: new Date().toISOString(),
+                is_completed: true,
                 progress: 100
               })
               .eq('course_id', course.id)
