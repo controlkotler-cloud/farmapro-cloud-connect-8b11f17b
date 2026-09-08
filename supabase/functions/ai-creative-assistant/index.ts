@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
     }
 
     if (access === 'free_locked') {
-      return json({ error: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir generando contenido.' }, 403);
+      return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir generando contenido con IAFarma.' }, 403);
     }
 
     // Consumo atómico solo para free_trial. Los planes de pago son ilimitados
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
       if (creditError) {
         const msg = (creditError.message || '').toLowerCase();
         if (msg.includes('quota')) {
-          return json({ error: 'Has alcanzado el límite de 2 textos mensuales de tu prueba. Hazte Plus para generar sin límite.' }, 402);
+          return json({ error: 'Has usado los 2 textos al mes de tu plan Gratis. Mira los planes para seguir generando.' }, 402);
         }
         console.error('consume_text_credit error:', creditError);
         return json({ error: 'No se pudo verificar la cuota' }, 500);

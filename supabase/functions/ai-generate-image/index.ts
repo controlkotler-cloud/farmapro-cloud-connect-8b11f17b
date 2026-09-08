@@ -285,7 +285,7 @@ serve(async (req) => {
       access = days <= TRIAL_DAYS ? 'free_trial' : 'free_locked';
     }
     if (access === 'free_locked') {
-      return json({ error: 'Tu periodo de prueba ha terminado. Hazte Plus para seguir generando imágenes.' }, 403);
+      return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir generando imágenes.' }, 403);
     }
 
     const body = await req.json().catch(() => ({}));
