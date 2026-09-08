@@ -173,11 +173,23 @@ async function handleCheckoutCompleted(
       return;
     }
 
-    // Sumar créditos (atómico, service role).
-    const { error: creditErr } = await supabase.rpc('add_image_credits', {
-      p_user: userIdPack, p_credits: packCredits,
+    // Sumar créditos (atómico, service role). Idempotente por sesión de Stripe:
+    // un reintento del webhook NO vuelve a sumar (fix 07-09-2026).
+    const { data: grantData, error: creditErr } = await supabase.rpc('add_image_credits_once', {
+      p_user: userIdPack, p_credits: packCredits, p_ref: session.id,
     });
-    if (creditErr) log('add_image_credits error', { err: creditErr.message });
+    if (creditErr) {
+      // NO se traga: si respondiéramos 200 aquí, el pago quedaría cobrado y sin
+      // créditos, y Stripe no reintentaría nunca. Lanzar deja completed_at a
+      // null y devuelve 500, que es justo lo que provoca el reintento.
+      log('add_image_credits_once error', { err: creditErr.message, sessionId: session.id });
+      throw new Error(`add_image_credits_once failed for ${userIdPack}: ${creditErr.message}`);
+    }
+    log('pack credits granted', {
+      sessionId: session.id,
+      granted: (grantData as { granted?: boolean } | null)?.granted ?? null,
+      balance: (grantData as { balance?: number } | null)?.balance ?? null,
+    });
 
     // Factura Holded (pack). Total con IVA incluido = amount_total/100.
     try {

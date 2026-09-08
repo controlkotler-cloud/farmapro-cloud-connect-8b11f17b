@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -61,9 +61,17 @@ export interface GeneratedCopy {
 /** Código de error normalizado para que la UI pueda reaccionar (p. ej. 402 → /precios). */
 export type ImageGenerationErrorCode = 'quota' | 'forbidden' | 'unauthorized' | 'generic';
 
+/**
+ * Con code 'quota', distingue quedarse sin créditos ('quota') de haber tocado
+ * el tope de imágenes DEL DÍA ('daily'), que se levanta solo mañana y que los
+ * packs comprados sí saltan. Lo dice el backend en el cuerpo del 402.
+ */
+export type ImageQuotaReason = 'daily' | 'quota';
+
 export interface ImageGenerationError {
   code: ImageGenerationErrorCode;
   message: string;
+  reason?: ImageQuotaReason;
 }
 
 const DEFAULT_SIZE = '1024x1024';
@@ -86,20 +94,25 @@ const extractStatus = (error: unknown): number | undefined => {
 };
 
 /** Intenta leer el cuerpo JSON de la `Response` adjunta al error (si existe). */
-const extractBodyMessage = async (error: unknown): Promise<string | undefined> => {
-  if (!error || typeof error !== 'object') return undefined;
+const extractBody = async (
+  error: unknown,
+): Promise<{ message?: string; reason?: ImageQuotaReason }> => {
+  if (!error || typeof error !== 'object') return {};
   const ctx = (error as { context?: unknown }).context;
   if (ctx && typeof (ctx as Response).json === 'function') {
     try {
       const body = await (ctx as Response).clone().json();
       if (body && typeof body === 'object' && typeof body.error === 'string') {
-        return body.error;
+        return {
+          message: body.error,
+          reason: body.reason === 'daily' || body.reason === 'quota' ? body.reason : undefined,
+        };
       }
     } catch {
       /* el cuerpo no es JSON o ya se consumió: se ignora */
     }
   }
-  return undefined;
+  return {};
 };
 
 /**
@@ -107,10 +120,18 @@ const extractBodyMessage = async (error: unknown): Promise<string | undefined> =
  * prioridad: es específico y está actualizado; los textos de aquí son solo el
  * respaldo cuando el cuerpo no trae JSON.
  */
-const messageForStatus = (status: number | undefined, fallback?: string): ImageGenerationError => {
+const messageForStatus = (
+  status: number | undefined,
+  fallback?: string,
+  reason?: ImageQuotaReason,
+): ImageGenerationError => {
   switch (status) {
     case 402:
-      return { code: 'quota', message: fallback || 'Te has quedado sin créditos de imagen' };
+      return {
+        code: 'quota',
+        message: fallback || 'Te has quedado sin créditos de imagen',
+        reason: reason ?? 'quota',
+      };
     case 403:
       return {
         code: 'forbidden',
@@ -131,6 +152,13 @@ export const useImageGeneration = () => {
   const [copy, setCopy] = useState<GeneratedCopy | null>(null);
   const [error, setError] = useState<ImageGenerationError | null>(null);
   const { toast } = useToast();
+  /**
+   * Guarda de reentrada. `loading` es estado de React y no se ve hasta el
+   * siguiente render: dos clics muy seguidos (o el botón "Regenerar") podían
+   * lanzar dos peticiones y cobrar DOS créditos por una imagen. El ref se
+   * actualiza en el acto (fix 07-09-2026).
+   */
+  const inFlight = useRef(false);
 
   const reset = useCallback(() => {
     setImageUrl(null);
@@ -144,7 +172,9 @@ export const useImageGeneration = () => {
     async (prompt: string, opts?: ImageGenerationOptions) => {
       const trimmed = prompt.trim();
       if (!trimmed) return;
+      if (inFlight.current) return;
 
+      inFlight.current = true;
       setLoading(true);
       setError(null);
       setImageUrl(null);
@@ -176,14 +206,17 @@ export const useImageGeneration = () => {
 
         if (invokeError) {
           const status = extractStatus(invokeError);
-          const bodyMessage = await extractBodyMessage(invokeError);
+          const body = await extractBody(invokeError);
           const normalized = messageForStatus(
             status,
-            bodyMessage || (invokeError instanceof Error ? invokeError.message : undefined),
+            body.message || (invokeError instanceof Error ? invokeError.message : undefined),
+            body.reason,
           );
           setError(normalized);
           toast({
-            title: normalized.code === 'quota' ? 'Sin imágenes disponibles' : 'Error',
+            title: normalized.code === 'quota'
+              ? (normalized.reason === 'daily' ? 'Máximo de hoy alcanzado' : 'Sin imágenes disponibles')
+              : 'Error',
             description: normalized.message,
             variant: 'destructive',
           });
@@ -224,6 +257,7 @@ export const useImageGeneration = () => {
         setError(normalized);
         toast({ title: 'Error', description: normalized.message, variant: 'destructive' });
       } finally {
+        inFlight.current = false;
         setLoading(false);
       }
     },

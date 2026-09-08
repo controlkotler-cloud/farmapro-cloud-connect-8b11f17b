@@ -56,9 +56,10 @@ export interface PieceType {
 const tonoDe = (d: IAFarmaDefaults) =>
   d.tono?.trim() ? `tono ${d.tono.trim().toLowerCase()}` : 'tono profesional y cercano';
 
-// Estacionalidad calculada al cargar el módulo: suficiente (nadie tiene la
-// pestaña abierta de un mes a otro) y evita cambiar la firma de PIECE_TYPES.
-const S = getSeasonal();
+// Estacionalidad LEÍDA EN CADA USO, no congelada al cargar el módulo: una
+// pestaña abierta durante el cambio de mes seguía proponiendo el tema anterior
+// (fix 07-09-2026). `headlineExample` es un getter por el mismo motivo.
+const S = () => getSeasonal();
 
 // OJO: las descripciones NO piden "una farmacia" (eso produce fachadas y
 // farmacéuticos ficticios que no sirven). Describen la PIEZA: qué elementos
@@ -70,41 +71,41 @@ export const PIECE_TYPES: PieceType[] = [
     label: 'Promo de producto',
     hint: 'Oferta o producto destacado',
     defaultFormat: 'feed',
-    headlineExample: S.headlines.promo,
+    get headlineExample() { return S().headlines.promo; },
     buildPrompt: (d) =>
-      `Pieza de promoción: envase genérico de ${S.productoPromo} como protagonista sobre fondo limpio, ` +
-      `el titular con la oferta bien grande, etiqueta de descuento destacada, ${S.paleta}, ${tonoDe(d)}`,
+      `Pieza de promoción: envase genérico de ${S().productoPromo} como protagonista sobre fondo limpio, ` +
+      `el titular con la oferta bien grande, etiqueta de descuento destacada, ${S().paleta}, ${tonoDe(d)}`,
   },
   {
     id: 'cartel',
     label: 'Cartel',
     hint: 'Escaparate o interior',
     defaultFormat: 'a4',
-    headlineExample: S.headlines.cartel,
+    get headlineExample() { return S().headlines.cartel; },
     buildPrompt: (d) =>
-      `Cartel comercial: titular grande arriba, una ilustración central potente (${S.iconos}), ` +
-      `subtítulo corto abajo, composición vertical limpia y legible de lejos, ${S.paleta}, ${tonoDe(d)}`,
+      `Cartel comercial: titular grande arriba, una ilustración central potente (${S().iconos}), ` +
+      `subtítulo corto abajo, composición vertical limpia y legible de lejos, ${S().paleta}, ${tonoDe(d)}`,
   },
   {
     id: 'post',
     label: 'Post para redes',
     hint: 'Instagram o Facebook',
     defaultFormat: 'feed',
-    headlineExample: S.headlines.post,
+    get headlineExample() { return S().headlines.post; },
     buildPrompt: (d) =>
       `Post tipo infografía: el titular grande arriba y debajo una lista de 3 a 5 consejos cortos, cada uno ` +
-      `con su icono ilustrado (${S.iconos}). Escribe aquí los consejos si quieres que ` +
-      `salgan literales. ${S.paleta.charAt(0).toUpperCase() + S.paleta.slice(1)}, ${tonoDe(d)}`,
+      `con su icono ilustrado (${S().iconos}). Escribe aquí los consejos si quieres que ` +
+      `salgan literales. ${S().paleta.charAt(0).toUpperCase() + S().paleta.slice(1)}, ${tonoDe(d)}`,
   },
   {
     id: 'story',
     label: 'Story',
     hint: 'Vertical, a pantalla completa',
     defaultFormat: 'vertical',
-    headlineExample: S.headlines.story,
+    get headlineExample() { return S().headlines.story; },
     buildPrompt: (d) =>
       `Story vertical de un solo mensaje: titular grande centrado, fondo llamativo con elementos gráficos ` +
-      `del tema (${S.iconos}), espacio libre abajo para sticker, ${S.paleta}, ${tonoDe(d)}`,
+      `del tema (${S().iconos}), espacio libre abajo para sticker, ${S().paleta}, ${tonoDe(d)}`,
   },
 ];
 

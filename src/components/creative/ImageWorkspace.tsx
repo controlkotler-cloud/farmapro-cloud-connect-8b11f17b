@@ -562,12 +562,16 @@ const ImageResult = ({
           <ImageIcon className="h-7 w-7" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
-          Te has quedado sin créditos de imagen
+          {error.reason === 'daily'
+            ? 'Has llegado al máximo de imágenes de hoy'
+            : 'Te has quedado sin créditos de imagen'}
         </h3>
         {isPaid ? (
           <>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Recarga créditos al momento con un pack y sigue creando. No caducan.
+              {error.reason === 'daily'
+                ? 'Mañana vuelves a tener disponibles las de tu plan. Si no quieres esperar, los créditos de los packs no tienen tope diario.'
+                : 'Recarga créditos al momento con un pack y sigue creando. No caducan.'}
             </p>
             <ImageCreditPacks />
             <Button asChild variant="ghost" className="mt-4 text-muted-foreground hover:text-foreground" size="sm">
@@ -577,8 +581,9 @@ const ImageResult = ({
         ) : (
           <>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Tu plan Gratis incluye 1 imagen al mes. Con Plus tienes texto ilimitado, 1 imagen al
-              mes y packs de recarga que no caducan.
+              Tu plan Gratis incluye 1 imagen al mes. Con Plus tienes texto ilimitado, 12
+              imágenes al mes y packs de recarga que no caducan. En Equipo son 25 al mes para
+              toda la farmacia.
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Link to="/precios">Hazte Plus</Link>
@@ -657,9 +662,12 @@ const ImageResult = ({
             <button
               type="button"
               onClick={onRegenerate}
-              className="mt-3 text-xs font-medium text-ciruela hover:text-ciruela/80 underline underline-offset-2"
+              disabled={loading || remaining === 0}
+              className="mt-3 text-xs font-medium text-ciruela hover:text-ciruela/80 underline underline-offset-2 disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
             >
-              ¿No te convence? Regenerar pieza (gasta 1 crédito)
+              {remaining === 0
+                ? 'Sin créditos para regenerar'
+                : '¿No te convence? Regenerar pieza (gasta 1 crédito)'}
             </button>
           </div>
         )}

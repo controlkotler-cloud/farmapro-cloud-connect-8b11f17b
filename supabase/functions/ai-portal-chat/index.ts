@@ -21,9 +21,10 @@ PLANES Y PRECIOS
   bloqueado: solo lectura.
 - Plus (1 persona): 19,90 €/mes de precio fundador (precio normal 39 €/mes) o 199 €/año.
   Todo el contenido sin límite, comunidad completa con retos y ranking, IAFarma texto
-  ilimitado, 1 crédito de imagen al mes, eventos exclusivos de farmapro.
+  ilimitado, 12 imágenes al mes con IAFarma, eventos exclusivos de farmapro.
 - Equipo (hasta 10 personas): 49 €/mes de precio fundador (precio normal 79 €/mes) o 490 €/año.
-  Todo lo de Plus para toda la farmacia con una sola cuota y gestión de plazas.
+  Todo lo de Plus para toda la farmacia con una sola cuota y gestión de plazas, con 25 imágenes
+  al mes de IAFarma compartidas por toda la farmacia.
 - El precio fundador se mantiene de por vida para las 100 primeras plazas. El plan anual sale
   como dos meses gratis.
 - Packs de créditos de imagen IAFarma (pago único, solo sobre planes de pago): 20 por 4,99 €,
@@ -40,7 +41,9 @@ CÓMO SE HACEN LAS COSAS
 - Cambiar la contraseña: Perfil → Seguridad. Si no puedes entrar, "¿Olvidaste tu contraseña?"
   en la pantalla de acceso.
 - IAFarma (asistente creativo): textos ilimitados en los planes de pago; las imágenes gastan
-  créditos.
+  créditos: 12 al mes en Plus y 25 al mes compartidas en Equipo, más los packs de recarga, que
+  no caducan. Si alguien te pregunta cuántas imágenes le quedan, dile que lo ve en el propio
+  asistente creativo: tú no puedes consultar su saldo.
 
 LA REBOTICA
 Es la campaña quincenal de sorteos del portal: eliges un cajón y lo abres para ver qué te toca.
@@ -155,6 +158,10 @@ INSTRUCCIONES:
         model: 'google/gemini-3.6-flash',
         messages: [{ role: 'system', content: systemPrompt }, ...safeMessages],
         stream: true,
+        // Soporte: se le exige no inventar, así que temperatura baja. Sin esto
+        // iba a la del gateway por defecto (fix 07-09-2026).
+        temperature: 0.2,
+        max_tokens: 800,
       }),
     });
 

@@ -100,6 +100,12 @@ export const useCreativeChat = () => {
     setMessages([...history, newUserMessage]);
     setIsLoading(true);
 
+    // Se declara FUERA del try: el catch necesita saber si el hueco del
+    // asistente llegó a crearse. Si el error salta antes (sesión caducada, 402,
+    // 429), no hay nada que retirar y el `slice(0, -1)` de la v1 borraba el
+    // mensaje del propio usuario (fix 07-09-2026).
+    let assistantId: string | null = null;
+
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session?.access_token) {
@@ -147,8 +153,8 @@ export const useCreativeChat = () => {
 
       if (!reader) throw new Error('No se pudo leer la respuesta');
 
-      const assistantId = crypto.randomUUID();
-      setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+      assistantId = crypto.randomUUID();
+      setMessages(prev => [...prev, { id: assistantId as string, role: 'assistant', content: '' }]);
 
       let textBuffer = '';
 
@@ -218,7 +224,12 @@ export const useCreativeChat = () => {
         description: error instanceof Error ? error.message : 'Error al enviar el mensaje',
         variant: 'destructive',
       });
-      setMessages(prev => prev.slice(0, -1));
+      // Retira SOLO el hueco vacío del asistente, y solo si existe y sigue vacío.
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (assistantId && last?.id === assistantId && !last.content) return prev.slice(0, -1);
+        return prev;
+      });
     } finally {
       setIsLoading(false);
     }

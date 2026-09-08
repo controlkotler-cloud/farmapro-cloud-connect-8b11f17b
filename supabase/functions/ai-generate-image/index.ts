@@ -215,6 +215,9 @@ async function generateCopy(
           { role: 'user', content: userPrompt },
         ],
         response_format: { type: 'json_object' },
+        // El copy va rotulado sobre la imagen: conviene corto y poco disperso.
+        temperature: 0.6,
+        max_tokens: 400,
       }),
     });
     if (!res.ok) {
@@ -333,8 +336,16 @@ serve(async (req) => {
       });
       if (creditError) {
         const msg = (creditError.message || '').toLowerCase();
+        // Tope diario y cuota mensual son cosas distintas: el diario se levanta
+        // solo mañana y no significa quedarse sin créditos (fix 07-09-2026).
+        if (msg.includes('daily')) {
+          return json({
+            error: 'Has llegado al máximo de imágenes de hoy. Mañana vuelves a tener disponibles las de tu plan.',
+            reason: 'daily',
+          }, 402);
+        }
         if (msg.includes('quota')) {
-          return json({ error: 'Te has quedado sin créditos de imagen IAFarma.' }, 402);
+          return json({ error: 'Te has quedado sin créditos de imagen IAFarma.', reason: 'quota' }, 402);
         }
         console.error('consume_image_credit_v2 error:', creditError);
         return json({ error: 'No se pudo verificar la cuota' }, 500);

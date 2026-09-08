@@ -165,6 +165,10 @@ Deno.serve(async (req) => {
         model: TEXT_MODEL,
         messages: [{ role: 'system', content: systemPrompt }, ...safeMessages],
         stream: true,
+        // Creativo pero sujeto: sin esto se va a la temperatura por defecto del
+        // gateway y se inventa datos de la farmacia (fix 07-09-2026).
+        temperature: 0.7,
+        max_tokens: 1200,
       }),
     });
 
@@ -374,6 +378,14 @@ TAREA: Redacta la respuesta pública de la farmacia a esta reseña de Google${st
 RESEÑA DEL CLIENTE: "${reviewText}"
 
 ${strategy}
+
+PROTECCIÓN DE DATOS (obligatorio, la respuesta es PÚBLICA):
+- No confirmes ni des a entender que quien escribe es paciente o cliente de la farmacia.
+- No menciones medicamentos, productos concretos, tratamientos, patologías, consultas ni
+  visitas, aunque la reseña los nombre. Habla en general del servicio.
+- No repitas datos personales (nombre completo, teléfono, email, fechas de visita).
+- Si para resolver el caso hace falta información clínica o personal, derívalo a canal privado
+  sin detallar nada en público.
 
 FORMATO:
 - Devuelve SOLO el texto de la respuesta, breve (2-5 frases), sin markdown, sin sugerencia de imagen.
