@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Check, ImageIcon, Sparkles, Flame, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, ImageIcon, Sparkles, Flame, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,7 @@ import {
   ANNUAL_REGULAR_AVAILABLE,
   IMAGE_ADDONS,
   FREE_LIMITS,
+  getAccessState,
   type Plan,
   type PlanId,
 } from "@/lib/plans";
@@ -46,6 +47,17 @@ export default function Precios() {
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   // Plan cuyo checkout está en curso (deshabilita su botón e ignora dobles clics).
   const [checkoutLoading, setCheckoutLoading] = useState<PlanId | null>(null);
+  // Pack de imágenes cuyo checkout está en curso.
+  const [packLoading, setPackLoading] = useState<number | null>(null);
+  // Los packs se cobran sobre un plan de pago (create-checkout lo exige por rol):
+  // titular Plus/Equipo o miembro de un equipo.
+  const canBuyPacks = currentPlan !== null || (isTeamMember && !teamLoading);
+  // Vuelta al portal para quien ya tiene cuenta. El gratis caducado no la ve:
+  // la app lo reenvía a /precios y el enlace solo haría un bucle.
+  const accessState = user
+    ? getAccessState(role ?? null, profile?.created_at ?? null)
+    : null;
+  const showBackToPortal = Boolean(user) && accessState !== "free_locked";
   // Estado del lanzamiento con el recuento REAL de plazas (vista founder_count).
   const { launch } = useLaunchStatus();
   // El anual solo se ofrece si sigue el lanzamiento o ya existen los precios anuales regulares.
@@ -113,10 +125,54 @@ export default function Precios() {
     window.location.href = data.url;
   };
 
+  // Recarga de packs de imágenes desde esta página (antes solo se pintaban
+  // los precios, sin botón: había que ir a Perfil → Plan para comprarlos).
+  const handleBuyPack = async (credits: number) => {
+    if (!user) {
+      navigate(`/login?modo=registro&next=${encodeURIComponent("/precios")}`);
+      return;
+    }
+    if (!canBuyPacks) {
+      toast({
+        title: "Los packs van sobre un plan de pago",
+        description: "Elige primero Plus o Equipo. Los créditos del pack se suman a los del plan y no caducan.",
+      });
+      return;
+    }
+    setPackLoading(credits);
+    const { data, error } = await supabase.functions.invoke("create-checkout", {
+      body: { pack: credits },
+    });
+    setPackLoading(null);
+    if (error || !data?.url) {
+      const detail =
+        (await extractFunctionErrorMessage(error)) ??
+        (typeof data?.error === "string" ? data.error : undefined);
+      toast({
+        title: "No se ha podido iniciar el pago",
+        description:
+          detail ??
+          "Inténtalo de nuevo en unos segundos. Si persiste, escríbenos a soporte@farmapro.es.",
+        variant: "destructive",
+      });
+      return;
+    }
+    window.location.href = data.url;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="container mx-auto px-4 py-16">
+        {showBackToPortal && (
+          <div className="mb-6 -mt-6">
+            <Button asChild variant="ghost" size="sm" className="-ml-2 gap-1.5 text-muted-foreground">
+              <Link to="/dashboard">
+                <ArrowLeft className="h-4 w-4" />
+                Volver al portal
+              </Link>
+            </Button>
+          </div>
+        )}
         {/* Cabecera */}
         <div className="text-center mb-10">
           {showTeamMemberBanner ? (
@@ -258,6 +314,7 @@ export default function Precios() {
             <p className="text-sm text-muted-foreground mt-1">
               ¿Necesitas más imágenes? Recarga cuando quieras, pago único sobre cualquier
               plan de pago. Los créditos no caducan: quedan en tu cuenta hasta que los usas.
+              {canBuyPacks && " También puedes verlos y recargarlos desde Perfil → Plan."}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -269,6 +326,22 @@ export default function Precios() {
                   <p className="text-lg font-semibold text-primary">
                     {formatPrice(addon.price)} €
                   </p>
+                  {canBuyPacks ? (
+                    <Button
+                      size="sm"
+                      className="mt-3 w-full rounded-full"
+                      disabled={packLoading !== null}
+                      onClick={() => handleBuyPack(addon.credits)}
+                    >
+                      {packLoading === addon.credits ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Recargar"
+                      )}
+                    </Button>
+                  ) : (
+                    <p className="mt-3 text-xs text-muted-foreground">Disponible con Plus o Equipo</p>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -283,6 +356,13 @@ export default function Precios() {
               Contacta con nosotros
             </a>
           </p>
+          {showBackToPortal && (
+            <p className="mt-3 text-sm">
+              <Link to="/dashboard" className="text-primary hover:underline">
+                Volver al portal
+              </Link>
+            </p>
+          )}
         </div>
 
         {/* Condiciones de contratación y enlaces legales. El Aviso Legal remite
