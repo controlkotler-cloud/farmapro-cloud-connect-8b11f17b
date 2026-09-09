@@ -43,6 +43,7 @@
    - El 301 de `/rebotica` ya está activo desde que se pegue esta versión del Worker
      (no requiere ningún cambio adicional ese día).
    - Pegar el contenido completo en el editor del Worker en Cloudflare y publicar.
+   - **09-09:** esa misma versión lleva `https://iframe.mediadelivery.net` en el `frame-src` del CSP. Sin ella, el vídeo de Bunny de `/portal` (PortalLanzamiento) sale en blanco. Verificar tras pegar: `curl -sI https://farmapro.es/portal | grep -o 'frame-src[^;]*'` debe incluir mediadelivery.
    - **Quién**: Francesc (acceso al dashboard de Cloudflare Workers).
 
 3. **Purge Everything en Cloudflare (Francesc, ~1 min)**
