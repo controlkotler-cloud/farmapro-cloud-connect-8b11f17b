@@ -10,7 +10,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { getPortalConfigurationId } from "../_shared/stripePortal.ts";
+import { getPortalConfigurationId, tierForPrice } from "../_shared/stripePortal.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,13 +64,18 @@ serve(async (req) => {
     logStep("Found Stripe customer", { customerId });
 
     const origin = req.headers.get("origin") || Deno.env.get('APP_URL') || "https://portal.farmapro.es";
-    const configuration = await getPortalConfigurationId(stripe);
+    // El tier lo marca lo que ya paga: un fundador ve los precios de lanzamiento
+    // al cambiar de plan; el resto, los regulares.
+    const subs = await stripe.subscriptions.list({ customer: customerId, status: 'all', limit: 5 });
+    const live = subs.data.find((s) => ['active', 'trialing', 'past_due'].includes(s.status)) ?? subs.data[0];
+    const tier = tierForPrice(live?.items.data[0]?.price?.id);
+    const configuration = await getPortalConfigurationId(stripe, tier);
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       ...(configuration ? { configuration } : {}),
       return_url: `${origin}/perfil?tab=billing`,
     });
-    logStep("Customer portal session created", { sessionId: portalSession.id, configuration });
+    logStep("Customer portal session created", { sessionId: portalSession.id, configuration, tier });
 
     return new Response(JSON.stringify({ url: portalSession.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

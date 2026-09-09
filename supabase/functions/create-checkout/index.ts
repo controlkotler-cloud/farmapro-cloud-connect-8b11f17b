@@ -11,7 +11,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { pickSubscriptionPrice, lookupPrice, IMAGE_PACK_PRICES, type PlanId, type Cycle } from "../_shared/stripePrices.ts";
-import { getPortalConfigurationId, lastPortalConfigError } from "../_shared/stripePortal.ts";
+import { getPortalConfigurationId, lastPortalConfigError, tierForPrice } from "../_shared/stripePortal.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -189,7 +189,8 @@ serve(async (req) => {
           return json({ error: 'La suscripción actual no tiene un concepto que actualizar. Escríbenos a soporte@farmapro.es.' }, 409);
         }
 
-        const configuration = await getPortalConfigurationId(stripe);
+        // Configuración del tier del precio destino (lanzamiento o regular).
+        const configuration = await getPortalConfigurationId(stripe, tierForPrice(newPriceId));
         if (!configuration) {
           // Sin la configuración farmapro, el portal por defecto no permite
           // cambiar de plan: Stripe devolvería "subscription update feature ...
