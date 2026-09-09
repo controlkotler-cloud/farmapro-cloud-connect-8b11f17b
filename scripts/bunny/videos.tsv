@@ -1,0 +1,13 @@
+# drive_id	slot	title_bunny	expected_bytes	destino
+1TXWLHtyNEBVoxwm5bOik-AjLzBnKhO-s	B-5	Píldora · Las 5 señales silenciosas y cómo medirlas	67360547	jsonb:fp-pildora-farmacia-silenciosa-l1
+1TV0HIxk7t9eDCuOFJIYHjmaMXedi_69X	B-6	Píldora · Tu ficha de Google, a punto en 5 pasos	68520781	jsonb:fp-pildora-google-my-business-l1
+1J0YphjYviq1B6jV5h2F4ezHfQeldNdDJ	B-7	Píldora · El método semáforo para tu stock	62329930	jsonb:fp-pildora-stock-muerto-l1
+1IP69w-2tNBWDKXZJ-6EE4NLNn9RTH4Nl	B-8	Píldora · Perfiles del equipo y categorías responsables	50867359	jsonb:fp-pildora-categorias-responsables-l1
+1KNaJnY6h0rRSQBbOtHT6RW3bD3M-PWne	B-9	Píldora · Reparte el espacio por rentabilidad	53202205	jsonb:fp-pildora-rentabilidad-categorias-l1
+1YKRExlr95WftEQX23vxtnGvFS_5Y2w2J	B-10	Píldora · Monta tu corner de dermocosmética	74720859	jsonb:fp-pildora-corner-dermocosmetica-l1
+1X1LW-t_p9lFe36ZiSJw15BCzQxOTj5Ak	B-11	Píldora · Detecta la fuga silenciosa de clientes	66954344	jsonb:fp-pildora-cliente-que-no-vuelve-l1
+1szcBg47dew9b1LFEhFPaC5VH4venCo9B	B-12	Píldora · Las 5 palancas y cómo priorizarlas	75697762	jsonb:fp-pildora-cinco-palancas-l1
+1J_60PEy8zginrF0BSpDDdsKrX1FE7H2a	A-2	La Rebotica en 60 segundos	104844004	code:portal/src/pages/Rebotica.tsx:REBOTICA_VIDEO_URL
+1pcwbHVzV0cCSB5bezyvt6rbUxMh4O97X	B-4	Bienvenida al portal	130296466	code:portal/src/components/onboarding/OnboardingWizard.tsx:BIENVENIDA_VIDEO_URL
+1HdmvwksqMWAsyPiu33vQ9BsrMB6_jJlL	13	Masterclass · Alejandro Tellería	1671181912	code:portal/src/pages/VaultMasterclass.tsx:VIDEO_URL
+1kQxudPk09bLxlWzsKIywW7m23yZizgey	P1	Presentación del portal (web)	127003291	code:direct/src/pages/PortalLanzamiento.tsx:PORTAL_VIDEO_URL

@@ -43,7 +43,7 @@ const BTN_LIME =
 // Pieza 2 de la jornada de grabación: «La Rebotica en 60 segundos».
 // Editada por Laura el 04-09-2026 y subida a Drive con enlace público.
 // Vacío = el bloque de vídeo no se renderiza.
-const REBOTICA_VIDEO_URL = 'https://drive.google.com/file/d/1J_60PEy8zginrF0BSpDDdsKrX1FE7H2a/view';
+const REBOTICA_VIDEO_URL = 'https://iframe.mediadelivery.net/embed/748005/eb95bdaa-8724-429b-b735-8805f4023f9b';
 
 const STEPS = [
   {

@@ -1,0 +1,12 @@
+B-5	jsonb:fp-pildora-farmacia-silenciosa-l1	https://iframe.mediadelivery.net/embed/748005/7e5af7cf-5257-4e7e-a407-839f0d0556b2
+B-6	jsonb:fp-pildora-google-my-business-l1	https://iframe.mediadelivery.net/embed/748005/1b7c0b54-019e-4759-9a86-2097a349a6ea
+B-7	jsonb:fp-pildora-stock-muerto-l1	https://iframe.mediadelivery.net/embed/748005/c1367b18-adab-4c15-91ed-6e631ee2242d
+B-8	jsonb:fp-pildora-categorias-responsables-l1	https://iframe.mediadelivery.net/embed/748005/9ac74311-274d-48d9-b9c2-eddead2da4b8
+B-9	jsonb:fp-pildora-rentabilidad-categorias-l1	https://iframe.mediadelivery.net/embed/748005/5f2e0234-d665-43f7-bfff-9b6c8f2930e8
+B-10	jsonb:fp-pildora-corner-dermocosmetica-l1	https://iframe.mediadelivery.net/embed/748005/60171c64-b2aa-4a2f-b97d-87c76f1e96cd
+B-11	jsonb:fp-pildora-cliente-que-no-vuelve-l1	https://iframe.mediadelivery.net/embed/748005/c0e105a6-ca3c-4138-bffb-1b0672c284f4
+B-12	jsonb:fp-pildora-cinco-palancas-l1	https://iframe.mediadelivery.net/embed/748005/dc567334-beb5-45b3-ab6b-24192a5ffbb0
+A-2	code:portal/src/pages/Rebotica.tsx:REBOTICA_VIDEO_URL	https://iframe.mediadelivery.net/embed/748005/eb95bdaa-8724-429b-b735-8805f4023f9b
+B-4	code:portal/src/components/onboarding/OnboardingWizard.tsx:BIENVENIDA_VIDEO_URL	https://iframe.mediadelivery.net/embed/748005/546adabd-309a-44d2-8f35-3f5d943d5315
+13	code:portal/src/pages/VaultMasterclass.tsx:VIDEO_URL	https://iframe.mediadelivery.net/embed/748005/134ac3ff-00b1-4741-a6eb-af56b9fb4664
+P1	code:direct/src/pages/PortalLanzamiento.tsx:PORTAL_VIDEO_URL	https://iframe.mediadelivery.net/embed/748005/3cbee889-0dc0-426c-9ee5-96d4d2d95d0e

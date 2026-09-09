@@ -14,7 +14,7 @@ import { VideoEmbed } from '@/components/media/VideoEmbed';
 
 // Vídeo de bienvenida (pieza 4 de la jornada de grabación, Drive compartido).
 // Se muestra en el primer paso en lugar del icono.
-const BIENVENIDA_VIDEO_URL = 'https://drive.google.com/file/d/1pcwbHVzV0cCSB5bezyvt6rbUxMh4O97X/view';
+const BIENVENIDA_VIDEO_URL = 'https://iframe.mediadelivery.net/embed/748005/546adabd-309a-44d2-8f35-3f5d943d5315';
 
 interface OnboardingStep {
   title: string;

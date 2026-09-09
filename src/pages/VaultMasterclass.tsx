@@ -13,7 +13,7 @@ import { VideoEmbed } from '@/components/media/VideoEmbed';
  * catálogo de cursos. Para cambiar el vídeo (p. ej. a Vimeo) basta con
  * cambiar VIDEO_URL.
  */
-const VIDEO_URL = 'https://drive.google.com/file/d/1HdmvwksqMWAsyPiu33vQ9BsrMB6_jJlL/view';
+const VIDEO_URL = 'https://iframe.mediadelivery.net/embed/748005/134ac3ff-00b1-4741-a6eb-af56b9fb4664';
 
 const PALANCAS = [
   {

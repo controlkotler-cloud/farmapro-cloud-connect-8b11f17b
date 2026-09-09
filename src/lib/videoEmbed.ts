@@ -50,6 +50,16 @@ export const resolveVideoEmbed = (raw: string): VideoEmbed => {
     if (id) return { kind: 'iframe', src: `https://drive.google.com/file/d/${id}/preview` };
   }
 
+  // Bunny Stream: iframe.mediadelivery.net/embed/LIB/GUID · iframe.mediadelivery.net/play/LIB/GUID
+  // · video.bunnycdn.com/play/LIB/GUID. El reproductor de Bunny sirve HLS adaptativo y
+  // encaja el vídeo entero (letterbox), sin el recorte del iframe de Drive en móvil.
+  if (host === 'iframe.mediadelivery.net' || host === 'video.bunnycdn.com') {
+    const m = u.pathname.match(/\/(?:embed|play)\/(\d+)\/([0-9a-f-]{36})/i);
+    if (m) {
+      return { kind: 'iframe', src: `https://iframe.mediadelivery.net/embed/${m[1]}/${m[2]}?autoplay=false&preload=true` };
+    }
+  }
+
   // Fichero directo (Supabase Storage, CDN…)
   if (/\.(mp4|webm|m4v|mov)(\?|$)/i.test(u.pathname + u.search)) {
     return { kind: 'file', src: url };
