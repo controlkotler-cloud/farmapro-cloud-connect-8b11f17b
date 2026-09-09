@@ -16,5 +16,7 @@ project_id = "jeysistgdajopfruqpbc"
     verify_jwt = true
   [functions.redeem-reward]
     verify_jwt = true
+  [functions.holded-invoice-pdf]
+    verify_jwt = true
 
 

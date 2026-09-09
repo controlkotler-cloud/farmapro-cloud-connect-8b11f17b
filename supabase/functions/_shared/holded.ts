@@ -8,8 +8,14 @@
 //     IVA 21% INCLUIDO en total_eur → base = round(total/1.21, 2),
 //     items:[{name:concepto, units:1, subtotal:base, tax:21}].
 //  3) update a 'done'+holded_doc_id, o 'error' + error_message.
+//  4) la factura se crea YA APROBADA (approveDoc) → Holded le asigna número
+//     (docNumber, guardado en holded_doc_number) y se envía por email al
+//     cliente con la plantilla HOLDED_MAIL_TEMPLATE_ID (sent_at / send_error).
+//     Un fallo al numerar o enviar NO marca error: la factura existe.
 //
 // El importe entra siempre como total_eur con IVA incluido.
+// getHoldedInvoicePdf(docId) devuelve el PDF en base64 (lo usa la edge
+// holded-invoice-pdf para la descarga desde Perfil → Facturación).
 // =====================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
@@ -43,6 +49,8 @@ export interface HoldedInvoiceInput {
 export interface HoldedResult {
   status: 'done' | 'skipped' | 'error';
   holdedDocId?: string;
+  docNumber?: string;
+  sent?: boolean;
   error?: string;
 }
 
@@ -185,6 +193,8 @@ export async function createHoldedInvoice(input: HoldedInvoiceInput): Promise<Ho
     const payload = {
       contactId,
       ...(designId ? { designId } : {}),
+      // Factura definitiva desde el primer momento: numerada y contabilizada.
+      approveDoc: true,
       desc: input.concept,
       date: Math.floor(Date.now() / 1000),
       notes: `Origen: portal farmapro. Ref: ${input.sourceId}`,
@@ -215,7 +225,18 @@ export async function createHoldedInvoice(input: HoldedInvoiceInput): Promise<Ho
       status: 'done', holded_doc_id: data.id, updated_at: new Date().toISOString(),
     }).eq('source_id', input.sourceId);
     log('invoice done', { sourceId: input.sourceId, holdedDocId: data.id });
-    return { status: 'done', holdedDocId: data.id };
+
+    // 3) número de factura (lo asigna Holded al aprobar) y envío por email.
+    const docNumber = await fetchDocNumber(key, data.id);
+    const send = await sendInvoiceEmail(key, data.id, input.email);
+    await sb.from('portal_holded_invoices').update({
+      holded_doc_number: docNumber,
+      sent_at: send.ok ? new Date().toISOString() : null,
+      send_error: send.ok ? null : send.error ?? 'send failed',
+      updated_at: new Date().toISOString(),
+    }).eq('source_id', input.sourceId);
+    log('invoice numbered+sent', { docNumber, sent: send.ok, sendError: send.error });
+    return { status: 'done', holdedDocId: data.id, docNumber: docNumber ?? undefined, sent: send.ok };
   } catch (e) {
     const msg = (e as Error).message;
     await sb.from('portal_holded_invoices').update({
@@ -224,4 +245,56 @@ export async function createHoldedInvoice(input: HoldedInvoiceInput): Promise<Ho
     log('exception', { msg });
     return { status: 'error', error: msg };
   }
+}
+
+// Número de documento (p. ej. F260484). Holded lo asigna al aprobar; si la
+// lectura falla se deja null y se puede completar más tarde.
+async function fetchDocNumber(key: string, docId: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${HOLDED_API}/documents/invoice/${docId}`, {
+      headers: { 'key': key, 'accept': 'application/json' },
+    });
+    if (!res.ok) { log('doc fetch failed', { status: res.status }); return null; }
+    const doc = await res.json().catch(() => ({}));
+    const n = doc?.docNumber ?? doc?.invoiceNum ?? null;
+    return typeof n === 'string' && n.trim() ? n.trim() : null;
+  } catch (e) { log('doc fetch exception', { err: (e as Error).message }); return null; }
+}
+
+// Envía la factura por email desde Holded (mismo patrón que farmapro-direct).
+// HOLDED_MAIL_TEMPLATE_ID = plantilla de correo "farmapro"; sin secret, la
+// plantilla por defecto de la cuenta.
+async function sendInvoiceEmail(
+  key: string, docId: string, email: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!email) return { ok: false, error: 'no email' };
+  const mailTemplateId = (Deno.env.get('HOLDED_MAIL_TEMPLATE_ID') ?? '').trim();
+  const body: Record<string, string> = { emails: email };
+  if (mailTemplateId) body.mailTemplateId = mailTemplateId;
+  try {
+    const res = await fetch(`${HOLDED_API}/documents/invoice/${docId}/send`, {
+      method: 'POST',
+      headers: { 'key': key, 'content-type': 'application/json', 'accept': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || (data && data.status === 0)) {
+      return { ok: false, error: `Holded send ${res.status}: ${JSON.stringify(data).slice(0, 300)}` };
+    }
+    return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+// PDF de la factura en base64 (Holded v1: GET .../pdf → { status, data }).
+export async function getHoldedInvoicePdf(docId: string): Promise<{ base64: string } | { error: string }> {
+  const key = Deno.env.get('HOLDED_API_KEY') ?? '';
+  if (!key) return { error: 'HOLDED_API_KEY not configured' };
+  try {
+    const res = await fetch(`${HOLDED_API}/documents/invoice/${docId}/pdf`, {
+      headers: { 'key': key, 'accept': 'application/json' },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.data) return { error: `Holded pdf ${res.status}: ${JSON.stringify(data).slice(0, 200)}` };
+    return { base64: String(data.data) };
+  } catch (e) { return { error: (e as Error).message }; }
 }

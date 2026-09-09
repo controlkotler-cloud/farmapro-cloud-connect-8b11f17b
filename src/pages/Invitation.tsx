@@ -32,11 +32,14 @@ export default function Invitation() {
       // valida que el email de la sesión sea el invitado, así que se dice.
       const detail = await extractFunctionErrorMessage(error);
       setState('error');
+      const who = user?.email ?? 'otra cuenta';
       setMessage(
-        `No se pudo aceptar la invitación. Estás dentro como ${user?.email ?? 'otra cuenta'}: ` +
-          'solo puede aceptarla la cuenta con el email que la recibió. Si es otra, sal y entra con ella. ' +
-          'También puede haber caducado (14 días).' +
-          (detail ? ` Detalle: ${detail}` : ''),
+        `No se ha podido aceptar la invitación. Lo más probable es que hayas abierto el enlace ` +
+          `con otra cuenta: ahora estás dentro como ${who}, y esta invitación solo la puede aceptar ` +
+          `la cuenta con el email al que se envió. Sal, entra con ese email y vuelve a abrir el enlace ` +
+          `del correo. Si ya es esa cuenta, puede que la invitación haya caducado (dura 14 días) o que ` +
+          `ya se hubiera aceptado antes: pide al titular que te la envíe de nuevo.` +
+          (detail ? ` (Motivo técnico: ${detail})` : ''),
       );
     } else {
       setState('ok');
@@ -125,7 +128,10 @@ export default function Invitation() {
         ) : (
           <>
             <XCircle className="w-10 h-10 mx-auto text-destructive" />
-            <p className="text-sm">{message}</p>
+            <h2 className="text-lg font-extrabold tracking-tight text-foreground">
+              No se ha podido aceptar
+            </h2>
+            <p className="text-sm text-left text-muted-foreground">{message}</p>
             <Button variant="outline" size="sm" className="rounded-full" onClick={() => void signOut()}>
               Salir y entrar con otra cuenta
             </Button>

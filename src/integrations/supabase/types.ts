@@ -1750,6 +1750,9 @@ export type Database = {
           email: string | null
           error_message: string | null
           holded_doc_id: string | null
+          holded_doc_number: string | null
+          sent_at: string | null
+          send_error: string | null
           id: string
           meta: Json | null
           source_id: string
@@ -1765,6 +1768,9 @@ export type Database = {
           email?: string | null
           error_message?: string | null
           holded_doc_id?: string | null
+          holded_doc_number?: string | null
+          sent_at?: string | null
+          send_error?: string | null
           id?: string
           meta?: Json | null
           source_id: string
@@ -1780,6 +1786,9 @@ export type Database = {
           email?: string | null
           error_message?: string | null
           holded_doc_id?: string | null
+          holded_doc_number?: string | null
+          sent_at?: string | null
+          send_error?: string | null
           id?: string
           meta?: Json | null
           source_id?: string
