@@ -1751,10 +1751,10 @@ export type Database = {
           error_message: string | null
           holded_doc_id: string | null
           holded_doc_number: string | null
-          sent_at: string | null
-          send_error: string | null
           id: string
           meta: Json | null
+          send_error: string | null
+          sent_at: string | null
           source_id: string
           source_type: string
           status: string
@@ -1769,10 +1769,10 @@ export type Database = {
           error_message?: string | null
           holded_doc_id?: string | null
           holded_doc_number?: string | null
-          sent_at?: string | null
-          send_error?: string | null
           id?: string
           meta?: Json | null
+          send_error?: string | null
+          sent_at?: string | null
           source_id: string
           source_type: string
           status?: string
@@ -1787,10 +1787,10 @@ export type Database = {
           error_message?: string | null
           holded_doc_id?: string | null
           holded_doc_number?: string | null
-          sent_at?: string | null
-          send_error?: string | null
           id?: string
           meta?: Json | null
+          send_error?: string | null
+          sent_at?: string | null
           source_id?: string
           source_type?: string
           status?: string
