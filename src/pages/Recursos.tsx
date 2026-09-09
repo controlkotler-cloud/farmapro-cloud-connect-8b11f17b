@@ -43,7 +43,37 @@ export const Recursos = () => {
   // IDs de recursos que el usuario YA ha descargado (para no consumir un nuevo
   // hueco del tope gratis al re-descargar lo mismo) y total de descargas.
   const [downloadedIds, setDownloadedIds] = useState<Set<string>>(new Set());
-  const [downloadCount, setDownloadCount] = useState(0);
+  // Premios de la Rebotica (RPC `rebotica_my_rewards`): recursos premium ya
+  // desbloqueados por un premio, y si hay un premio "Recurso premium" pendiente
+  // de elegir. Un recurso desbloqueado no cuenta contra el tope del plan Gratis.
+  const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
+  const [pendingPick, setPendingPick] = useState<{ expiresAt: string | null } | null>(null);
+  const [pickTarget, setPickTarget] = useState<Resource | null>(null);
+  const downloadCount = useMemo(
+    () => Array.from(downloadedIds).filter((id) => !unlockedIds.has(id)).length,
+    [downloadedIds, unlockedIds],
+  );
+
+  const loadRewards = async (userId: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('rebotica_my_rewards');
+    if (error) {
+      console.error('Error cargando premios de la Rebotica:', error);
+      return;
+    }
+    if (!userId) return;
+    const rows = (data ?? []) as Array<{ titulo: string; resource_id: string | null; redeemed_at: string | null; expires_at: string | null }>;
+    const unlocked = new Set<string>();
+    let pending: { expiresAt: string | null } | null = null;
+    const now = Date.now();
+    for (const r of rows) {
+      if (!r.titulo?.toLowerCase().startsWith('recurso premium')) continue;
+      if (r.resource_id) unlocked.add(r.resource_id);
+      else if (!r.redeemed_at && (!r.expires_at || new Date(r.expires_at).getTime() > now)) pending = { expiresAt: r.expires_at };
+    }
+    setUnlockedIds(unlocked);
+    setPendingPick(pending);
+  };
   // Diálogo de "límite del plan Gratis alcanzado". Antes era un toast que
   // desaparecía solo y no dejaba claro qué hacer (feedback Francesc 08-09-2026).
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
@@ -62,9 +92,9 @@ export const Recursos = () => {
         return;
       }
       const ids = (data || []).map(d => d.resource_id).filter(Boolean) as string[];
-      setDownloadCount(ids.length);
       setDownloadedIds(new Set(ids));
     })();
+    void loadRewards(profile.id);
     return () => {
       active = false;
     };
@@ -187,6 +217,61 @@ export const Recursos = () => {
     </ToastAction>
   );
 
+  // Descarga premium firmada. El bucket y la ruta se extraen de file_url para
+  // soportar tanto el bucket público 'recursos' como el privado 'recursos-premium'
+  // (la firma pasa por las políticas de Storage, que incluyen la del premio).
+  const openSignedDownload = (resource: Resource, win: Window | null) => {
+    const match = resource.file_url.match(/\/storage\/v1\/object\/(?:public\/|sign\/|authenticated\/)?([^/]+)\/(.+)$/);
+    const bucket = match?.[1] ?? 'recursos';
+    const path = match?.[2] ?? resource.file_url;
+    return supabase.storage
+      .from(bucket)
+      .createSignedUrl(path, 60)
+      .then(({ data, error }) => {
+        if (error || !data?.signedUrl) {
+          win?.close();
+          toast({ title: 'Error', description: 'No se pudo generar el enlace de descarga.', variant: 'destructive' });
+          return false;
+        }
+        if (win) win.location.href = data.signedUrl;
+        else window.location.href = data.signedUrl;
+        return true;
+      });
+  };
+
+  // Confirmación del premio "Recurso premium": desbloquea en BD (RPC atómica,
+  // marca la apertura como canjeada) y descarga en la misma acción.
+  const confirmPick = async () => {
+    const resource = pickTarget;
+    if (!resource || !profile?.id) return;
+    setPickTarget(null);
+    const win = window.open('', '_blank');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).rpc('rebotica_unlock_resource', { p_resource_id: resource.id });
+    if (error) {
+      win?.close();
+      console.error('Error desbloqueando recurso premium:', error);
+      toast({
+        title: 'No se ha podido desbloquear',
+        description: error.message?.includes('pendiente') ? error.message : 'Inténtalo de nuevo en unos segundos.',
+        variant: 'destructive',
+      });
+      void loadRewards(profile.id);
+      return;
+    }
+    setUnlockedIds((prev) => new Set(prev).add(resource.id));
+    setPendingPick(null);
+    toast({ title: 'Recurso desbloqueado', description: `${resource.title} es tuyo: descárgalo cuando quieras.` });
+    const ok = await openSignedDownload(resource, win);
+    if (ok) {
+      setDownloadedIds((prev) => new Set(prev).add(resource.id));
+      supabase
+        .from('resource_downloads')
+        .insert([{ user_id: profile.id, resource_id: resource.id, downloaded_at: new Date().toISOString() }])
+        .then(({ error: e }) => { if (e) console.error('Error registrando descarga:', e); });
+    }
+  };
+
   const handleDownload = (resource: Resource) => {
     // Sin fichero asociado: ni descarga, ni registro, ni consumo de cupo.
     if (!resource.file_url?.trim()) {
@@ -209,15 +294,26 @@ export const Recursos = () => {
       return;
     }
 
+    // Premio de la Rebotica: recurso premium ya desbloqueado → pasa todos los
+    // gates (la política de Storage lo firma aunque el plan sea Gratis).
+    const unlockedByReward = resource.is_premium && unlockedIds.has(resource.id);
+
+    // Premio "Recurso premium" pendiente de elegir: este clic ES la elección.
+    // Se confirma en un diálogo porque es irreversible (un recurso por premio).
+    if (resource.is_premium && !isPaid && !unlockedByReward && pendingPick) {
+      setPickTarget(resource);
+      return;
+    }
+
     // Periodo de prueba: tope de descargas. Re-descargar algo ya descargado no
     // consume hueco; un recurso nuevo sí, y si ya está en el tope se bloquea.
-    if (isTrial && !downloadedIds.has(resource.id) && downloadCount >= limits.resources) {
+    if (isTrial && !unlockedByReward && !downloadedIds.has(resource.id) && downloadCount >= limits.resources) {
       setLimitDialogOpen(true);
       return;
     }
 
     // Recurso premium: solo planes de pago / admin (acceso total = isPaid).
-    if (resource.is_premium && !isPaid) {
+    if (resource.is_premium && !isPaid && !unlockedByReward) {
       toast({
         title: 'Recurso Premium',
         description: 'Necesitas el plan Plus para descargar este recurso.',
@@ -231,25 +327,7 @@ export const Recursos = () => {
     //    y los bloqueadores de pop-ups la bloquean.
     if (resource.is_premium) {
       // Premium: la ventana se abre ya en el gesto y se rellena al firmar la URL.
-      // El bucket y la ruta se extraen de file_url para soportar tanto el bucket
-      // público 'recursos' actual como el bucket privado de premium cuando los
-      // ficheros premium se muevan allí (la firma pasa por las políticas de Storage).
-      const win = window.open('', '_blank');
-      const match = resource.file_url.match(/\/storage\/v1\/object\/(?:public\/|sign\/|authenticated\/)?([^/]+)\/(.+)$/);
-      const bucket = match?.[1] ?? 'recursos';
-      const path = match?.[2] ?? resource.file_url;
-      supabase.storage
-        .from(bucket)
-        .createSignedUrl(path, 60)
-        .then(({ data, error }) => {
-          if (error || !data?.signedUrl) {
-            win?.close();
-            toast({ title: 'Error', description: 'No se pudo generar el enlace de descarga.', variant: 'destructive' });
-            return;
-          }
-          if (win) win.location.href = data.signedUrl;
-          else window.location.href = data.signedUrl;
-        });
+      openSignedDownload(resource, window.open('', '_blank'));
     } else {
       // Recurso abierto: descarga directa del archivo (mismo origen) sin pop-up.
       const a = document.createElement('a');
@@ -266,7 +344,6 @@ export const Recursos = () => {
       // Actualizamos el conteo local del tope gratis: solo cuenta como nueva
       // descarga si no se había descargado antes este recurso.
       if (!downloadedIds.has(resource.id)) {
-        setDownloadCount(prev => prev + 1);
         setDownloadedIds(prev => new Set(prev).add(resource.id));
       }
       supabase
@@ -294,6 +371,16 @@ export const Recursos = () => {
       transition={{ staggerChildren: 0.1 }}
     >
       <ResourcesHeader />
+
+      {pendingPick && (
+        <div className="rounded-xl border border-[#A3D338] bg-[#A3D338]/10 px-4 py-3 text-sm">
+          <strong>Tienes un premio de la Rebotica pendiente:</strong> elige un recurso Premium y
+          pulsa descargar. Es tuyo sin ser Plus.
+          {pendingPick.expiresAt && (
+            <> Tienes hasta el {new Date(pendingPick.expiresAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })}.</>
+          )}
+        </div>
+      )}
 
       {isTrial && (
         <FreeDownloadsBanner
@@ -366,6 +453,33 @@ export const Recursos = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Seguir con el plan Gratis</AlertDialogCancel>
             <AlertDialogAction onClick={() => navigate('/precios')}>Ver planes</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pickTarget} onOpenChange={(open) => { if (!open) setPickTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Usar tu premio de la Rebotica en este recurso?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  Tu premio «Recurso premium desbloqueado» vale para UN recurso, y no se puede cambiar
+                  después. Si confirmas, <strong>{pickTarget?.title}</strong> queda desbloqueado para ti
+                  para siempre y se descarga ahora mismo.
+                </p>
+                {pendingPick?.expiresAt && (
+                  <p>
+                    Si prefieres mirar otros, tienes hasta el{' '}
+                    {new Date(pendingPick.expiresAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })} para elegir.
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Seguir mirando</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPick}>Sí, este es mi recurso</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

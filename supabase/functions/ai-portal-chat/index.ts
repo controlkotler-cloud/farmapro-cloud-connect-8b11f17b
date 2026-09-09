@@ -189,7 +189,7 @@ async function buildPortalContext(supabase: any, userRole: string | null) {
   let context = '';
   try {
     const { count: coursesTotal } = await supabase
-      .from('courses').select('*', { count: 'exact', head: true });
+      .from('courses').select('id', { count: 'exact', head: true });
 
     const { data: courses } = await supabase
       .from('courses')

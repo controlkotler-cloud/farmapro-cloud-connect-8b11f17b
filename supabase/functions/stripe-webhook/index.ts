@@ -482,11 +482,20 @@ async function handleSubscriptionChange(
 
   // Cargar perfil para respetar admin.
   const { data: profile } = await supabase.from('profiles')
-    .select('subscription_role').eq('id', row.user_id).maybeSingle();
+    .select('subscription_role, plan_comp_until').eq('id', row.user_id).maybeSingle();
   const currentRole = profile?.subscription_role;
 
   if (currentRole && (PROTECTED_ROLES as readonly string[]).includes(currentRole)) {
     log('skipping downgrade for protected role', { userId: row.user_id, role: currentRole });
+    return;
+  }
+
+  // Premio de la Rebotica en curso ("1 mes de Equipo" sobre un Plus de pago):
+  // el rol lo gestiona el cron rebotica-comp-expire hasta plan_comp_until. Una
+  // renovación mensual NO debe pisarlo (cancelación/impago sí, más abajo).
+  const compUntil = profile?.plan_comp_until ? new Date(profile.plan_comp_until as string) : null;
+  if (compUntil && compUntil.getTime() > Date.now() && !['canceled', 'unpaid', 'incomplete_expired'].includes(rawStatus)) {
+    log('skipping role sync: rebotica comp active', { userId: row.user_id, role: currentRole, until: compUntil.toISOString() });
     return;
   }
 

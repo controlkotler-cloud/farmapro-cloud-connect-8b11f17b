@@ -21,6 +21,60 @@ import {
 } from '@/lib/rebotica';
 
 // ---------------------------------------------------------------------------
+// Premios del usuario (RPC `rebotica_my_rewards`, SECURITY DEFINER, solo los
+// suyos). Desde el 10-09 el canje es automático en BD (trigger
+// `rebotica_fulfil_opening`): créditos, Plus/Equipo y servicios se cumplen al
+// abrir; solo "Recurso premium" pide elegir el recurso en /recursos.
+// ---------------------------------------------------------------------------
+interface ReboticaReward {
+  opening_id: string;
+  campaign_nombre: string | null;
+  opened_at: string;
+  redeemed_at: string | null;
+  expires_at: string | null;
+  fulfilled_at: string | null;
+  fulfil_note: string | null;
+  resource_id: string | null;
+  resource_title: string | null;
+  titulo: string;
+  descripcion: string | null;
+  tipo: string;
+  plan_comp_until: string | null;
+}
+
+const fmtFecha = (iso: string | null) =>
+  iso ? new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }) : '';
+
+// Qué puede hacer el usuario con su premio, según tipo/título. Devuelve null
+// cuando no hay acción (servicios: te escribimos nosotros; baúl/gordo: por email).
+const rewardAction = (r: ReboticaReward): { to: string; label: string; external?: boolean } | null => {
+  const t = r.titulo.toLowerCase();
+  if (r.tipo === 'credito_ia') return { to: '/asistente-creativo', label: 'Usar mis créditos en IAFarma' };
+  if (t.startsWith('masterclass')) return { to: '/vault/masterclass-5-palancas', label: 'Ver la masterclass' };
+  if (t.startsWith('plantilla')) return { to: '/recursos/vault-termometro-cliente-nps-k7q2.xlsx', label: 'Descargar la plantilla', external: true };
+  if (t.startsWith('recurso premium')) {
+    return r.resource_id
+      ? { to: '/recursos', label: 'Ir a Recursos' }
+      : { to: '/recursos', label: 'Elegir mi recurso premium' };
+  }
+  if (t.startsWith('1 mes de equipo')) return { to: '/mi-farmacia', label: 'Invitar a mi equipo' };
+  if (t.startsWith('1 mes de plus')) return { to: '/formacion', label: 'Explorar el contenido Plus' };
+  return null;
+};
+
+const rewardStatus = (r: ReboticaReward): string => {
+  const t = r.titulo.toLowerCase();
+  if (t.startsWith('recurso premium')) {
+    if (r.resource_title) return `Recurso elegido: ${r.resource_title}.`;
+    return r.expires_at ? `Pendiente de elegir. Tienes hasta el ${fmtFecha(r.expires_at)}.` : 'Pendiente de elegir.';
+  }
+  if (r.fulfil_note) return r.fulfil_note;
+  if (r.tipo === 'gordo' || t.startsWith('el baúl')) return 'Te avisaremos por email.';
+  if (r.tipo === 'servicio') return 'Ya lo tenemos apuntado: te escribiremos nosotros.';
+  return r.redeemed_at ? 'Canjeado.' : '';
+};
+
+// ---------------------------------------------------------------------------
 // Estética: portada de `docs/landing-rebotica-propuesta.html` (mockup validado
 // 13-07, v3) traducida a canon DESIGN.md — Manrope (sans del portal) +
 // Fraunces (font-serif), acento lime de la submarca Rebotica #A3D338/#7BB121,
@@ -37,6 +91,8 @@ const reveal: MotionProps = {
 
 const BTN_PRIMARY =
   'inline-block rounded-full bg-[#0B0F0B] px-6 py-3 text-[15px] font-bold text-white shadow-[0_6px_24px_rgba(11,15,11,.18)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(11,15,11,.24)] active:scale-[.97]';
+const BTN_LIME_SM =
+  'mt-4 inline-block rounded-full bg-[#A3D338] px-6 py-3 text-[14px] font-bold text-[#0B0F0B] shadow-[0_6px_20px_rgba(123,177,33,.3)] transition hover:-translate-y-0.5 active:scale-[.97]';
 const BTN_LIME =
   'inline-block rounded-full bg-[#A3D338] px-8 py-4 text-[17px] font-bold text-[#0B0F0B] shadow-[0_8px_28px_rgba(123,177,33,.35)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(123,177,33,.45)] active:scale-[.97]';
 
@@ -184,6 +240,25 @@ export default function Rebotica() {
   // null = aún comprobando (no bloquea); true = hay campaña activa hoy; false = no hay ninguna.
   const [campaignOpen, setCampaignOpen] = useState<boolean | null>(null);
 
+  const [rewards, setRewards] = useState<ReboticaReward[]>([]);
+  const loadRewards = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('rebotica_my_rewards');
+    if (error) {
+      console.error('Error cargando premios de la Rebotica:', error);
+      return;
+    }
+    setRewards((data ?? []) as ReboticaReward[]);
+  };
+  useEffect(() => {
+    if (!user) {
+      setRewards([]);
+      return;
+    }
+    void loadRewards();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   const countdown = useOpeningCountdown();
   const cuentaAtras = useCuentaAtrasNatural();
   const partner = REBOTICA_CURRENT_PARTNER;
@@ -307,8 +382,10 @@ export default function Rebotica() {
     if (data?.prize) {
       toast({
         title: data.already ? 'Ya tenías este premio' : `¡Premio! ${data.prize.titulo}`,
-        description: data.prize.descripcion ?? 'Revisa tu perfil para canjearlo.',
+        description: data.prize.descripcion ?? 'Lo tienes en «Tu premio», aquí mismo, y te lo hemos enviado por email.',
       });
+      // El canje lo hace la BD al instante (trigger); refrescamos el panel.
+      void loadRewards();
     } else {
       toast({
         title: 'No se ha podido abrir el cajón',
@@ -400,6 +477,49 @@ export default function Rebotica() {
               )}
             </div>
           </div>
+
+          {rewards.length > 0 && (
+            <section className="mt-12 text-left" aria-labelledby="tu-premio">
+              <p id="tu-premio" className="mb-3 text-[13px] font-bold uppercase tracking-[0.16em] text-[#7BB121]">
+                {rewards.length > 1 ? 'Tus premios' : 'Tu premio'}
+              </p>
+              <ul className="space-y-3">
+                {rewards.map((r) => {
+                  const action = rewardAction(r);
+                  const status = rewardStatus(r);
+                  const pendingChoice = r.titulo.toLowerCase().startsWith('recurso premium') && !r.resource_id;
+                  return (
+                    <li key={r.opening_id} className="rounded-2xl border border-[#e7e9e4] bg-white p-5">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h2 className="font-serif text-[20px] font-semibold leading-tight">{r.titulo}</h2>
+                        <span className="text-[11px] uppercase tracking-[0.1em] text-[#5c6660]">
+                          {r.campaign_nombre ?? 'La Rebotica'} · {fmtFecha(r.opened_at)}
+                        </span>
+                      </div>
+                      {r.descripcion && <p className="mt-2 text-[14px] leading-relaxed text-[#3c4640]">{r.descripcion}</p>}
+                      {status && (
+                        <p className={`mt-2 text-[13px] font-semibold ${pendingChoice ? 'text-[#b45309]' : 'text-[#5c6660]'}`}>{status}</p>
+                      )}
+                      {action &&
+                        (action.external ? (
+                          <a
+                            href={action.to}
+                            download
+                            className={BTN_LIME_SM}
+                          >
+                            {action.label}
+                          </a>
+                        ) : (
+                          <Link to={action.to} className={BTN_LIME_SM}>
+                            {action.label}
+                          </Link>
+                        ))}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
 
           <p className="mt-10 text-sm text-[#5c6660]">
             <Link to="/rebotica/bases-legales" className="underline underline-offset-4 hover:text-[#0B0F0B]">

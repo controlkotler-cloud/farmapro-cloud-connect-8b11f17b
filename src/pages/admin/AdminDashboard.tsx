@@ -24,7 +24,7 @@ const AdminDashboard = () => {
       // Fetch courses count
       const { count: coursesCount, error: coursesError } = await supabase
         .from('courses')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true });
 
       if (coursesError) {
         console.error('Error fetching courses count:', coursesError);
@@ -34,7 +34,7 @@ const AdminDashboard = () => {
       // Fetch resources count
       const { count: resourcesCount, error: resourcesError } = await supabase
         .from('resources')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true });
 
       if (resourcesError) {
         console.error('Error fetching resources count:', resourcesError);
@@ -58,7 +58,7 @@ const AdminDashboard = () => {
       // Fetch events count
       const { count: eventsCount, error: eventsError } = await supabase
         .from('events')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true });
 
       if (eventsError) {
         console.error('Error fetching events count:', eventsError);
