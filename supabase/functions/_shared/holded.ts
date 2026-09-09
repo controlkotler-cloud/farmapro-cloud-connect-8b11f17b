@@ -177,8 +177,14 @@ export async function createHoldedInvoice(input: HoldedInvoiceInput): Promise<Ho
     if (!contactId) throw new Error('holded contact not resolved');
 
     const base = Math.round((input.totalEur / 1.21) * 100) / 100;
+    // Plantilla de documento "farmapro" de Holded (distinta a la de Mkpro):
+    // secret HOLDED_DESIGN_ID con el id de la plantilla (24 hex, se lee de la
+    // URL al editarla en Holded → Configuración → Plantillas). Sin secret, la
+    // factura sale con la plantilla por defecto de la cuenta.
+    const designId = (Deno.env.get('HOLDED_DESIGN_ID') ?? '').trim();
     const payload = {
       contactId,
+      ...(designId ? { designId } : {}),
       desc: input.concept,
       date: Math.floor(Date.now() / 1000),
       notes: `Origen: portal farmapro. Ref: ${input.sourceId}`,
