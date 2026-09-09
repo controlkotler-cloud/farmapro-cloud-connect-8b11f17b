@@ -24,7 +24,10 @@
 import type Stripe from "https://esm.sh/stripe@14.21.0";
 import { STRIPE_PRICES } from "./stripePrices.ts";
 
-export const PORTAL_CONFIG_VERSION = '2026-09-09.2';
+export const PORTAL_CONFIG_VERSION = '2026-09-09.3';
+
+/** Origen público del portal (URLs legales del business_profile). */
+const PORTAL_ORIGIN = (Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es').replace(/\/$/, '');
 
 const log = (step: string, details?: unknown) => {
   console.log(`[stripe-portal-config] ${step}${details ? ' - ' + JSON.stringify(details) : ''}`);
@@ -43,6 +46,10 @@ function realSubscriptionPriceIds(): string[] {
 
 // Cache en memoria del worker (una edge function viva reutiliza el id).
 let cachedConfigId: string | undefined;
+// Último motivo por el que no se pudo provisionar (para enseñarlo al usuario
+// en vez de mandarle a la configuración por defecto, que no permite cambiar
+// de plan y da un error de Stripe en inglés sin pista alguna).
+export let lastPortalConfigError: string | undefined;
 
 /**
  * Devuelve el id de la configuración del portal farmapro, creándola si no
@@ -63,20 +70,31 @@ export async function getPortalConfigurationId(stripe: Stripe): Promise<string |
     // Agrupar los Price por Product (el portal exige products[{product, prices[]}]).
     const priceIds = realSubscriptionPriceIds();
     const byProduct = new Map<string, string[]>();
+    const skipped: string[] = [];
     for (const priceId of priceIds) {
-      const price = await stripe.prices.retrieve(priceId);
-      if (!price.recurring || !price.active) continue;
-      const productId = typeof price.product === 'string' ? price.product : price.product.id;
-      byProduct.set(productId, [...(byProduct.get(productId) ?? []), priceId]);
+      // Un Price que no exista en este modo (test/live) no debe tumbar toda la
+      // configuración: se salta y se registra.
+      try {
+        const price = await stripe.prices.retrieve(priceId);
+        if (!price.recurring || !price.active) { skipped.push(priceId); continue; }
+        const productId = typeof price.product === 'string' ? price.product : price.product.id;
+        byProduct.set(productId, [...(byProduct.get(productId) ?? []), priceId]);
+      } catch (e) {
+        skipped.push(priceId);
+        log('price skipped', { priceId, err: (e as Error).message });
+      }
     }
     if (byProduct.size === 0) {
-      log('no recurring prices resolved, using default configuration');
+      lastPortalConfigError = `ningún Price recurrente válido (revisados ${priceIds.length}, saltados ${skipped.length})`;
+      log('no recurring prices resolved, using default configuration', { skipped });
       return undefined;
     }
 
     const created = await stripe.billingPortal.configurations.create({
       business_profile: {
         headline: 'Portal farmapro · gestiona tu suscripción',
+        privacy_policy_url: `${PORTAL_ORIGIN}/politica-privacidad`,
+        terms_of_service_url: `${PORTAL_ORIGIN}/aviso-legal`,
       },
       features: {
         customer_update: { enabled: true, allowed_updates: ['name', 'address', 'tax_id', 'email'] },
@@ -92,11 +110,13 @@ export async function getPortalConfigurationId(stripe: Stripe): Promise<string |
       },
       metadata: { origen: 'portal', version: PORTAL_CONFIG_VERSION },
     });
-    log('configuration created', { id: created.id, products: byProduct.size, prices: priceIds.length });
+    log('configuration created', { id: created.id, products: byProduct.size, prices: priceIds.length, skipped });
     cachedConfigId = created.id;
+    lastPortalConfigError = undefined;
     return created.id;
   } catch (e) {
-    log('configuration unavailable, falling back to default', { err: (e as Error).message });
+    lastPortalConfigError = (e as Error).message;
+    log('configuration unavailable, falling back to default', { err: lastPortalConfigError });
     return undefined;
   }
 }

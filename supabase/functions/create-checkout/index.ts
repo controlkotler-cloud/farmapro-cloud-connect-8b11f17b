@@ -11,7 +11,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { pickSubscriptionPrice, lookupPrice, IMAGE_PACK_PRICES, type PlanId, type Cycle } from "../_shared/stripePrices.ts";
-import { getPortalConfigurationId } from "../_shared/stripePortal.ts";
+import { getPortalConfigurationId, lastPortalConfigError } from "../_shared/stripePortal.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -190,9 +190,18 @@ serve(async (req) => {
         }
 
         const configuration = await getPortalConfigurationId(stripe);
+        if (!configuration) {
+          // Sin la configuración farmapro, el portal por defecto no permite
+          // cambiar de plan: Stripe devolvería "subscription update feature ...
+          // is disabled". Mejor decir el motivo real.
+          log('portal configuration unavailable for plan change', { err: lastPortalConfigError });
+          return json({
+            error: `No se ha podido preparar el cambio de plan (configuración del portal de Stripe): ${lastPortalConfigError ?? 'motivo desconocido'}. Escríbenos a soporte@farmapro.es.`,
+          }, 500);
+        }
         const portal = await stripe.billingPortal.sessions.create({
           customer: existingCustomerId,
-          ...(configuration ? { configuration } : {}),
+          configuration,
           return_url: `${origin}/precios`,
           flow_data: {
             type: 'subscription_update_confirm',
