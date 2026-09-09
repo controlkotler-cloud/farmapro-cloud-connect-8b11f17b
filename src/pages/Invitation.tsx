@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, XCircle, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { extractFunctionErrorMessage } from '@/lib/functionsError';
 
 // Roles de pago propios (no 'equipo': eso es justo lo que se le va a conceder al aceptar).
 const OWN_PAID_ROLES = ['plus', 'premium', 'profesional'];
@@ -14,7 +15,7 @@ const OWN_PAID_ROLES = ['plus', 'premium', 'profesional'];
 export default function Invitation() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, signOut } = useAuth();
   const token = params.get('token');
   const [state, setState] = useState<'idle' | 'accepting' | 'ok' | 'error'>('idle');
   const [message, setMessage] = useState<string>('');
@@ -26,8 +27,17 @@ export default function Invitation() {
       body: { action: 'accept_invitation', invitationToken: token },
     });
     if (error) {
+      // La causa más habitual no es la caducidad: es estar dentro con OTRA cuenta
+      // (p. ej. el titular abre el enlace en el mismo navegador). manage-team
+      // valida que el email de la sesión sea el invitado, así que se dice.
+      const detail = await extractFunctionErrorMessage(error);
       setState('error');
-      setMessage('No se pudo aceptar la invitación. Puede haber expirado o no ser válida.');
+      setMessage(
+        `No se pudo aceptar la invitación. Estás dentro como ${user?.email ?? 'otra cuenta'}: ` +
+          'solo puede aceptarla la cuenta con el email que la recibió. Si es otra, sal y entra con ella. ' +
+          'También puede haber caducado (14 días).' +
+          (detail ? ` Detalle: ${detail}` : ''),
+      );
     } else {
       setState('ok');
       setMessage('¡Te has unido al equipo!');
@@ -94,6 +104,13 @@ export default function Invitation() {
             <Button onClick={handleAccept} className="w-full rounded-full">
               Unirme al equipo
             </Button>
+            <p className="text-xs text-muted-foreground">
+              Estás dentro como <strong className="text-foreground">{user.email}</strong>. Si la
+              invitación llegó a otro email, entra con esa cuenta.
+            </p>
+            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void signOut()}>
+              Salir y entrar con otra cuenta
+            </Button>
           </>
         ) : state === 'accepting' ? (
           <>
@@ -108,7 +125,10 @@ export default function Invitation() {
         ) : (
           <>
             <XCircle className="w-10 h-10 mx-auto text-destructive" />
-            <p>{message}</p>
+            <p className="text-sm">{message}</p>
+            <Button variant="outline" size="sm" className="rounded-full" onClick={() => void signOut()}>
+              Salir y entrar con otra cuenta
+            </Button>
           </>
         )}
       </Card>

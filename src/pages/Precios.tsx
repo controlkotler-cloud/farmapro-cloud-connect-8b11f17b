@@ -44,6 +44,34 @@ export default function Precios() {
   const role = profile?.subscription_role as string | undefined;
   const currentPlan: PlanId | null =
     isTeamOwner || role === "equipo" ? "equipo" : role === "plus" ? "plus" : null;
+  const hasPaidPlan = currentPlan !== null;
+  // Plaza fundador (precio de lanzamiento) de quien ya paga: se lee de su fila
+  // en `subscriptions` (RLS: solo la propia). Decide el aviso de cabecera y el
+  // texto del precio: a quien ya paga no se le vende la plaza, se le recuerda
+  // que la conserva mientras no cancele.
+  const [isFounder, setIsFounder] = useState<boolean>(false);
+  useEffect(() => {
+    if (!user || !hasPaidPlan) {
+      setIsFounder(false);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("subscriptions")
+      .select("is_founder")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setIsFounder(Boolean(data?.is_founder));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, hasPaidPlan]);
+  // Quien ya paga no ve la tarjeta del plan gratis ni su explicación.
+  const visiblePlans = hasPaidPlan ? PLANS.filter((p) => p.id !== "gratis") : PLANS;
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   // Plan cuyo checkout está en curso (deshabilita su botón e ignora dobles clics).
   const [checkoutLoading, setCheckoutLoading] = useState<PlanId | null>(null);
@@ -181,6 +209,20 @@ export default function Precios() {
                 Ya tienes acceso completo con el plan Equipo de tu farmacia
               </p>
             </div>
+          ) : hasPaidPlan ? (
+            <div className="mx-auto mb-5 max-w-xl rounded-lg border border-brand-soft bg-brand-soft p-4 text-center">
+              <p className="text-sm font-semibold text-brand-dark">
+                {isFounder
+                  ? "Tienes una plaza fundador: tu precio de lanzamiento no sube"
+                  : `Tu plan actual: ${currentPlan === "equipo" ? "Equipo" : "Plus"}`}
+              </p>
+              {isFounder && (
+                <p className="mt-1.5 text-xs text-brand-dark/80">
+                  Lo conservas para siempre mientras la suscripción siga activa, también si pasas a
+                  Equipo. Si la cancelas, pierdes la plaza fundador y el precio de lanzamiento.
+                </p>
+              )}
+            </div>
           ) : launch.active ? (
             <div className="mx-auto mb-5 max-w-xl rounded-lg border bg-card p-4 shadow-sm">
               <div className="flex items-center justify-center gap-2 text-sm font-semibold">
@@ -235,7 +277,11 @@ export default function Precios() {
             Planes <em className="italic-display">de farmapro</em>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {launch.active
+            {hasPaidPlan
+              ? currentPlan === "plus"
+                ? "Tu plan actual, el paso a Equipo y los packs de imágenes de IAFarma."
+                : "Tu plan actual y los packs de imágenes de IAFarma."
+              : launch.active
               ? "Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu plaza al precio de lanzamiento y consérvalo mientras mantengas la suscripción activa."
               : "Todo el contenido, la comunidad y IAFarma en un único sitio, por una cuota mensual."}
           </p>
@@ -273,8 +319,12 @@ export default function Precios() {
 
 
         {/* Tarjetas de planes */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-          {PLANS.map((plan) => (
+        <div
+          className={`grid gap-8 mx-auto items-stretch ${
+            visiblePlans.length === 2 ? "md:grid-cols-2 max-w-4xl" : "md:grid-cols-3 max-w-6xl"
+          }`}
+        >
+          {visiblePlans.map((plan) => (
             <PlanCard
               key={plan.id}
               plan={plan}
@@ -284,11 +334,13 @@ export default function Precios() {
               loading={checkoutLoading === plan.id}
               hideCta={showTeamMemberBanner}
               currentPlan={currentPlan}
+              isFounder={isFounder}
             />
           ))}
         </div>
 
-        {/* Cómo funciona el plan gratis */}
+        {/* Cómo funciona el plan gratis (no para quien ya tiene acceso de pago) */}
+        {!hasPaidPlan && !showTeamMemberBanner && (
         <div className="max-w-3xl mx-auto mt-12">
           <Card className="bg-muted/40 border-dashed">
             <CardContent className="p-6 text-center">
@@ -303,6 +355,7 @@ export default function Precios() {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* Add-ons de imágenes IAFarma */}
         <div className="max-w-3xl mx-auto mt-10">
@@ -433,10 +486,12 @@ export interface PlanCardProps {
    * tarjeta como "Tu plan actual" y convierte la del plan superior en cambio.
    */
   currentPlan?: PlanId | null;
+  /** El usuario ya paga con plaza fundador: el precio de lanzamiento se le recuerda, no se le vende. */
+  isFounder?: boolean;
 }
 
 /** Exportada para reutilizarla tal cual en la landing de la Rebotica (mismos precios, cero duplicación). */
-export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hideCta, currentPlan }: PlanCardProps) {
+export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hideCta, currentPlan, isFounder }: PlanCardProps) {
   const isFree = plan.id === "gratis";
   const isHighlighted = Boolean(plan.highlight);
   const period = billing === "yearly" ? "/año" : "/mes";
@@ -495,7 +550,11 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
               </div>
               {launchActive && (
                 <span className="mt-2 text-xs font-medium text-primary">
-                  Precio de lanzamiento · {LAUNCH.spots} primeras plazas. No sube mientras mantengas la suscripción activa
+                  {isCurrent && isFounder
+                    ? "Tu precio de fundador: no sube mientras no canceles la suscripción"
+                    : isUpgrade && isFounder
+                    ? "Conservas tu precio de lanzamiento al pasar a Equipo"
+                    : `Precio de lanzamiento · ${LAUNCH.spots} primeras plazas. No sube mientras mantengas la suscripción activa`}
                 </span>
               )}
               {billing === "yearly" && (
