@@ -1,7 +1,6 @@
 
  import { useEffect, useRef } from 'react';
  import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { CourseModule } from '@/types/course';
 import { ModuleContentHeader } from './ModuleContentHeader';
 import { ModuleVideoSection } from './ModuleVideoSection';
@@ -42,16 +41,19 @@ export const ModuleContent = ({
   const isLastModule = moduleIndex === totalModules - 1;
   const hasContent = module.content || module.video_url || (module.downloadable_resources && module.downloadable_resources.length > 0);
 
+  // Al cambiar de módulo, subir al principio de la tarjeta. Antes el contenido
+  // iba dentro de un ScrollArea de 60vh con scroll propio: en un portátil el
+  // vídeo 16:9 no cabía entero y salía cortado por abajo (prueba de Francesc,
+  // 09-09-2026). Ahora la tarjeta crece con su contenido y hace scroll la página.
   useEffect(() => {
-    const viewport = cardRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-
-    if (viewport instanceof HTMLElement) {
-      viewport.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    }
+    const card = cardRef.current;
+    if (!card) return;
+    const top = card.getBoundingClientRect().top + window.scrollY - 96;
+    if (window.scrollY > top) window.scrollTo({ top: Math.max(top, 0), left: 0, behavior: 'auto' });
   }, [module.id]);
 
   return (
-    <Card ref={cardRef} className="h-full">
+    <Card ref={cardRef}>
       <ModuleContentHeader 
         module={module}
         moduleIndex={moduleIndex}
@@ -59,8 +61,8 @@ export const ModuleContent = ({
         isCompleted={isCompleted}
       />
 
-      <CardContent className="p-0 h-full">
-        <ScrollArea key={module.id} className="h-[60vh] p-6">
+      <CardContent className="p-0">
+        <div key={module.id} className="p-6">
           <div className="space-y-8">
             {/* Video del módulo si está disponible */}
             {module.video_url && (
@@ -86,7 +88,7 @@ export const ModuleContent = ({
               isCompleted={isCompleted}
             />
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Navegación y completar módulo */}
         <ModuleNavigationFooter

@@ -41,6 +41,12 @@ export interface DownloadableResource {
   title: string;
   url: string;
   type: string;
+  /**
+   * id de la fila en `resources`, si el fichero es uno de los publicados en
+   * Recursos. Con él la descarga desde el curso se registra en
+   * `resource_downloads` (retos, insignias, contador) igual que desde /recursos.
+   */
+  resource_id?: string;
 }
 
 export interface CourseEnrollment {
