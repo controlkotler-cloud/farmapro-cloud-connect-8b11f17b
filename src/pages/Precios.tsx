@@ -34,8 +34,15 @@ function formatPrice(value: number): string {
 export default function Precios() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
+  // Plan de pago que ya tiene el usuario: la tarjeta de ese plan se marca como
+  // actual y la del otro ofrece el cambio (Plus → "Pasar a Equipo"). Antes las
+  // tres tarjetas se pintaban igual y "Hazte Plus" mandaba a un Plus al portal
+  // de Stripe sin nada que cambiar.
+  const role = profile?.subscription_role as string | undefined;
+  const currentPlan: PlanId | null =
+    isTeamOwner || role === "equipo" ? "equipo" : role === "plus" ? "plus" : null;
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   // Plan cuyo checkout está en curso (deshabilita su botón e ignora dobles clics).
   const [checkoutLoading, setCheckoutLoading] = useState<PlanId | null>(null);
@@ -72,6 +79,15 @@ export default function Precios() {
     });
     setCheckoutLoading(null);
 
+    // Ya está en ese plan: no hay nada que cambiar ni a dónde ir.
+    if (!error && data?.mode === "current") {
+      toast({
+        title: "Este ya es tu plan",
+        description: "Tu suscripción actual ya es la que has elegido. Puedes gestionarla desde Perfil → Facturación.",
+      });
+      return;
+    }
+
     if (error || !data?.url) {
       const detail =
         (await extractFunctionErrorMessage(error)) ??
@@ -88,8 +104,9 @@ export default function Precios() {
 
     if (data.mode === "portal") {
       toast({
-        title: "Ya tienes una suscripción activa",
-        description: "Te llevamos a tu facturación para cambiar de plan.",
+        title: "Cambio de plan",
+        description:
+          "Te llevamos a la pantalla segura de Stripe para confirmar el cambio. Verás el importe exacto antes de aceptar.",
       });
     }
 
@@ -210,6 +227,7 @@ export default function Precios() {
               onSubscribe={handleSubscribe}
               loading={checkoutLoading === plan.id}
               hideCta={showTeamMemberBanner}
+              currentPlan={currentPlan}
             />
           ))}
         </div>
@@ -330,13 +348,24 @@ export interface PlanCardProps {
   loading?: boolean;
   /** Oculta el botón de compra (quien ya tiene acceso completo vía plan Equipo de su farmacia). */
   hideCta?: boolean;
+  /**
+   * Plan de pago que el usuario ya tiene (null/undefined = ninguno). Marca su
+   * tarjeta como "Tu plan actual" y convierte la del plan superior en cambio.
+   */
+  currentPlan?: PlanId | null;
 }
 
 /** Exportada para reutilizarla tal cual en la landing de la Rebotica (mismos precios, cero duplicación). */
-export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hideCta }: PlanCardProps) {
+export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hideCta, currentPlan }: PlanCardProps) {
   const isFree = plan.id === "gratis";
   const isHighlighted = Boolean(plan.highlight);
   const period = billing === "yearly" ? "/año" : "/mes";
+  // Estado del CTA respecto al plan que ya paga el usuario.
+  const hasPaidPlan = currentPlan === "plus" || currentPlan === "equipo";
+  const isCurrent = hasPaidPlan && currentPlan === plan.id;
+  const includedInCurrent = currentPlan === "equipo" && plan.id === "plus";
+  const isUpgrade = currentPlan === "plus" && plan.id === "equipo";
+  const showCta = !hideCta && !(isFree && hasPaidPlan);
 
   // Precio regular vigente (sin lanzamiento). Anual = 10x mensual (2 meses gratis).
   // El anual regular solo se muestra si Stripe ya puede cobrarlo.
@@ -414,21 +443,43 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
           ))}
         </ul>
 
-        {!hideCta && (
+        {showCta && (
           <div className="mt-6">
             {isFree ? (
               <Button asChild className="w-full rounded-full" variant="outline">
                 <Link to="/login">{plan.cta}</Link>
               </Button>
-            ) : (
-              <Button
-                className="w-full rounded-full"
-                variant={isHighlighted ? "default" : "outline"}
-                onClick={() => onSubscribe(plan.id)}
-                disabled={loading}
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : plan.cta}
+            ) : isCurrent ? (
+              <Button className="w-full rounded-full gap-2" variant="secondary" disabled>
+                <Check className="h-4 w-4" />
+                Tu plan actual
               </Button>
+            ) : includedInCurrent ? (
+              <Button className="w-full rounded-full" variant="secondary" disabled>
+                Incluido en tu plan Equipo
+              </Button>
+            ) : (
+              <>
+                <Button
+                  className="w-full rounded-full"
+                  variant={isHighlighted || isUpgrade ? "default" : "outline"}
+                  onClick={() => onSubscribe(plan.id)}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isUpgrade ? (
+                    "Pasar a Equipo"
+                  ) : (
+                    plan.cta
+                  )}
+                </Button>
+                {isUpgrade && (
+                  <p className="mt-2 text-center text-xs text-muted-foreground">
+                    Solo pagas la diferencia proporcional del periodo en curso. Confirmas el importe exacto en Stripe.
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}

@@ -119,9 +119,10 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
             <div className="bg-info/10 border border-info/30 rounded-lg p-4">
               <p className="text-sm text-info">
                 <strong>Qué hay detrás del botón:</strong> el portal seguro de Stripe, donde
-                puedes cambiar la tarjeta, actualizar tus datos fiscales o cancelar la
-                suscripción cuando quieras. La cancelación se hace efectiva al final del
-                periodo que ya tienes pagado; hasta entonces conservas el acceso.
+                puedes cambiar la tarjeta, actualizar tus datos fiscales, cambiar de plan o
+                cancelar la suscripción cuando quieras. La cancelación se hace efectiva al
+                final del periodo que ya tienes pagado; hasta entonces conservas el acceso.
+                Para pasar de Plus a Equipo también puedes hacerlo desde la página de planes.
                 <br />
                 <strong>Tus facturas</strong> te llegan por email cada vez que se cobra la
                 suscripción, con tu NIF y tu dirección fiscal.

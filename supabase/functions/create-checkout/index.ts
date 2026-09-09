@@ -3,12 +3,15 @@
 // Body: { plan: 'plus'|'equipo', cycle: 'monthly'|'yearly' }.
 // Elige el Price de lanzamiento si quedan plazas fundador (recuento REAL
 // en public.founder_count), si no cae al Price regular. IVA incluido.
+// Con suscripción ya viva: mismo plan → { mode:'current' }; otro plan →
+// { mode:'portal', url } a la confirmación del cambio en el portal de Stripe.
 // =====================================================================
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { pickSubscriptionPrice, IMAGE_PACK_PRICES, type PlanId, type Cycle } from "../_shared/stripePrices.ts";
+import { pickSubscriptionPrice, lookupPrice, IMAGE_PACK_PRICES, type PlanId, type Cycle } from "../_shared/stripePrices.ts";
+import { getPortalConfigurationId } from "../_shared/stripePortal.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,7 +145,14 @@ serve(async (req) => {
     // RAMA SUSCRIPCIÓN (Plus / Equipo)
     // ============================================================
 
-    // Guard antiduplicado: si ya hay suscripción viva, al portal de cliente.
+    const { data: fc } = await admin.from('founder_count').select('spots_taken').maybeSingle();
+    const spotsTaken = (fc?.spots_taken ?? 0) as number;
+    const founderSpotsLeft = Math.max(0, FOUNDER_TOTAL - spotsTaken);
+
+    // Guard antiduplicado: si ya hay suscripción viva no se abre un segundo
+    // checkout. Si pide OTRO plan, se le lleva a la pantalla de confirmación
+    // del cambio en el portal de Stripe (prorrateo y cobro de la diferencia
+    // los pinta Stripe); si pide el que ya tiene, se le dice sin redirigir.
     const existingCustomerId = (profile?.stripe_customer_id as string | null) ?? customerId;
 
     if (existingCustomerId) {
@@ -151,18 +161,57 @@ serve(async (req) => {
         (s) => ['active', 'trialing', 'past_due'].includes(s.status) && s.metadata?.origen === 'portal',
       );
       if (live.length > 0) {
+        const current = live[0];
+        const item = current.items.data[0];
+        const currentInfo = item?.price?.id ? lookupPrice(item.price.id) : null;
+        const currentPlan = currentInfo?.plan ?? ((current.metadata?.plan as PlanId | undefined) ?? null);
+        const currentCycle = currentInfo?.cycle ?? ((current.metadata?.cycle as Cycle | undefined) ?? 'monthly');
+
+        if (currentPlan === plan && currentCycle === cycle) {
+          log('already on requested plan', { customer: existingCustomerId, plan, cycle });
+          return json({ mode: 'current', plan, cycle });
+        }
+
+        // Quien ya es fundador conserva el precio de lanzamiento al cambiar de
+        // plan aunque las plazas se hayan agotado: "no sube mientras mantengas
+        // la suscripción activa" incluye subir de plan.
+        const isFounder = currentInfo?.founder ?? (current.metadata?.founder === 'true');
+        let newPriceId: string;
+        try {
+          ({ priceId: newPriceId } = pickSubscriptionPrice(plan, cycle, isFounder ? Math.max(1, founderSpotsLeft) : founderSpotsLeft));
+        } catch (e) {
+          return json({ error: (e as Error).message }, 400);
+        }
+        if (newPriceId.startsWith('TODO_')) {
+          return json({ error: `Stripe Price ID no configurado (${newPriceId}).` }, 500);
+        }
+        if (!item) {
+          return json({ error: 'La suscripción actual no tiene un concepto que actualizar. Escríbenos a soporte@farmapro.es.' }, 409);
+        }
+
+        const configuration = await getPortalConfigurationId(stripe);
         const portal = await stripe.billingPortal.sessions.create({
           customer: existingCustomerId,
-          return_url: `${origin}/perfil?checkout=success`,
+          ...(configuration ? { configuration } : {}),
+          return_url: `${origin}/precios`,
+          flow_data: {
+            type: 'subscription_update_confirm',
+            subscription_update_confirm: {
+              subscription: current.id,
+              items: [{ id: item.id, price: newPriceId, quantity: 1 }],
+            },
+            after_completion: {
+              type: 'redirect',
+              redirect: { return_url: `${origin}/perfil?tab=plan&cambio=ok` },
+            },
+          },
         });
-        log('existing subscription, redirecting to portal', { customer: existingCustomerId });
-        return json({ url: portal.url, mode: 'portal' });
+        log('existing subscription, redirecting to plan change confirmation', {
+          customer: existingCustomerId, from: currentPlan, to: plan, cycle, newPriceId, configuration,
+        });
+        return json({ url: portal.url, mode: 'portal', from: currentPlan, to: plan });
       }
     }
-
-    const { data: fc } = await admin.from('founder_count').select('spots_taken').maybeSingle();
-    const spotsTaken = (fc?.spots_taken ?? 0) as number;
-    const founderSpotsLeft = Math.max(0, FOUNDER_TOTAL - spotsTaken);
 
 
     let priceId: string; let founder: boolean;

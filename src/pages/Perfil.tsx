@@ -40,6 +40,32 @@ export default function Perfil() {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
+  // Vuelta desde Stripe: ?checkout=success (alta nueva) o ?cambio=ok (cambio de
+  // plan confirmado). El webhook puede tardar unos segundos en escribir el rol,
+  // así que se avisa y se recarga el perfil una vez; la URL queda limpia.
+  useEffect(() => {
+    const checkout = searchParams.get('checkout');
+    const cambio = searchParams.get('cambio');
+    if (checkout !== 'success' && cambio !== 'ok') return;
+    if (cambio === 'ok') {
+      toast.success('Cambio de plan confirmado', {
+        description: 'Puede tardar unos segundos en reflejarse aquí. Recibirás la factura por email.',
+      });
+    } else {
+      toast.success('Suscripción activada', {
+        description: 'Bienvenido. Puede tardar unos segundos en reflejarse aquí.',
+      });
+    }
+    const timer = window.setTimeout(() => { void reloadProfile?.(); }, 4000);
+    const next = new URLSearchParams(searchParams);
+    next.delete('checkout');
+    next.delete('cambio');
+    next.delete('session_id');
+    setSearchParams(next, { replace: true });
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Show loading state if profile is not loaded yet
   if (!profile && !user) {
     return (

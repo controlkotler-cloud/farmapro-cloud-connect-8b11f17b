@@ -6,7 +6,10 @@
 // - invoice.payment_failed: marca past_due.
 // - customer.subscription.updated/deleted: sincroniza estado y degrada
 //   a freemium (SALVO admin); si sale de 'equipo', desactiva el equipo
-//   (deactivate_team_for_owner) antes de degradar al titular.
+//   (deactivate_team_for_owner) antes de degradar al titular; si entra en
+//   'equipo' por cambio de plan, crea/reactiva el equipo; sincroniza
+//   plan/cycle/is_founder de subscriptions y la metadata de Stripe con el
+//   Price real (cambios de plan hechos en el portal de Stripe).
 // verify_jwt = false: la seguridad es la firma del webhook.
 // =====================================================================
 
@@ -127,7 +130,7 @@ serve(async (req) => {
 
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
-        await handleSubscriptionChange(supabase, event.data.object as Stripe.Subscription, event.type);
+        await handleSubscriptionChange(stripe, supabase, event.data.object as Stripe.Subscription, event.type);
         break;
 
       default:
@@ -376,14 +379,20 @@ async function handleInvoicePaid(
     return;
   }
 
-  const plan = (sub?.metadata?.plan ?? '') as string;
-  const cycle = (sub?.metadata?.cycle ?? 'monthly') as string;
-  const founder = (sub?.metadata?.founder === 'true');
+  // El Price de la suscripción manda sobre la metadata: tras un cambio de plan
+  // en el portal de Stripe la metadata puede llegar aún con el plan antiguo
+  // (customer.subscription.updated y invoice.paid no tienen orden garantizado).
+  const subPriceId = sub?.items?.data?.[0]?.price?.id ?? null;
+  const priceInfo = subPriceId ? lookupPrice(subPriceId) : null;
+  const plan = (priceInfo?.plan ?? sub?.metadata?.plan ?? '') as string;
+  const cycle = (priceInfo?.cycle ?? sub?.metadata?.cycle ?? 'monthly') as string;
+  const founder = priceInfo?.founder ?? (sub?.metadata?.founder === 'true');
   const userId = (sub?.metadata?.user_id as string | undefined) ?? null;
+  const isPlanChange = invoice.billing_reason === 'subscription_update';
 
   const planLabel = plan === 'plus' ? 'Plus' : plan === 'equipo' ? 'Equipo' : plan;
   const cycleLabel = cycle === 'yearly' ? 'anual' : 'mensual';
-  const concept = `Suscripción portal farmapro · Plan ${planLabel} (${cycleLabel}${founder ? ', precio fundador' : ''})`;
+  const concept = `Suscripción portal farmapro · Plan ${planLabel} (${cycleLabel}${founder ? ', precio fundador' : ''})${isPlanChange ? ' · cambio de plan, diferencia prorrateada' : ''}`;
 
   const total = ((invoice.amount_paid ?? invoice.amount_due ?? 0) / 100);
   const email = invoice.customer_email
@@ -430,6 +439,7 @@ async function handleInvoicePaid(
 
 
 async function handleSubscriptionChange(
+  stripe: Stripe,
   supabase: ReturnType<typeof createClient>,
   sub: Stripe.Subscription,
   eventType: string,
@@ -498,6 +508,31 @@ async function handleSubscriptionChange(
     return;
   }
 
+  // Cambio de plan (Plus ⇄ Equipo, mensual ⇄ anual) hecho desde el portal de
+  // Stripe: la fila de subscriptions y la metadata de Stripe seguían diciendo
+  // el plan de la compra original. El Price es la verdad; se sincroniza todo.
+  if (priceInfo && !willDowngrade) {
+    const { error: planErr } = await supabase.from('subscriptions').update({
+      plan_id: priceInfo.plan,
+      plan_name: priceInfo.plan,
+      cycle: priceInfo.cycle,
+      is_founder: priceInfo.founder,
+      updated_at: new Date().toISOString(),
+    }).eq('stripe_subscription_id', subscriptionId);
+    if (planErr) throw new Error(`subscriptions plan sync failed: ${planErr.message}`);
+
+    const meta = sub.metadata ?? {};
+    if (meta.plan !== priceInfo.plan || meta.cycle !== priceInfo.cycle || meta.founder !== String(priceInfo.founder)) {
+      try {
+        await stripe.subscriptions.update(subscriptionId, {
+          metadata: { ...meta, origen: 'portal', plan: priceInfo.plan, cycle: priceInfo.cycle, founder: String(priceInfo.founder) },
+        });
+        log('subscription metadata synced to price', { subscriptionId, plan: priceInfo.plan, cycle: priceInfo.cycle });
+      } catch (e) {
+        log('subscription metadata sync failed', { err: (e as Error).message });
+      }
+    }
+  }
 
   // Salir de Equipo (cancelación o downgrade a otro plan): desactivar el equipo
   // ANTES de degradar al titular, para que los miembros pierdan el acceso.
@@ -512,6 +547,17 @@ async function handleSubscriptionChange(
     updated_at: new Date().toISOString(),
   }).eq('id', row.user_id);
   if (profFinalErr) throw new Error(`profile role update failed: ${profFinalErr.message}`);
+
+  // Entrar en Equipo por cambio de plan (no por checkout): crear o reactivar
+  // el equipo del titular igual que hace checkout.session.completed.
+  if (newRole === 'equipo' && currentRole !== 'equipo') {
+    const { error: teamErr } = await supabase.rpc('ensure_team_subscription', {
+      p_owner: row.user_id,
+      p_stripe_subscription_id: subscriptionId,
+    });
+    if (teamErr) throw new Error(`ensure_team_subscription failed: ${teamErr.message}`);
+    log('team ensured after plan change', { userId: row.user_id });
+  }
 
   log('subscription change applied', { userId: row.user_id, newRole, rawStatus, dbStatus });
 }
