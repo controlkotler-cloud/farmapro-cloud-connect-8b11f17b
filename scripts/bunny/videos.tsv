@@ -11,3 +11,4 @@
 1pcwbHVzV0cCSB5bezyvt6rbUxMh4O97X	B-4	Bienvenida al portal	130296466	code:portal/src/components/onboarding/OnboardingWizard.tsx:BIENVENIDA_VIDEO_URL
 1HdmvwksqMWAsyPiu33vQ9BsrMB6_jJlL	13	Masterclass · Alejandro Tellería	1671181912	code:portal/src/pages/VaultMasterclass.tsx:VIDEO_URL
 1kQxudPk09bLxlWzsKIywW7m23yZizgey	P1	Presentación del portal (web)	127003291	code:direct/src/pages/PortalLanzamiento.tsx:PORTAL_VIDEO_URL
+1cYNzQtbM1wwQ7h5QrebQezBIApJ3IKrv	P0	Presentación del portal (teaser muy pronto)	144737783	code:direct/src/pages/Portal.tsx:PORTAL_TEASER_VIDEO_URL
