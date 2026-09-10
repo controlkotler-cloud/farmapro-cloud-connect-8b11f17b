@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, type MotionProps } from 'framer-motion';
 import { VideoEmbed } from '@/components/media/VideoEmbed';
@@ -252,6 +252,10 @@ export default function Rebotica() {
   const [campaignFin, setCampaignFin] = useState<string | null>(null);
 
   const [rewards, setRewards] = useState<ReboticaReward[]>([]);
+  // Apertura extra ganada por completar el reto de la semana (10-09-2026). El
+  // derecho lo decide la BD; aquí solo se pinta. `reto` es el nombre del reto
+  // completado, para que el usuario sepa de dónde le viene el premio.
+  const [extra, setExtra] = useState<{ disponible: boolean; reto: string | null } | null>(null);
   const loadRewards = async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any).rpc('rebotica_my_rewards');
@@ -318,12 +322,33 @@ export default function Rebotica() {
     };
   }, [user]);
 
+  // ¿Tiene apertura extra por reto? La RPC resuelve sola la campaña abierta y
+  // el usuario de la sesión, así que el front no maneja ids. Sin sesión
+  // devuelve `disponible: false` y no pinta nada.
+  const loadExtra = useCallback(async () => {
+    if (!user) {
+      setExtra(null);
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('rebotica_extra_opening_status');
+    if (error) {
+      console.error('Error comprobando la apertura extra de la Rebotica:', error);
+      return;
+    }
+    setExtra({ disponible: data?.disponible === true, reto: data?.reto ?? null });
+  }, [user]);
+
+  useEffect(() => {
+    void loadExtra();
+  }, [loadExtra]);
+
   const handleSelect = (drawer: number) => {
     setSelected(drawer);
     storeReboticaContext({ cajon: drawer });
   };
 
-  const handleOpen = async () => {
+  const handleOpen = async (source: 'welcome' | 'reto' = 'welcome') => {
     if (!selected) {
       goToCajonera();
       return;
@@ -359,7 +384,7 @@ export default function Rebotica() {
     const { data, error } = await supabase.functions.invoke('open-reward', {
       body: {
         cajon: selected,
-        source: 'welcome',
+        source,
         ...(ctx.campaign ? { campaign_id: ctx.campaign } : {}),
       },
     });
@@ -398,6 +423,8 @@ export default function Rebotica() {
       });
       // El canje lo hace la BD al instante (trigger); refrescamos el panel.
       void loadRewards();
+      // La extra se gasta al usarla: hay que volver a preguntar.
+      void loadExtra();
     } else {
       toast({
         title: 'No se ha podido abrir el cajón',
@@ -489,7 +516,7 @@ export default function Rebotica() {
             <div className="mx-auto mt-5 flex w-full max-w-md flex-col items-center gap-2">
               <button
                 type="button"
-                onClick={handleOpen}
+                onClick={() => handleOpen()}
                 disabled={opening || (!!user && selected != null && !canAttemptOpen)}
                 className={
                   selected && (canAttemptOpen || !user)
@@ -503,6 +530,24 @@ export default function Rebotica() {
               </button>
               {selected != null && !canAttemptOpen && cuentaAtras && (
                 <p className="text-center text-xs text-[#5c6660]">{cuentaAtras}</p>
+              )}
+              {extra?.disponible && canAttemptOpen && (
+                <div className="mt-3 w-full rounded-[14px] border border-[#A3D338]/40 bg-[#A3D338]/10 p-4 text-center">
+                  <p className="text-[14px] font-bold text-[#0B0F0B]">Tienes una apertura extra</p>
+                  <p className="mt-1 text-[13px] text-[#5c6660]">
+                    {extra.reto
+                      ? `La has ganado completando el reto de la semana: ${extra.reto}.`
+                      : 'La has ganado completando el reto de la semana.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleOpen('reto')}
+                    disabled={opening || selected == null}
+                    className={`${BTN_LIME} mt-3 w-full text-center text-[15px] disabled:cursor-not-allowed disabled:opacity-70`}
+                  >
+                    {selected ? 'Abrir mi cajón extra' : 'Toca un cajón para abrir tu extra'}
+                  </button>
+                </div>
               )}
               {partner && (
                 <div className="mt-2 flex items-center justify-center gap-2.5 text-[11.5px] uppercase tracking-[0.1em] text-[#5c6660]">
@@ -667,7 +712,7 @@ export default function Rebotica() {
               )}
               <button
                 type="button"
-                onClick={handleOpen}
+                onClick={() => handleOpen()}
                 disabled={opening || (!!user && selected != null && !canAttemptOpen)}
                 className={
                   selected && (canAttemptOpen || !user)
