@@ -97,10 +97,11 @@ const BTN_LIME_SM =
 const BTN_LIME =
   'inline-block rounded-full bg-[#A3D338] px-8 py-4 text-[17px] font-bold text-[#0B0F0B] shadow-[0_8px_28px_rgba(123,177,33,.35)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(123,177,33,.45)] active:scale-[.97]';
 
-// Pieza 2 de la jornada de grabación: «La Rebotica en 60 segundos».
-// Editada por Laura el 04-09-2026 y subida a Drive con enlace público.
+// Pieza 3 de la jornada de grabación: «Por qué regalamos» (el manifiesto de la Rebotica).
+// Es la única pieza sin fecha ni rótulo caduco: la A-2 («en 60 segundos») llevaba quemado
+// «10 de septiembre · abrimos el portal» y decía «se abre muy pronto» (cambio 10-09-2026).
 // Vacío = el bloque de vídeo no se renderiza.
-const REBOTICA_VIDEO_URL = 'https://iframe.mediadelivery.net/embed/748005/eb95bdaa-8724-429b-b735-8805f4023f9b';
+const REBOTICA_VIDEO_URL = 'https://iframe.mediadelivery.net/embed/748005/a010798c-ff81-4fa8-94eb-6acb964e8887';
 
 const STEPS = [
   {
@@ -755,7 +756,7 @@ export default function Rebotica() {
           </motion.div>
           {REBOTICA_VIDEO_URL && (
             <motion.div className="mx-auto mb-11 max-w-[760px]" {...reveal}>
-              <VideoEmbed url={REBOTICA_VIDEO_URL} title="La Rebotica en 60 segundos" className="rounded-[18px]" />
+              <VideoEmbed url={REBOTICA_VIDEO_URL} title="Por qué la Rebotica regala" className="rounded-[18px]" />
             </motion.div>
           )}
           <div className="grid gap-4 sm:grid-cols-3">
