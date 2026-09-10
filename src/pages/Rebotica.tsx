@@ -15,6 +15,7 @@ import {
   getNextOpeningDate,
   formatCuentaAtras,
   formatFechaLarga,
+  addDaysISO,
   HORA_APERTURA_CAJON,
   readReboticaContextFromUrl,
   storeReboticaContext,
@@ -120,7 +121,7 @@ const STEPS = [
     n: '3',
     tag: 'tuyo',
     title: 'Canjea y repite',
-    desc: 'Lo canjeas cuando quieras y vuelves el primer jueves del mes siguiente. Los usuarios Plus abren además el cajón de aniversario.',
+    desc: 'Lo canjeas cuando quieras y el día 1 de cada mes se abre un cajón nuevo. Los usuarios Plus abren además el cajón de aniversario.',
   },
 ];
 
@@ -415,9 +416,15 @@ export default function Rebotica() {
   // o hay campaña abierta (y decimos hasta cuándo) o avisaremos por email.
   const proximaFechaViva = countdown != null;
   const abiertoHasta = campaignFin ? formatFechaLarga(campaignFin) : null;
-  const proximoCajonMsg = proximaFechaViva
-    ? `Vuelve el ${REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.`
-    : 'Te avisamos por email en cuanto se abra el próximo cajón.';
+  // Campañas mensuales (10-09-2026): el siguiente cajón abre el día después de
+  // cerrar el actual (día 1 del mes siguiente). Se deriva del fin real de la
+  // campaña, no de una fecha fija en código.
+  const proximoCajonDia = campaignFin ? formatFechaLarga(addDaysISO(campaignFin, 1)) : null;
+  const proximoCajonMsg = proximoCajonDia
+    ? `Tu próximo cajón se abre el ${proximoCajonDia}.`
+    : proximaFechaViva
+      ? `Vuelve el ${REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.`
+      : 'Te avisamos por email en cuanto se abra el próximo cajón.';
   const proximoCajonStrip = campaignOpen && abiertoHasta
     ? `Cajón abierto · hasta el ${abiertoHasta}`
     : proximaFechaViva

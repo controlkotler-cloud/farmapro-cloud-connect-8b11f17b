@@ -60,6 +60,13 @@ export function formatFechaLarga(dateISO: string): string {
   );
 }
 
+/** "2026-09-30" + 1 → "2026-10-01" (aritmética en UTC, sin efectos de zona horaria). */
+export function addDaysISO(dateISO: string, days: number): string {
+  const d = new Date(`${dateISO}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 /**
  * Cuenta atrás en castellano natural: "Faltan 7 días y 4 horas" y, cuando queda
  * menos de un día, "Faltan 7 horas y 12 minutos". Devuelve null si ya pasó.
