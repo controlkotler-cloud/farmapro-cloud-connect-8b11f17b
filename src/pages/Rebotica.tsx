@@ -238,6 +238,12 @@ export default function Rebotica() {
 
   const [selected, setSelected] = useState<number | null>(null);
   const [opening, setOpening] = useState(false);
+  // Cada incremento hace "saltar" la cajonera (ver prop `nudge` de Cajonera).
+  const [nudge, setNudge] = useState(0);
+  const goToCajonera = () => {
+    scrollToId('cajonera');
+    if (selected == null) setNudge((n) => n + 1);
+  };
   // null = aún comprobando (no bloquea); true = hay campaña activa hoy; false = no hay ninguna.
   const [campaignOpen, setCampaignOpen] = useState<boolean | null>(null);
   // Último día de la campaña activa (YYYY-MM-DD), para decir "abierto hasta el ...".
@@ -317,7 +323,7 @@ export default function Rebotica() {
 
   const handleOpen = async () => {
     if (!selected) {
-      scrollToId('cajonera');
+      goToCajonera();
       return;
     }
 
@@ -471,7 +477,7 @@ export default function Rebotica() {
           </h1>
 
           <div className="mt-8">
-            <Cajonera selected={selected} onSelect={handleSelect} disabled={opening} />
+            <Cajonera selected={selected} onSelect={handleSelect} disabled={opening} nudge={nudge} />
             <div className="mx-auto mt-5 flex w-full max-w-md flex-col items-center gap-2">
               <button
                 type="button"
@@ -485,7 +491,7 @@ export default function Rebotica() {
                       : 'w-full cursor-pointer rounded-full bg-[#0B0F0B]/[.06] px-8 py-4 text-center text-[15px] font-bold text-[#5c6660] transition hover:bg-[#0B0F0B]/10'
                 }
               >
-                {selected ? openLabel : 'Elige un cajón para empezar'}
+                {selected ? openLabel : 'Primero toca un cajón de la cajonera'}
               </button>
               {selected != null && !canAttemptOpen && cuentaAtras && (
                 <p className="text-center text-xs text-[#5c6660]">{cuentaAtras}</p>
@@ -580,7 +586,7 @@ export default function Rebotica() {
                 </Link>
               </>
             )}
-            <button type="button" onClick={() => scrollToId('cajonera')} className={`${BTN_PRIMARY} hidden sm:inline-block`}>
+            <button type="button" onClick={goToCajonera} className={`${BTN_PRIMARY} hidden sm:inline-block`}>
               Elegir mi cajón gratis
             </button>
           </div>
@@ -605,7 +611,7 @@ export default function Rebotica() {
               lo abres y te llevas masterclass exclusivas, herramientas o regalos de verdad. Nunca descuentos. Nunca humo.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3.5">
-              <button type="button" onClick={() => scrollToId('cajonera')} className={BTN_LIME}>
+              <button type="button" onClick={goToCajonera} className={BTN_LIME}>
                 Elegir mi cajón gratis
               </button>
               <button
@@ -617,7 +623,7 @@ export default function Rebotica() {
               </button>
             </div>
             <p className="mt-3.5 text-[13.5px] text-[#5c6660]">
-              Sin tarjeta. Sin letra pequeña. Eliges sin cuenta; para abrirlo, te registras gratis.
+              Primero tocas un cajón, después creas tu cuenta gratis y lo abres. Sin tarjeta. Sin letra pequeña.
             </p>
             <div className="mt-6 flex flex-wrap gap-2.5">
               <span className="rounded-full border border-[#e7e9e4] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#333d33]">
@@ -635,9 +641,34 @@ export default function Rebotica() {
 
           {/* Cajonera interactiva */}
           <motion.div id="cajonera" className="scroll-mt-24" {...reveal}>
-            <Cajonera selected={selected} onSelect={handleSelect} disabled={opening} />
+            <Cajonera selected={selected} onSelect={handleSelect} disabled={opening} nudge={nudge} />
 
             <div className="mx-auto mt-5 flex w-full max-w-md flex-col items-center gap-2">
+              {!user && (
+                <ol className="mb-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[12px] font-semibold uppercase tracking-[0.08em]">
+                  {[
+                    { n: 1, t: 'Toca un cajón', done: !!selected, active: !selected },
+                    { n: 2, t: 'Crea tu cuenta gratis', done: false, active: !!selected },
+                    { n: 3, t: 'Ábrelo', done: false, active: false },
+                  ].map((s) => (
+                    <li
+                      key={s.n}
+                      className={
+                        s.active ? 'text-[#3c5a10]' : s.done ? 'text-[#7BB121] line-through' : 'text-[#8d998b]'
+                      }
+                    >
+                      <span
+                        className={`mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
+                          s.active ? 'bg-[#A3D338] text-[#0B0F0B]' : s.done ? 'bg-[#EAF5D0] text-[#3c5a10]' : 'bg-[#0B0F0B]/[.06]'
+                        }`}
+                      >
+                        {s.n}
+                      </span>
+                      {s.t}
+                    </li>
+                  ))}
+                </ol>
+              )}
               <button
                 type="button"
                 onClick={handleOpen}
@@ -650,10 +681,18 @@ export default function Rebotica() {
                       : 'w-full cursor-pointer rounded-full bg-[#0B0F0B]/[.06] px-8 py-4 text-center text-[15px] font-bold text-[#5c6660] transition hover:bg-[#0B0F0B]/10'
                 }
               >
-                {selected ? openLabel : 'Elige un cajón para empezar'}
+                {selected ? openLabel : 'Primero toca un cajón de la cajonera'}
               </button>
               {!user && selected && (
                 <p className="text-center text-xs text-[#5c6660]">No hace falta tarjeta. Solo tu email y una contraseña.</p>
+              )}
+              {!user && !selected && (
+                <p className="text-center text-xs text-[#5c6660]">
+                  ¿Prefieres crear la cuenta primero?{' '}
+                  <Link to="/login?modo=registro" className="font-semibold text-[#0B0F0B] underline underline-offset-4">
+                    Crear cuenta gratis
+                  </Link>
+                </p>
               )}
               {user && selected != null && !canAttemptOpen && cuentaAtras && (
                 <p className="text-center text-xs text-[#5c6660]">{cuentaAtras}</p>
@@ -833,7 +872,7 @@ export default function Rebotica() {
             <p className="relative mt-3.5 text-[17px] text-[#b9c4b6]">
               Únete gratis a la comunidad farmapro: más de 7.500 profesionales de la farmacia.
             </p>
-            <button type="button" onClick={() => scrollToId('cajonera')} className={`${BTN_LIME} relative mt-7`}>
+            <button type="button" onClick={goToCajonera} className={`${BTN_LIME} relative mt-7`}>
               Elegir mi cajón gratis
             </button>
             <p className="relative mt-3.5 text-[13px] text-[#8d998b]">

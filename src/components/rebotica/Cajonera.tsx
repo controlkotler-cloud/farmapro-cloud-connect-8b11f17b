@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Lock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Lock, MousePointerClick } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { REBOTICA_DRAWER_COUNT, REBOTICA_DRAWER_LABELS } from '@/lib/rebotica';
 
@@ -19,6 +19,13 @@ interface CajoneraProps {
   onSelect: (drawer: number) => void;
   /** Deshabilita la selección (p. ej. mientras se procesa la apertura). */
   disabled?: boolean;
+  /**
+   * Contador que, al cambiar, hace "saltar" la cajonera un instante (anillo
+   * verde + la instrucción crece). Lo disparan los CTA "Elegir mi cajón" y el
+   * botón gris cuando aún no hay cajón elegido: D-day 10-09, Francesc no
+   * entendió que había que tocar un cajón para poder seguir.
+   */
+  nudge?: number;
 }
 
 /**
@@ -28,7 +35,15 @@ interface CajoneraProps {
  */
 const HINT_DRAWER = 7;
 
-export function Cajonera({ skin = 'cajonera', selected, onSelect, disabled }: CajoneraProps) {
+export function Cajonera({ skin = 'cajonera', selected, onSelect, disabled, nudge = 0 }: CajoneraProps) {
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    if (!nudge) return;
+    setFlash(true);
+    const id = window.setTimeout(() => setFlash(false), 1400);
+    return () => window.clearTimeout(id);
+  }, [nudge]);
+
   useEffect(() => {
     if (skin === 'eonbox') {
       console.warn(
@@ -41,7 +56,14 @@ export function Cajonera({ skin = 'cajonera', selected, onSelect, disabled }: Ca
   const hintActive = selected === null;
 
   return (
-    <div className="relative mx-auto w-full max-w-md" role="group" aria-label="Cajonera de la Rebotica: elige un cajón">
+    <div
+      className={cn(
+        'relative mx-auto w-full max-w-md rounded-[24px] transition-shadow duration-300',
+        flash && 'shadow-[0_0_0_4px_#FBFBF7,0_0_0_9px_#A3D338]',
+      )}
+      role="group"
+      aria-label="Cajonera de la Rebotica: elige un cajón"
+    >
       {/* Nota de escena (el gancho del mockup; cambia al elegir) */}
       <div
         aria-hidden
@@ -126,6 +148,25 @@ export function Cajonera({ skin = 'cajonera', selected, onSelect, disabled }: Ca
                 </button>
               );
             })}
+          </div>
+
+          {/* Instrucción explícita: el gancho de arriba es narrativo, esto es la orden */}
+          <div aria-live="polite" className="mt-3 flex justify-center">
+            {selected ? (
+              <span className="rounded-full bg-[#ffd968]/15 px-3.5 py-1.5 text-[12.5px] font-bold text-[#ffedb0]">
+                Cajón {REBOTICA_DRAWER_LABELS[selected - 1]} elegido · ya puedes seguir
+              </span>
+            ) : (
+              <span
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full bg-[#A3D338] px-4 py-2 text-[13px] font-bold text-[#0B0F0B] shadow-[0_6px_16px_rgba(0,0,0,.3)] transition-transform duration-300',
+                  flash ? 'scale-110' : 'scale-100',
+                )}
+              >
+                <MousePointerClick className="h-4 w-4 animate-bounce" aria-hidden />
+                Toca un cajón para elegirlo
+              </span>
+            )}
           </div>
 
           {/* Patas del mueble */}
