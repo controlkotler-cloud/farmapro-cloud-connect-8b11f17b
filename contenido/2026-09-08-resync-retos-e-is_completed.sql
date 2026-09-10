@@ -1,5 +1,9 @@
 -- 08-09-2026. Resincronización de retos y del flag is_completed.
--- PENDIENTE DE CONFIRMAR POR FRANCESC (toca >3 filas). Idempotente.
+-- EJECUTADO el 10-09-2026 con el OK de Francesc. Idempotente: volver a correrlo no hace nada.
+-- Alcance real al ejecutarlo (mayor que el medido el 08-09, porque el portal ya estaba abierto):
+-- 6 inscripciones sin flag de 2 usuarios, 14 filas de progreso actualizadas y 40 insertadas,
+-- 7 usuarios afectados. Después: 0 inscripciones sin flag, 119 filas de progreso, 37 retos
+-- completados, 14 usuarios con progreso y 9 con puntos.
 --
 -- Contexto: hasta el commit 5b6525b cada acción mandaba "1" como cuenta absoluta
 -- del reto, así que solo contaba la primera (3 recursos = "Cinco recursos" 1/5).
