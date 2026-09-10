@@ -1,5 +1,5 @@
--- Cajón de noviembre (Rebotica, Temporada 1). PENDIENTE: ejecutar con
--- query_database ANTES del 01-11-2026. Idempotente. Mismo patrón que octubre
+-- Cajón de noviembre (Rebotica, Temporada 1). EJECUTADO en producción el
+-- 10-09-2026 vía query_database (orden de Francesc). Idempotente. Mismo patrón que octubre
 -- (supabase/migrations/20260910120000_rebotica_campanas_mensuales.sql):
 -- premios sorteables clonados de Bienvenida; Baúl y Gordo no se clonan.
 -- Si Francesc quiere premios distintos en noviembre, cambiar aquí los títulos
