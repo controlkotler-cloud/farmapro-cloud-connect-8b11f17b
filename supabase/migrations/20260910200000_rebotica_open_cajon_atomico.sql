@@ -38,6 +38,12 @@
 --
 -- ORDEN DE EJECUCIÓN: este SQL primero, la edge después. La función nueva es aditiva; con la
 -- edge vieja todavía desplegada nadie la llama y no cambia nada.
+--
+-- EJECUTADA EN PRODUCCIÓN el 10-09-2026 (query_database, proyecto jeysistgdajopfruqpbc).
+-- Verificado después: 1 sola firma en pg_proc, permisos solo para service_role, los cinco
+-- guardas devuelven su código sin tocar stock, y una apertura real devuelve `already: true`
+-- con su premio. Antes de ejecutarla, el diagnóstico de descuadre salió limpio: 15 aperturas
+-- y 15 unidades consumidas, cuadre exacto premio a premio (el bug no había cobrado nada).
 
 -- ---------------------------------------------------------------------------
 -- 0. Sin sobrecargas huérfanas
@@ -106,8 +112,14 @@ AS $function$
   WHERE o.id = _opening_id;
 $function$;
 
-REVOKE ALL ON FUNCTION public.rebotica_prize_json(uuid)   FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.rebotica_opening_json(uuid) FROM PUBLIC;
+-- OJO, `FROM PUBLIC` NO BASTA en Supabase. El proyecto tiene ALTER DEFAULT PRIVILEGES que
+-- concede EXECUTE a `anon` y `authenticated` sobre toda función nueva de `public`: son
+-- concesiones nominales, no PUBLIC, así que sobreviven al REVOKE de arriba. Verificado en
+-- producción el 10-09-2026: tras crear la función, `proacl` seguía teniendo `anon=X`. Hay
+-- que revocar a los roles POR NOMBRE, y comprobarlo después con:
+--   SELECT oid::regprocedure, proacl FROM pg_proc WHERE proname = 'rebotica_open_cajon';
+REVOKE ALL ON FUNCTION public.rebotica_prize_json(uuid)   FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.rebotica_opening_json(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rebotica_prize_json(uuid)   TO service_role;
 GRANT EXECUTE ON FUNCTION public.rebotica_opening_json(uuid) TO service_role;
 
@@ -307,9 +319,17 @@ BEGIN
 END;
 $function$;
 
--- Nunca a `authenticated`: la función recibe `_user_id` como parámetro y es SECURITY
--- DEFINER, así que un usuario logueado podría abrir el cajón de otro. Solo service_role,
--- es decir solo la edge function.
-REVOKE ALL ON FUNCTION public.rebotica_open_cajon(uuid, uuid, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.rebotica_open_cajon(uuid, uuid, text) FROM authenticated;
+-- Nunca a `authenticated` ni a `anon`: la función recibe `_user_id` como parámetro y es
+-- SECURITY DEFINER, así que quien pudiera llamarla abriría el cajón de CUALQUIER usuario
+-- cuyo uuid conociese, sesión incluida o no. Solo service_role, es decir solo la edge.
+-- Y hay que nombrar los dos roles: ver la nota de arriba sobre los default privileges de
+-- Supabase (el 10-09-2026 esta función quedó con `anon=X` pese al REVOKE FROM PUBLIC).
+REVOKE ALL ON FUNCTION public.rebotica_open_cajon(uuid, uuid, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rebotica_open_cajon(uuid, uuid, text) TO service_role;
+
+-- Comprobación final (debe devolver solo postgres y service_role, más el rol interno
+-- sandbox_exec_* del proyecto):
+--   SELECT p.oid::regprocedure, array_to_string(p.proacl::text[], ' | ')
+--     FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+--    WHERE n.nspname = 'public'
+--      AND p.proname IN ('rebotica_open_cajon','rebotica_opening_json','rebotica_prize_json');
