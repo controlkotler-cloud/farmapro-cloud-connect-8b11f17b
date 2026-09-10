@@ -751,7 +751,7 @@ export default function Rebotica() {
               Tres gestos. Como en la rebotica de siempre.
             </h2>
             <p className="mt-3 text-[16.5px] text-[#5c6660]">
-              La trastienda de la farmacia es donde pasan las cosas buenas. Aquí también.
+              La rebotica de la farmacia es donde pasan las cosas buenas. Aquí también.
             </p>
           </motion.div>
           {REBOTICA_VIDEO_URL && (
