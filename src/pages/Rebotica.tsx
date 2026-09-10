@@ -626,18 +626,6 @@ export default function Rebotica() {
             <p className="mt-3.5 text-[13.5px] text-[#5c6660]">
               Primero tocas un cajón, después creas tu cuenta gratis y lo abres. Sin tarjeta. Sin letra pequeña.
             </p>
-            <div className="mt-6 flex flex-wrap gap-2.5">
-              <span className="rounded-full border border-[#e7e9e4] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#333d33]">
-                <b className="text-[#7BB121]">7.500+</b> profesionales de farmacia
-              </span>
-              <span className="rounded-full border border-[#e7e9e4] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#333d33]">
-                <b className="text-[#7BB121]">1 de cada 6</b> farmacias de España*
-              </span>
-              <span className="rounded-full border border-[#e7e9e4] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#333d33]">
-                <b className="text-[#7BB121]">100%</b> de cajones con premio
-              </span>
-            </div>
-            <p className="mt-2 text-[11px] text-[#8d998b]">*Estimación sectorial sobre el censo CGCOF 2025.</p>
           </div>
 
           {/* Cajonera interactiva */}
