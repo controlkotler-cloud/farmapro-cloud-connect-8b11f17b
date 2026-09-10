@@ -1,16 +1,17 @@
 // =====================================================================
 // open-reward: abre el cajón de la Rebotica para el usuario autenticado.
 //
-// - Body: { campaign_id: uuid, cajon: number, source?: 'welcome'|'quincena'|
-//   'aniversario'|'equipo'|'reto' } (source default 'welcome').
+// - Body: { campaign_id?: uuid, cajon: number, source?: 'welcome'|'reto' }
+//   (source default 'welcome').
 // - Sin JWT -> 401 { redirect: '/login?modo=registro&c=<campaign_id>&cajon=<n>' }.
-// - Valida campaña activa y en rango de fechas.
-// - Idempotente: UNIQUE(user_id, campaign_id, source). Si ya abrió, devuelve el premio.
-// - Sorteo ponderado por peso entre premios con stock_restante>0 y tier
-//   ('todos' o el del usuario). Solo peso>0 (los peso=0 los reserva el cron
-//   de calendario). Decremento ATÓMICO vía RPC rebotica_pick_and_consume_prize.
-// - No dispara email aquí (el email "premio-ganado" lo envía redeem-reward
-//   al confirmarse el canje).
+// - TODO lo demás (campaña, idempotencia, tier, derecho a apertura extra por
+//   reto, sorteo, descuento de stock e INSERT de la apertura) lo hace UNA sola
+//   función de BD, `rebotica_open_cajon`, en UNA transacción. Antes eran tres
+//   pasos separados: si algo cortaba en medio (un despliegue, un timeout, o el
+//   doble clic de un usuario) el stock quedaba consumido sin apertura y el
+//   usuario perdía su cajón sin dejar rastro. Postgres ahora lo revierte entero.
+// - No dispara email aquí (el email "premio-ganado" lo envía redeem-reward al
+//   confirmarse el canje).
 // =====================================================================
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -21,8 +22,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const VALID_SOURCES = ["welcome", "quincena", "aniversario", "equipo", "reto"] as const;
+// Solo los dos sources que puede pedir una persona. 'quincena', 'aniversario' y 'equipo'
+// están en el CHECK de la columna porque los escriben otros caminos (sorteos de equipo y
+// de calendario), pero desde que el UNIQUE incluye `source` (10-09-2026) aceptarlos aquí
+// regalaba TRES premios extra por campaña a cualquiera con sesión. Un source desconocido
+// cae a 'welcome', que es idempotente.
+const VALID_SOURCES = ["welcome", "reto"] as const;
 type Source = typeof VALID_SOURCES[number];
+
+// Códigos de negocio de rebotica_open_cajon -> [status HTTP, mensaje al usuario].
+const BUSINESS_ERRORS: Record<string, [number, string]> = {
+  user_invalido: [400, "Usuario inválido"],
+  source_invalido: [400, "source inválido"],
+  campana_no_encontrada: [404, "Campaña no encontrada"],
+  campana_no_activa: [409, "La campaña no está activa"],
+  campana_fuera_de_ventana: [409, "La campaña no está en su ventana de apertura"],
+  sin_campana_activa: [409, "No hay campaña activa ahora mismo"],
+  reto_no_completado: [409, "Todavía no has completado el reto de la semana"],
+  sin_stock: [409, "Sin stock de premios disponible ahora mismo"],
+};
 
 const log = (step: string, details?: unknown) => {
   console.log(`[open-reward] ${step}${details ? " - " + JSON.stringify(details) : ""}`);
@@ -79,162 +97,55 @@ serve(async (req) => {
   log("user", { id: user.id, campaignIdRaw, cajon, source });
 
   try {
-    // ---- Campaña activa y en rango ----------------------------------------
-    const today = new Date().toISOString().slice(0, 10);
-    let campaign: { id: string; estado: string; quincena_inicio: string; quincena_fin: string } | null = null;
-
-    if (campaignIdRaw) {
-      const { data, error } = await supabase
-        .from("rebotica_campaigns")
-        .select("id, estado, quincena_inicio, quincena_fin")
-        .eq("id", campaignIdRaw)
-        .maybeSingle();
-      // Un error de Postgres NO es "no encontrada": antes se descartaba y salía
-      // un 404 engañoso (fix 08-09-2026). Se loguea y se devuelve 500.
-      if (error) {
-        log("campaign lookup error", { campaignIdRaw, err: error.message });
-        return json({ error: "Error consultando la campaña" }, 500);
-      }
-      campaign = data;
-      if (!campaign) return json({ error: "Campaña no encontrada" }, 404);
-      if (campaign.estado !== "activa") {
-        return json({ error: "La campaña no está activa" }, 409);
-      }
-      if (campaign.quincena_inicio > today || campaign.quincena_fin < today) {
-        return json({ error: "La campaña no está en su ventana de apertura" }, 409);
-      }
-    } else {
-      // Sin campaign_id: resuelve la campaña activa cuya ventana incluye hoy;
-      // si hubiera varias, la de quincena_inicio más reciente.
-      const { data, error } = await supabase
-        .from("rebotica_campaigns")
-        .select("id, estado, quincena_inicio, quincena_fin")
-        .eq("estado", "activa")
-        .lte("quincena_inicio", today)
-        .gte("quincena_fin", today)
-        .order("quincena_inicio", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) {
-        log("active campaign lookup error", { err: error.message });
-        return json({ error: "Error consultando la campaña" }, 500);
-      }
-      campaign = data;
-      if (!campaign) return json({ error: "No hay campaña activa ahora mismo" }, 409);
+    // ---- Apertura atómica --------------------------------------------------
+    const { data, error } = await supabase.rpc("rebotica_open_cajon", {
+      _user_id: user.id,
+      _campaign_id: campaignIdRaw || null,
+      _source: source,
+    });
+    if (error) {
+      // Un error de Postgres NO es un estado de negocio: 500 con el mensaje real.
+      log("rpc error", { err: error.message });
+      return json({ error: error.message }, 500);
     }
 
-    // ---- Idempotencia ------------------------------------------------------
-    const { data: existing } = await supabase
-      .from("rebotica_openings")
-      .select("id, prize_id, opened_at, expires_at, redeemed_at")
-      .eq("user_id", user.id)
-      .eq("campaign_id", campaign.id)
-      .eq("source", source)
-      .maybeSingle();
+    const result = data as {
+      ok?: boolean;
+      error?: string;
+      already?: boolean;
+      campaign_id?: string;
+      opening?: {
+        id: string;
+        opened_at: string;
+        expires_at: string;
+        redeemed_at: string | null;
+        fulfilled_at: string | null;
+        reward_type: string;
+        source: string;
+      } | null;
+      prize?: Record<string, unknown> | null;
+    } | null;
 
-    if (existing) {
-      const { data: prize } = await supabase
-        .from("rebotica_prizes")
-        .select("id, titulo, descripcion, tipo, valor_percibido_eur, partner_id")
-        .eq("id", existing.prize_id)
-        .maybeSingle();
-      return json({
-        already: true,
-        reward_type: "premio",
-        opening_id: existing.id,
-        expires_at: existing.expires_at,
-        redeemed_at: existing.redeemed_at,
-        prize,
-      });
+    if (!result?.ok) {
+      const [status, msg] = BUSINESS_ERRORS[result?.error ?? ""] ??
+        [500, "No se ha podido abrir el cajón"];
+      log("rechazado", { code: result?.error ?? null, status });
+      return json({ error: msg }, status);
     }
 
-    // ---- Tier del usuario --------------------------------------------------
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("subscription_role")
-      .eq("id", user.id)
-      .maybeSingle();
+    log("premio granted", {
+      userId: user.id,
+      openingId: result.opening?.id,
+      already: result.already === true,
+    });
 
-    const { data: memberRow } = await supabase
-      .from("team_members")
-      .select("team_id")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .maybeSingle();
-
-    const role = profile?.subscription_role ?? "freemium";
-    const tier: "gratis" | "plus" | "equipo" =
-      memberRow || role === "equipo"
-        ? "equipo"
-        : role === "freemium"
-        ? "gratis"
-        : "plus";
-    log("tier", { tier, role, hasTeam: !!memberRow });
-
-    // ---- Derecho a apertura extra por reto ----------------------------------
-    if (source === "reto") {
-      const { data: extraAvailable, error: extraErr } = await supabase.rpc(
-        "rebotica_extra_opening_available",
-        { _user_id: user.id, _campaign_id: campaign.id },
-      );
-      if (extraErr) {
-        log("extra opening check error", { err: extraErr.message });
-        return json({ error: "Error comprobando tu reto" }, 500);
-      }
-      if (!extraAvailable) {
-        return json({ error: "Todavía no has completado el reto de la semana" }, 409);
-      }
-    }
-
-    // ---- Sorteo ponderado + decremento atómico (reintentos por carrera) ---
-    let prizeId: string | null = null;
-    for (let attempt = 0; attempt < 5 && !prizeId; attempt++) {
-      const { data, error } = await supabase.rpc("rebotica_pick_and_consume_prize", {
-        p_campaign_id: campaign.id,
-        p_tier: tier,
-        p_user_id: user.id,
-      });
-      if (error) {
-        log("rpc error", { attempt, err: error.message });
-        break;
-      }
-      prizeId = (data as string | null) ?? null;
-      if (prizeId) break;
-    }
-    if (!prizeId) {
-      return json({ error: "Sin stock de premios disponible ahora mismo" }, 409);
-    }
-
-    // ---- Insert opening ----------------------------------------------------
-    const { data: prize, error: prizeErr } = await supabase
-      .from("rebotica_prizes")
-      .select("id, titulo, descripcion, tipo, valor_percibido_eur, caducidad_dias, partner_id")
-      .eq("id", prizeId)
-      .single();
-    if (prizeErr) throw prizeErr;
-
-    const caducidadDias = prize.caducidad_dias ?? 7;
-    const expiresAt = new Date(Date.now() + caducidadDias * 86_400_000).toISOString();
-
-    const { data: opening, error: openErr } = await supabase
-      .from("rebotica_openings")
-      .insert({
-        user_id: user.id,
-        campaign_id: campaign.id,
-        prize_id: prizeId,
-        expires_at: expiresAt,
-        source,
-      })
-      .select("id, expires_at")
-      .single();
-    if (openErr) throw openErr;
-
-    log("premio granted", { userId: user.id, prizeId, openingId: opening.id });
     return json({
-      reward_type: "premio",
-      opening_id: opening.id,
-      expires_at: opening.expires_at,
-      prize,
+      ...(result.already ? { already: true } : {}),
+      reward_type: result.opening?.reward_type ?? "premio",
+      opening_id: result.opening?.id,
+      expires_at: result.opening?.expires_at,
+      redeemed_at: result.opening?.redeemed_at ?? null,
+      prize: result.prize ?? null,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
