@@ -3661,6 +3661,7 @@ export type Database = {
         Args: { _campaign_id: string; _user_id: string }
         Returns: boolean
       }
+      rebotica_extra_opening_status: { Args: never; Returns: Json }
       rebotica_my_rewards: {
         Args: never
         Returns: {
@@ -3682,10 +3683,16 @@ export type Database = {
           titulo: string
         }[]
       }
+      rebotica_open_cajon: {
+        Args: { _campaign_id?: string; _source?: string; _user_id: string }
+        Returns: Json
+      }
+      rebotica_opening_json: { Args: { _opening_id: string }; Returns: Json }
       rebotica_pick_and_consume_prize: {
         Args: { p_campaign_id: string; p_tier: string; p_user_id?: string }
         Returns: string
       }
+      rebotica_prize_json: { Args: { _prize_id: string }; Returns: Json }
       rebotica_unlock_resource: {
         Args: { p_resource_id: string }
         Returns: string
