@@ -53,6 +53,13 @@ export function composeOpeningInstant(dateISO: string): Date {
   return new Date(`${dateISO}T${String(HORA_APERTURA_CAJON).padStart(2, '0')}:00:00+02:00`);
 }
 
+/** "2026-11-30" → "30 de noviembre" (hora peninsular). */
+export function formatFechaLarga(dateISO: string): string {
+  return new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', timeZone: 'Europe/Madrid' }).format(
+    new Date(`${dateISO}T12:00:00+02:00`),
+  );
+}
+
 /**
  * Cuenta atrás en castellano natural: "Faltan 7 días y 4 horas" y, cuando queda
  * menos de un día, "Faltan 7 horas y 12 minutos". Devuelve null si ya pasó.

@@ -14,6 +14,7 @@ import {
   REBOTICA_CURRENT_PARTNER,
   getNextOpeningDate,
   formatCuentaAtras,
+  formatFechaLarga,
   HORA_APERTURA_CAJON,
   readReboticaContextFromUrl,
   storeReboticaContext,
@@ -239,6 +240,8 @@ export default function Rebotica() {
   const [opening, setOpening] = useState(false);
   // null = aún comprobando (no bloquea); true = hay campaña activa hoy; false = no hay ninguna.
   const [campaignOpen, setCampaignOpen] = useState<boolean | null>(null);
+  // Último día de la campaña activa (YYYY-MM-DD), para decir "abierto hasta el ...".
+  const [campaignFin, setCampaignFin] = useState<string | null>(null);
 
   const [rewards, setRewards] = useState<ReboticaReward[]>([]);
   const loadRewards = async () => {
@@ -281,27 +284,26 @@ export default function Rebotica() {
   // Comprobación previa de campaña. C10: antes solo se hacía con sesión, así
   // que el anónimo leía "Crear cuenta gratis y abrir mi cajón" aunque no
   // hubiera campaña abierta: se registraba, volvía y se encontraba con que
-  // tenía que esperar. Ahora se comprueba también sin sesión (la RLS devuelve
-  // 0 filas al anónimo, que es justo la respuesta correcta) y el botón dice la
-  // verdad. Ante cualquier duda (error de red) NO bloqueamos: el backend sigue
-  // siendo el gate real.
+  // tenía que esperar. D-day 10-09: el SELECT directo a `rebotica_campaigns`
+  // tampoco valía, porque su RLS solo deja leer a authenticated y al anónimo le
+  // devolvía SIEMPRE 0 filas (el botón decía "tu cajón se abre el jueves 10 de
+  // septiembre" con la campaña ya abierta). Ahora se pregunta a la RPC pública
+  // `rebotica_campaign_abierta` (SECURITY DEFINER, legible por anon), que
+  // responde igual con y sin sesión. Ante cualquier duda (error de red) NO
+  // bloqueamos: el backend sigue siendo el gate real.
   useEffect(() => {
     let cancelled = false;
-    const today = new Date().toISOString().slice(0, 10);
-    supabase
-      .from('rebotica_campaigns')
-      .select('id')
-      .eq('estado', 'activa')
-      .lte('quincena_inicio', today)
-      .gte('quincena_fin', today)
-      .limit(1)
-      .then(({ data, error }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .rpc('rebotica_campaign_abierta')
+      .then(({ data, error }: { data: { abierta?: boolean; fin?: string } | null; error: unknown }) => {
         if (cancelled) return;
         if (error) {
           console.error('Error comprobando campaña activa de la Rebotica:', error);
           return;
         }
-        setCampaignOpen((data?.length ?? 0) > 0);
+        setCampaignOpen(data?.abierta === true);
+        setCampaignFin(data?.abierta && data.fin ? data.fin : null);
       });
     return () => {
       cancelled = true;
@@ -337,7 +339,7 @@ export default function Rebotica() {
     if (campaignOpen === false) {
       toast({
         title: 'Todavía no puedes abrir un cajón',
-        description: `Vuelve el ${REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.`,
+        description: proximoCajonMsg,
       });
       return;
     }
@@ -366,7 +368,7 @@ export default function Rebotica() {
         setCampaignOpen((prev) => (prev === true ? prev : false));
         toast({
           title: 'Todavía no puedes abrir un cajón',
-          description: bodyMessage ?? `Vuelve el ${REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.`,
+          description: bodyMessage ?? proximoCajonMsg,
         });
         return;
       }
@@ -401,12 +403,30 @@ export default function Rebotica() {
   // se comprueba (null) se deja intentar con normalidad.
   const canAttemptOpen = campaignOpen !== false;
 
+  // La fecha fija de REBOTICA_NEXT_OPENING solo vale mientras esté en el
+  // futuro (cuenta atrás viva). Una vez pasada, no prometemos ninguna fecha:
+  // o hay campaña abierta (y decimos hasta cuándo) o avisaremos por email.
+  const proximaFechaViva = countdown != null;
+  const abiertoHasta = campaignFin ? formatFechaLarga(campaignFin) : null;
+  const proximoCajonMsg = proximaFechaViva
+    ? `Vuelve el ${REBOTICA_NEXT_OPENING.dateLabel} para tu próximo cajón.`
+    : 'Te avisamos por email en cuanto se abra el próximo cajón.';
+  const proximoCajonStrip = campaignOpen && abiertoHasta
+    ? `Cajón abierto · hasta el ${abiertoHasta}`
+    : proximaFechaViva
+      ? `Próximo cajón: ${REBOTICA_NEXT_OPENING.dateLabel} · ${REBOTICA_OPENING_TIME_LABEL}`
+      : 'Próximo cajón: te avisamos por email';
+
   const openLabel = !user
     ? canAttemptOpen
       ? 'Crear cuenta gratis y abrir mi cajón'
-      : `Crear cuenta gratis · tu cajón se abre el ${REBOTICA_NEXT_OPENING.dateLabel}`
+      : proximaFechaViva
+        ? `Crear cuenta gratis · tu cajón se abre el ${REBOTICA_NEXT_OPENING.dateLabel}`
+        : 'Crear cuenta gratis · te avisamos del próximo cajón'
     : !canAttemptOpen
-      ? `Tu cajón se abre el ${REBOTICA_NEXT_OPENING.dateLabel} a las ${HORA_APERTURA_CAJON}:00`
+      ? proximaFechaViva
+        ? `Tu cajón se abre el ${REBOTICA_NEXT_OPENING.dateLabel} a las ${HORA_APERTURA_CAJON}:00`
+        : 'Todavía no hay cajón abierto · te avisamos por email'
       : opening
         ? 'Abriendo...'
         : 'Abrir mi cajón';
@@ -444,9 +464,7 @@ export default function Rebotica() {
 
         <div className="mx-auto max-w-[640px] px-6 py-16 text-center">
           <p className="mb-2 text-[13px] font-bold uppercase tracking-[0.16em] text-[#7BB121]">
-            {countdown
-              ? `Próximo cajón: ${REBOTICA_NEXT_OPENING.dateLabel} · ${REBOTICA_OPENING_TIME_LABEL}`
-              : `Próximo cajón: jueves · ${REBOTICA_OPENING_TIME_LABEL}`}
+            {proximoCajonStrip}
           </p>
           <h1 className="font-serif text-[clamp(28px,3.6vw,40px)] font-semibold leading-[1.15]">
             El cajón de este mes
@@ -550,9 +568,17 @@ export default function Rebotica() {
                 Ir al portal
               </Link>
             ) : (
-              <Link to="/login" className="text-sm font-semibold text-[#5c6660] transition hover:text-[#0B0F0B]">
-                Iniciar sesión
-              </Link>
+              <>
+                <Link
+                  to="/login?modo=registro"
+                  className="text-sm font-semibold text-[#5c6660] transition hover:text-[#0B0F0B]"
+                >
+                  Crear cuenta gratis
+                </Link>
+                <Link to="/login" className="text-sm font-semibold text-[#5c6660] transition hover:text-[#0B0F0B]">
+                  Iniciar sesión
+                </Link>
+              </>
             )}
             <button type="button" onClick={() => scrollToId('cajonera')} className={`${BTN_PRIMARY} hidden sm:inline-block`}>
               Elegir mi cajón gratis
@@ -646,12 +672,22 @@ export default function Rebotica() {
       <div className="bg-[#0B0F0B] py-3.5 text-white">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-center gap-x-5 gap-y-2 px-6 text-[15px]">
           <span>
-            Próximo cajón:{' '}
-            <b className="text-[#A3D338]">
-              {countdown
-                ? `${REBOTICA_NEXT_OPENING.dateLabel} · ${REBOTICA_OPENING_TIME_LABEL}`
-                : `jueves · ${REBOTICA_OPENING_TIME_LABEL}`}
-            </b>
+            {campaignOpen && abiertoHasta ? (
+              <>
+                Cajón abierto <b className="text-[#A3D338]">hasta el {abiertoHasta}</b>
+              </>
+            ) : proximaFechaViva ? (
+              <>
+                Próximo cajón:{' '}
+                <b className="text-[#A3D338]">
+                  {REBOTICA_NEXT_OPENING.dateLabel} · {REBOTICA_OPENING_TIME_LABEL}
+                </b>
+              </>
+            ) : (
+              <>
+                Próximo cajón: <b className="text-[#A3D338]">te avisamos por email</b>
+              </>
+            )}
           </span>
           {countdown && (
             <span className="rounded-lg border border-white/15 bg-white/[.08] px-3 py-1 font-bold tracking-[0.06em] [font-variant-numeric:tabular-nums]">
