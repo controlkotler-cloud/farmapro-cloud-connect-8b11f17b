@@ -1850,6 +1850,8 @@ export type Database = {
           opt_out_leaderboard: boolean
           pharmacy_city: string | null
           pharmacy_name: string | null
+          plan_comp_prev_role: Database["public"]["Enums"]["user_role"] | null
+          plan_comp_until: string | null
           points: number
           position: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -1893,6 +1895,8 @@ export type Database = {
           opt_out_leaderboard?: boolean
           pharmacy_city?: string | null
           pharmacy_name?: string | null
+          plan_comp_prev_role?: Database["public"]["Enums"]["user_role"] | null
+          plan_comp_until?: string | null
           points?: number
           position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -1936,6 +1940,8 @@ export type Database = {
           opt_out_leaderboard?: boolean
           pharmacy_city?: string | null
           pharmacy_name?: string | null
+          plan_comp_prev_role?: Database["public"]["Enums"]["user_role"] | null
+          plan_comp_until?: string | null
           points?: number
           position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -2405,10 +2411,13 @@ export type Database = {
           created_at: string
           email_ref: string | null
           expires_at: string
+          fulfil_note: string | null
+          fulfilled_at: string | null
           id: string
           opened_at: string
           prize_id: string | null
           redeemed_at: string | null
+          resource_id: string | null
           reward_type: string
           source: string
           team_subscription_id: string | null
@@ -2419,10 +2428,13 @@ export type Database = {
           created_at?: string
           email_ref?: string | null
           expires_at: string
+          fulfil_note?: string | null
+          fulfilled_at?: string | null
           id?: string
           opened_at?: string
           prize_id?: string | null
           redeemed_at?: string | null
+          resource_id?: string | null
           reward_type?: string
           source?: string
           team_subscription_id?: string | null
@@ -2433,10 +2445,13 @@ export type Database = {
           created_at?: string
           email_ref?: string | null
           expires_at?: string
+          fulfil_note?: string | null
+          fulfilled_at?: string | null
           id?: string
           opened_at?: string
           prize_id?: string | null
           redeemed_at?: string | null
+          resource_id?: string | null
           reward_type?: string
           source?: string
           team_subscription_id?: string | null
@@ -2462,6 +2477,13 @@ export type Database = {
             columns: ["prize_id"]
             isOneToOne: false
             referencedRelation: "rebotica_prizes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rebotica_openings_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
             referencedColumns: ["id"]
           },
           {
@@ -3624,10 +3646,36 @@ export type Database = {
           read_ct: number
         }[]
       }
+      rebotica_comp_expire: { Args: never; Returns: number }
       rebotica_cron_daily: { Args: never; Returns: undefined }
       rebotica_digest_interno: { Args: never; Returns: undefined }
+      rebotica_my_rewards: {
+        Args: never
+        Returns: {
+          campaign_id: string
+          campaign_nombre: string
+          descripcion: string
+          expires_at: string
+          fulfil_note: string
+          fulfilled_at: string
+          opened_at: string
+          opening_id: string
+          plan_comp_until: string
+          prize_id: string
+          redeemed_at: string
+          resource_id: string
+          resource_title: string
+          tier: string
+          tipo: string
+          titulo: string
+        }[]
+      }
       rebotica_pick_and_consume_prize: {
         Args: { p_campaign_id: string; p_tier: string; p_user_id?: string }
+        Returns: string
+      }
+      rebotica_unlock_resource: {
+        Args: { p_resource_id: string }
         Returns: string
       }
       recompute_user_points: { Args: { _user_id: string }; Returns: undefined }
