@@ -164,9 +164,52 @@ AS $function$
 $function$;
 
 REVOKE ALL ON FUNCTION public.rebotica_extra_opening_available(uuid, uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.rebotica_extra_opening_available(uuid, uuid) TO service_role, authenticated;
+-- Solo la edge function (service_role). Con EXECUTE para `authenticated` cualquier usuario
+-- con sesión podía preguntar por el uuid de otro; el front no la necesita porque usa la RPC
+-- sin argumentos de abajo. REVOKE aplicado en producción el 10-09-2026.
+REVOKE EXECUTE ON FUNCTION public.rebotica_extra_opening_available(uuid, uuid) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rebotica_extra_opening_available(uuid, uuid) TO service_role;
 
--- PENDIENTE FUERA DE ESTA MIGRACIÓN: `open-reward` hay que tocarlo para que (a) su SELECT de
--- idempotencia filtre también por `source` y (b) cuando llegue `source='reto'` consulte
--- `rebotica_extra_opening_available` en vez de la regla "ya abriste". Es código .ts de una edge
--- function: se despliega por chat de Lovable, se lo pide Francesc.
+-- 6) La que llama el front: resuelve la campaña abierta y el usuario ella misma, para que la
+-- página no tenga que manejar ids de campaña. `rebotica_campaign_abierta` devuelve
+-- {abierta, inicio, fin} y no trae el id, así que no sirve aquí.
+CREATE OR REPLACE FUNCTION public.rebotica_extra_opening_status()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  SELECT COALESCE(
+    (
+      SELECT jsonb_build_object(
+        'disponible', public.rebotica_extra_opening_available(auth.uid(), c.id),
+        'reto', (
+          SELECT ch.title
+          FROM public.user_challenge_progress ucp
+          JOIN public.challenges ch ON ch.id = ucp.challenge_id AND ch.is_weekly
+          WHERE ucp.user_id = auth.uid()
+            AND ucp.completed_at IS NOT NULL
+            AND (ucp.completed_at AT TIME ZONE 'Europe/Madrid')::date
+                BETWEEN c.quincena_inicio AND c.quincena_fin
+          ORDER BY ucp.completed_at DESC
+          LIMIT 1
+        )
+      )
+      FROM public.rebotica_campaigns c
+      WHERE auth.uid() IS NOT NULL
+        AND c.estado = 'activa'
+        AND c.quincena_inicio <= (now() AT TIME ZONE 'Europe/Madrid')::date
+        AND c.quincena_fin >= (now() AT TIME ZONE 'Europe/Madrid')::date
+      ORDER BY c.quincena_inicio DESC
+      LIMIT 1
+    ),
+    jsonb_build_object('disponible', false)
+  );
+$function$;
+
+REVOKE ALL ON FUNCTION public.rebotica_extra_opening_status() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.rebotica_extra_opening_status() TO authenticated, service_role;
+
+-- `open-reward` YA está desplegada con los dos cambios (commit fccbea8, verificado por diff):
+-- su SELECT de idempotencia filtra por `source` y, con `source='reto'`, comprueba el derecho
+-- con `rebotica_extra_opening_available` y responde 409 si no lo hay.
