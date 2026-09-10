@@ -382,7 +382,9 @@ export default function Rebotica() {
     if (data?.prize) {
       toast({
         title: data.already ? 'Ya tenías este premio' : `¡Premio! ${data.prize.titulo}`,
-        description: data.prize.descripcion ?? 'Lo tienes en «Tu premio», aquí mismo, y te lo hemos enviado por email.',
+        description: data.already
+          ? 'Lo tienes en «Tu premio», un poco más abajo en esta página.'
+          : 'Lo tienes en «Tu premio», un poco más abajo en esta página, y te lo hemos enviado por email.',
       });
       // El canje lo hace la BD al instante (trigger); refrescamos el panel.
       void loadRewards();
