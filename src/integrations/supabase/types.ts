@@ -3335,8 +3335,10 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          last_used_at: string | null
           name: string
           points_reward: number
+          rotation_order: number | null
           target_count: number
           type: Database["public"]["Enums"]["challenge_type"]
         }
@@ -3345,8 +3347,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          last_used_at?: string | null
           name: string
           points_reward?: number
+          rotation_order?: number | null
           target_count?: number
           type?: Database["public"]["Enums"]["challenge_type"]
         }
@@ -3355,8 +3359,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          last_used_at?: string | null
           name?: string
           points_reward?: number
+          rotation_order?: number | null
           target_count?: number
           type?: Database["public"]["Enums"]["challenge_type"]
         }
@@ -3440,6 +3446,7 @@ export type Database = {
       }
     }
     Functions: {
+      activate_weekly_challenge: { Args: never; Returns: string }
       add_image_credits: {
         Args: { p_credits: number; p_user: string }
         Returns: number
@@ -3646,9 +3653,14 @@ export type Database = {
           read_ct: number
         }[]
       }
+      rebotica_campaign_abierta: { Args: never; Returns: Json }
       rebotica_comp_expire: { Args: never; Returns: number }
       rebotica_cron_daily: { Args: never; Returns: undefined }
       rebotica_digest_interno: { Args: never; Returns: undefined }
+      rebotica_extra_opening_available: {
+        Args: { _campaign_id: string; _user_id: string }
+        Returns: boolean
+      }
       rebotica_my_rewards: {
         Args: never
         Returns: {
