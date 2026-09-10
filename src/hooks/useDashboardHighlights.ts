@@ -68,6 +68,9 @@ export const useDashboardHighlights = (): DashboardHighlights => {
     let cancelled = false;
 
     const load = async () => {
+      // Fecha local en YYYY-MM-DD: `challenges.start_date`/`end_date` son columnas date.
+      const hoy = new Date().toLocaleDateString('sv-SE');
+
       const [enrollmentRes, threadsRes, resourcesRes, eventRes, challengesRes, streakCount] =
         await Promise.all([
           supabase
@@ -97,8 +100,13 @@ export const useDashboardHighlights = (): DashboardHighlights => {
             .limit(1),
           supabase
             .from('challenges')
-            .select('id, name, title, points_reward, points, target_count')
+            .select('id, name, title, points_reward, points, target_count, is_weekly')
             .eq('is_active', true)
+            // Sin este filtro la tarjeta podía anunciar un reto ya caducado: `is_active`
+            // se queda en true hasta que alguien lo desactiva. El reto de la semana manda.
+            .or(`start_date.is.null,start_date.lte.${hoy}`)
+            .or(`end_date.is.null,end_date.gte.${hoy}`)
+            .order('is_weekly', { ascending: false })
             .order('created_at', { ascending: false })
             .limit(5),
           calculateStreak(user.id).catch(() => 0),

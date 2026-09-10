@@ -118,9 +118,9 @@ Cadencia editorial actual (jueves alternos): N25 06-08 · C6 13-08 · N26 20-08 
 | 14-09 (lun) | RE a no abridores + redes | Social proof: primeros premios entregados (con permiso) |
 | 17-09 (N28) | newsletter | "La Respuesta": qué ha salido de los cajones; recordatorio fundador |
 | 24-09 | Cajón de la Quincena nº 2 | Primer cajón patrocinado (partner fundador) |
-| Oct | quincenal estable | Racha + Fórmula Magistral (fase 2) |
+| Oct | mensual estable | Racha + Fórmula Magistral (fase 2) |
 
-Redes: cuentas atrás 7-09 y 9-09 (fechas SIEMPRE en rótulo), LinkedIn del D-day con el vídeo del portal primero (la Rebotica 60s, después), post recurrente "lo que ha salido del cajón" cada quincena. Blog: artículo pilar + bases legales enlazadas.
+Redes: cuentas atrás 7-09 y 9-09 (fechas SIEMPRE en rótulo), LinkedIn del D-day con el vídeo del portal primero (la Rebotica 60s, después), post recurrente "lo que ha salido del cajón" cada mes. Blog: artículo pilar + bases legales enlazadas.
 
 ### 4.3 La capa memorable (≤500 €)
 
@@ -140,6 +140,8 @@ Email D-day + 2 teasers + RE + secuencia "cajón cerrado" (2) · HTML cajonera p
 |---|---|---|
 | Cajón patrocinado (1 quincena) | Presentación del cajón en email (7.2k envíos, ~2.400 lectores) + reenvío a no abridores + portal 14 días + post en redes + informe D+7. Logo siempre enlazado a su web | **490 €** (suelo 390 €) |
 | **Partner fundador temporada 1** (sept-nov, 3 plazas) | 2 cajones patrocinados + logo en /rebotica toda la temporada + exclusividad de categoría + informe de temporada + precio bloqueado T2 | **1.290 €** (suelo 1.090 €) |
+
+> Nota 10-09-2026: el cajón pasó a cadencia MENSUAL; el pricing de partner y el número de cajones del pack fundador están pendientes de recalcular con esa cadencia.
 
 **REGLA de producto (definitiva, Francesc 13-07; sustituye a la del 09-07):** SIN productos de partner en los cajones, ni como regalo estrella ni en el pool. Los premios los pone SIEMPRE farmapro; el patrocinio es presencia pura (logo enlazado + línea de marca + informe). Detalle en `dossier-partner-rebotica/como-funciona-un-cajon.md`.
 
@@ -164,7 +166,7 @@ Justificación de precio: cada quincena pone la marca ante ~2.400 lectores verif
 
 ### 6.1 · Ritmo de valor mensual (anti-churn, decidido 08-07)
 
-Para que nadie tenga motivo de baja, cada mes hay **"Estreno del mes"** garantizado y visible: 1 curso o masterclass nuevo + 2-4 recursos nuevos + 1 reto o evento (el calendario de eventos de 12 meses ya existe) + créditos IAFarma renovados + 2 cajones de la Rebotica. La cadencia coincide con la ya decidida en el plan de 30 días (2-4 recursos y 1-2 cursos/mes). Dos piezas de retención con timing quirúrgico: **email "lo que llega el mes que viene"** enviado unos días ANTES de cada renovación (automatizable vía cron + `send-portal-email`, cola `transactional_emails` + API de Lovable) y **Cajón de Aniversario** en el momento de renovar. En el portal, sección/bloque "Nuevo este mes".
+**Canon de cadencia (actualizado 10-09-2026, decisión Francesc: sustituye la cadencia anterior de este párrafo):** el principio es una novedad visible cada semana, alternando con el calendario de Impulso (la semana que sale Impulso, la novedad es el descargable; la semana sin Impulso, un curso). Totales mensuales: **2 cursos nuevos/mes** (amplios y completos, no píldoras disfrazadas de curso) + **2-4 recursos descargables/mes** (los de Impulso suben al portal el mismo jueves del envío) + **1-2 píldoras/mes** (sustituyen al evento en directo mensual, que queda descartado como pieza interna recurrente) + **1 masterclass/mes** ligada al cajón del mes + **1 cajón de la Rebotica/mes** (antes quincenal) + **reto semanal** (lunes a domingo, 4 al mes) + créditos IAFarma renovados. Garantía mensual: "Estreno del mes" = 2 cursos + 2-4 descargables + 1 masterclass + 1-2 píldoras + 1 cajón + 4 retos semanales + créditos IAFarma renovados. Email de novedades: cada lunes, solo a cuentas del portal, por la infraestructura transaccional del portal (no por Clientify). Dos piezas de retención con timing quirúrgico: **email "lo que llega el mes que viene"** enviado unos días ANTES de cada renovación (automatizable vía cron + `send-portal-email`, cola `transactional_emails` + API de Lovable) y **Cajón de Aniversario** en el momento de renovar. En el portal, sección/bloque "Nuevo este mes".
 
 ### 6.2 · Retos y Rebotica: UNIDOS, en dos tiempos (aclarado 08-07)
 
@@ -200,7 +202,7 @@ El email masivo de farmapro (Impulso/Comercial/Rebotica) sigue en su plataforma 
 | Lovable despliega desfasado (incidencia conocida) | Verificación post-deploy en checklist S30-S31 |
 | Premios sin canjear | Caducidad 7-14 días + email a 48h + recordatorio en dashboard |
 | Partners no llegan al D-day | El lanzamiento no depende de ellos: cajón nº 1 es 100% farmapro; el patrocinado entra el 24-09 |
-| Fatiga de la mecánica | Cadencia quincenal estricta + pool renovado + fase 2 escalonada |
+| Fatiga de la mecánica | Cadencia mensual estricta + pool renovado + fase 2 escalonada |
 | Contador fundador vs realidad | Contador real desde 20 altas (ya implementado así) |
 | Entregabilidad del D-day | Masivo de la Rebotica por la plataforma de email masivo de farmapro, con dominio autenticado desde el 09-07 (SPF/DKIM/DMARC verdes) + calentamiento real con N25/N26 en agosto + RE probado, el D-day NO estrena dominio; el transaccional del portal (premios, canjes) va aparte por la cola `transactional_emails` + API de Lovable |
 

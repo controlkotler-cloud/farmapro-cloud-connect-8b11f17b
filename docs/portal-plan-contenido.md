@@ -1,5 +1,7 @@
 # Plan de contenido para lanzar el portal farmapro
 
+> **SUPERADO PARCIALMENTE (10-09-2026).** La cadencia canónica de contenido del portal es la del plan maestro §6.1. Este documento sigue valiendo como catálogo de temas, no como fuente de cadencia.
+
 > Borrador operativo para sembrar el contenido mínimo del portal de formación y comunidad
 > (`farmapro-portal`, Supabase). Pensado para un lanzamiento real y digno, no para llenar
 > por llenar. Fecha: 2026-06-18.
@@ -131,7 +133,7 @@ preguntas**. Duración declarada realista (45-90 min/curso).
 > Por qué 6 y no más: cubre las 5 categorías (los filtros de `/formacion` no quedan vacíos),
 > da una razón clara para suscribirse (curso 3 premium), incluye un onboarding que dispara la
 > gamificación, y es una cantidad que se puede redactar con calidad real antes de lanzar. Se
-> amplía después, 1-2 cursos/quincena, reaprovechando material de las newsletters.
+> amplía después, 2 cursos/mes, reaprovechando material de las newsletters.
 
 ### 2.2 Recursos descargables: 8-12
 

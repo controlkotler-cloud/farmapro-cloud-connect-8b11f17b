@@ -236,13 +236,16 @@ Resultado: imágenes clínicas, sin titular, inservibles como cartel o promo. Ju
 
 Honesto: el contenido actual (6 cursos MVP + ~32 recursos + eventos) **justifica la entrada pero no la
 permanencia más allá de 2-3 meses** por sí solo. Lo que sostiene la cuota es la combinación: IAFarma (uso
-recurrente mensual), eventos en directo y goteo constante de novedades. Cadencia mínima comprometida:
+recurrente mensual), píldoras y masterclass mensual (sustituyen al evento en directo, descartado como pieza
+interna recurrente) y goteo constante de novedades. Cadencia mínima comprometida (actualizada 10-09-2026):
 
 | Pieza | Cadencia | De dónde sale |
 |---|---|---|
-| Recursos descargables | 2-4/mes | GRATIS: el pipeline Impulso ya produce 1 PDF + complemento cada quincena → al portal |
-| Cursos nuevos | 1-2/mes | Reciclando newsletters N1-N28 en formato curso (el material ya existe) + 1 original/mes |
-| Evento en directo | 1/mes | Webinar de Alejandro (el calendario de eventos ya los tiene sembrados) |
+| Cursos nuevos | 2/mes | Reciclando newsletters N1-N28 en formato curso (el material ya existe) + originales/mes; amplios y completos, no píldoras disfrazadas de curso |
+| Recursos descargables | 2-4/mes | GRATIS: el pipeline Impulso ya produce 1 PDF + complemento cada quincena → al portal; los de Impulso suben el MISMO jueves del envío |
+| Píldoras | 1-2/mes | Sustituyen al evento en directo mensual, que queda descartado como pieza interna recurrente; reciclaje N1-N21 con quiz |
+| Masterclass | 1/mes | Ligada al cajón del mes (grabación Alejandro/Laura) |
+| Cajón de la Rebotica | 1/mes | Antes quincenal; cambió el 10-09-2026 |
 | Foro | dinamización semanal | 1 hilo/semana del equipo + responder todo en <24h el primer trimestre |
 
 Es decir: el coste marginal de alimentar el portal es bajo porque Impulso ya genera la materia prima. El plan
