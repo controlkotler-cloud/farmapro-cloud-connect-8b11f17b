@@ -1,5 +1,12 @@
 # Petición para Lovable: `open-reward` con apertura extra por reto
 
+> **CERRADA el 10-09-2026 — no reenviar.** Lovable desplegó estos dos cambios esa misma mañana
+> (commits `bb8b995` + `fccbea8`, en el repo: `index.ts` filtra la idempotencia por `source` y
+> llama a `rebotica_extra_opening_available` cuando `source='reto'`). Además, la petición que la
+> sustituye por completo es `peticion-lovable-open-reward-atomico.md`: allí toda esta lógica pasa a
+> vivir dentro de la función de BD `rebotica_open_cajon`. Este documento queda como histórico.
+
+
 **Por qué esto no se puede hacer por repo:** `open-reward` es una edge function (`.ts` contra
 Supabase). El push no la despliega de forma fiable (regla 27-08-2026), así que el cambio lo pide
 Francesc por el chat de Lovable. Lo de BD ya está hecho y verificado en producción (10-09-2026,
