@@ -5,7 +5,7 @@
 //   'aniversario'|'equipo'|'reto' } (source default 'welcome').
 // - Sin JWT -> 401 { redirect: '/login?modo=registro&c=<campaign_id>&cajon=<n>' }.
 // - Valida campaña activa y en rango de fechas.
-// - Idempotente: UNIQUE(user_id, campaign_id). Si ya abrió, devuelve el premio.
+// - Idempotente: UNIQUE(user_id, campaign_id, source). Si ya abrió, devuelve el premio.
 // - Sorteo ponderado por peso entre premios con stock_restante>0 y tier
 //   ('todos' o el del usuario). Solo peso>0 (los peso=0 los reserva el cron
 //   de calendario). Decremento ATÓMICO vía RPC rebotica_pick_and_consume_prize.
@@ -129,6 +129,7 @@ serve(async (req) => {
       .select("id, prize_id, opened_at, expires_at, redeemed_at")
       .eq("user_id", user.id)
       .eq("campaign_id", campaign.id)
+      .eq("source", source)
       .maybeSingle();
 
     if (existing) {
@@ -169,6 +170,21 @@ serve(async (req) => {
         ? "gratis"
         : "plus";
     log("tier", { tier, role, hasTeam: !!memberRow });
+
+    // ---- Derecho a apertura extra por reto ----------------------------------
+    if (source === "reto") {
+      const { data: extraAvailable, error: extraErr } = await supabase.rpc(
+        "rebotica_extra_opening_available",
+        { _user_id: user.id, _campaign_id: campaign.id },
+      );
+      if (extraErr) {
+        log("extra opening check error", { err: extraErr.message });
+        return json({ error: "Error comprobando tu reto" }, 500);
+      }
+      if (!extraAvailable) {
+        return json({ error: "Todavía no has completado el reto de la semana" }, 409);
+      }
+    }
 
     // ---- Sorteo ponderado + decremento atómico (reintentos por carrera) ---
     let prizeId: string | null = null;
