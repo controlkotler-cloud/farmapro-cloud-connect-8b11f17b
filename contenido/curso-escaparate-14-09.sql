@@ -306,9 +306,11 @@ from q, (values
 ) as v(pregunta, opciones, correcta, explicacion, orden);
 
 -- 4) PUBLICAR -----------------------------------------------------------------
--- NO ejecutar hasta que: (a) Francesc valide el texto y (b) curl contra
--- https://portal.farmapro.es/recursos/portal-test-3-segundos-escaparate.pdf
--- devuelva 200 y un PDF de verdad (comprobar Content-Type y tamaño, no solo el 200).
+-- EJECUTADO el 11-09-2026 a las 20:4x, con las dos condiciones cumplidas:
+--   (a) Francesc validó el texto del curso sobre la vista previa con el formato real del portal;
+--   (b) el PDF responde 200 con Content-Type application/pdf y md5 d250211eb1935001e741f200d44a23d1,
+--       idéntico al fichero local (verificado dos veces, la segunda tras el publish del 11-09).
+-- Quedan is_published = true los dos, is_premium = false los dos. Visibles desde el lunes 14-09.
 --
--- update resources set is_published = true where id = '9c1f7a42-5d30-4b8e-9a61-2f3c81d47e05';
--- update courses   set is_published = true where slug = 'fp-mk-escaparate-primer-vendedor';
+update resources set is_published = true where id = '9c1f7a42-5d30-4b8e-9a61-2f3c81d47e05';
+update courses   set is_published = true where slug = 'fp-mk-escaparate-primer-vendedor';
