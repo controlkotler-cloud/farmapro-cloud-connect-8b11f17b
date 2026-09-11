@@ -1,7 +1,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { supabase } from '@/integrations/supabase/client';
@@ -108,6 +108,14 @@ export const Recursos = () => {
   const [sort, setSort] = useState<SortOrder>('recientes');
   const [selectedNeed, setSelectedNeed] = useState<string | null>(null);
 
+  // Enlace profundo a UN recurso: /recursos?r=<slug>. Lo usa el resumen de los
+  // lunes, que antes soltaba al lector en el listado entero y le tocaba buscar
+  // a mano el descargable que le habiamos anunciado. No se descarga solo: se
+  // deja la ficha delante con su boton, que es lo unico que respeta el gating
+  // premium y el registro de descarga.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusSlug = searchParams.get('r');
+
   // Elegir una necesidad reemplaza la navegación por categoría/tipo (son dos
   // formas alternativas de entrar al mismo catálogo, no se combinan).
   const handleSelectNeed = (needId: string | null) => {
@@ -117,6 +125,11 @@ export const Recursos = () => {
   };
 
   const clearFilters = () => {
+    if (focusSlug) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('r');
+      setSearchParams(next, { replace: true });
+    }
     setSearchTerm('');
     setSelectedCategory('all');
     setSelectedType('todos');
@@ -126,6 +139,7 @@ export const Recursos = () => {
   };
 
   const hasActiveFilters =
+    focusSlug !== null ||
     searchTerm.trim() !== '' ||
     selectedCategory !== 'all' ||
     selectedType !== 'todos' ||
@@ -135,6 +149,14 @@ export const Recursos = () => {
   // Recursos que pasan TODOS los filtros menos la categoría (para poder contar
   // por categoría de forma coherente con el resto de filtros activos).
   const baseFiltered = useMemo(() => {
+    // Si venimos de un enlace con ?r=, ese recurso manda sobre el resto de
+    // filtros. Cuando el slug no casa con nada publicado (recurso retirado, o
+    // enlace viejo) se ignora y se enseña el catalogo completo: mas vale el
+    // listado que una pagina vacia sin explicacion.
+    if (focusSlug) {
+      const solo = resources.filter(r => r.slug === focusSlug);
+      if (solo.length > 0) return solo;
+    }
     const term = searchTerm.trim().toLowerCase();
     const need = selectedNeed ? RESOURCE_NEEDS.find(n => n.id === selectedNeed) : undefined;
     return resources.filter(r => {
@@ -148,7 +170,7 @@ export const Recursos = () => {
       if (access === 'premium' && !r.is_premium) return false;
       return true;
     });
-  }, [resources, searchTerm, selectedType, access, selectedNeed]);
+  }, [resources, searchTerm, selectedType, access, selectedNeed, focusSlug]);
 
   // Contadores por categoría (sobre baseFiltered) para las pestañas.
   const categoryCounts = useMemo(() => {
