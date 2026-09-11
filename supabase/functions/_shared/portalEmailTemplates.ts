@@ -6,7 +6,7 @@
 // Marca:
 //  - "farmapro" siempre en minúsculas.
 //  - Castellano de España (vosotros). Sin emojis.
-//  - Firma: "El equipo de farmapro".
+//  - Firma: "El equipo del portal farmapro".
 //  - Footer legal RGPD: responsable Mkpro Kotler SL.
 //  - Estilos inline sobre fondo blanco. Verde canónico #88C835 solo en CTA.
 // =====================================================================
@@ -24,7 +24,8 @@ export type PortalTemplateName =
   | 'rebotica-aviso-calendario-interno'
   | 'rebotica-digest-interno'
   | 'promocion-solicitud-partner'
-  | 'promocion-solicitud-usuario';
+  | 'promocion-solicitud-usuario'
+  | 'novedades-semanal';
 
 export interface PortalTemplateData {
   // Comunes
@@ -76,6 +77,18 @@ export interface PortalTemplateData {
   promocionOferta?: string;
   promocionCondiciones?: string;
   promocionValidaHasta?: string;   // ISO
+  // novedades-semanal (digest del lunes)
+  semanal?: {
+    titular?: string;
+    logros?: string[];
+    pendiente?: { titulo: string; url: string; progreso: number; minutos?: number };
+    sugerencia?: { titulo: string; url: string; minutos?: number };
+    cajon?: { diasRestantes: number; url?: string };
+    novedades?: Array<{ texto: string; url?: string }>;
+    teaser?: string;
+    cta?: { url: string; label: string };
+  };
+  unsubUrl?: string;
 }
 
 
@@ -89,12 +102,15 @@ const APP_URL = Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
 
 // --------------------------------------------------------------------- layout
 
-function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: boolean }): string {
+function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: boolean; unsubUrl?: string; kicker?: string; firma?: string }): string {
+  const bajaLinea = opts.unsubUrl
+    ? ` Si prefieres no recibir este resumen semanal, <a href="${escapeHtml(safeHref(opts.unsubUrl))}" style="color:#5F8F20;text-decoration:underline;">dalo de baja aquí</a> (seguirás recibiendo los avisos de tu cuenta).`
+    : '';
   const footer = opts.hideFooter
     ? ''
     : `<tr>
               <td style="padding:20px 32px 28px 32px;border-top:1px solid #ecebe6;font-size:11px;line-height:1.5;color:#6b6f68;">
-                Este correo se envía en relación con tu cuenta en el portal farmapro. Responsable del tratamiento: <strong>Mkpro Kotler SL</strong> (B99554446), somos@farmapro.es. Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad y limitación escribiendo a esa dirección. Más información en <a href="${APP_URL}/legal" style="color:#5F8F20;text-decoration:underline;">${APP_URL}/legal</a>.
+                Este correo te llega porque tienes una cuenta en el <strong>portal farmapro</strong> (<a href="${APP_URL}" style="color:#6b6f68;text-decoration:underline;">portal.farmapro.es</a>), la plataforma de formación y recursos de farmapro para titulares. Responsable del tratamiento: <strong>Mkpro Kotler SL</strong> (B99554446), somos@farmapro.es. Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad y limitación escribiendo a esa dirección. Más información en <a href="${APP_URL}/legal" style="color:#5F8F20;text-decoration:underline;">${APP_URL}/legal</a>.${bajaLinea}
               </td>
             </tr>`;
   return `<!doctype html>
@@ -102,7 +118,7 @@ function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: bool
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>farmapro</title>
+    <title>portal farmapro</title>
   </head>
   <body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Manrope,Arial,sans-serif;color:#1a1f1a;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(opts.previewText)}</div>
@@ -111,23 +127,29 @@ function layout(opts: { previewText: string; bodyHtml: string; hideFooter?: bool
         <td align="center" style="padding:32px 16px;">
           <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #ecebe6;border-radius:12px;">
             <tr>
-              <td style="padding:28px 32px 8px 32px;">
+              <td style="height:4px;background:#88C835;font-size:0;line-height:0;border-radius:11px 11px 0 0;">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding:26px 32px 0 32px;">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
                   <td style="vertical-align:middle;">
                     <img src="https://farmapro.es/email-logo-farmapro.png" alt="farmapro" width="132" height="26" style="display:block;width:132px;height:26px;border:0;outline:none;">
                   </td>
-                  <td style="vertical-align:middle;padding-left:4px;">
-                    <span style="display:inline-block;border-left:1px solid #ecebe6;padding-left:8px;font-size:15px;font-weight:600;letter-spacing:-0.01em;color:#6b6f68;">Portal</span>
+                  <td style="vertical-align:middle;padding-left:9px;">
+                    <span style="display:inline-block;background:#EBF5D9;color:#4A7317;border-radius:999px;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;">Portal</span>
                   </td>
                 </tr></table>
               </td>
             </tr>
+            ${opts.kicker ? `<tr>
+              <td style="padding:12px 32px 0 32px;font-size:12px;line-height:1.4;color:#6b6f68;letter-spacing:0.01em;">${escapeHtml(opts.kicker)}</td>
+            </tr>` : ''}
             <tr>
-              <td style="padding:8px 32px 28px 32px;font-size:15px;line-height:1.55;color:#1a1f1a;">
+              <td style="padding:20px 32px 28px 32px;font-size:15px;line-height:1.55;color:#1a1f1a;">
                 ${opts.bodyHtml}
                 <p style="margin:28px 0 0 0;font-size:14px;color:#1a1f1a;">
                   Un saludo,<br/>
-                  El equipo de farmapro
+                  ${opts.firma ?? 'El equipo del portal farmapro'}
                 </p>
               </td>
             </tr>
@@ -150,6 +172,14 @@ function ctaButton(href: string, label: string): string {
   </p>`;
 }
 
+function corta(t: string, max = 28): string {
+  const limpio = (t ?? '').trim();
+  if (limpio.length <= max) return limpio;
+  const cortado = limpio.slice(0, max);
+  const espacio = cortado.lastIndexOf(' ');
+  return `${(espacio > 12 ? cortado.slice(0, espacio) : cortado).replace(/[ ,.;:]+$/, '')}…`;
+}
+
 function escapeHtml(s: string): string {
   return s
     .replaceAll('&', '&amp;')
@@ -160,7 +190,7 @@ function escapeHtml(s: string): string {
 }
 
 function textFooter(): string {
-  return `\n\nUn saludo,\nEl equipo de farmapro\n\n--\nResponsable del tratamiento: Mkpro Kotler SL. Contacto: somos@farmapro.es. Más información: ${APP_URL}/legal`;
+  return `\n\nUn saludo,\nEl equipo del portal farmapro\n\n--\nEste correo te llega porque tienes una cuenta en el portal farmapro (${APP_URL}). Responsable del tratamiento: Mkpro Kotler SL. Contacto: somos@farmapro.es. Más información: ${APP_URL}/legal`;
 }
 
 function fmtFecha(iso?: string): string {
@@ -561,6 +591,112 @@ export function renderPortalTemplate(
       const text = `${saludo}\n\nHemos enviado tu solicitud de "${promo}" a ${empresa}.\n\nReferencia: ${referencia}${bloqueCondicionesText(data)}\n\nDatos compartidos:\nNombre: ${sNombre}\nFarmacia: ${sFarmacia}\nCiudad: ${sCiudad}\nCorreo: ${sEmail}${sTel ? `\nTeléfono: ${sTel}` : ''}\n\nEl partner se pondrá en contacto directamente contigo.\n\nSi en unos días no recibes respuesta, escríbenos a soporte@farmapro.es y lo miramos.${textFooter()}`;
       return { subject, html, text };
     }
+
+    case 'novedades-semanal': {
+      const sem = data.semanal ?? {};
+      const logros = (sem.logros ?? []).filter(Boolean).slice(0, 2);
+      const pendiente = sem.pendiente;
+      const sugerencia = sem.sugerencia;
+      const cajon = sem.cajon;
+      const novedades = (sem.novedades ?? []).slice(0, 3);
+      const teaser = (sem.teaser ?? '').trim();
+      const titular = (sem.titular ?? '').trim();
+
+      // El asunto dice UNA sola cosa: la más urgente para esta persona.
+      const subject = cajon
+        ? (cajon.diasRestantes <= 7
+            ? `Tu cajón se cierra en ${cajon.diasRestantes} días`
+            : 'Tu cajón de la Rebotica sigue cerrado')
+        : pendiente
+          ? (pendiente.progreso > 0
+              ? `Te queda poco para acabar «${corta(pendiente.titulo)}»`
+              : `«${corta(pendiente.titulo)}» sigue sin empezar`)
+          : (titular ? `Esta semana: ${corta(titular, 38)}` : 'Esta semana en el portal');
+
+      // Un único CTA, elegido por la misma prioridad que el asunto.
+      const cta = sem.cta ?? (cajon
+        ? { url: cajon.url ?? `${APP_URL}/rebotica`, label: 'Abrir mi cajón' }
+        : pendiente
+          ? { url: pendiente.url, label: pendiente.progreso > 0 ? 'Seguir donde lo dejaste' : 'Empezarlo ahora' }
+          : sugerencia
+            ? { url: sugerencia.url, label: 'Empezar por aquí' }
+            : { url: `${APP_URL}/dashboard`, label: 'Entrar en el portal' });
+
+      const bloqueLogros = logros.length
+        ? `<p style="margin:0 0 16px 0;">${logros.map(escapeHtml).join(' ')}</p>`
+        : '';
+
+      const pct = pendiente ? (pendiente.progreso > 0 ? Math.max(4, Math.min(96, Math.round(pendiente.progreso))) : 0) : 0;
+      const bloquePendiente = pendiente
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 18px 0;">
+            <tr><td style="background:#EBF5D9;border-radius:10px;padding:16px 18px;">
+              <p style="margin:0 0 2px 0;font-size:13px;color:#5F8F20;font-weight:600;">${pendiente.progreso > 0 ? 'Lo dejaste a medias y sigue ahí' : 'Te apuntaste y ahí sigue, intacto'}</p>
+              <p style="margin:0 0 10px 0;font-size:15px;font-weight:600;">${escapeHtml(pendiente.titulo)}</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                <tr>
+                  ${pct > 0 ? `<td width="${pct}%" style="height:6px;background:#5F8F20;border-radius:999px;font-size:0;line-height:0;">&nbsp;</td>` : ''}
+                  <td width="${100 - pct}%" style="height:6px;background:#d5e3bd;border-radius:999px;font-size:0;line-height:0;">&nbsp;</td>
+                </tr>
+              </table>
+              <p style="margin:8px 0 0 0;font-size:13px;color:#6b6f68;">${pendiente.progreso > 0 ? `${pct}% hecho` : 'Sin empezar'}${pendiente.minutos ? ` · ${pendiente.progreso > 0 ? 'te quedan' : 'son'} unos ${pendiente.minutos} minutos` : ''}.</p>
+            </td></tr>
+          </table>`
+        : sugerencia
+          ? `<p style="margin:0 0 18px 0;">Todavía no has abierto ningún curso, y no pasa nada: se empieza por uno. Si hoy solo tienes ${sugerencia.minutos ?? 8} minutos, que sean para <a href="${escapeHtml(safeHref(sugerencia.url))}" style="color:#5F8F20;">${escapeHtml(sugerencia.titulo)}</a>.</p>`
+          : '';
+
+      const bloqueCajon = cajon
+        ? `<p style="margin:0 0 18px 0;">Tu cajón de la Rebotica sigue cerrado, con lo que sea que haya dentro esperando. Te quedan <strong>${cajon.diasRestantes} días</strong> para abrirlo, y después se cierra sin más.</p>`
+        : '';
+
+      const bloqueNovedades = (novedades.length || teaser)
+        ? `<p style="margin:0 0 8px 0;font-weight:600;">Lo que ha llegado al portal esta semana</p>
+           <ul style="margin:0 0 6px 20px;padding:0;">
+             ${novedades.map((n) => `<li style="margin:0 0 6px 0;">${n.url ? `<a href="${escapeHtml(safeHref(n.url))}" style="color:#5F8F20;">${escapeHtml(n.texto)}</a>` : escapeHtml(n.texto)}</li>`).join('')}
+             ${teaser ? `<li style="margin:0 0 6px 0;color:#6b6f68;">${escapeHtml(teaser)}</li>` : ''}
+           </ul>`
+        : '';
+
+      const html = layout({
+        kicker: 'Tu resumen de los lunes en el portal farmapro',
+        previewText: pendiente
+          ? (pendiente.progreso > 0
+              ? `${pct}% hecho. Te quedan unos minutos para cerrarlo.`
+              : `Son ${pendiente.minutos ?? 8} minutos y lo tienes hecho.`)
+          : (titular || 'Lo nuevo del portal y lo que tienes pendiente.'),
+        unsubUrl: data.unsubUrl,
+        bodyHtml: `
+          <p style="margin:0 0 16px 0;">${saludo}</p>
+          ${bloqueLogros}
+          ${bloqueCajon}
+          ${bloquePendiente}
+          ${bloqueNovedades}
+          ${ctaButton(cta.url, cta.label)}
+          <p style="margin:4px 0 0 0;font-size:13px;color:#6b6f68;">Y si echas de menos un tema, contéstanos a este correo. Al otro lado hay una persona, no un buzón automático.</p>
+        `,
+      });
+
+      const textLineas = [
+        saludo,
+        '',
+        logros.length ? logros.join(' ') : '',
+        cajon ? `Tu cajón de la Rebotica sigue cerrado. Te quedan ${cajon.diasRestantes} días para abrirlo.` : '',
+        pendiente
+          ? `${pendiente.progreso > 0 ? 'Lo dejaste a medias' : 'Te apuntaste y no lo has empezado'}: ${pendiente.titulo} (${pendiente.progreso > 0 ? `${pct}% hecho` : 'sin empezar'}${pendiente.minutos ? `, unos ${pendiente.minutos} minutos` : ''}).\n${pendiente.url}`
+          : (sugerencia ? `Aún no has abierto ningún curso. Empieza por: ${sugerencia.titulo}\n${sugerencia.url}` : ''),
+        (novedades.length || teaser) ? 'Lo que ha llegado al portal esta semana:' : '',
+        ...novedades.map((n) => `- ${n.texto}${n.url ? ` (${n.url})` : ''}`),
+        teaser ? `- ${teaser}` : '',
+        '',
+        `${cta.label}: ${cta.url}`,
+        '',
+        'Y si echas de menos un tema, contéstanos a este correo. Al otro lado hay una persona, no un buzón automático.',
+      ].filter((l) => l !== '');
+      const text = `${textLineas.join('\n')}${textFooter()}${data.unsubUrl ? `\n\nPara dejar de recibir este resumen semanal: ${data.unsubUrl}` : ''}`;
+
+      return { subject, html, text };
+    }
+
   }
 }
 
