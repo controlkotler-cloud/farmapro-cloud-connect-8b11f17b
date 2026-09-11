@@ -32,6 +32,7 @@ const safeNext = (): string | null => {
 };
 import ReboticaBasesLegales from "@/pages/ReboticaBasesLegales";
 import { AvisoLegal, PoliticaPrivacidad, PoliticaCookies, ContactoSoporte } from "@/pages/Legal";
+import Baja from "@/pages/Baja";
 import Perfil from "@/pages/Perfil";
 import MiFarmacia from "@/pages/MiFarmacia";
 import CourseView from "@/pages/CourseView";
@@ -96,6 +97,9 @@ export const AppRoutes = () => {
       <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
       <Route path="/politica-cookies" element={<PoliticaCookies />} />
       <Route path="/contacto-soporte" element={<ContactoSoporte />} />
+
+      {/* Baja del resumen de los lunes: pública, se pulsa desde el correo sin sesión */}
+      <Route path="/baja" element={<Baja />} />
       {/* Team invitation acceptance (public — inner logic requires auth) */}
       <Route path="/invitation" element={<Invitation />} />
       {/* Password recovery link target (public — Supabase establece sesión temporal vía URL) */}
