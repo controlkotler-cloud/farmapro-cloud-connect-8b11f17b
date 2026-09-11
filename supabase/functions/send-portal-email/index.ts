@@ -61,6 +61,7 @@ const VALID_TEMPLATES: PortalTemplateName[] = [
   'rebotica-digest-interno',
   'promocion-solicitud-partner',
   'promocion-solicitud-usuario',
+  'novedades-semanal',
 ];
 
 const log = (step: string, details?: unknown) => {

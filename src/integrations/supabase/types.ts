@@ -1827,6 +1827,27 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_weekly_digest_log: {
+        Row: {
+          email: string | null
+          sent_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          email?: string | null
+          sent_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          email?: string | null
+          sent_at?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3239,6 +3260,7 @@ export type Database = {
           email_community: boolean
           email_courses: boolean
           email_promotions: boolean
+          email_weekly_digest: boolean
           id: string
           push_notifications: boolean
           updated_at: string
@@ -3249,6 +3271,7 @@ export type Database = {
           email_community?: boolean
           email_courses?: boolean
           email_promotions?: boolean
+          email_weekly_digest?: boolean
           id?: string
           push_notifications?: boolean
           updated_at?: string
@@ -3259,6 +3282,7 @@ export type Database = {
           email_community?: boolean
           email_courses?: boolean
           email_promotions?: boolean
+          email_weekly_digest?: boolean
           id?: string
           push_notifications?: boolean
           updated_at?: string
@@ -3714,6 +3738,10 @@ export type Database = {
         Args: { body_param: string; conversation_id_param: string }
         Returns: string
       }
+      send_weekly_digest: {
+        Args: { p_dry_run?: boolean; p_solo_email?: string }
+        Returns: Json
+      }
       send_welcome_email: {
         Args: {
           p_email: string
@@ -3755,6 +3783,7 @@ export type Database = {
           month_limit: number
         }[]
       }
+      unsubscribe_weekly_digest: { Args: { p_token: string }; Returns: Json }
       update_challenge_progress: {
         Args: {
           challenge_id_param: string
