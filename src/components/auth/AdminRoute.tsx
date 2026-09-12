@@ -1,5 +1,6 @@
 
 import { useAuth } from '@/hooks/useAuth';
+import { useIdleLogout } from '@/hooks/useIdleLogout';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Home } from 'lucide-react';
@@ -10,6 +11,11 @@ interface AdminRouteProps {
 
 export const AdminRoute = ({ children }: AdminRouteProps) => {
   const { user, isAdmin, loading, reloadProfile } = useAuth();
+
+  // La sesión de Supabase no caduca sola. En el panel sí: aquí se ven los datos
+  // de los clientes, y un navegador abierto en la farmacia no puede quedar con
+  // acceso indefinido. Fuera de /admin la sesión sigue siendo persistente.
+  useIdleLogout({ idleMinutes: 30, warnMinutes: 2, enabled: !!user && isAdmin });
 
   if (loading) {
     return (
