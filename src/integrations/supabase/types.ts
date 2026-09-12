@@ -517,6 +517,13 @@ export type Database = {
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "course_enrollments_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       course_generation_control: {
@@ -1030,6 +1037,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "forum_replies_author_id_profiles_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "forum_replies_thread_id_fkey"
             columns: ["thread_id"]
             isOneToOne: false
@@ -1129,6 +1143,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_threads_author_id_profiles_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
             referencedColumns: ["id"]
           },
           {
@@ -1537,6 +1558,13 @@ export type Database = {
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       pharmacy_listings: {
@@ -1661,6 +1689,13 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_listings_seller_id_profiles_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
             referencedColumns: ["id"]
           },
         ]
@@ -1866,6 +1901,7 @@ export type Database = {
           is_seed: boolean
           landing_page: string | null
           last_activity_date: string | null
+          last_seen_at: string | null
           level: number
           name_display_preference: string
           opt_out_leaderboard: boolean
@@ -1911,6 +1947,7 @@ export type Database = {
           is_seed?: boolean
           landing_page?: string | null
           last_activity_date?: string | null
+          last_seen_at?: string | null
           level?: number
           name_display_preference?: string
           opt_out_leaderboard?: boolean
@@ -1956,6 +1993,7 @@ export type Database = {
           is_seed?: boolean
           landing_page?: string | null
           last_activity_date?: string | null
+          last_seen_at?: string | null
           level?: number
           name_display_preference?: string
           opt_out_leaderboard?: boolean
@@ -2755,6 +2793,13 @@ export type Database = {
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "resource_downloads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       resource_generation_control: {
@@ -2945,6 +2990,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
             referencedColumns: ["id"]
           },
         ]
@@ -3214,6 +3266,13 @@ export type Database = {
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_challenge_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_challenges: {
@@ -3327,6 +3386,13 @@ export type Database = {
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -3427,6 +3493,38 @@ export type Database = {
           id?: string | null
           pharmacy_name?: string | null
           position?: string | null
+        }
+        Relationships: []
+      }
+      v_cohorte_portal: {
+        Row: {
+          alta: string | null
+          cajones: number | null
+          confirmado: string | null
+          cursos: number | null
+          cursos_fin: number | null
+          descargas: number | null
+          dias_activos: number | null
+          email: string | null
+          eventos: number | null
+          foro: number | null
+          full_name: string | null
+          id: string | null
+          is_seed: boolean | null
+          landing_page: string | null
+          last_seen_at: string | null
+          onboarding: boolean | null
+          pharmacy_city: string | null
+          pharmacy_name: string | null
+          primera_accion: string | null
+          sesiones_abiertas: number | null
+          subscription_role: Database["public"]["Enums"]["user_role"] | null
+          subscription_status:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          ultimo_login: string | null
+          usos_ia: number | null
+          utm_source: string | null
         }
         Relationships: []
       }
