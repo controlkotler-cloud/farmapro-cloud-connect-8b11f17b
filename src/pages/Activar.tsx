@@ -66,7 +66,7 @@ const Activar = () => {
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
-    document.title = 'Activar vuestro plan · portal farmapro';
+    document.title = 'Activar tu plan · portal farmapro';
   }, []);
 
   useEffect(() => {
@@ -129,7 +129,7 @@ const Activar = () => {
         {cargando || authLoading ? (
           <div className="flex items-center gap-3 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            Un momento, estamos comprobando vuestra cortesía.
+            Un momento, estamos comprobando tu cortesía.
           </div>
         ) : !user ? (
           <>
@@ -137,11 +137,11 @@ const Activar = () => {
               <Gift className="h-5 w-5 text-brand" />
             </div>
             <h1 className="mt-5 text-2xl font-extrabold tracking-tight">
-              Vuestra farmacia tiene el portal abierto
+              Tu farmacia tiene el portal abierto
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Es cortesía de Mkpro. Para activarlo necesitáis una cuenta en el portal, y tiene que
-              crearse <strong className="text-foreground">con el mismo correo al que os hemos escrito</strong>:
+              Es cortesía de Mkpro. Para activarlo necesitas una cuenta en el portal, y tiene que
+              crearse <strong className="text-foreground">con el mismo correo al que te hemos escrito</strong>:
               es el que tenemos asociado a la cortesía, y con otro distinto no se aplica.
             </p>
             <Button
@@ -152,13 +152,13 @@ const Activar = () => {
               Crear la cuenta de la farmacia
             </Button>
             <p className="mt-4 text-sm text-muted-foreground">
-              ¿Ya tenéis cuenta?{' '}
+              ¿Ya tienes cuenta?{' '}
               <button
                 type="button"
                 onClick={() => irALogin(false)}
                 className="font-semibold text-brand hover:underline"
               >
-                Entrad con vuestro correo
+                Entra con tu correo
               </button>
             </p>
           </>
@@ -167,9 +167,9 @@ const Activar = () => {
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft">
               <Check className="h-5 w-5 text-brand" />
             </div>
-            <h1 className="mt-5 text-2xl font-extrabold tracking-tight">Ya lo tenéis activado</h1>
+            <h1 className="mt-5 text-2xl font-extrabold tracking-tight">Ya lo tienes activado</h1>
             <p className="mt-4 text-muted-foreground">
-              Vuestro plan {plan} está en marcha. No hay nada más que hacer aquí.
+              Tu plan {plan} está en marcha. No hay nada más que hacer aquí.
             </p>
             <Button size="lg" className="mt-7 w-full sm:w-auto" asChild>
               <Link to="/dashboard">Entrar en el portal</Link>
@@ -184,9 +184,9 @@ const Activar = () => {
               El plan {plan}, abierto hasta el {formatoFecha(concesion.hasta)}
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Es cortesía de Mkpro. Incluye la formación entera, los recursos descargables, la
-              Rebotica y la comunidad, y podéis dar de alta al personal de la farmacia, no solo al
-              titular.
+              Es cortesía de Mkpro. Incluye los 36 cursos, los 69 recursos descargables, IAFarma, la
+              Rebotica y el foro, y puedes dar de alta al personal de la farmacia, cada uno con su
+              cuenta, no solo al titular.
             </p>
 
             <div className="mt-7 rounded-lg border bg-white p-5">
@@ -195,21 +195,21 @@ const Activar = () => {
                 <li className="flex gap-2.5">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                   <span>
-                    Os pedimos el CIF y una tarjeta, para que la cuenta quede a nombre de la
+                    Te pedimos el CIF y una tarjeta, para que la cuenta quede a nombre de la
                     farmacia con sus datos fiscales.
                   </span>
                 </li>
                 <li className="flex gap-2.5">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                   <span>
-                    <strong className="text-foreground">Hoy no se cobra nada.</strong> Veréis 0,00 €
+                    <strong className="text-foreground">Hoy no se cobra nada.</strong> Verás 0,00 €
                     y la fecha del primer cobro.
                   </span>
                 </li>
                 <li className="flex gap-2.5">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                   <span>
-                    Podéis cancelar desde el portal cuando queráis. Os avisaremos por correo antes
+                    Puedes cancelar desde el portal cuando quieras. Te avisaremos por correo antes
                     de que acabe el plazo.
                   </span>
                 </li>
@@ -236,12 +236,12 @@ const Activar = () => {
               Este correo no es el de la cortesía
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Habéis entrado como <strong className="text-foreground">{user.email}</strong>, y esa
+              Has entrado como <strong className="text-foreground">{user.email}</strong>, y esa
               dirección no es la que tenemos asociada. La cortesía va ligada al correo exacto al que
-              os escribimos.
+              te escribimos.
             </p>
             <p className="mt-3 text-muted-foreground">
-              Cerrad la sesión y volved a entrar con ese correo, o responded al correo de Alejandro
+              Cierra la sesión y vuelve a entrar con ese correo, o responde al correo de Alejandro
               y lo ajustamos nosotros en un minuto.
             </p>
             <Button
