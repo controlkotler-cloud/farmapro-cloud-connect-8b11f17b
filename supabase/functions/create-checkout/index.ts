@@ -224,6 +224,28 @@ serve(async (req) => {
     }
 
 
+    // ============================================================
+    // CONCESIÓN: periodo de prueba hasta concedido_hasta
+    // ============================================================
+    let trialEnd: number | undefined;
+    const { data: grant } = await admin
+      .from('portal_grants')
+      .select('lote, concedido_hasta')
+      .ilike('email', user.email)
+      .gte('concedido_hasta', new Date().toISOString().slice(0, 10))
+      .maybeSingle();
+
+    if (grant?.concedido_hasta) {
+      const trialTs = toMadridEndOfDayTimestamp(grant.concedido_hasta as string);
+      const minTrialEnd = Math.floor(Date.now() / 1000) + 48 * 3600;
+      if (trialTs >= minTrialEnd) {
+        trialEnd = trialTs;
+        log('grant found', { lote: grant.lote, trialEnd });
+      } else {
+        log('grant too close to expire, skipping trial', { lote: grant.lote, trialTs, minTrialEnd });
+      }
+    }
+
     let priceId: string; let founder: boolean;
     try {
       ({ priceId, founder } = pickSubscriptionPrice(plan, cycle, founderSpotsLeft));
@@ -241,6 +263,14 @@ serve(async (req) => {
       mode: 'subscription',
       allow_promotion_codes: true,
       ...billingFields,
+      ...(trialEnd ? {
+        payment_method_collection: 'always' as const,
+        custom_text: {
+          submit: {
+            message: 'Los primeros meses son cortesía de Mkpro. Hoy no se te cobra nada: el primer cobro será el 1 de enero de 2027.',
+          },
+        },
+      } : {}),
       success_url: `${origin}/perfil?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${origin}/precios?checkout=cancelled`,
       metadata: {
@@ -249,17 +279,24 @@ serve(async (req) => {
         plan,
         cycle,
         founder: String(founder),
+        ...(grant?.lote ? { grant_lote: grant.lote } : {}),
       },
       subscription_data: {
+        ...(trialEnd ? {
+          trial_end: trialEnd,
+          trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
+        } : {}),
         metadata: {
           origen: 'portal',
           user_id: user.id,
           plan,
           cycle,
           founder: String(founder),
+          ...(grant?.lote ? { grant_lote: grant.lote } : {}),
         },
       },
     });
+
 
     log('session created', { id: session.id, priceId, founder });
     return json({ url: session.url, founder, founderSpotsLeft });
@@ -275,4 +312,17 @@ function json(payload: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+function toMadridEndOfDayTimestamp(isoDate: string): number {
+  // isoDate = 'YYYY-MM-DD'. Devuelve el timestamp Unix de las 23:59:59 en Europa/Madrid.
+  const formatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(new Date(`${isoDate}T00:00:00`)).map(p => [p.type, p.value]),
+  ) as Record<string, string>;
+  const [y, mo, d] = [parseInt(parts.year, 10), parseInt(parts.month, 10) - 1, parseInt(parts.day, 10)];
+  return Math.floor(new Date(y, mo, d, 23, 59, 59).getTime() / 1000);
 }
