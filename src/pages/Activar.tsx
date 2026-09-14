@@ -64,33 +64,70 @@ const Activar = () => {
   const [concesion, setConcesion] = useState<Concesion | null>(null);
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
+  const [fallo, setFallo] = useState(false);
+  const [intento, setIntento] = useState(0);
+  // `useAuth` deja su `loading` en true si `getSession()` no resuelve (pasa
+  // con el lock de refresco del token entre pestañas). No vamos a tener a un
+  // cliente mirando un spinner por eso: a los 6 segundos seguimos con lo que
+  // haya, que para quien no ha entrado es la pantalla de crear la cuenta.
+  const [esperaAuth, setEsperaAuth] = useState(true);
 
   useEffect(() => {
     document.title = 'Activar tu plan · portal farmapro';
   }, []);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (!authLoading) {
+      setEsperaAuth(false);
+      return;
+    }
+    const t = setTimeout(() => setEsperaAuth(false), 6000);
+    return () => clearTimeout(t);
+  }, [authLoading]);
+
+  const esperando = authLoading && esperaAuth;
+
+  useEffect(() => {
+    if (esperando) return;
     if (!user) {
       setCargando(false);
       return;
     }
     let vivo = true;
+    setFallo(false);
     (async () => {
-      // `mi_concesion` es nueva y no está en los types generados de Supabase.
-      const rpc = supabase.rpc as unknown as (
-        fn: string,
-        args?: Record<string, unknown>,
-      ) => Promise<{ data: Concesion | null; error: unknown }>;
-      const { data } = await rpc('mi_concesion');
-      if (!vivo) return;
-      setConcesion(data ?? { ok: false });
-      setCargando(false);
+      try {
+        // `mi_concesion` es nueva y no está en los types generados de Supabase.
+        const rpc = supabase.rpc as unknown as (
+          fn: string,
+          args?: Record<string, unknown>,
+        ) => Promise<{ data: Concesion | null; error: unknown }>;
+        // Con el token caducado o revocado (el cron cierra las sesiones de más
+        // de 30 días) supabase-js LANZA al pedir el access token, y sin este
+        // try la promesa moría sin apagar el spinner: la página se quedaba en
+        // "comprobando tu cortesía" para siempre. Es justo el fallo que no nos
+        // podemos permitir aquí, porque esta página la abren clientes.
+        const { data, error } = await Promise.race([
+          rpc('mi_concesion'),
+          new Promise<never>((_, rechaza) =>
+            setTimeout(() => rechaza(new Error('mi_concesion: sin respuesta')), 10000),
+          ),
+        ]);
+        if (!vivo) return;
+        if (error) throw error;
+        setConcesion(data ?? { ok: false });
+      } catch (e) {
+        console.error('[activar] no se ha podido comprobar la concesión', e);
+        if (!vivo) return;
+        setFallo(true);
+      } finally {
+        if (vivo) setCargando(false);
+      }
     })();
     return () => {
       vivo = false;
     };
-  }, [user, authLoading]);
+  }, [user, esperando, intento]);
 
   const activar = async () => {
     setEnviando(true);
@@ -126,11 +163,48 @@ const Activar = () => {
       </header>
 
       <div className="container mx-auto max-w-xl px-4 py-16">
-        {cargando || authLoading ? (
+        {cargando || esperando ? (
           <div className="flex items-center gap-3 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
             Un momento, estamos comprobando tu cortesía.
           </div>
+        ) : fallo ? (
+          <>
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-100">
+              <AlertCircle className="h-5 w-5 text-amber-700" />
+            </div>
+            <h1 className="mt-5 text-2xl font-extrabold tracking-tight">
+              No hemos podido comprobar tu cortesía
+            </h1>
+            <p className="mt-4 text-muted-foreground">
+              Puede ser un corte de conexión, o que tu sesión lleve tanto tiempo abierta que haya
+              caducado. Prueba otra vez y, si sigue sin cargar, sal y vuelve a entrar con tu correo.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Button
+                size="lg"
+                onClick={() => {
+                  setCargando(true);
+                  setIntento((n) => n + 1);
+                }}
+              >
+                Probar otra vez
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  irALogin(false);
+                }}
+              >
+                Salir y entrar de nuevo
+              </Button>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Si no hay manera, responde al correo de Alejandro y lo activamos nosotros.
+            </p>
+          </>
         ) : !user ? (
           <>
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft">
