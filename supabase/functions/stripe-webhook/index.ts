@@ -269,7 +269,7 @@ async function handleCheckoutCompleted(
   } else {
     const { error: profErr } = await supabase.from('profiles').update({
       subscription_role: plan,
-      subscription_status: 'active',
+      subscription_status: toDbStatus(sub.status),
       stripe_customer_id: customerId,
       updated_at: new Date().toISOString(),
     }).eq('id', userId);
@@ -285,7 +285,7 @@ async function handleCheckoutCompleted(
     plan_id: plan,
     cycle,
     is_founder: founder,
-    status: 'active',
+    status: toDbStatus(sub.status),
     current_period_start: periodStart,
     current_period_end: periodEnd,
     updated_at: new Date().toISOString(),
