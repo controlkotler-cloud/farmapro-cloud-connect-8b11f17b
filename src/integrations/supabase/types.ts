@@ -1778,6 +1778,51 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_grants: {
+        Row: {
+          activado_at: string | null
+          cliente: string | null
+          concedido_desde: string
+          concedido_hasta: string
+          created_at: string
+          email: string
+          founder_reserved: boolean
+          id: string
+          lote: string
+          notas: string | null
+          plan: string
+          user_id: string | null
+        }
+        Insert: {
+          activado_at?: string | null
+          cliente?: string | null
+          concedido_desde: string
+          concedido_hasta: string
+          created_at?: string
+          email: string
+          founder_reserved?: boolean
+          id?: string
+          lote: string
+          notas?: string | null
+          plan?: string
+          user_id?: string | null
+        }
+        Update: {
+          activado_at?: string | null
+          cliente?: string | null
+          concedido_desde?: string
+          concedido_hasta?: string
+          created_at?: string
+          email?: string
+          founder_reserved?: boolean
+          id?: string
+          lote?: string
+          notas?: string | null
+          plan?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       portal_holded_invoices: {
         Row: {
           concept: string | null
@@ -2937,6 +2982,7 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           cycle: string | null
+          founder_granted: boolean
           id: string
           is_founder: boolean
           plan_id: string | null
@@ -2952,6 +2998,7 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           cycle?: string | null
+          founder_granted?: boolean
           id?: string
           is_founder?: boolean
           plan_id?: string | null
@@ -2967,6 +3014,7 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           cycle?: string | null
+          founder_granted?: boolean
           id?: string
           is_founder?: boolean
           plan_id?: string | null
@@ -3649,6 +3697,7 @@ export type Database = {
         }
         Returns: string
       }
+      expire_stale_sessions: { Args: never; Returns: number }
       format_initials_label: {
         Args: { city: string; full_name: string }
         Returns: string
@@ -3749,6 +3798,7 @@ export type Database = {
         Args: { conversation_id_param: string }
         Returns: undefined
       }
+      mi_concesion: { Args: never; Returns: Json }
       move_to_dlq: {
         Args: {
           dlq_name: string
