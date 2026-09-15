@@ -49,9 +49,15 @@ export const Recursos = () => {
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [pendingPick, setPendingPick] = useState<{ expiresAt: string | null } | null>(null);
   const [pickTarget, setPickTarget] = useState<Resource | null>(null);
+  // Recursos entregados con una newsletter Impulso: se prometieron gratis
+  // desde N1 y no gastan cupo del plan Gratis (decisión Francesc 15-09-2026).
+  const newsletterIds = useMemo(
+    () => new Set(resources.filter((r) => r.is_newsletter).map((r) => r.id)),
+    [resources],
+  );
   const downloadCount = useMemo(
-    () => Array.from(downloadedIds).filter((id) => !unlockedIds.has(id)).length,
-    [downloadedIds, unlockedIds],
+    () => Array.from(downloadedIds).filter((id) => !unlockedIds.has(id) && !newsletterIds.has(id)).length,
+    [downloadedIds, unlockedIds, newsletterIds],
   );
 
   const loadRewards = async (userId: string) => {
@@ -305,8 +311,13 @@ export const Recursos = () => {
       return;
     }
     // Control de acceso del plan gratis (v1 en cliente).
-    // Gratis caducado: nada de descargas.
-    if (isLocked) {
+    // Los de Impulso son gratis desde N1 y esa promesa manda: ni el bloqueo
+    // de gratis caducado ni el tope de abajo les aplica (decisión Francesc
+    // 15-09-2026, ventana-descargables-impulso).
+    const isNewsletterFree = resource.is_newsletter;
+
+    // Gratis caducado: nada de descargas, salvo lo prometido en Impulso.
+    if (isLocked && !isNewsletterFree) {
       toast({
         title: 'Tu acceso gratuito ha caducado',
         description: 'Hazte Plus para descargar este y todos los recursos.',
@@ -329,7 +340,14 @@ export const Recursos = () => {
 
     // Periodo de prueba: tope de descargas. Re-descargar algo ya descargado no
     // consume hueco; un recurso nuevo sí, y si ya está en el tope se bloquea.
-    if (isTrial && !unlockedByReward && !downloadedIds.has(resource.id) && downloadCount >= limits.resources) {
+    // Los de Impulso quedan fuera de esta cuenta.
+    if (
+      isTrial &&
+      !unlockedByReward &&
+      !isNewsletterFree &&
+      !downloadedIds.has(resource.id) &&
+      downloadCount >= limits.resources
+    ) {
       setLimitDialogOpen(true);
       return;
     }
