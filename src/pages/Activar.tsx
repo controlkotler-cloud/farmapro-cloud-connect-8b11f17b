@@ -103,7 +103,11 @@ const Activar = () => {
     (async () => {
       try {
         // `mi_concesion` es nueva y no está en los types generados de Supabase.
-        const rpc = supabase.rpc as unknown as (
+        // El `bind` no es cosmético: `supabase.rpc` usa `this` por dentro, y
+        // guardarlo suelto en una variable lo pierde. Sin él, la llamada revienta
+        // con "Cannot read properties of undefined (reading 'rest')" y la página
+        // no ha podido comprobar una sola cortesía desde que se escribió.
+        const rpc = supabase.rpc.bind(supabase) as unknown as (
           fn: string,
           args?: Record<string, unknown>,
         ) => Promise<{ data: Concesion | null; error: unknown }>;
