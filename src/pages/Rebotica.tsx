@@ -5,6 +5,7 @@ import { VideoEmbed } from '@/components/media/VideoEmbed';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { lanzarDescarga, urlFirmada } from '@/lib/descargas';
 import { extractFunctionErrorStatus, extractFunctionErrorMessage } from '@/lib/functionsError';
 import { Cajonera } from '@/components/rebotica/Cajonera';
 import {
@@ -53,7 +54,11 @@ const rewardAction = (r: ReboticaReward): { to: string; label: string; external?
   const t = r.titulo.toLowerCase();
   if (r.tipo === 'credito_ia') return { to: '/asistente-creativo', label: 'Usar mis créditos en IAFarma' };
   if (t.startsWith('masterclass')) return { to: '/vault/masterclass-5-palancas', label: 'Ver la masterclass' };
-  if (t.startsWith('plantilla')) return { to: '/recursos/vault-termometro-cliente-nps-k7q2.xlsx', label: 'Descargar la plantilla', external: true };
+  // `external` = fichero de Storage, se firma al pulsar. NO es un enlace
+  // directo: el fichero vive en un bucket privado desde el 15-09-2026 y antes
+  // se bajaba sin cuenta con solo saber la URL (el sufijo aleatorio del nombre
+  // era justo eso, confiar en que nadie la publicase).
+  if (t.startsWith('plantilla')) return { to: 'vault-termometro-cliente-nps-k7q2.xlsx', label: 'Descargar la plantilla', external: true };
   if (t.startsWith('recurso premium')) {
     return r.resource_id
       ? { to: '/recursos', label: 'Ir a Recursos' }
@@ -581,13 +586,18 @@ export default function Rebotica() {
                       )}
                       {action &&
                         (action.external ? (
-                          <a
-                            href={action.to}
-                            download
+                          <button
+                            type="button"
                             className={BTN_LIME_SM}
+                            onClick={() =>
+                              void lanzarDescarga(
+                                () => urlFirmada(action.to),
+                                window.open('', '_blank'),
+                              )
+                            }
                           >
                             {action.label}
-                          </a>
+                          </button>
                         ) : (
                           <Link to={action.to} className={BTN_LIME_SM}>
                             {action.label}

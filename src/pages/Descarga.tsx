@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Clock, Download, FileText, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { lanzarDescarga, urlAbierta } from '@/lib/descargas';
+import { useToast } from '@/hooks/use-toast';
 
 // ---------------------------------------------------------------------------
 // /descarga/:slug — página pública del descargable vigente de una quincena
@@ -94,6 +96,26 @@ const Descarga = () => {
   const [estado, setEstado] = useState<Estado>('cargando');
   const [recurso, setRecurso] = useState<RecursoPublico | null>(null);
   const [acompanantes, setAcompanantes] = useState<RecursoAcompanante[]>([]);
+  const { toast } = useToast();
+  const [bajando, setBajando] = useState<string | null>(null);
+
+  // La descarga sin cuenta NO enlaza al fichero: pide a la edge function
+  // `descarga-abierta` una URL firmada de 60 s, y es ella quien comprueba en
+  // servidor que la ventana de la quincena sigue abierta. El fichero vive en un
+  // bucket privado, así que no hay URL que publicar (ver src/lib/descargas.ts).
+  const descargar = async (slugRecurso: string) => {
+    setBajando(slugRecurso);
+    const win = window.open('', '_blank');
+    const ok = await lanzarDescarga(() => urlAbierta(slugRecurso), win);
+    setBajando(null);
+    if (!ok) {
+      toast({
+        title: 'No se ha podido preparar la descarga',
+        description: 'Puede que la ventana gratuita de esta quincena ya se haya cerrado. Lo tienes dentro del portal con tu cuenta gratuita.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Un acompañante se baja aquí solo si tiene SU PROPIA ventana vigente. Sin
   // open_until (o ya pasada) significa que ese material se entrega dentro del
@@ -243,11 +265,14 @@ const Descarga = () => {
           )}
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="rounded-full">
-              <a href={recurso.file_url ?? '#'} download rel="noopener">
-                <Download className="mr-2 h-4 w-4" />
-                Descargar gratis
-              </a>
+            <Button
+              size="lg"
+              className="rounded-full"
+              disabled={!slug || bajando === slug}
+              onClick={() => slug && descargar(slug)}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {bajando === slug ? 'Preparando...' : 'Descargar gratis'}
             </Button>
             <Button asChild variant="outline" size="lg" className="rounded-full">
               <Link to={registerHref('/recursos')}>Crear cuenta y conservarlo</Link>
@@ -277,11 +302,15 @@ const Descarga = () => {
                       <span className="uppercase">{extra.format || 'pdf'}</span>
                     </div>
                   </div>
-                  <Button asChild variant="outline" size="sm" className="shrink-0 rounded-full">
-                    <a href={extra.file_url ?? '#'} download rel="noopener">
-                      <Download className="mr-1.5 h-3.5 w-3.5" />
-                      Descargar
-                    </a>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 rounded-full"
+                    disabled={bajando === extra.slug}
+                    onClick={() => descargar(extra.slug)}
+                  >
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
+                    {bajando === extra.slug ? 'Preparando...' : 'Descargar'}
                   </Button>
                 </div>
               ))}

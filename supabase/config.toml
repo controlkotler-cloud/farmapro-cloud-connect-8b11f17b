@@ -3,6 +3,10 @@ project_id = "jeysistgdajopfruqpbc"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+  # Publica a proposito: la promesa de Impulso es bajar el descargable de la
+  # quincena SIN crear cuenta. La ventana la valida la propia funcion.
+  [functions.descarga-abierta]
+    verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
   [functions.stripe-webhook]

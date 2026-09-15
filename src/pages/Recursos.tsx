@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { supabase } from '@/integrations/supabase/client';
+import { lanzarDescarga, urlFirmada } from '@/lib/descargas';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useResources, type Resource } from '@/hooks/useResources';
@@ -245,27 +246,21 @@ export const Recursos = () => {
     </ToastAction>
   );
 
-  // Descarga premium firmada. El bucket y la ruta se extraen de file_url para
-  // soportar tanto el bucket público 'recursos' como el privado 'recursos-premium'
-  // (la firma pasa por las políticas de Storage, que incluyen la del premio).
-  const openSignedDownload = (resource: Resource, win: Window | null) => {
-    const match = resource.file_url.match(/\/storage\/v1\/object\/(?:public\/|sign\/|authenticated\/)?([^/]+)\/(.+)$/);
-    const bucket = match?.[1] ?? 'recursos';
-    const path = match?.[2] ?? resource.file_url;
-    return supabase.storage
-      .from(bucket)
-      .createSignedUrl(path, 60)
-      .then(({ data, error }) => {
-        if (error || !data?.signedUrl) {
-          win?.close();
-          toast({ title: 'Error', description: 'No se pudo generar el enlace de descarga.', variant: 'destructive' });
-          return false;
-        }
-        if (win) win.location.href = data.signedUrl;
-        else window.location.href = data.signedUrl;
-        return true;
-      });
-  };
+  // Descarga firmada. TODOS los recursos pasan por aquí, premium o no: los
+  // ficheros viven en buckets privados de Storage y la firma solo se emite a
+  // quien tiene sesión (regla Francesc 15-09-2026: el límite es tener cuenta
+  // creada, aunque sea gratuita). Ver src/lib/descargas.ts.
+  const openSignedDownload = (resource: Resource, win: Window | null) =>
+    lanzarDescarga(() => urlFirmada(resource.file_url), win).then((ok) => {
+      if (!ok) {
+        toast({
+          title: 'Error',
+          description: 'No se pudo generar el enlace de descarga.',
+          variant: 'destructive',
+        });
+      }
+      return ok;
+    });
 
   // Confirmación del premio "Recurso premium": desbloquea en BD (RPC atómica,
   // marca la apertura como canjeada) y descarga en la misma acción.
@@ -364,20 +359,11 @@ export const Recursos = () => {
     }
 
     // 1) Lanzar la descarga DENTRO del gesto del clic (sin await antes), o Safari
-    //    y los bloqueadores de pop-ups la bloquean.
-    if (resource.is_premium) {
-      // Premium: la ventana se abre ya en el gesto y se rellena al firmar la URL.
-      openSignedDownload(resource, window.open('', '_blank'));
-    } else {
-      // Recurso abierto: descarga directa del archivo (mismo origen) sin pop-up.
-      const a = document.createElement('a');
-      a.href = resource.file_url;
-      a.download = resource.file_url.split('/').pop() || resource.title;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
+    //    y los bloqueadores de pop-ups la bloquean. La ventana se abre ya en el
+    //    gesto y se rellena cuando llega la URL firmada.
+    //    Ya no hay rama "recurso abierto": antes servía el fichero estático por
+    //    enlace directo, que es exactamente el agujero que esto cierra.
+    openSignedDownload(resource, window.open('', '_blank'));
 
     // 2) Registrar la descarga y el progreso del reto EN SEGUNDO PLANO (no bloquea).
     if (profile?.id) {
