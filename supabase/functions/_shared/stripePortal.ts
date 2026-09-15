@@ -24,7 +24,7 @@
 import type Stripe from "https://esm.sh/stripe@14.21.0";
 import { STRIPE_PRICES, lookupPrice } from "./stripePrices.ts";
 
-export const PORTAL_CONFIG_VERSION = '2026-09-09.4';
+export const PORTAL_CONFIG_VERSION = '2026-09-15.1'; // .1: sin edición de datos fiscales (address/tax_id)
 
 /**
  * Dos configuraciones, no una: Stripe exige que dentro de cada Product los
