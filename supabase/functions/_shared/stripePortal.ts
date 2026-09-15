@@ -123,7 +123,7 @@ export async function getPortalConfigurationId(
         terms_of_service_url: `${PORTAL_ORIGIN}/aviso-legal`,
       },
       features: {
-        customer_update: { enabled: true, allowed_updates: ['name', 'address', 'tax_id', 'email'] },
+        customer_update: { enabled: true, allowed_updates: ['name', 'email'] },
         invoice_history: { enabled: false },
         payment_method_update: { enabled: true },
         subscription_cancel: { enabled: true, mode: 'at_period_end', proration_behavior: 'none' },
