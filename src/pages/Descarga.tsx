@@ -32,6 +32,18 @@ interface RecursoPublico {
   newsletter_ref: string | null;
 }
 
+// Cada quincena de Impulso publica dos descargables (una herramienta Excel y
+// una guía PDF), pero esta página resuelve uno solo por slug. Sin esta ficha
+// aparte para los acompañantes, el segundo material queda huérfano: el botón
+// del email solo apunta al primero.
+interface RecursoAcompanante {
+  title: string;
+  description: string | null;
+  format: string | null;
+  file_url: string | null;
+  slug: string;
+}
+
 type Estado = 'cargando' | 'abierta' | 'cerrada' | 'no_encontrado';
 
 const formatearFechaLimite = (iso: string) =>
@@ -77,6 +89,7 @@ const Descarga = () => {
   const { slug } = useParams<{ slug: string }>();
   const [estado, setEstado] = useState<Estado>('cargando');
   const [recurso, setRecurso] = useState<RecursoPublico | null>(null);
+  const [acompanantes, setAcompanantes] = useState<RecursoAcompanante[]>([]);
 
   useEffect(() => {
     if (!slug) {
@@ -102,6 +115,27 @@ const Descarga = () => {
       setRecurso(data as RecursoPublico);
       const abierta = !!data.open_until && new Date(data.open_until).getTime() > Date.now();
       setEstado(abierta ? 'abierta' : 'cerrada');
+
+      // Segunda consulta: el resto de recursos de la misma quincena (el
+      // recurso principal manda en título/descripción/fecha, esto solo
+      // completa la lista de ficheros). Si falla, no rompe la página: se
+      // queda sin acompañantes y el recurso principal sigue funcionando.
+      if (data.newsletter_ref) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: extra, error: errorExtra } = await (supabase as any)
+          .from('resources')
+          .select('title, description, format, file_url, slug')
+          .eq('newsletter_ref', data.newsletter_ref)
+          .eq('is_published', true)
+          .eq('is_premium', false)
+          .neq('slug', slug);
+        if (!activo) return;
+        if (errorExtra) {
+          console.error('Error cargando los descargables acompañantes:', errorExtra);
+        } else if (extra) {
+          setAcompanantes(extra as RecursoAcompanante[]);
+        }
+      }
     })();
     return () => {
       activo = false;
@@ -205,6 +239,37 @@ const Descarga = () => {
               <Link to={registerHref('/recursos')}>Crear cuenta y conservarlo</Link>
             </Button>
           </div>
+
+          {/* Acompañantes de la misma quincena (Excel + guía PDF, por ejemplo):
+              sin este bloque el segundo material no tiene desde dónde bajarse. */}
+          {acompanantes.length > 0 && (
+            <div className="mt-6 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                También te llevas
+              </p>
+              {acompanantes.map((extra) => (
+                <div
+                  key={extra.slug}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{extra.title}</p>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="uppercase">{extra.format || 'pdf'}</span>
+                    </div>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="shrink-0 rounded-full">
+                    <a href={extra.file_url ?? '#'} download rel="noopener">
+                      <Download className="mr-1.5 h-3.5 w-3.5" />
+                      Descargar
+                    </a>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <p className="mt-4 text-xs text-muted-foreground">
             Con una cuenta gratuita del portal farmapro lo conservas para siempre, sin que cuente
             en tu tope de descargas, y accedes al resto de recursos, cursos y la comunidad.
@@ -236,6 +301,14 @@ const Descarga = () => {
           La ventana de descarga libre de este descargable ya se cerró. Sigue disponible, gratis,
           dentro del portal farmapro: solo hace falta una cuenta.
         </div>
+        {/* Sin enlaces a ficheros: la ventana cerrada no sirve nada, ni el
+            principal ni los acompañantes. Como mucho, se nombra que había más. */}
+        {acompanantes.length > 0 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Esta quincena incluía {acompanantes.length === 1 ? 'otro material más' : `${acompanantes.length} materiales más`},
+            también dentro del portal.
+          </p>
+        )}
         <div className="mt-8 flex flex-wrap gap-3">
           <Button asChild size="lg" className="rounded-full">
             <Link to={registerHref(`/recursos?r=${slug ?? ''}`)}>Crear cuenta gratis y descargarlo</Link>
