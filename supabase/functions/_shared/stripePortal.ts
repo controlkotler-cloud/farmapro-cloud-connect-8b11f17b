@@ -24,7 +24,7 @@
 import type Stripe from "https://esm.sh/stripe@14.21.0";
 import { STRIPE_PRICES, lookupPrice } from "./stripePrices.ts";
 
-export const PORTAL_CONFIG_VERSION = '2026-09-09.4';
+export const PORTAL_CONFIG_VERSION = '2026-09-15.1'; // .1: sin edición de datos fiscales (address/tax_id)
 
 /**
  * Dos configuraciones, no una: Stripe exige que dentro de cada Product los
@@ -123,7 +123,7 @@ export async function getPortalConfigurationId(
         terms_of_service_url: `${PORTAL_ORIGIN}/aviso-legal`,
       },
       features: {
-        customer_update: { enabled: true, allowed_updates: ['name', 'address', 'tax_id', 'email'] },
+        customer_update: { enabled: true, allowed_updates: ['name', 'email'] },
         invoice_history: { enabled: false },
         payment_method_update: { enabled: true },
         subscription_cancel: { enabled: true, mode: 'at_period_end', proration_behavior: 'none' },

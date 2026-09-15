@@ -209,18 +209,22 @@ async function handleCheckoutCompleted(
       const stripeName = details?.name ?? null;
       await backfillFiscalData(supabase, userIdPack, stripeCif, stripeName);
       const total = ((session.amount_total ?? 0) / 100);
-      await createHoldedInvoice({
-        sourceId: session.id,
-        sourceType: 'stripe_checkout_session',
-        userId: userIdPack,
-        email: (prof as any)?.email ?? email,
-        name: stripeName ?? (prof as any)?.full_name ?? null,
-        cif: (prof as any)?.cif ?? stripeCif ?? null,
-        address: toStripeAddress(details?.address),
-        concept: `Portal farmapro · Pack ${packCredits} imágenes IAFarma`,
-        totalEur: total,
-        meta: { pack_credits: packCredits, origen: 'portal' },
-      });
+      if (total === 0) {
+        log('zero-amount checkout session, skipping Holded (no document, no email)', { sessionId: session.id });
+      } else {
+        await createHoldedInvoice({
+          sourceId: session.id,
+          sourceType: 'stripe_checkout_session',
+          userId: userIdPack,
+          email: (prof as any)?.email ?? email,
+          name: stripeName ?? (prof as any)?.full_name ?? null,
+          cif: (prof as any)?.cif ?? stripeCif ?? null,
+          address: toStripeAddress(details?.address),
+          concept: `Portal farmapro · Pack ${packCredits} imágenes IAFarma`,
+          totalEur: total,
+          meta: { pack_credits: packCredits, origen: 'portal' },
+        });
+      }
     } catch (e) { log('holded pack invoice failed', { err: (e as Error).message }); }
 
     log('pack purchase applied', { userId: userIdPack, packCredits });
@@ -395,6 +399,18 @@ async function handleInvoicePaid(
   const concept = `Suscripción portal farmapro · Plan ${planLabel} (${cycleLabel}${founder ? ', precio fundador' : ''})${isPlanChange ? ' · cambio de plan, diferencia prorrateada' : ''}`;
 
   const total = ((invoice.amount_paid ?? invoice.amount_due ?? 0) / 100);
+  // Periodos de cortesía (grants) y prorrateos a cero: Stripe emite una
+  // factura de 0,00 € que no genera ingreso. No se inserta fila en
+  // portal_holded_invoices, no se crea documento en Holded y no se envía
+  // correo (evita documentos numerados tipo F260487 a 0,00 €).
+  if (total === 0) {
+    log('zero-amount invoice, skipping Holded (no document, no email)', {
+      invoiceId: invoice.id,
+      subscriptionId,
+      billingReason: invoice.billing_reason,
+    });
+    return;
+  }
   const email = invoice.customer_email
     ?? invoice.customer_address?.line1  // fallback (raro)
     ?? '';

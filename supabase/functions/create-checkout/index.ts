@@ -233,6 +233,8 @@ serve(async (req) => {
       .select('lote, concedido_hasta')
       .ilike('email', user.email)
       .gte('concedido_hasta', new Date().toISOString().slice(0, 10))
+      .order('concedido_hasta', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (grant?.concedido_hasta) {
@@ -267,7 +269,7 @@ serve(async (req) => {
         payment_method_collection: 'always' as const,
         custom_text: {
           submit: {
-            message: 'Los primeros meses son cortesía de Mkpro. Hoy no se te cobra nada: el primer cobro será el 1 de enero de 2027.',
+            message: `Es cortesía de Mkpro: hoy no se te cobra nada. El primer cobro, si decides continuar, será el ${firstChargeLabelFromTrialEnd(trialEnd)}.`,
           },
         },
       } : {}),
@@ -325,4 +327,20 @@ function toMadridEndOfDayTimestamp(isoDate: string): number {
   ) as Record<string, string>;
   const [y, mo, d] = [parseInt(parts.year, 10), parseInt(parts.month, 10) - 1, parseInt(parts.day, 10)];
   return Math.floor(new Date(y, mo, d, 23, 59, 59).getTime() / 1000);
+}
+
+function firstChargeLabelFromTrialEnd(trialEnd: number): string {
+  // El primer cobro es el día siguiente al fin del periodo de cortesía
+  // (trialEnd son las 23:59:59 de ese día en Europa/Madrid). Se formatea en
+  // español y en hora de Madrid: "1 de noviembre de 2026".
+  const dayFmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+  const [y, mo, d] = dayFmt.format(new Date(trialEnd * 1000)).split('-').map(Number);
+  const nextDay = new Date(Date.UTC(y, mo - 1, d + 1, 12));
+  return new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid',
+    day: 'numeric', month: 'long', year: 'numeric',
+  }).format(nextDay);
 }
