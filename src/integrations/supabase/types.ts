@@ -2881,8 +2881,11 @@ export type Database = {
           file_url: string | null
           format: Database["public"]["Enums"]["resource_format"] | null
           id: string
+          is_newsletter: boolean
           is_premium: boolean
           is_published: boolean
+          newsletter_ref: string | null
+          open_until: string | null
           slug: string
           thumbnail_url: string | null
           title: string
@@ -2898,8 +2901,11 @@ export type Database = {
           file_url?: string | null
           format?: Database["public"]["Enums"]["resource_format"] | null
           id?: string
+          is_newsletter?: boolean
           is_premium?: boolean
           is_published?: boolean
+          newsletter_ref?: string | null
+          open_until?: string | null
           slug: string
           thumbnail_url?: string | null
           title: string
@@ -2915,8 +2921,11 @@ export type Database = {
           file_url?: string | null
           format?: Database["public"]["Enums"]["resource_format"] | null
           id?: string
+          is_newsletter?: boolean
           is_premium?: boolean
           is_published?: boolean
+          newsletter_ref?: string | null
+          open_until?: string | null
           slug?: string
           thumbnail_url?: string | null
           title?: string
