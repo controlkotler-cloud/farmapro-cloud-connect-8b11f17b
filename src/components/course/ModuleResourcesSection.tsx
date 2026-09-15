@@ -1,9 +1,12 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { lanzarDescarga, urlFirmada } from '@/lib/descargas';
 import type { DownloadableResource } from '@/types/course';
 
 interface ModuleResourcesSectionProps {
@@ -11,15 +14,25 @@ interface ModuleResourcesSectionProps {
 }
 
 /**
- * Bloque "Recursos descargables" de un módulo. Los ficheros son los mismos que
- * en /recursos (estáticos de `public/recursos/`); cuando el módulo trae el
- * `resource_id`, la descarga se registra en `resource_downloads` como allí para
- * que cuente en retos e insignias. No aplica el tope del plan gratis a
- * propósito: el usuario ya está dentro de la píldora y el descargable forma
- * parte de la lección (decisión 09-09-2026).
+ * Bloque "Recursos descargables" de un módulo. Cuando el módulo trae el
+ * `resource_id`, la descarga se registra en `resource_downloads` como en
+ * /recursos para que cuente en retos e insignias. No aplica el tope del plan
+ * gratis a propósito: el usuario ya está dentro de la píldora y el descargable
+ * forma parte de la lección (decisión 09-09-2026).
+ *
+ * Desde el 16-09-2026 el fichero NO se sirve por enlace directo. Antes era
+ * `<a href={resource.url} download>` contra `public/recursos/`, es decir el
+ * mismo agujero que se cerró en /recursos: el CDN entrega el fichero sin que
+ * React, la sesión ni RLS lleguen a existir. Ahora se firma contra el bucket
+ * privado en el momento del clic. Los `url` del JSONB de los cursos siguen
+ * siendo `/recursos/<fichero>` y NO hay que migrarlos: `refDeStorage` los
+ * traduce al bucket. La ruta /curso/:slug está bajo ProtectedRoute, así que
+ * aquí siempre hay sesión y la firma no puede fallar por falta de cuenta.
  */
 export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProps) => {
   const { profile } = useAuth();
+  const { toast } = useToast();
+  const [bajando, setBajando] = useState<string | null>(null);
 
   const registerDownload = (resource: DownloadableResource) => {
     if (!profile?.id || !resource.resource_id) return;
@@ -30,6 +43,22 @@ export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProp
     import('@/utils/challengeUtils')
       .then(({ updateChallengeProgress }) => updateChallengeProgress(profile.id, 'resource_downloaded', 1))
       .catch((e) => console.error('Error progreso reto:', e));
+  };
+
+  const descargar = async (resource: DownloadableResource) => {
+    setBajando(resource.url);
+    const win = window.open('', '_blank');
+    const ok = await lanzarDescarga(() => urlFirmada(resource.url), win);
+    setBajando(null);
+    if (ok) {
+      registerDownload(resource);
+    } else {
+      toast({
+        title: 'No se ha podido preparar la descarga',
+        description: 'Vuelve a intentarlo en unos segundos.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -63,17 +92,15 @@ export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProp
                     </div>
                   </div>
                 </div>
-                <Button asChild variant="outline" size="sm" className="shrink-0">
-                  <a
-                    href={resource.url}
-                    download
-                    rel="noopener"
-                    onClick={() => registerDownload(resource)}
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Descargar
-                  </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 flex items-center gap-2"
+                  disabled={bajando === resource.url}
+                  onClick={() => void descargar(resource)}
+                >
+                  <Download className="h-4 w-4" />
+                  {bajando === resource.url ? 'Preparando...' : 'Descargar'}
                 </Button>
               </div>
             </div>
