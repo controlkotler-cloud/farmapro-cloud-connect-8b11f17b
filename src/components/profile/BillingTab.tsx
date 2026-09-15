@@ -222,14 +222,17 @@ export const BillingTab = ({ profile, isAdmin }: BillingTabProps) => {
             <div className="bg-info/10 border border-info/30 rounded-lg p-4">
               <p className="text-sm text-info">
                 <strong>Qué hay detrás del botón:</strong> el portal seguro de Stripe, donde
-                puedes cambiar la tarjeta, actualizar tus datos fiscales, cambiar de plan o
-                cancelar la suscripción cuando quieras. La cancelación se hace efectiva al
-                final del periodo que ya tienes pagado; hasta entonces conservas el acceso.
-                Para pasar de Plus a Equipo también puedes hacerlo desde la página de planes.
+                puedes cambiar la tarjeta, cambiar de plan o cancelar la suscripción cuando
+                quieras. La cancelación se hace efectiva al final del periodo que ya tienes
+                pagado; hasta entonces conservas el acceso. Para pasar de Plus a Equipo
+                también puedes hacerlo desde la página de planes.
                 <br />
                 <strong>Tus facturas</strong> se emiten con número cada vez que se cobra la
-                suscripción o un pack, te llegan por email con tu NIF y tu dirección fiscal, y
-                las tienes siempre aquí para descargarlas.
+                suscripción o un pack, te llegan por email y las tienes siempre aquí para
+                descargarlas. Salen con los datos fiscales que ya tenemos registrados de tu
+                farmacia. Si hay que corregir el NIF o la dirección, escríbenos a{' '}
+                <a href="mailto:entra@farmapro.es" className="underline">entra@farmapro.es</a>{' '}
+                y lo cambiamos nosotros.
               </p>
             </div>
           )}
