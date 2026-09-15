@@ -19,15 +19,24 @@
 -- `is_newsletter = true` en los DOS: ninguno consume el tope de 3 descargas
 -- del plan Gratis. Lo que se pide por el Excel es el alta, no una suscripción.
 --
--- OJO, LÍMITE CONOCIDO: los ficheros de public/recursos/ son estáticos y
--- cualquiera con la URL exacta se los baja sin cuenta. El muro del Excel es
--- real en la interfaz, pero su URL no debe publicarse en ninguna pieza.
+-- CORREGIDO 16-09-2026. Este fichero decía aquí que cualquiera con la URL
+-- exacta se bajaba el Excel sin cuenta, y que el muro era real "solo en la
+-- interfaz". Era verdad y era el agujero: los ficheros estaban en
+-- `public/recursos/` y los servía el CDN antes de que existieran React, la
+-- sesión y RLS. Ya no. Los 69 ficheros viven en el bucket PRIVADO
+-- `recursos-portal` y toda descarga se firma (60 s) en `src/lib/descargas.ts`.
+-- El muro del Excel es real de verdad: sin sesión, 403.
 --
 -- ORDEN DE EJECUCIÓN (ya se pagó una vez con los de la N26, publicados 12 días
--- apuntando a un 404):
---   1. push de los commits con los ficheros de public/recursos/
---   2. deploy_project (el push NO despliega los estáticos por sí solo)
---   3. curl -sI https://portal.farmapro.es/recursos/impulso-n28-*  -> 200
+-- apuntando a un 404). Sustituye al de los estáticos:
+--   1. subir los dos ficheros al bucket `recursos-portal` (por el chat de
+--      Lovable: la anon key da 403 y no hay acceso al dashboard).
+--   2. comprobarlo en servidor, NO con curl al dominio:
+--      SELECT name, (metadata->>'size')::bigint FROM storage.objects
+--      WHERE bucket_id='recursos-portal' AND name LIKE 'impulso-n28-%';
+--      los tamaños tienen que coincidir con los locales (el 07-09-2026 un
+--      agente subió la RUTA en vez del fichero: objetos de 52 bytes y 200 OK).
+--   3. `file_url` va con la URL completa del bucket, no con '/recursos/...'.
 --   4. y SOLO entonces, ejecutar este fichero.
 -- ============================================================================
 
@@ -41,7 +50,7 @@ VALUES
     'cuenta-resultados-bolsillo',
     'Los cinco ratios explicados uno a uno: de dónde sacar cada dato en tu programa de gestión, los cuatro errores de cálculo más frecuentes y el circuito de veinte minutos al mes para dejarlos hechos.',
     'impulso', 'guia', 'pdf',
-    '/recursos/impulso-n28-cuenta-resultados-bolsillo-guia.pdf',
+    'https://jeysistgdajopfruqpbc.supabase.co/storage/v1/object/recursos-portal/impulso-n28-cuenta-resultados-bolsillo-guia.pdf',
     false, true, true, 'N28', '2026-10-01 08:00:00+02'
   ),
   (
@@ -50,7 +59,7 @@ VALUES
     'fp-imp-n28-cuenta-resultados-excel',
     'Metes cuatro datos al mes (ventas por familia, coste de esas ventas, gastos fijos y valor del stock) y te devuelve los cinco ratios calculados, con el histórico mes a mes y el gráfico de tendencia.',
     'impulso', 'herramienta', 'xls',
-    '/recursos/impulso-n28-cuenta-resultados-bolsillo.xlsx',
+    'https://jeysistgdajopfruqpbc.supabase.co/storage/v1/object/recursos-portal/impulso-n28-cuenta-resultados-bolsillo.xlsx',
     false, true, true, 'N28', NULL
   )
 ON CONFLICT (slug) DO UPDATE SET
