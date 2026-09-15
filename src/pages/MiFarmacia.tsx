@@ -432,7 +432,9 @@ export default function MiFarmacia() {
                 </p>
               </div>
               <Button asChild variant="outline" className="rounded-full">
-                <Link to="/perfil" className="flex items-center gap-2">
+                {/* Sin ?tab=billing el botón deja al titular en la pestaña Personal
+                    y tiene que buscar la facturación a mano. */}
+                <Link to="/perfil?tab=billing" className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
                   Facturación
                 </Link>
