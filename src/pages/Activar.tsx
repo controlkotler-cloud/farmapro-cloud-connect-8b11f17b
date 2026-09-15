@@ -65,6 +65,10 @@ const Activar = () => {
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [fallo, setFallo] = useState(false);
+  // Sin el motivo a la vista, un fallo aquí obliga a pedirle al cliente que abra
+  // la consola del navegador, que no va a hacer. Lo enseñamos en pequeño para
+  // que pueda copiarlo en su respuesta al correo.
+  const [motivo, setMotivo] = useState('');
   const [intento, setIntento] = useState(0);
   // `useAuth` deja su `loading` en true si `getSession()` no resuelve (pasa
   // con el lock de refresco del token entre pestañas). No vamos a tener a un
@@ -95,6 +99,7 @@ const Activar = () => {
     }
     let vivo = true;
     setFallo(false);
+    setMotivo('');
     (async () => {
       try {
         // `mi_concesion` es nueva y no está en los types generados de Supabase.
@@ -119,6 +124,13 @@ const Activar = () => {
       } catch (e) {
         console.error('[activar] no se ha podido comprobar la concesión', e);
         if (!vivo) return;
+        const err = e as { code?: string; message?: string; status?: number };
+        setMotivo(
+          [err?.code, err?.status, err?.message ?? String(e)]
+            .filter(Boolean)
+            .join(' · ')
+            .slice(0, 200),
+        );
         setFallo(true);
       } finally {
         if (vivo) setCargando(false);
@@ -180,6 +192,11 @@ const Activar = () => {
               Puede ser un corte de conexión, o que tu sesión lleve tanto tiempo abierta que haya
               caducado. Prueba otra vez y, si sigue sin cargar, sal y vuelve a entrar con tu correo.
             </p>
+            {motivo ? (
+              <p className="mt-3 break-words font-mono text-xs text-muted-foreground/70">
+                Detalle: {motivo}
+              </p>
+            ) : null}
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Button
                 size="lg"
