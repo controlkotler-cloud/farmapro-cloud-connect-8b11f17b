@@ -32,16 +32,20 @@ interface RecursoPublico {
   newsletter_ref: string | null;
 }
 
-// Cada quincena de Impulso publica dos descargables (una herramienta Excel y
-// una guía PDF), pero esta página resuelve uno solo por slug. Sin esta ficha
-// aparte para los acompañantes, el segundo material queda huérfano: el botón
-// del email solo apunta al primero.
+// Cada quincena de Impulso publica dos descargables, y NO se entregan igual
+// (regla Francesc 15-09-2026): el gratuito de la quincena es la guía PDF, y
+// la herramienta Excel vive desde el primer día dentro del portal, con cuenta.
+// Por eso los acompañantes se parten en dos según su propia ventana: los que
+// tienen open_until vigente se bajan aquí, y el resto solo se anuncian, con
+// enlace a su ficha del portal. Sin esta ficha aparte, el segundo material de
+// la quincena quedaba huérfano: el botón del email solo apunta al primero.
 interface RecursoAcompanante {
   title: string;
   description: string | null;
   format: string | null;
   file_url: string | null;
   slug: string;
+  open_until: string | null;
 }
 
 type Estado = 'cargando' | 'abierta' | 'cerrada' | 'no_encontrado';
@@ -91,6 +95,16 @@ const Descarga = () => {
   const [recurso, setRecurso] = useState<RecursoPublico | null>(null);
   const [acompanantes, setAcompanantes] = useState<RecursoAcompanante[]>([]);
 
+  // Un acompañante se baja aquí solo si tiene SU PROPIA ventana vigente. Sin
+  // open_until (o ya pasada) significa que ese material se entrega dentro del
+  // portal, con cuenta: se anuncia, no se sirve.
+  const acompanantesAbiertos = acompanantes.filter(
+    (extra) => !!extra.open_until && new Date(extra.open_until).getTime() > Date.now(),
+  );
+  const acompanantesEnPortal = acompanantes.filter(
+    (extra) => !extra.open_until || new Date(extra.open_until).getTime() <= Date.now(),
+  );
+
   useEffect(() => {
     if (!slug) {
       setEstado('no_encontrado');
@@ -124,7 +138,7 @@ const Descarga = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: extra, error: errorExtra } = await (supabase as any)
           .from('resources')
-          .select('title, description, format, file_url, slug')
+          .select('title, description, format, file_url, slug, open_until')
           .eq('newsletter_ref', data.newsletter_ref)
           .eq('is_published', true)
           .eq('is_premium', false)
@@ -240,14 +254,18 @@ const Descarga = () => {
             </Button>
           </div>
 
-          {/* Acompañantes de la misma quincena (Excel + guía PDF, por ejemplo):
-              sin este bloque el segundo material no tiene desde dónde bajarse. */}
-          {acompanantes.length > 0 && (
+          {/* Acompañantes de la misma quincena, en dos grupos. Los que tienen
+              su propia ventana abierta se bajan aquí igual que el principal;
+              los que no (la herramienta Excel, que va con cuenta desde el
+              primer día) se nombran pero NO se sirven: se enlaza su ficha del
+              portal. Es la parte de "no engañamos a nadie": si algo no es
+              gratis sin cuenta, esta página no finge que lo sea. */}
+          {acompanantesAbiertos.length > 0 && (
             <div className="mt-6 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 También te llevas
               </p>
-              {acompanantes.map((extra) => (
+              {acompanantesAbiertos.map((extra) => (
                 <div
                   key={extra.slug}
                   className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3"
@@ -264,6 +282,33 @@ const Descarga = () => {
                       <Download className="mr-1.5 h-3.5 w-3.5" />
                       Descargar
                     </a>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {acompanantesEnPortal.length > 0 && (
+            <div className="mt-6 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Y dentro del portal
+              </p>
+              {acompanantesEnPortal.map((extra) => (
+                <div
+                  key={extra.slug}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{extra.title}</p>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="uppercase">{extra.format || 'pdf'}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>con tu cuenta gratuita</span>
+                    </div>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="shrink-0 rounded-full">
+                    <Link to={registerHref(`/recursos?r=${extra.slug}`)}>Abrirlo en el portal</Link>
                   </Button>
                 </div>
               ))}
