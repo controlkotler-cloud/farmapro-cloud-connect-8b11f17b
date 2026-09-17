@@ -61,6 +61,16 @@ export const LAUNCH = {
   showCounterFrom: 20,
 };
 
+/**
+ * Interruptor del contador público de plazas de fundador (decisión Francesc
+ * 17-09-2026: ninguna cifra de fundadores en ningún sitio). Con `false`, la
+ * página de Precios enseña solo "las primeras 100 plazas conservan este
+ * precio", sin barra, sin "X de 100" y sin "últimas plazas", tenga las altas
+ * que tenga. Ponlo a `true` para volver a las fases de `showCounterFrom`.
+ * No afecta a `active` (el precio de lanzamiento sigue rigiendo por plazas).
+ */
+export const FOUNDER_COUNTER_VISIBLE = false;
+
 export interface LaunchStatus {
   /** ¿Sigue vigente el precio de lanzamiento? Depende SOLO de que queden plazas. */
   active: boolean;
@@ -88,8 +98,8 @@ export function getLaunchStatus(spotsTaken?: number): LaunchStatus {
     active: spotsLeft > 0,
     spotsTaken: taken,
     spotsLeft,
-    almostGone: spotsLeft > 0 && spotsLeft <= 15,
-    showCounter: taken >= LAUNCH.showCounterFrom,
+    almostGone: FOUNDER_COUNTER_VISIBLE && spotsLeft > 0 && spotsLeft <= 15,
+    showCounter: FOUNDER_COUNTER_VISIBLE && taken >= LAUNCH.showCounterFrom,
   };
 }
 
