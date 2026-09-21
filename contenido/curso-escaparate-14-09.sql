@@ -314,3 +314,18 @@ from q, (values
 --
 update resources set is_published = true where id = '9c1f7a42-5d30-4b8e-9a61-2f3c81d47e05';
 update courses   set is_published = true where slug = 'fp-mk-escaparate-primer-vendedor';
+
+-- 5) CORRECCIÓN 21-09-2026: opciones del quiz ----------------------------------
+-- El paso 3 solo rellenó el JSONB quiz_questions.options. El alumno NO lee ese JSONB: la RPC
+-- get_active_quiz_questions y submit_quiz_answer leen la tabla quiz_question_options, que quedó
+-- VACÍA. Efecto: la evaluación mostraba la pregunta sin opciones (aviso de farmaciaamorospisabarro
+-- el 14-09: 6 intentos sin completar; otra cuenta, 2 intentos el 21-09). EJECUTADO 21-09-2026,
+-- 20 filas, verificado con la RPC bajo el uid de la farmacia: 5 preguntas x 4 opciones.
+-- Este bloque es obligatorio en TODO curso nuevo con quiz (ver docs/portal-plan-contenido.md §1.2).
+insert into quiz_question_options (question_id, option_text, is_correct, order_index)
+select qq.id, o.txt, (o.idx - 1) = qq.correct_answer, o.idx - 1
+from quiz_questions qq
+join course_quizzes cq on cq.id = qq.quiz_id
+join courses c on c.id = cq.course_id and c.slug = 'fp-mk-escaparate-primer-vendedor'
+cross join lateral jsonb_array_elements_text(qq.options) with ordinality as o(txt, idx)
+where not exists (select 1 from quiz_question_options x where x.question_id = qq.id);
