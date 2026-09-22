@@ -14,6 +14,8 @@
 export type PortalTemplateName =
   | 'bienvenida'
   | 'fin-prueba'
+  | 'prueba-dia20'
+  | 'prueba-bloqueada'
   | 'past-due'
   | 'equipo-invitacion'
   | 'equipo-plaza-activada'
@@ -33,6 +35,8 @@ export interface PortalTemplateData {
   // fin-prueba
   aviso?: 'primero' | 'ultimo';
   diasRestantes?: number;
+  // prueba-dia20: si el lanzamiento sigue abierto (vista founder_count), se cita el precio de lanzamiento.
+  lanzamientoActivo?: boolean;
   // equipo-invitacion
   invitadoPor?: string;
   inviteUrl?: string;
@@ -306,6 +310,68 @@ export function renderPortalTemplate(
         `,
       });
       const text = `${saludo}\n\nTe avisamos de que tu periodo de prueba en el portal farmapro termina en ${diasTxt}.\n\nA partir de esa fecha tu cuenta sigue existiendo y podrás entrar y ver el catálogo, pero el contenido quedará bloqueado hasta que actives un plan. No se te cobra nada de forma automática.\n\nPuedes consultar los planes disponibles y activar el que quieras desde tu cuenta: ${APP_URL}/precios\n\nSi no quieres hacer nada, no tienes que hacer nada.\n\n${nota}${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'prueba-dia20': {
+      // COMERCIAL: es el único correo de la secuencia del gratis que vende.
+      // notify_trial_ending solo lo dispara para quien tiene fila 'comercial'
+      // en consent_ledger (casilla del alta). Si se cambia el copy a
+      // informativo, puede ir a todos; si se endurece, sigue exigiendo consentimiento.
+      // Los precios reflejan src/lib/plans.ts (Plus 39 / 19,90 lanzamiento; Equipo 79 / 49).
+      const lanzamiento = data.lanzamientoActivo !== false;
+      const dias = Number(data.diasRestantes ?? 10) || 10;
+      const subject = `Te quedan ${dias} días de prueba en el portal farmapro`;
+      const precioHtml = lanzamiento
+        ? `<p style="margin:0 0 12px 0;">Mientras dure el lanzamiento, <strong>Plus está a 19,90 €/mes</strong> y <strong>Equipo a 49 €/mes</strong>, y ese precio se mantiene de por vida mientras la suscripción siga activa. Cuando el lanzamiento se cierre, pasan a 39 y 79 €/mes.</p>`
+        : `<p style="margin:0 0 12px 0;"><strong>Plus cuesta 39 €/mes</strong> y <strong>Equipo 79 €/mes</strong>.</p>`;
+      const precioText = lanzamiento
+        ? 'Mientras dure el lanzamiento, Plus está a 19,90 €/mes y Equipo a 49 €/mes, y ese precio se mantiene de por vida mientras la suscripción siga activa. Cuando el lanzamiento se cierre, pasan a 39 y 79 €/mes.'
+        : 'Plus cuesta 39 €/mes y Equipo 79 €/mes.';
+      const nota = 'Recibes este correo porque al crear tu cuenta activaste las comunicaciones del sector. Si prefieres no recibirlas, respóndenos a este correo y lo cambiamos.';
+      const html = layout({
+        previewText: `Llevas 20 días en el portal. Esto es lo que abre un plan.`,
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">${dias} días para decidir</h1>
+          <p style="margin:0 0 12px 0;">${saludo}</p>
+          <p style="margin:0 0 12px 0;">Llevas 20 días con tu cuenta gratis del portal farmapro y te quedan <strong>${dias}</strong> de prueba. Hasta ahora has podido abrir 2 cursos, 3 recursos y probar IAFarma con tope. Un plan quita el tope.</p>
+          <p style="margin:0 0 6px 0;"><strong>Con Plus</strong>, para ti:</p>
+          <ul style="margin:0 0 12px 0;padding-left:20px;">
+            <li>Todos los cursos y todos los recursos, sin límite.</li>
+            <li>Comunidad completa, retos y ranking.</li>
+            <li>IAFarma con texto ilimitado y 12 imágenes al mes.</li>
+            <li>Eventos exclusivos farmapro.</li>
+          </ul>
+          <p style="margin:0 0 12px 0;"><strong>Con Equipo</strong>, lo mismo para hasta 10 personas de tu farmacia con una sola cuota. Si tienes equipo, es el que sale a cuenta: la formación llega a quien está en el mostrador.</p>
+          ${precioHtml}
+          <p style="margin:0 0 12px 0;">Sin permanencia: te das de baja cuando quieras desde tu cuenta.</p>
+          ${ctaButton(`${APP_URL}/precios`, 'Ver los planes')}
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si tienes dudas sobre qué plan te encaja, respóndenos a este correo y te lo decimos.</p>
+          <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
+        `,
+      });
+      const text = `${saludo}\n\nLlevas 20 días con tu cuenta gratis del portal farmapro y te quedan ${dias} de prueba. Hasta ahora has podido abrir 2 cursos, 3 recursos y probar IAFarma con tope. Un plan quita el tope.\n\nCon Plus, para ti:\n- Todos los cursos y todos los recursos, sin límite.\n- Comunidad completa, retos y ranking.\n- IAFarma con texto ilimitado y 12 imágenes al mes.\n- Eventos exclusivos farmapro.\n\nCon Equipo, lo mismo para hasta 10 personas de tu farmacia con una sola cuota. Si tienes equipo, es el que sale a cuenta: la formación llega a quien está en el mostrador.\n\n${precioText}\n\nSin permanencia: te das de baja cuando quieras desde tu cuenta.\n\nVer los planes: ${APP_URL}/precios\n\nSi tienes dudas sobre qué plan te encaja, respóndenos a este correo y te lo decimos.\n\n${nota}${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'prueba-bloqueada': {
+      // SERVICIO (día 31): informa de que la cuenta ha pasado a bloqueada y de
+      // qué se conserva. Sin argumento de venta: va a todos, con o sin consentimiento.
+      const subject = 'Tu prueba del portal farmapro ha terminado';
+      const nota = 'Este es un aviso sobre el estado de tu cuenta en el portal, no una comunicación comercial: lo recibes con independencia de si tienes activadas las comunicaciones del sector.';
+      const html = layout({
+        previewText: 'Tu cuenta sigue ahí; el contenido queda bloqueado hasta que actives un plan.',
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu cuenta sigue ahí, el contenido queda bloqueado</h1>
+          <p style="margin:0 0 12px 0;">${saludo}</p>
+          <p style="margin:0 0 12px 0;">Tu periodo de prueba de 30 días en el portal farmapro ha terminado. Tu cuenta y tu perfil siguen existiendo, no se te ha cobrado nada y no se te va a cobrar nada.</p>
+          <p style="margin:0 0 12px 0;">Lo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas un plan, lo recuperas tal cual y el acceso es inmediato.</p>
+          ${ctaButton(`${APP_URL}/precios`, 'Elegir un plan')}
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si no quieres seguir, no tienes que hacer nada. Y si algo no te ha encajado, respóndenos a este correo: nos sirve para mejorar el portal.</p>
+          <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
+        `,
+      });
+      const text = `${saludo}\n\nTu periodo de prueba de 30 días en el portal farmapro ha terminado. Tu cuenta y tu perfil siguen existiendo, no se te ha cobrado nada y no se te va a cobrar nada.\n\nLo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas un plan, lo recuperas tal cual y el acceso es inmediato.\n\nElegir un plan: ${APP_URL}/precios\n\nSi no quieres seguir, no tienes que hacer nada. Y si algo no te ha encajado, respóndenos a este correo: nos sirve para mejorar el portal.\n\n${nota}${textFooter()}`;
       return { subject, html, text };
     }
 

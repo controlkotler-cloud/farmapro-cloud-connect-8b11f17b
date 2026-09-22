@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   getAccessState,
+  getTrialDaysLeft,
   FREE_LIMITS,
   type AccessState,
 } from '@/lib/plans';
@@ -28,6 +29,8 @@ export interface Entitlements {
   isTrial: boolean;
   /** Plan gratis pasados 30 días: lo ve todo pero bloqueado. */
   isLocked: boolean;
+  /** Días de prueba que quedan (solo en 'free_trial'; null en el resto). */
+  trialDaysLeft: number | null;
   /** Límites del plan gratis (cursos, recursos, IA…). */
   limits: typeof FREE_LIMITS;
   /** Ruta de la página de Precios, para usar con navigate() en los componentes. */
@@ -46,6 +49,7 @@ export const useEntitlements = (): Entitlements => {
       isPaid: state === 'paid',
       isTrial: state === 'free_trial',
       isLocked: state === 'free_locked',
+      trialDaysLeft: state === 'free_trial' ? getTrialDaysLeft(profile?.created_at) : null,
       limits: FREE_LIMITS,
       pricingPath: PRICING_PATH,
     };

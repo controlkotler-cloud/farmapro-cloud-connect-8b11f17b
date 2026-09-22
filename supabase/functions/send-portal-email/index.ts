@@ -50,6 +50,8 @@ const DAILY_CAP = 2000;
 const VALID_TEMPLATES: PortalTemplateName[] = [
   'bienvenida',
   'fin-prueba',
+  'prueba-dia20',
+  'prueba-bloqueada',
   'past-due',
   'equipo-invitacion',
   'equipo-plaza-activada',

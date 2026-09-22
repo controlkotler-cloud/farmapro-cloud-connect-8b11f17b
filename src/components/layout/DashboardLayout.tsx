@@ -7,6 +7,7 @@ import { Footer } from './Footer';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PortalChatbot } from '@/components/ai/PortalChatbot';
+import { TrialCountdownBanner } from '@/components/plan/TrialCountdownBanner';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -41,6 +42,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <SidebarInset className="flex-1 flex flex-col overflow-hidden">
           <Header />
           <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-6">
+            <TrialCountdownBanner />
             {children}
           </main>
           {!isLegalPage && <Footer />}

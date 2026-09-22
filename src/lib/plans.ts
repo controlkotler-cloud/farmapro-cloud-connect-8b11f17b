@@ -231,3 +231,14 @@ export function getAccessState(
   const days = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
   return days <= FREE_LIMITS.trialDays ? 'free_trial' : 'free_locked';
 }
+
+/**
+ * Días de prueba que le quedan a una cuenta gratis (redondeo hacia arriba,
+ * nunca negativo). `null` si no hay fecha de alta. Para los roles de pago usa
+ * `getAccessState`; esto solo mide el calendario.
+ */
+export function getTrialDaysLeft(createdAt: string | null | undefined): number | null {
+  if (!createdAt) return null;
+  const days = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
+  return Math.max(0, Math.ceil(FREE_LIMITS.trialDays - days));
+}

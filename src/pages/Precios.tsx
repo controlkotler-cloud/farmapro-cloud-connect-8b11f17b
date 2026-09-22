@@ -203,6 +203,16 @@ export default function Precios() {
         )}
         {/* Cabecera */}
         <div className="text-center mb-10">
+          {accessState === "free_locked" && (
+            <div className="mx-auto mb-5 max-w-xl rounded-lg border border-brand-soft bg-brand-soft p-4 text-center">
+              <p className="text-sm font-semibold text-brand-dark">
+                Tu prueba de 30 días ha terminado
+              </p>
+              <p className="mt-1 text-sm text-brand-dark/80">
+                Tu cuenta y tu progreso siguen ahí. Elige un plan y vuelves a entrar al momento; sin permanencia.
+              </p>
+            </div>
+          )}
           {showTeamMemberBanner ? (
             <div className="mx-auto mb-5 max-w-xl rounded-lg border border-brand-soft bg-brand-soft p-4 text-center">
               <p className="text-sm font-semibold text-brand-dark">
