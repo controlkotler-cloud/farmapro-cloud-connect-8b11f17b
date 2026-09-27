@@ -3940,6 +3940,7 @@ export type Database = {
           month_limit: number
         }[]
       }
+      trial_dia20_payload: { Args: { p_uid: string }; Returns: Json }
       unsubscribe_weekly_digest: { Args: { p_token: string }; Returns: Json }
       update_challenge_progress: {
         Args: {
