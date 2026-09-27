@@ -37,6 +37,18 @@ export interface PortalTemplateData {
   diasRestantes?: number;
   // prueba-dia20: si el lanzamiento sigue abierto (vista founder_count), se cita el precio de lanzamiento.
   lanzamientoActivo?: boolean;
+  // prueba-dia20 personalizado (trial_dia20_payload en BD)
+  fechaBloqueo?: string;            // YYYY-MM-DD
+  usoDescargas?: string[];
+  usoDescargasTotal?: number;
+  usoCursos?: string[];
+  usoCursosCompletados?: number;
+  usoIa?: number;
+  planRecomendado?: 'plus' | 'equipo';
+  motivoPlan?: 'plantilla' | 'varias_altas' | 'recursos_equipo' | 'titular';
+  plantilla?: string | null;        // 2_3 | 4_6 | 7_10 | mas_10
+  recursoEquipo?: string | null;
+  populares?: string[];
   // equipo-invitacion
   invitadoPor?: string;
   inviteUrl?: string;
@@ -197,6 +209,22 @@ function textFooter(): string {
   return `\n\nUn saludo,\nEl equipo del portal farmapro\n\n--\nEste correo te llega porque tienes una cuenta en el portal farmapro (${APP_URL}). Responsable del tratamiento: Mkpro Kotler SL. Contacto: somos@farmapro.es. Más información: ${APP_URL}/legal`;
 }
 
+/** '2026-10-10' -> '10 de octubre' (sin año, para asuntos y titulares). */
+function fechaCorta(ymd?: string): string {
+  if (!ymd || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return '';
+  const d = new Date(`${ymd}T12:00:00Z`);
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+}
+
+/** Nombre de pila para el asunto; vacío si el nombre es de la farmacia o no parece una persona. */
+function nombrePila(nombre?: string): string {
+  const n = (nombre ?? '').trim();
+  if (!n || n.includes('@') || /^(farmacia|farm\.|ldo|lda|cb\b)/i.test(n) || /\b(cb|sl|slp|sc)\b\.?$/i.test(n)) return '';
+  if (n === n.toUpperCase() && n.length > 3) return '';
+  const pila = n.split(/\s+/)[0];
+  return pila.charAt(0).toUpperCase() + pila.slice(1).toLowerCase();
+}
+
 function fmtFecha(iso?: string): string {
   if (!iso) return '';
   try {
@@ -316,41 +344,104 @@ export function renderPortalTemplate(
     case 'prueba-dia20': {
       // COMERCIAL: es el único correo de la secuencia del gratis que vende.
       // notify_trial_ending solo lo dispara para quien tiene fila 'comercial'
-      // en consent_ledger (casilla del alta). Si se cambia el copy a
-      // informativo, puede ir a todos; si se endurece, sigue exigiendo consentimiento.
+      // en consent_ledger (casilla del alta), nunca en lunes (digest), y le pasa
+      // trial_dia20_payload(): uso real de la cuenta, plan recomendado y fecha de bloqueo.
       // Los precios reflejan src/lib/plans.ts (Plus 39 / 19,90 lanzamiento; Equipo 79 / 49).
+      // Nunca se cita el número de plazas de fundador.
       const lanzamiento = data.lanzamientoActivo !== false;
       const dias = Number(data.diasRestantes ?? 10) || 10;
-      const subject = `Te quedan ${dias} días de prueba en el portal farmapro`;
+      const fecha = fechaCorta(data.fechaBloqueo) || `dentro de ${dias} días`;
+      const descargas = (data.usoDescargas ?? []).filter(Boolean);
+      const totalDesc = Number(data.usoDescargasTotal ?? descargas.length) || 0;
+      const cursos = (data.usoCursos ?? []).filter(Boolean);
+      const usoIa = Number(data.usoIa ?? 0) || 0;
+      const haUsado = descargas.length + cursos.length + usoIa > 0;
+      const equipo = data.planRecomendado === 'equipo';
+      const plan = equipo ? 'Equipo' : 'Plus';
+      const pila = nombrePila(data.nombre);
+
+      const subject = haUsado
+        ? `${pila ? `${pila}, esto` : 'Esto'} es lo que pierdes el ${fecha}`
+        : `${pila ? `${pila}, el` : 'El'} ${fecha} se cierra tu portal`;
+
+      // Lo que ha usado (títulos reales de la cuenta).
+      const usoLineas: string[] = [];
+      for (const t of descargas) usoLineas.push(`Descargaste «${t}»`);
+      if (totalDesc > descargas.length) usoLineas.push(`y ${totalDesc - descargas.length} recurso${totalDesc - descargas.length === 1 ? '' : 's'} más`);
+      for (const t of cursos) usoLineas.push(`Empezaste el curso «${t}»`);
+      if (usoIa > 0) usoLineas.push(`Creaste ${usoIa} ${usoIa === 1 ? 'pieza' : 'piezas'} con IAFarma`);
+      const populares = (data.populares ?? []).filter(Boolean).slice(0, 3);
+
+      const usoHtml = haUsado
+        ? `<div style="margin:0 0 16px 0;padding:14px 16px;background:#f6f4ec;border:1px solid #ecebe6;border-radius:8px;">
+            <p style="margin:0 0 8px 0;font-size:13px;color:#6b6f68;text-transform:uppercase;letter-spacing:0.04em;">Lo que has usado estos días</p>
+            <ul style="margin:0;padding-left:18px;">${usoLineas.map((l) => `<li style="margin:0 0 4px 0;">${escapeHtml(l)}</li>`).join('')}</ul>
+          </div>
+          <p style="margin:0 0 12px 0;">El <strong>${escapeHtml(fecha)}</strong> termina tu prueba y todo eso queda bloqueado: los cursos, los recursos y IAFarma. Tu progreso se guarda, pero no podrás volver a entrar sin un plan.</p>`
+        : `<p style="margin:0 0 12px 0;">El <strong>${escapeHtml(fecha)}</strong> termina tu prueba y todavía no le has sacado partido al portal. Te quedan ${dias} días para hacerlo gratis.</p>
+          ${populares.length ? `<div style="margin:0 0 16px 0;padding:14px 16px;background:#f6f4ec;border:1px solid #ecebe6;border-radius:8px;">
+            <p style="margin:0 0 8px 0;font-size:13px;color:#6b6f68;text-transform:uppercase;letter-spacing:0.04em;">Lo que más están descargando otras farmacias</p>
+            <ul style="margin:0;padding-left:18px;">${populares.map((t) => `<li style="margin:0 0 4px 0;">${escapeHtml(t)}</li>`).join('')}</ul>
+          </div>` : ''}`;
+      const usoText = haUsado
+        ? `Lo que has usado estos días:\n${usoLineas.map((l) => `- ${l}`).join('\n')}\n\nEl ${fecha} termina tu prueba y todo eso queda bloqueado: los cursos, los recursos y IAFarma. Tu progreso se guarda, pero no podrás volver a entrar sin un plan.`
+        : `El ${fecha} termina tu prueba y todavía no le has sacado partido al portal. Te quedan ${dias} días para hacerlo gratis.${populares.length ? `\n\nLo que más están descargando otras farmacias:\n${populares.map((t) => `- ${t}`).join('\n')}` : ''}`;
+
+      // Por qué ese plan, con el dato de la propia cuenta.
+      const personas: Record<string, string> = { '4_6': 'entre 4 y 6', '7_10': 'entre 7 y 10', 'mas_10': 'más de 10' };
+      let motivo: string;
+      switch (data.motivoPlan) {
+        case 'plantilla':
+          motivo = `Al darte de alta nos dijiste que en tu farmacia sois ${personas[data.plantilla ?? ''] ?? 'varias'} personas. Con Equipo cada una tiene su propio acceso, hasta 10, por una sola cuota: la formación llega a quien atiende el mostrador.`;
+          break;
+        case 'varias_altas':
+          motivo = 'Hay más de una persona de tu farmacia con cuenta en el portal. Con Equipo compartís una sola cuota y cada una, hasta 10, mantiene su acceso y su progreso.';
+          break;
+        case 'recursos_equipo':
+          motivo = `Has descargado «${data.recursoEquipo ?? 'recursos de gestión de equipo'}»: tienes gente a tu cargo. Con Equipo cada persona de tu farmacia, hasta 10, tiene su acceso a los cursos por una sola cuota.`;
+          break;
+        default:
+          motivo = data.plantilla === '2_3'
+            ? 'Sois un equipo pequeño y lo que has buscado es para ti como titular. Plus te lo abre todo, sin límites.'
+            : 'Por lo que has usado, lo que buscas es para ti como titular. Plus te lo abre todo, sin límites.';
+      }
+      const incluye = equipo
+        ? ['Todo lo de Plus para hasta 10 personas de tu farmacia.', 'Cada persona con su propio acceso y su progreso.', 'Una sola cuota y una sola factura.']
+        : ['Todos los cursos y todos los recursos, sin límite.', 'IAFarma con texto ilimitado y 12 imágenes al mes.', 'Comunidad completa, retos y eventos exclusivos farmapro.'];
+      const precioFund = equipo ? '49 €/mes' : '19,90 €/mes';
+      const precioReg = equipo ? '79 €/mes' : '39 €/mes';
       const precioHtml = lanzamiento
-        ? `<p style="margin:0 0 12px 0;">Mientras dure el lanzamiento, <strong>Plus está a 19,90 €/mes</strong> y <strong>Equipo a 49 €/mes</strong>, y ese precio se mantiene de por vida mientras la suscripción siga activa. Cuando el lanzamiento se cierre, pasan a 39 y 79 €/mes.</p>`
-        : `<p style="margin:0 0 12px 0;"><strong>Plus cuesta 39 €/mes</strong> y <strong>Equipo 79 €/mes</strong>.</p>`;
+        ? `<p style="margin:12px 0 0 0;"><strong>Precio de fundador: ${precioFund}, de por vida</strong> mientras mantengas la suscripción (el precio normal es ${precioReg}).</p>
+            <p style="margin:8px 0 0 0;font-size:14px;">Es el precio del lanzamiento y las plazas de fundador son limitadas. Cuando se completen, desaparece para quien no haya entrado, aunque siga en prueba.</p>`
+        : `<p style="margin:12px 0 0 0;"><strong>${plan}: ${precioReg}.</strong></p>`;
       const precioText = lanzamiento
-        ? 'Mientras dure el lanzamiento, Plus está a 19,90 €/mes y Equipo a 49 €/mes, y ese precio se mantiene de por vida mientras la suscripción siga activa. Cuando el lanzamiento se cierre, pasan a 39 y 79 €/mes.'
-        : 'Plus cuesta 39 €/mes y Equipo 79 €/mes.';
+        ? `Precio de fundador: ${precioFund}, de por vida mientras mantengas la suscripción (el precio normal es ${precioReg}).\nEs el precio del lanzamiento y las plazas de fundador son limitadas. Cuando se completen, desaparece para quien no haya entrado, aunque siga en prueba.`
+        : `${plan}: ${precioReg}.`;
+      const alternativa = equipo
+        ? 'Si prefieres empezar solo tú, Plus cuesta ' + (lanzamiento ? '19,90 €/mes con precio de fundador.' : '39 €/mes.')
+        : 'Si quieres que entre también tu equipo, Equipo cubre hasta 10 personas por ' + (lanzamiento ? '49 €/mes con precio de fundador.' : '79 €/mes.');
+      const cta = lanzamiento ? 'Guardar mi precio de fundador' : `Activar ${plan}`;
       const nota = 'Recibes este correo porque al crear tu cuenta activaste las comunicaciones del sector. Si prefieres no recibirlas, respóndenos a este correo y lo cambiamos.';
+
       const html = layout({
-        previewText: `Llevas 20 días en el portal. Esto es lo que abre un plan.`,
+        previewText: `Lo que has usado, el plan que encaja con tu farmacia y el precio de fundador que aún puedes guardar.`,
         bodyHtml: `
-          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">${dias} días para decidir</h1>
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu prueba se cierra el ${escapeHtml(fecha)}</h1>
           <p style="margin:0 0 12px 0;">${saludo}</p>
-          <p style="margin:0 0 12px 0;">Llevas 20 días con tu cuenta gratis del portal farmapro y te quedan <strong>${dias}</strong> de prueba. Hasta ahora has podido abrir 2 cursos, 3 recursos y probar IAFarma con tope. Un plan quita el tope.</p>
-          <p style="margin:0 0 6px 0;"><strong>Con Plus</strong>, para ti:</p>
-          <ul style="margin:0 0 12px 0;padding-left:20px;">
-            <li>Todos los cursos y todos los recursos, sin límite.</li>
-            <li>Comunidad completa, retos y ranking.</li>
-            <li>IAFarma con texto ilimitado y 12 imágenes al mes.</li>
-            <li>Eventos exclusivos farmapro.</li>
-          </ul>
-          <p style="margin:0 0 12px 0;"><strong>Con Equipo</strong>, lo mismo para hasta 10 personas de tu farmacia con una sola cuota. Si tienes equipo, es el que sale a cuenta: la formación llega a quien está en el mostrador.</p>
-          ${precioHtml}
-          <p style="margin:0 0 12px 0;">Sin permanencia: te das de baja cuando quieras desde tu cuenta.</p>
-          ${ctaButton(`${APP_URL}/precios`, 'Ver los planes')}
-          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si tienes dudas sobre qué plan te encaja, respóndenos a este correo y te lo decimos.</p>
+          ${usoHtml}
+          <div style="margin:0 0 16px 0;padding:16px;border:2px solid #5F8F20;border-radius:10px;">
+            <p style="margin:0 0 8px 0;font-size:13px;color:#5F8F20;text-transform:uppercase;letter-spacing:0.04em;font-weight:700;">Para tu farmacia te recomendamos ${plan}</p>
+            <p style="margin:0 0 10px 0;">${escapeHtml(motivo)}</p>
+            <ul style="margin:0;padding-left:18px;">${incluye.map((l) => `<li style="margin:0 0 4px 0;">${escapeHtml(l)}</li>`).join('')}</ul>
+            ${precioHtml}
+          </div>
+          ${ctaButton(`${APP_URL}/precios`, cta)}
+          <p style="margin:0 0 12px 0;font-size:14px;">Sin permanencia: te das de baja cuando quieras desde tu cuenta. ${escapeHtml(alternativa)}</p>
+          <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">¿Dudas sobre qué plan te encaja? Responde a este correo y te contestamos personalmente.</p>
           <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
         `,
       });
-      const text = `${saludo}\n\nLlevas 20 días con tu cuenta gratis del portal farmapro y te quedan ${dias} de prueba. Hasta ahora has podido abrir 2 cursos, 3 recursos y probar IAFarma con tope. Un plan quita el tope.\n\nCon Plus, para ti:\n- Todos los cursos y todos los recursos, sin límite.\n- Comunidad completa, retos y ranking.\n- IAFarma con texto ilimitado y 12 imágenes al mes.\n- Eventos exclusivos farmapro.\n\nCon Equipo, lo mismo para hasta 10 personas de tu farmacia con una sola cuota. Si tienes equipo, es el que sale a cuenta: la formación llega a quien está en el mostrador.\n\n${precioText}\n\nSin permanencia: te das de baja cuando quieras desde tu cuenta.\n\nVer los planes: ${APP_URL}/precios\n\nSi tienes dudas sobre qué plan te encaja, respóndenos a este correo y te lo decimos.\n\n${nota}${textFooter()}`;
+      const text = `${saludo}\n\n${usoText}\n\nPARA TU FARMACIA TE RECOMENDAMOS ${plan.toUpperCase()}\n${motivo}\n${incluye.map((l) => `- ${l}`).join('\n')}\n\n${precioText}\n\n${cta}: ${APP_URL}/precios\n\nSin permanencia: te das de baja cuando quieras desde tu cuenta. ${alternativa}\n\n¿Dudas sobre qué plan te encaja? Responde a este correo y te contestamos personalmente.\n\n${nota}${textFooter()}`;
       return { subject, html, text };
     }
 
