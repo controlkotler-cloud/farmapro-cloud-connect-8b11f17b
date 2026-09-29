@@ -10,7 +10,7 @@ Objetivo único: altas de pago en el portal, desde la búsqueda hasta el pago, s
 | 2 | **Presupuesto de anuncios: 300 €/mes** (Google Ads búsqueda + retargeting Meta). |
 | 3 | **Referidos: sí.** Invitas a otra farmacia → 1 mes gratis para las dos. |
 | 4 | **Asistente IA en /precios y en el portal: sí.** Responde con la biblioteca de objeciones y lleva al alta. |
-| 5 | **Fecha límite del precio de fundador: 31-10-2026** (la decide Claude por delegación). Hasta ese día, o hasta completar las 100 plazas si ocurre antes, las altas nuevas entran a 19,90 €/49 € de por vida mientras sigan activas. Desde el 01-11 no se ofrece a nuevas altas. Es un plazo REAL: hay que cumplirlo. Nunca se da la cifra de plazas. |
+| 5 | **Precio de fundador SIN fecha global (revisado 29-09 tras objeción de Francesc).** Cada cuenta tiene su precio de fundador **reservado hasta 7 días después del fin de su prueba** (o de su concesión); pasado eso, esa cuenta paga el precio normal. Las altas nuevas siempre ven 19,90 €/49 € mientras queden plazas (tope 100, sin dar nunca la cifra). Fecha global solo si se superan ~70 plazas. Función `founder_reserva_hasta()` en BD; la hace cumplir `create-checkout`. |
 | 6 | **Autonomía:** los agentes ejecutan todo lo que NO sea masivo (transaccional, emails de comportamiento, landings, SEO, respuestas del asistente). Lo masivo (Clientify, redes) lo aprueba Francesc. |
 
 ## Prompts de Hormozi
@@ -40,7 +40,7 @@ No se reparte un prompt por agente. Los prompts 1, 2, 3 y 5 se trabajan en una s
 - **Semana del 30-09:** etapa 0 (verificación en vivo, solo lectura primero), sesión de oferta (los dos documentos canon) y etapas 1 y 2 en vivo ANTES del 05-10.
 - **Semana del 05-10:** etapas 3, 4 y 5.
 - **Semanas del 12 y el 19-10:** etapas 6 a 10 y arranque de los agentes semanales.
-- **31-10:** cierre del precio de fundador → retirarlo de /precios, del checkout y de las plantillas el 01-11.
+- **Revisión de la fecha global:** cuando `founder_count` supere ~70 plazas o el 31-12, lo que llegue antes.
 
 ## Pendiente de verificar antes de invertir en anuncios
 
@@ -64,5 +64,5 @@ No se reparte un prompt por agente. Los prompts 1, 2, 3 y 5 se trabajan en una s
 - **Secuencia (cron 30, `notify_trial_ending`, 09:15 UTC):** el día 20 (`prueba-dia20`) es el ÚNICO correo comercial y exige consentimiento. Los días 23 y 28 (`fin-prueba`) y el 31 (`prueba-bloqueada`) son aviso de servicio y van sin venta a todos. Las dos cohortes grandes tienen consentimiento al 100 %:
   - 10-09 (19 cuentas): día 20 el 30-09, días 23/28 el 03 y el 08-10, bloqueo el 11-10.
   - 17-09 (20 cuentas): día 20 el 07-10, días 23/28 el 10 y el 15-10, bloqueo el 18-10.
-- **Hecho el 29-09:** plantilla del día 20 con el plazo del 31-10 (commit 9e6e428; la edge `send-portal-email` está pendiente de redeploy) y `notify_trial_ending` con `lanzamientoActivo` = plazas < 100 **y** fecha ≤ 31-10 (en BD, solo en vivo, sin migración en el repo).
-- **Implicación para la etapa 2:** el plazo solo puede ir en correos comerciales. Hace falta un comercial nuevo entre el día 23 y el 28 para quien tenga consentimiento (hoy solo hay uno, el del día 20).
+- **Hecho el 29-09:** la fecha global del 31-10 se descartó el mismo día (ver decisión 5). Plantilla del día 20 con la reserva personal "hasta el X" (commit 3a3afb2); `founder_reserva_hasta()` creada en BD (sin migración en el repo; transición: ninguna reserva vence antes del 06-10). Pendiente de Lovable: `docs/peticion-lovable-reserva-fundador.md`.
+- **Implicación para la etapa 2:** la fecha de la reserva solo puede ir en correos comerciales; en el portal (banner en /precios y en el panel) va siempre, porque no es email. Hace falta un comercial nuevo entre el día 23 y el 28 para quien tenga consentimiento (hoy solo hay uno, el del día 20).
