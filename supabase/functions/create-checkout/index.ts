@@ -248,9 +248,27 @@ serve(async (req) => {
       }
     }
 
+    // Reserva personal del precio fundador: si ya venció, precio regular.
+    let founderReservaHasta: string | null = null;
+    let effectiveFounderSpotsLeft = founderSpotsLeft;
+    try {
+      const { data: reserva, error: reservaErr } = await admin.rpc('founder_reserva_hasta', { p_uid: user.id });
+      if (reservaErr) {
+        log('founder_reserva_hasta failed', { err: reservaErr.message });
+      } else if (typeof reserva === 'string' && reserva) {
+        founderReservaHasta = reserva.slice(0, 10);
+        const hoyMadrid = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+        }).format(new Date());
+        if (founderReservaHasta < hoyMadrid) effectiveFounderSpotsLeft = 0;
+      }
+    } catch (e) {
+      log('founder_reserva_hasta threw', { err: (e as Error).message });
+    }
+
     let priceId: string; let founder: boolean;
     try {
-      ({ priceId, founder } = pickSubscriptionPrice(plan, cycle, founderSpotsLeft));
+      ({ priceId, founder } = pickSubscriptionPrice(plan, cycle, effectiveFounderSpotsLeft));
     } catch (e) {
       return json({ error: (e as Error).message }, 400);
     }
@@ -300,8 +318,8 @@ serve(async (req) => {
     });
 
 
-    log('session created', { id: session.id, priceId, founder });
-    return json({ url: session.url, founder, founderSpotsLeft });
+    log('session created', { id: session.id, priceId, founder, founderReservaHasta });
+    return json({ url: session.url, founder, founderSpotsLeft, founderReservaHasta });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     log('ERROR', { msg });
