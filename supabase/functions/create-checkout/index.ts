@@ -318,8 +318,8 @@ serve(async (req) => {
     });
 
 
-    log('session created', { id: session.id, priceId, founder });
-    return json({ url: session.url, founder, founderSpotsLeft });
+    log('session created', { id: session.id, priceId, founder, founderReservaHasta });
+    return json({ url: session.url, founder, founderSpotsLeft, founderReservaHasta });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     log('ERROR', { msg });
