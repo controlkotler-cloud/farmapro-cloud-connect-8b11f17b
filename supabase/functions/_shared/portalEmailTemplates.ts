@@ -408,14 +408,23 @@ export function renderPortalTemplate(
       const incluye = equipo
         ? ['Todo lo de Plus para hasta 10 personas de tu farmacia.', 'Cada persona con su propio acceso y su progreso.', 'Una sola cuota y una sola factura.']
         : ['Todos los cursos y todos los recursos, sin límite.', 'IAFarma con texto ilimitado y 12 imágenes al mes.', 'Comunidad completa, retos y eventos exclusivos farmapro.'];
+      // Reserva personal del precio de fundador: fin de la prueba + 7 días (decisión 29-09-2026).
+      // create-checkout la hace cumplir; sin fecha de bloqueo no se cita fecha.
+      const reservaIso = (() => {
+        const d = data.fechaBloqueo ? new Date(`${data.fechaBloqueo}T00:00:00Z`) : null;
+        if (!d || isNaN(d.getTime())) return '';
+        d.setUTCDate(d.getUTCDate() + 7);
+        return d.toISOString().slice(0, 10);
+      })();
+      const reserva = fechaCorta(reservaIso) || 'final de tu prueba';
       const precioFund = equipo ? '49 €/mes' : '19,90 €/mes';
       const precioReg = equipo ? '79 €/mes' : '39 €/mes';
       const precioHtml = lanzamiento
         ? `<p style="margin:12px 0 0 0;"><strong>Precio de fundador: ${precioFund}, de por vida</strong> mientras mantengas la suscripción (el precio normal es ${precioReg}).</p>
-            <p style="margin:8px 0 0 0;font-size:14px;">Es el precio del lanzamiento y solo se ofrece hasta el 31 de octubre, o antes si se completan las plazas de fundador. Desde el 1 de noviembre desaparece para quien no haya entrado, aunque siga en prueba.</p>`
+            <p style="margin:8px 0 0 0;font-size:14px;">Las plazas de fundador son limitadas y tu precio queda reservado para ti hasta el ${reserva}. Si no activas tu plan antes, tu cuenta ya no podrá guardarlo.</p>`
         : `<p style="margin:12px 0 0 0;"><strong>${plan}: ${precioReg}.</strong></p>`;
       const precioText = lanzamiento
-        ? `Precio de fundador: ${precioFund}, de por vida mientras mantengas la suscripción (el precio normal es ${precioReg}).\nEs el precio del lanzamiento y solo se ofrece hasta el 31 de octubre, o antes si se completan las plazas de fundador. Desde el 1 de noviembre desaparece para quien no haya entrado, aunque siga en prueba.`
+        ? `Precio de fundador: ${precioFund}, de por vida mientras mantengas la suscripción (el precio normal es ${precioReg}).\nLas plazas de fundador son limitadas y tu precio queda reservado para ti hasta el ${reserva}. Si no activas tu plan antes, tu cuenta ya no podrá guardarlo.`
         : `${plan}: ${precioReg}.`;
       const alternativa = equipo
         ? 'Si prefieres empezar solo tú, Plus cuesta ' + (lanzamiento ? '19,90 €/mes con precio de fundador.' : '39 €/mes.')
@@ -424,7 +433,7 @@ export function renderPortalTemplate(
       const nota = 'Recibes este correo porque al crear tu cuenta activaste las comunicaciones del sector. Si prefieres no recibirlas, respóndenos a este correo y lo cambiamos.';
 
       const html = layout({
-        previewText: `Lo que has usado, el plan que encaja con tu farmacia y el precio de fundador, que puedes guardar hasta el 31 de octubre.`,
+        previewText: `Lo que has usado, el plan que encaja con tu farmacia y el precio de fundador que tienes reservado.`,
         bodyHtml: `
           <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu prueba se cierra el ${escapeHtml(fecha)}</h1>
           <p style="margin:0 0 12px 0;">${saludo}</p>
