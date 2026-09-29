@@ -24,8 +24,8 @@ No se reparte un prompt por agente. Los prompts 1, 2, 3 y 5 se trabajan en una s
 | # | Etapa | Qué | Vía | Ejecución |
 |---|---|---|---|---|
 | 0 | Medición | UTM guardado en el perfil al darse de alta, eventos GA4 (alta/activación/pago), informe del embudo cada lunes | SQL + repo + tarea programada | Auto |
-| 1 | Oferta | `/portal` y `/precios` con la promesa nueva, las FAQ de objeciones y la fecha límite 31-10 | repo + `cro` | Auto (no masivo) |
-| 2 | Cohorte del día 31 (05-18/10, ~50 cuentas) | Emails de los días 28 y 31 con la oferta nueva y el plazo 31-10 | `_shared/portalEmailTemplates.ts` + SQL | Auto |
+| 1 | Oferta | `/portal` y `/precios` con la promesa nueva, las FAQ de objeciones y la reserva personal del precio de fundador | repo + `cro` | Auto (no masivo) |
+| 2 | Cohorte del día 31 (05-18/10, ~50 cuentas) | Emails de los días 28 y 31 con la oferta nueva y la reserva personal (comercial solo con consentimiento) | `_shared/portalEmailTemplates.ts` + SQL | Auto |
 | 3 | Activación por comportamiento | Emails según lo que hace cada usuario (sin curso empezado el día 3, primer resultado, equipo) sobre los triggers de activity_log | edge + cron (Lovable) | Auto |
 | 4 | Recuperación de pagos abandonados | Stripe checkout.session.expired → email a la hora y a las 24 h | webhook (Lovable) | Auto |
 | 5 | Asistente IA | Chat en /precios y en el portal, con objeciones-portal.md | edge + API Claude (Lovable) | Auto |
