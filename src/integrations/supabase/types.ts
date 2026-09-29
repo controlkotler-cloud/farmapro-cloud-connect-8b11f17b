@@ -3711,6 +3711,7 @@ export type Database = {
         Args: { city: string; full_name: string }
         Returns: string
       }
+      founder_reserva_hasta: { Args: { p_uid?: string }; Returns: string }
       get_active_quiz_questions: { Args: { p_quiz_id: string }; Returns: Json }
       get_course_modules: { Args: { p_course_id: string }; Returns: Json }
       get_job_contact_email: { Args: { job_id: string }; Returns: string }
