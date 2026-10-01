@@ -396,7 +396,7 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
         <Button type="submit" className="w-full rounded-full" disabled={loading}>
           {loading 
             ? (isRegistering ? 'Creando cuenta...' : 'Iniciando sesión...') 
-            : (isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión')
+            : (isRegistering ? 'Crear cuenta gratis' : 'Iniciar Sesión')
           }
         </Button>
       </form>
@@ -415,14 +415,14 @@ export const AuthForm = ({ isRegistering, onToggleMode, initialEmail }: AuthForm
       
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
-          {isRegistering ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}
+          {isRegistering ? '¿Ya tienes una cuenta?' : '¿No tienes cuenta? Es gratis y no pide tarjeta.'}
         </p>
         <Button
           variant="link"
           onClick={handleToggle}
           className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
         >
-          {isRegistering ? 'Iniciar Sesión' : 'Registrarse'}
+          {isRegistering ? 'Iniciar Sesión' : 'Crear cuenta gratis'}
         </Button>
       </div>
     </div>

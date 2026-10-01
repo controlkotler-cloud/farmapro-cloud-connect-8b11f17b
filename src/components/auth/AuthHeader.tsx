@@ -34,11 +34,11 @@ export const AuthHeader = ({ isRegistering }: AuthHeaderProps) => {
       <h1 className="text-2xl font-extrabold tracking-tight text-foreground mb-2 [text-wrap:balance]">
         {isRegistering ? 'Registro' : 'Accede a tu cuenta'}
       </h1>
-      {isRegistering && (
-        <p className="text-sm text-muted-foreground">
-          Crea tu cuenta profesional
-        </p>
-      )}
+      <p className="text-sm text-muted-foreground [text-wrap:balance]">
+        {isRegistering
+          ? 'Crea tu cuenta gratis. No pedimos tarjeta.'
+          : 'Si aún no tienes cuenta, crearla es gratis.'}
+      </p>
     </div>
   );
 };
