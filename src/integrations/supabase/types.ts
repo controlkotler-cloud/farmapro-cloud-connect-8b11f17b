@@ -4004,7 +4004,7 @@ export type Database = {
         | "finanzas"
         | "digital"
         | "impulso"
-      resource_format: "pdf" | "docs" | "url" | "xls" | "video"
+      resource_format: "pdf" | "docs" | "url" | "xls" | "video" | "zip"
       resource_type:
         | "pdf"
         | "video"
@@ -4202,7 +4202,7 @@ export const Constants = {
         "digital",
         "impulso",
       ],
-      resource_format: ["pdf", "docs", "url", "xls", "video"],
+      resource_format: ["pdf", "docs", "url", "xls", "video", "zip"],
       resource_type: [
         "pdf",
         "video",
