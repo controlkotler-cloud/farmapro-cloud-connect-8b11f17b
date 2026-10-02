@@ -3,6 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, type MotionProps } from 'framer-motion';
 import { VideoEmbed } from '@/components/media/VideoEmbed';
 import { useAuth } from '@/hooks/useAuth';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { TrialLockedBanner } from '@/components/plan/TrialLockedNotice';
+import { AccessLockedCard } from '@/components/access/AccessLockedCard';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { lanzarDescarga, urlFirmada } from '@/lib/descargas';
@@ -241,6 +244,9 @@ export default function Rebotica() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  // Prueba gratis terminada: los cajones se cierran (bloqueo real en
+  // rebotica_open_cajon; esto es para que lo vea antes de pulsar).
+  const { isLocked } = useEntitlements();
   const { toast } = useToast();
 
   const [selected, setSelected] = useState<number | null>(null);
@@ -370,6 +376,11 @@ export default function Rebotica() {
     }
 
     if (!REBOTICA_OPEN_REWARD_ENABLED) return;
+
+    if (isLocked) {
+      navigate('/precios');
+      return;
+    }
 
     // Ya sabemos (comprobación previa) que hoy no hay campaña activa: no
     // llegamos ni a llamar al servidor, evitamos el viaje de red inútil y el
@@ -507,7 +518,17 @@ export default function Rebotica() {
             </Link>
           </div>
         </nav>
+        <TrialLockedBanner />
 
+        {isLocked ? (
+          <div className="mx-auto max-w-[640px] px-6 py-16">
+            <AccessLockedCard
+              title="Los cajones son para suscriptores"
+              description="Tu periodo de prueba ha terminado. Contrata un plan para volver a abrir tu cajón cada mes y entrar en los sorteos."
+              ctaLabel="Contratar un plan"
+            />
+          </div>
+        ) : (
         <div className="mx-auto max-w-[640px] px-6 py-16 text-center">
           <p className="mb-2 text-[13px] font-bold uppercase tracking-[0.16em] text-[#7BB121]">
             {proximoCajonStrip}
@@ -616,6 +637,7 @@ export default function Rebotica() {
             </Link>
           </p>
         </div>
+        )}
       </div>
     );
   }

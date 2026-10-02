@@ -40,6 +40,7 @@ const BUSINESS_ERRORS: Record<string, [number, string]> = {
   sin_campana_activa: [409, "No hay campaña activa ahora mismo"],
   reto_no_completado: [409, "Todavía no has completado el reto de la semana"],
   sin_stock: [409, "Sin stock de premios disponible ahora mismo"],
+  prueba_terminada: [403, "Tu periodo de prueba ha terminado: contrata un plan para abrir cajones"],
 };
 
 const log = (step: string, details?: unknown) => {

@@ -8,7 +8,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PortalChatbot } from '@/components/ai/PortalChatbot';
 import { TrialCountdownBanner } from '@/components/plan/TrialCountdownBanner';
-import { TrialLockedNotice } from '@/components/plan/TrialLockedNotice';
+import { TrialLockedBanner, TrialLockedDialog } from '@/components/plan/TrialLockedNotice';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,14 +42,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <Sidebar />
         <SidebarInset className="flex-1 flex flex-col overflow-hidden">
           <Header />
+          <TrialLockedBanner />
           <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-6">
             <TrialCountdownBanner />
-            <TrialLockedNotice />
             {children}
           </main>
           {!isLegalPage && <Footer />}
         </SidebarInset>
         <PortalChatbot />
+        <TrialLockedDialog />
       </div>
     </SidebarProvider>
   );
