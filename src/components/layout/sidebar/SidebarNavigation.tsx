@@ -14,6 +14,7 @@ import {
   Store,
   Archive,
   Sparkles,
+  Lock,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -28,6 +29,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useSectionVisibility } from '@/hooks/useSectionVisibility';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
+import { useEntitlements } from '@/hooks/useEntitlements';
+
+// Secciones que se cierran al terminar la prueba gratis (free_locked).
+const LOCKED_PATHS = new Set(['/formacion', '/recursos', '/asistente-creativo']);
 
 interface MenuItem {
   name: string;
@@ -78,6 +83,7 @@ export const SidebarNavigation = () => {
   const { isEmpleoVisible, isFarmaciasVisible } = useSectionVisibility();
   const { isAdmin } = useAuth();
   const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
+  const { isLocked } = useEntitlements();
 
   const handleNavClick = () => {
     if (isMobile) {
@@ -138,6 +144,9 @@ export const SidebarNavigation = () => {
                           className={`h-[17px] w-[17px] flex-none ${isActive ? 'text-brand-dark' : 'text-muted-foreground'}`}
                         />
                         <span className="flex-1 truncate">{item.name}</span>
+                        {isLocked && LOCKED_PATHS.has(item.path) && (
+                          <Lock className="h-3.5 w-3.5 flex-none text-ciruela" aria-label="Cerrado: tu prueba ha terminado" />
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

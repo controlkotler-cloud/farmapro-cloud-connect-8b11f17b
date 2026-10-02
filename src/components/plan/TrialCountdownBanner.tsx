@@ -7,8 +7,8 @@ const SHOW_FROM_DAYS_LEFT = 10;
 
 /**
  * Cuenta atrás del plan gratis. Se pinta en el layout del panel cuando quedan
- * 10 días o menos de prueba y desaparece sola al pasar a un plan de pago (el
- * bloqueo del día 31 ya no llega aquí: AppRoutes reenvía a /precios).
+ * 10 días o menos de prueba y desaparece sola al pasar a un plan de pago. A
+ * partir del día 31 el aviso lo da TrialLockedNotice.
  */
 export const TrialCountdownBanner = () => {
   const { isTrial, trialDaysLeft, pricingPath } = useEntitlements();
