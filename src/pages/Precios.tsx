@@ -290,6 +290,8 @@ export default function Precios() {
             {hasPaidPlan
               ? currentPlan === "plus"
                 ? "Tu plan actual, el paso a Equipo y los packs de imágenes de IAFarma."
+                : isTeamOwner
+                ? "Tu plan actual, el paso a Plus y los packs de imágenes de IAFarma."
                 : "Tu plan actual y los packs de imágenes de IAFarma."
               : launch.active
               ? "Todo el contenido, la comunidad y IAFarma en un único sitio. Elige tu plaza al precio de lanzamiento y consérvalo mientras mantengas la suscripción activa."
@@ -345,6 +347,7 @@ export default function Precios() {
               hideCta={showTeamMemberBanner}
               currentPlan={currentPlan}
               isFounder={isFounder}
+              canDowngrade={isTeamOwner}
             />
           ))}
         </div>
@@ -498,17 +501,22 @@ export interface PlanCardProps {
   currentPlan?: PlanId | null;
   /** El usuario ya paga con plaza fundador: el precio de lanzamiento se le recuerda, no se le vende. */
   isFounder?: boolean;
+  /** Titular de un plan Equipo: puede bajar a Plus desde aquí (los miembros del equipo no). */
+  canDowngrade?: boolean;
 }
 
 /** Exportada para reutilizarla tal cual en la landing de la Rebotica (mismos precios, cero duplicación). */
-export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hideCta, currentPlan, isFounder }: PlanCardProps) {
+export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hideCta, currentPlan, isFounder, canDowngrade }: PlanCardProps) {
   const isFree = plan.id === "gratis";
   const isHighlighted = Boolean(plan.highlight);
   const period = billing === "yearly" ? "/año" : "/mes";
   // Estado del CTA respecto al plan que ya paga el usuario.
   const hasPaidPlan = currentPlan === "plus" || currentPlan === "equipo";
   const isCurrent = hasPaidPlan && currentPlan === plan.id;
-  const includedInCurrent = currentPlan === "equipo" && plan.id === "plus";
+  // Bajar de Equipo a Plus solo lo puede el titular de la suscripción: los
+  // miembros del equipo también tienen rol equipo, pero no pagan nada que cambiar.
+  const isDowngrade = currentPlan === "equipo" && plan.id === "plus" && Boolean(canDowngrade);
+  const includedInCurrent = currentPlan === "equipo" && plan.id === "plus" && !isDowngrade;
   const isUpgrade = currentPlan === "plus" && plan.id === "equipo";
   const showCta = !hideCta && !(isFree && hasPaidPlan);
 
@@ -619,6 +627,8 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : isUpgrade ? (
                     "Pasar a Equipo"
+                  ) : isDowngrade ? (
+                    "Pasar a Plus"
                   ) : (
                     plan.cta
                   )}
@@ -626,6 +636,11 @@ export function PlanCard({ plan, billing, launchActive, onSubscribe, loading, hi
                 {isUpgrade && (
                   <p className="mt-2 text-center text-xs text-muted-foreground">
                     Solo pagas la diferencia proporcional del periodo en curso. Confirmas el importe exacto en Stripe.
+                  </p>
+                )}
+                {isDowngrade && (
+                  <p className="mt-2 text-center text-xs text-muted-foreground">
+                    Te quedas con una sola cuenta, la tuya: el resto del equipo pierde el acceso. Si tienes precio de fundador, lo conservas. Confirmas el cambio en Stripe.
                   </p>
                 )}
               </>
