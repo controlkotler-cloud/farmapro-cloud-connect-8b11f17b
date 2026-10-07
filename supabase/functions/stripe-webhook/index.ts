@@ -411,6 +411,14 @@ async function handleInvoicePaid(
     });
     return;
   }
+
+  // Referidos: nunca debe bloquear Holded ni provocar reintentos de Stripe.
+  try {
+    await processReferralRewards(stripe, supabase, userId, subscriptionId);
+  } catch (e) {
+    log('referral processing failed', { userId, subscriptionId, err: (e as Error).message });
+  }
+
   const email = invoice.customer_email
     ?? invoice.customer_address?.line1  // fallback (raro)
     ?? '';
