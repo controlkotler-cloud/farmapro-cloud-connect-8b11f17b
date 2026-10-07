@@ -161,6 +161,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             ...(utms?.utm_term ? { utm_term: utms.utm_term } : {}),
             ...(utms?.utm_content ? { utm_content: utms.utm_content } : {}),
             ...(utms?.landing_page ? { landing_page: utms.landing_page } : {}),
+            // Identificadores de clic de anuncios (Google Ads, Meta, TikTok):
+            // quedan en raw_user_meta_data para cruzar altas con campañas.
+            ...(utms?.gclid ? { gclid: utms.gclid } : {}),
+            ...(utms?.fbclid ? { fbclid: utms.fbclid } : {}),
+            ...(utms?.ttclid ? { ttclid: utms.ttclid } : {}),
           },
         },
       });

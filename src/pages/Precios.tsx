@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { useLaunchStatus } from "@/hooks/useLaunchStatus";
+import { trackBeginCheckout } from "@/lib/analytics";
 import {
   PLANS,
   LAUNCH,
@@ -148,6 +149,9 @@ export default function Precios() {
         description:
           "Te llevamos a la pantalla segura de Stripe para confirmar el cambio. Verás el importe exacto antes de aceptar.",
       });
+    } else {
+      // Alta nueva: el servidor dice si le toca precio fundador (data.founder).
+      trackBeginCheckout({ plan: planId, cycle: billing, founder: data.founder === true });
     }
 
     window.location.href = data.url;

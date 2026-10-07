@@ -10,6 +10,8 @@
 //    vacías, todo queda desactivado sin romper nada.
 // =====================================================================
 
+import { PLANS, type PlanId } from '@/lib/plans';
+
 export const ANALYTICS_CONFIG = {
   /** ID del píxel de Meta (Events Manager → Orígenes de datos). Ej: '123456789012345'. */
   metaPixelId: '',
@@ -28,6 +30,10 @@ const UTM_FIRST_KEY = 'farmapro_utm_first';
 const UTM_LAST_KEY = 'farmapro_utm_last';
 
 const UTM_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const;
+/** Identificadores de clic de anuncios (Google Ads, Meta, TikTok). */
+const CLICK_ID_PARAMS = ['gclid', 'fbclid', 'ttclid'] as const;
+const CHECKOUT_PENDING_KEY = 'farmapro_checkout_pending';
+const PURCHASES_SENT_KEY = 'farmapro_purchases_sent';
 
 export interface StoredUtms {
   utm_source?: string;
@@ -35,6 +41,9 @@ export interface StoredUtms {
   utm_campaign?: string;
   utm_term?: string;
   utm_content?: string;
+  gclid?: string;
+  fbclid?: string;
+  ttclid?: string;
   landing_page?: string;
   captured_at?: string;
 }
@@ -136,20 +145,21 @@ export const applyConsent = (prefs?: ConsentPrefs) => {
 };
 
 /**
- * Captura los UTM de la URL actual. Primera visita → farmapro_utm_first
- * (no se sobreescribe: atribución first-touch); cada visita con UTMs
- * actualiza farmapro_utm_last. Es medición de primera parte: no depende
- * del consentimiento de cookies de terceros.
+ * Captura los UTM y los identificadores de clic (gclid, fbclid, ttclid) de la
+ * URL actual. Primera visita → farmapro_utm_first (no se sobreescribe:
+ * atribución first-touch); cada visita con parámetros actualiza
+ * farmapro_utm_last. Es medición de primera parte: no depende del
+ * consentimiento de cookies de terceros.
  */
 export const captureUtms = () => {
   try {
     const params = new URLSearchParams(window.location.search);
     const utms: StoredUtms = {};
     let hasAny = false;
-    for (const key of UTM_PARAMS) {
+    for (const key of [...UTM_PARAMS, ...CLICK_ID_PARAMS]) {
       const value = params.get(key)?.trim();
       if (value) {
-        utms[key] = value.slice(0, 150);
+        utms[key] = value.slice(0, key.endsWith('clid') ? 300 : 150);
         hasAny = true;
       }
     }
@@ -165,11 +175,27 @@ export const captureUtms = () => {
   }
 };
 
-/** UTMs guardados para adjuntar al registro (first-touch; si no hay, last-touch). */
+/**
+ * UTMs guardados para adjuntar al registro (first-touch; si no hay, last-touch).
+ * Los identificadores de clic se toman del primer contacto y, si éste no
+ * traía ninguno, del último: el clic de anuncio que importa para atribuir
+ * es el que trajo al usuario, aunque no fuera su primera visita.
+ */
 export const getStoredUtms = (): StoredUtms | null => {
   try {
-    const raw = localStorage.getItem(UTM_FIRST_KEY) ?? localStorage.getItem(UTM_LAST_KEY);
-    return raw ? (JSON.parse(raw) as StoredUtms) : null;
+    const raw = (key: string): StoredUtms | null => {
+      const v = localStorage.getItem(key);
+      return v ? (JSON.parse(v) as StoredUtms) : null;
+    };
+    const first = raw(UTM_FIRST_KEY);
+    const last = raw(UTM_LAST_KEY);
+    const base = first ?? last;
+    if (!base) return null;
+    const merged: StoredUtms = { ...base };
+    for (const key of CLICK_ID_PARAMS) {
+      if (!merged[key] && last?.[key]) merged[key] = last[key];
+    }
+    return merged;
   } catch {
     return null;
   }
@@ -185,19 +211,147 @@ export const trackPageView = (path: string) => {
   }
 };
 
-/** Registro completado: el evento de conversión del lanzamiento. */
-export const trackRegistration = () => {
-  if (ga4Loaded && window.gtag) {
-    window.gtag('event', 'sign_up', { method: 'email' });
+/**
+ * Evento GA4. Sin consentimiento de análisis no se envía nada. Si el
+ * consentimiento ya estaba dado pero GA aún no ha arrancado (evento disparado
+ * antes del efecto de arranque de CookieManager), se arranca aquí:
+ * loadGa4 es idempotente y gtag encola en dataLayer.
+ */
+export const trackEvent = (name: string, params?: Record<string, unknown>) => {
+  if (!ANALYTICS_CONFIG.ga4MeasurementId) return;
+  if (!ga4Loaded) {
+    if (!readConsent().analytics) return;
+    loadGa4();
   }
+  window.gtag?.('event', name, params ?? {});
+};
+
+/** Valor de un parámetro de evento: GA4 corta a 100 caracteres. */
+const cap = (v?: string) => (v ? v.slice(0, 100) : undefined);
+
+/** Registro completado: el evento de conversión del lanzamiento. */
+export const trackRegistration = (method = 'email') => {
+  const u = getStoredUtms();
+  trackEvent('sign_up', {
+    method,
+    first_utm_source: cap(u?.utm_source),
+    first_utm_medium: cap(u?.utm_medium),
+    first_utm_campaign: cap(u?.utm_campaign),
+    first_utm_term: cap(u?.utm_term),
+    first_utm_content: cap(u?.utm_content),
+    first_landing_page: cap(u?.landing_page),
+  });
   if (pixelLoaded && window.fbq) {
     window.fbq('track', 'CompleteRegistration');
   }
 };
 
-/** Evento genérico (GA4). */
-export const trackEvent = (name: string, params?: Record<string, unknown>) => {
-  if (ga4Loaded && window.gtag) {
-    window.gtag('event', name, params ?? {});
+// ---------------------------------------------------------------------
+// Embudo de pago: begin_checkout → purchase (suscripciones Plus / Equipo).
+// El importe real lo decide el servidor (precio fundador o regular); aquí se
+// usa el precio de PLANS que corresponde, con IVA incluido igual que Precios.
+// ---------------------------------------------------------------------
+
+export type CheckoutCycle = 'monthly' | 'yearly';
+
+interface PendingCheckout {
+  plan: PlanId;
+  cycle: CheckoutCycle;
+  value: number;
+  founder: boolean;
+  trial: boolean;
+  ts: number;
+}
+
+const planValue = (plan: PlanId, cycle: CheckoutCycle, founder: boolean): number => {
+  const p = PLANS.find((x) => x.id === plan);
+  if (!p) return 0;
+  if (cycle === 'yearly') return founder ? p.priceYearlyLaunch ?? p.priceMonthly * 10 : p.priceMonthly * 10;
+  return founder ? p.priceMonthlyLaunch ?? p.priceMonthly : p.priceMonthly;
+};
+
+const planItem = (plan: PlanId, cycle: CheckoutCycle, value: number) => {
+  const p = PLANS.find((x) => x.id === plan);
+  return {
+    item_id: `${plan}_${cycle}`,
+    item_name: p?.name ?? plan,
+    item_category: 'suscripcion',
+    item_variant: cycle,
+    price: value,
+    quantity: 1,
+  };
+};
+
+/**
+ * El usuario abre el checkout de Stripe de un plan (alta nueva). Guarda el
+ * contexto para poder informar `purchase` al volver (la URL de retorno solo
+ * trae el id de sesión). `trial` = acceso concedido: hoy no se cobra nada.
+ */
+export const trackBeginCheckout = (opts: {
+  plan: PlanId;
+  cycle: CheckoutCycle;
+  founder: boolean;
+  trial?: boolean;
+}) => {
+  const value = planValue(opts.plan, opts.cycle, opts.founder);
+  const pending: PendingCheckout = {
+    plan: opts.plan,
+    cycle: opts.cycle,
+    value,
+    founder: opts.founder,
+    trial: opts.trial === true,
+    ts: Date.now(),
+  };
+  try {
+    localStorage.setItem(CHECKOUT_PENDING_KEY, JSON.stringify(pending));
+  } catch {
+    /* almacenamiento no disponible: el purchase saldrá sin plan */
   }
+  trackEvent('begin_checkout', {
+    currency: 'EUR',
+    value,
+    items: [planItem(opts.plan, opts.cycle, value)],
+    // El navegador va a salir hacia Stripe justo después: sendBeacon.
+    transport_type: 'beacon',
+  });
+};
+
+/**
+ * Vuelta de Stripe con éxito (?checkout=success&session_id=...). Informa
+ * `purchase` una sola vez por sesión de Stripe (se recuerda en localStorage,
+ * así que recargar o volver atrás no lo duplica). Si el alta fue con acceso
+ * concedido (hoy no se cobra), informa `start_trial` y NO `purchase`, para
+ * que los ingresos de GA4 no cuenten dinero que aún no se ha cobrado.
+ */
+export const trackPurchaseReturn = (sessionId: string | null) => {
+  if (!sessionId) return;
+  try {
+    const sent: string[] = JSON.parse(localStorage.getItem(PURCHASES_SENT_KEY) ?? '[]');
+    if (sent.includes(sessionId)) return;
+    localStorage.setItem(PURCHASES_SENT_KEY, JSON.stringify([...sent, sessionId].slice(-20)));
+  } catch {
+    /* sin almacenamiento no se puede deduplicar: se informa igualmente */
+  }
+
+  let pending: PendingCheckout | null = null;
+  try {
+    const raw = localStorage.getItem(CHECKOUT_PENDING_KEY);
+    pending = raw ? (JSON.parse(raw) as PendingCheckout) : null;
+    localStorage.removeItem(CHECKOUT_PENDING_KEY);
+  } catch {
+    pending = null;
+  }
+
+  const base = { transaction_id: sessionId, currency: 'EUR' };
+  if (!pending) {
+    // Sin contexto (almacenamiento borrado, otro navegador): se cuenta la
+    // conversión sin plan ni importe.
+    trackEvent('purchase', base);
+    return;
+  }
+  trackEvent(pending.trial ? 'start_trial' : 'purchase', {
+    ...base,
+    value: pending.value,
+    items: [planItem(pending.plan, pending.cycle, pending.value)],
+  });
 };

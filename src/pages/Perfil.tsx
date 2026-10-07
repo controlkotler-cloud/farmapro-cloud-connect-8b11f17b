@@ -16,6 +16,7 @@ import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RotateCcw } from 'lucide-react';
+import { trackPurchaseReturn } from '@/lib/analytics';
 
 export default function Perfil() {
   const { profile, user, isAdmin, reloadProfile } = useAuth();
@@ -47,6 +48,8 @@ export default function Perfil() {
     const checkout = searchParams.get('checkout');
     const cambio = searchParams.get('cambio');
     if (checkout !== 'success' && cambio !== 'ok') return;
+    // Alta nueva cobrada o con prueba: conversión de pago (una sola vez por sesión de Stripe).
+    if (checkout === 'success') trackPurchaseReturn(searchParams.get('session_id'));
     if (cambio === 'ok') {
       toast.success('Cambio de plan confirmado', {
         description: 'Puede tardar unos segundos en reflejarse aquí. Recibirás la factura por email.',

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { trackBeginCheckout } from '@/lib/analytics';
 
 // ---------------------------------------------------------------------------
 // Activación de una concesión (portal_grants). Es la página a la que apunta el
@@ -161,6 +162,13 @@ const Activar = () => {
       });
       return;
     }
+    // Con la cortesía vigente (más de 48 h, como exige create-checkout) hoy no
+    // se cobra: al volver cuenta como start_trial, no como purchase.
+    const planActivado = concesion?.plan === 'plus' ? 'plus' : 'equipo';
+    const trial =
+      !!concesion?.hasta &&
+      new Date(`${concesion.hasta}T23:59:59`).getTime() - Date.now() >= 48 * 3600 * 1000;
+    trackBeginCheckout({ plan: planActivado, cycle: 'monthly', founder: data.founder === true, trial });
     window.location.href = data.url;
   };
 
