@@ -2,6 +2,13 @@
 // check-subscription: valida la suscripción del usuario contra Stripe
 // mapeando por Price ID (no por importes). Roles PROTEGIDOS (admin)
 // NUNCA se degradan aquí. En modo beta se salta Stripe.
+//
+// Esta función solo SUBE o confirma un plan; nunca baja a nadie (07-10-2026).
+// Las bajas son de stripe-webhook (customer.subscription.updated/deleted) y
+// del fin de cada concesión. Motivo: la prueba gratis no tiene suscripción en
+// Stripe y las concesiones (portal_grants) son suscripciones en `trialing`;
+// antes, sin suscripción `active`, se escribía freemium/canceled y un regalado
+// activado se quedaba sin su plan.
 // =====================================================================
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -12,6 +19,14 @@ import { lookupPrice, PROTECTED_ROLES } from "../_shared/stripePrices.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+/** Estados de Stripe que dan acceso. `trialing` incluye las concesiones. */
+const LIVE_STATUSES = ['active', 'trialing', 'past_due'];
+
+/** Orden de los roles para no bajar nunca: un plan más alto no se pisa con uno menor. */
+const ROLE_RANK: Record<string, number> = {
+  freemium: 0, estudiante: 0, plus: 1, premium: 1, profesional: 1, equipo: 2, admin: 3,
 };
 
 const log = (step: string, details?: unknown) => {
@@ -38,37 +53,36 @@ serve(async (req) => {
     // Modo beta: no consultamos Stripe.
     const { data: modeRow } = await supabase.from('system_settings')
       .select('value').eq('key', 'validation_mode').maybeSingle();
-    const validationMode = modeRow?.value ? JSON.parse(modeRow.value) : 'beta';
+    const validationMode = readMode(modeRow?.value);
 
     const { data: profile } = await supabase.from('profiles')
       .select('subscription_role, subscription_status').eq('id', user.id).maybeSingle();
+    const currentRole = profile?.subscription_role ?? 'freemium';
+
+    // Lo que hay en el perfil, sin tocarlo.
+    const asIs = (extra: Record<string, unknown> = {}) => json({
+      subscribed: currentRole !== 'freemium',
+      subscription_role: currentRole,
+      subscription_status: profile?.subscription_status ?? null,
+      ...extra,
+    });
 
     if (validationMode === 'beta') {
       log('beta mode, returning profile state');
-      return json({
-        subscribed: (profile?.subscription_role ?? 'freemium') !== 'freemium',
-        subscription_role: profile?.subscription_role ?? 'freemium',
-        subscription_status: profile?.subscription_status ?? 'trialing',
-        mode: 'beta',
-      });
+      return asIs({ mode: 'beta' });
     }
 
     // Roles protegidos: no tocar.
-    if (profile?.subscription_role && (PROTECTED_ROLES as readonly string[]).includes(profile.subscription_role)) {
-      return json({
-        subscribed: true,
-        subscription_role: profile.subscription_role,
-        subscription_status: profile.subscription_status,
-        protected: true,
-      });
+    if ((PROTECTED_ROLES as readonly string[]).includes(currentRole)) {
+      return asIs({ subscribed: true, protected: true });
     }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     // Guard miembro de equipo: si el usuario es miembro activo de un equipo
-    // activo, su rol correcto es 'equipo' (paga el titular). Nunca se degrada
-    // aquí, aunque no tenga stripe_customer_id ni suscripción propia.
+    // activo, su rol correcto es 'equipo' (paga el titular), aunque no tenga
+    // stripe_customer_id ni suscripción propia.
     const { data: teamMembership } = await supabase
       .from('team_members')
       .select('team_id, team_subscriptions!inner(status)')
@@ -77,9 +91,16 @@ serve(async (req) => {
       .eq('team_subscriptions.status', 'active')
       .maybeSingle();
 
-    if (customers.data.length === 0) {
-      if (teamMembership) {
-        log('team member without own stripe customer, keeping equipo role');
+    const customerId = customers.data[0]?.id ?? null;
+    let sub: Stripe.Subscription | undefined;
+    if (customerId) {
+      const subs = await stripe.subscriptions.list({ customer: customerId, status: 'all', limit: 10 });
+      sub = subs.data.find((s) => LIVE_STATUSES.includes(s.status));
+    }
+
+    if (!sub) {
+      if (teamMembership && (ROLE_RANK[currentRole] ?? 0) < ROLE_RANK.equipo) {
+        log('team member without own live subscription, setting equipo role');
         await supabase.from('profiles').update({
           subscription_role: 'equipo',
           subscription_status: 'active',
@@ -87,45 +108,21 @@ serve(async (req) => {
         }).eq('id', user.id);
         return json({ subscribed: true, subscription_role: 'equipo', subscription_status: 'active', team_member: true });
       }
-      await supabase.from('profiles').update({
-        subscription_role: 'freemium',
-        subscription_status: 'trialing',
-        updated_at: new Date().toISOString(),
-      }).eq('id', user.id);
-      return json({ subscribed: false, subscription_role: 'freemium', subscription_status: 'trialing' });
+      // Sin suscripción viva en Stripe: no se baja a nadie (ver cabecera).
+      log('no live stripe subscription, profile left as is', { role: currentRole });
+      return asIs({ stripe: customerId ? 'no_live_subscription' : 'no_customer' });
     }
 
-    const customerId = customers.data[0].id;
-    const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 });
-
-    if (subs.data.length === 0) {
-      if (teamMembership) {
-        log('team member without own active subscription, keeping equipo role');
-        await supabase.from('profiles').update({
-          subscription_role: 'equipo',
-          subscription_status: 'active',
-          stripe_customer_id: customerId,
-          updated_at: new Date().toISOString(),
-        }).eq('id', user.id);
-        return json({ subscribed: true, subscription_role: 'equipo', subscription_status: 'active', team_member: true });
-      }
-      await supabase.from('profiles').update({
-        subscription_role: 'freemium',
-        subscription_status: 'canceled',
-        stripe_customer_id: customerId,
-        updated_at: new Date().toISOString(),
-      }).eq('id', user.id);
-      return json({ subscribed: false, subscription_role: 'freemium', subscription_status: 'canceled' });
-    }
-
-    const sub = subs.data[0];
     const priceId = sub.items.data[0].price.id;
     const priceInfo = lookupPrice(priceId);
-    const role = priceInfo?.plan ?? profile?.subscription_role ?? 'freemium';
+    const stripeRole = priceInfo?.plan ?? currentRole;
+    const role = (ROLE_RANK[currentRole] ?? 0) > (ROLE_RANK[stripeRole] ?? 0) ? currentRole : stripeRole;
+    // Mismos valores que toDbStatus() de stripe-webhook para estos tres estados.
+    const status = sub.status;
 
     await supabase.from('profiles').update({
       subscription_role: role,
-      subscription_status: 'active',
+      subscription_status: status,
       stripe_customer_id: customerId,
       updated_at: new Date().toISOString(),
     }).eq('id', user.id);
@@ -134,11 +131,11 @@ serve(async (req) => {
       user_id: user.id,
       stripe_customer_id: customerId,
       stripe_subscription_id: sub.id,
-      plan_name: role,
-      plan_id: role,
+      plan_name: stripeRole,
+      plan_id: stripeRole,
       cycle: priceInfo?.cycle ?? 'monthly',
       is_founder: priceInfo?.founder ?? false,
-      status: 'active',
+      status: sub.status,
       current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
       current_period_end:   new Date(sub.current_period_end * 1000).toISOString(),
       updated_at: new Date().toISOString(),
@@ -147,7 +144,7 @@ serve(async (req) => {
     return json({
       subscribed: true,
       subscription_role: role,
-      subscription_status: 'active',
+      subscription_status: status,
       current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
     });
   } catch (err) {
@@ -156,6 +153,21 @@ serve(async (req) => {
     return json({ error: msg }, 500);
   }
 });
+
+/**
+ * `system_settings.value` es jsonb y supabase-js lo entrega ya parseado
+ * ('beta' | 'active'). Antes se hacía JSON.parse sobre ese texto y fallaba
+ * en los dos modos. Se acepta también un texto JSON por si se guarda así.
+ */
+function readMode(raw: unknown): string {
+  if (typeof raw !== 'string') return 'beta';
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'string' ? parsed : raw;
+  } catch {
+    return raw;
+  }
+}
 
 function json(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
