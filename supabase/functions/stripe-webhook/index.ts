@@ -159,7 +159,7 @@ serve(async (req) => {
 
 async function handleCheckoutCompleted(
   stripe: Stripe,
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   session: Stripe.Checkout.Session,
 ) {
   // Rama PACKS de imágenes (pago único). No mezclamos con suscripción.
@@ -310,7 +310,7 @@ async function handleCheckoutCompleted(
 }
 
 async function handleInvoicePaymentFailed(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   invoice: Stripe.Invoice,
 ) {
   const subscriptionId = invoice.subscription as string | null;
@@ -362,7 +362,7 @@ async function handleInvoicePaymentFailed(
 
 async function handleInvoicePaid(
   stripe: Stripe,
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   invoice: Stripe.Invoice,
 ) {
   // Solo facturamos suscripciones aquí (los packs se facturan en checkout.session.completed).
@@ -456,7 +456,7 @@ async function handleInvoicePaid(
 
 async function handleSubscriptionChange(
   stripe: Stripe,
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   sub: Stripe.Subscription,
   eventType: string,
 ) {
@@ -499,7 +499,7 @@ async function handleSubscriptionChange(
   // Cargar perfil para respetar admin.
   const { data: profile } = await supabase.from('profiles')
     .select('subscription_role, plan_comp_until').eq('id', row.user_id).maybeSingle();
-  const currentRole = profile?.subscription_role;
+  const currentRole = (profile as any)?.subscription_role as string | undefined;
 
   if (currentRole && (PROTECTED_ROLES as readonly string[]).includes(currentRole)) {
     log('skipping downgrade for protected role', { userId: row.user_id, role: currentRole });
