@@ -3857,6 +3857,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      portal_sync_trial_end: { Args: { p_user: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
