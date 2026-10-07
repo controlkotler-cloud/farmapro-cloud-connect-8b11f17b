@@ -616,3 +616,140 @@ function toDbStatus(stripeStatus: string): string {
   }
 }
 
+
+// =====================================================================
+// Referidos del portal (07-10-2026). Ver docs/spec-referidos-portal-2026-10-07.md.
+// =====================================================================
+const REFERRAL_COUPON = 'REFERIDO-1MES';
+const REFERRAL_TRIAL_DAYS = 30;
+
+async function processReferralRewards(
+  stripe: Stripe,
+  supabase: any,
+  userId: string | null,
+  subscriptionId: string | null,
+) {
+  if (!userId) return;
+
+  // 1. Primera factura pagada de la invitada (atómico e idempotente).
+  const { data: marked, error: markErr } = await supabase
+    .from('portal_referrals')
+    .update({ paid_at: new Date().toISOString() })
+    .eq('referred_id', userId)
+    .is('paid_at', null)
+    .eq('reward_status', 'pendiente')
+    .select('id, referrer_id');
+  if (markErr) throw new Error(`mark paid failed: ${markErr.message}`);
+  for (const row of (marked ?? []) as Array<{ id: string; referrer_id: string }>) {
+    log('referral paid', { referralId: row.id, referredId: userId, referrerId: row.referrer_id, subscriptionId });
+    await rewardReferrer(stripe, supabase, row.referrer_id, row.id);
+  }
+
+  // 2. Premio pendiente más antiguo de quien paga ahora (uno por factura).
+  const { data: pending, error: pendErr } = await supabase
+    .from('portal_referrals')
+    .select('id')
+    .eq('referrer_id', userId)
+    .eq('reward_status', 'pendiente')
+    .not('paid_at', 'is', null)
+    .order('paid_at', { ascending: true })
+    .limit(1);
+  if (pendErr) throw new Error(`pending lookup failed: ${pendErr.message}`);
+  const oldest = (pending ?? [])[0] as { id: string } | undefined;
+  if (oldest) await rewardReferrer(stripe, supabase, userId, oldest.id);
+}
+
+async function rewardReferrer(stripe: Stripe, supabase: any, referrerId: string, referralId: string) {
+  // a. Cupo anual.
+  const { data: quota, error: quotaErr } = await supabase.rpc('portal_referral_quota_left', { p_referrer: referrerId });
+  if (quotaErr) throw new Error(`quota rpc failed: ${quotaErr.message}`);
+  if (Number(quota ?? 0) <= 0) {
+    await supabase.from('portal_referrals')
+      .update({ reward_status: 'descartado', motivo_descarte: 'tope_anual' })
+      .eq('id', referralId);
+    log('referral quota reached', { referralId, referrerId });
+    return;
+  }
+
+  // b. Suscripción que recibe el premio.
+  let subId: string | null = null;
+  const { data: ownSub } = await supabase
+    .from('subscriptions')
+    .select('stripe_subscription_id')
+    .eq('user_id', referrerId)
+    .in('status', ['active', 'trialing'])
+    .order('current_period_end', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  subId = (ownSub?.stripe_subscription_id as string | null) ?? null;
+
+  if (!subId) {
+    const { data: member } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .eq('user_id', referrerId)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle();
+    if (member?.team_id) {
+      const { data: team } = await supabase
+        .from('team_subscriptions')
+        .select('stripe_subscription_id, status')
+        .eq('id', member.team_id)
+        .maybeSingle();
+      if (team?.status === 'active' && team.stripe_subscription_id) subId = team.stripe_subscription_id as string;
+    }
+  }
+
+  // c. Cupón sobre la suscripción.
+  if (subId) {
+    const sub = await stripe.subscriptions.retrieve(subId);
+    const anySub = sub as any;
+    const hasDiscount = !!anySub.discount || (Array.isArray(anySub.discounts) && anySub.discounts.length > 0);
+    if (hasDiscount) {
+      log('referral reward pending', { referralId, referrerId, subId, reason: 'subscription_has_discount' });
+      return;
+    }
+    try {
+      await stripe.coupons.retrieve(REFERRAL_COUPON);
+    } catch (e) {
+      if ((e as any)?.code === 'resource_missing') {
+        await stripe.coupons.create({
+          id: REFERRAL_COUPON, percent_off: 100, duration: 'once', name: 'Invitación farmapro: 1 mes gratis',
+        });
+      } else {
+        throw e;
+      }
+    }
+    await stripe.subscriptions.update(subId, { coupon: REFERRAL_COUPON });
+    await supabase.from('portal_referrals').update({
+      reward_status: 'aplicado', reward_kind: 'cupon', reward_ref: subId, rewarded_at: new Date().toISOString(),
+    }).eq('id', referralId);
+    log('referral reward applied', { referralId, referrerId, kind: 'cupon', subId });
+    return;
+  }
+
+  // d. Prueba gratuita vigente: +30 días.
+  const { data: authData } = await supabase.auth.admin.getUserById(referrerId);
+  const createdAt = authData?.user?.created_at as string | undefined;
+  const { data: prof } = await supabase.from('profiles').select('trial_ends_at').eq('id', referrerId).maybeSingle();
+  if (createdAt) {
+    const trialEnd = Math.max(
+      new Date(createdAt).getTime() + 30 * 86_400_000,
+      prof?.trial_ends_at ? new Date(prof.trial_ends_at).getTime() : 0,
+    );
+    if (trialEnd > Date.now()) {
+      const newEnd = new Date(trialEnd + REFERRAL_TRIAL_DAYS * 86_400_000).toISOString();
+      const { error: profErr } = await supabase.from('profiles').update({ trial_ends_at: newEnd }).eq('id', referrerId);
+      if (profErr) throw new Error(`trial extend failed: ${profErr.message}`);
+      await supabase.from('portal_referrals').update({
+        reward_status: 'aplicado', reward_kind: 'prueba', reward_ref: newEnd, rewarded_at: new Date().toISOString(),
+      }).eq('id', referralId);
+      log('referral reward applied', { referralId, referrerId, kind: 'prueba', newEnd });
+      return;
+    }
+  }
+
+  // e. Queda pendiente hasta que R pague.
+  log('referral reward pending', { referralId, referrerId, reason: 'no_subscription_no_trial' });
+}
