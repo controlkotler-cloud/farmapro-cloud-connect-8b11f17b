@@ -355,7 +355,7 @@ async function handleInvoicePaymentFailed(
       message: 'No hemos podido cobrar tu suscripción. Actualiza tu método de pago para no perder el acceso.',
       target_url: '/perfil?tab=facturacion',
       is_read: false,
-    }).then(({ error }) => { if (error) log('notif insert err', { err: error.message }); });
+    }).then(({ error }: any) => { if (error) log('notif insert err', { err: error.message }); });
   }
   log('invoice.payment_failed processed', { subscriptionId });
 }
