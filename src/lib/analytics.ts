@@ -163,6 +163,17 @@ export const captureUtms = () => {
         hasAny = true;
       }
     }
+    // Los enlaces internos de farmapro.es llevan ?ref=<punto> en vez de UTM
+    // (para no contar en GA4 como campaña el tráfico entre nuestros dominios).
+    // Sin utm_source propio, el ref se guarda como origen farmapro-web y el
+    // punto del enlace como medio. Con UTM explícitos (campañas, Radiografía)
+    // no se toca nada.
+    const ref = params.get('ref')?.trim();
+    if (ref && !utms.utm_source && /^[\w-]{1,60}$/.test(ref)) {
+      utms.utm_source = 'farmapro-web';
+      if (!utms.utm_medium) utms.utm_medium = ref;
+      hasAny = true;
+    }
     if (!hasAny) return;
     utms.landing_page = window.location.pathname;
     utms.captured_at = new Date().toISOString();

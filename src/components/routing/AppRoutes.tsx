@@ -40,6 +40,7 @@ import MiFarmacia from "@/pages/MiFarmacia";
 import CourseView from "@/pages/CourseView";
 import CourseQuizView from "@/pages/CourseQuizView";
 import AsistenteCreativo from "@/pages/AsistenteCreativo";
+import RadiografiaGoogle from "@/pages/RadiografiaGoogle";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsuarios from "@/pages/admin/AdminUsuarios";
 import AdminPromociones from "@/pages/admin/AdminPromociones";
@@ -219,6 +220,12 @@ export const AppRoutes = () => {
       <Route path="/asistente-creativo" element={
         <ProtectedRoute>
           <AsistenteCreativo />
+        </ProtectedRoute>
+      } />
+      {/* Radiografía de la ficha de Google: informe completo de la herramienta de farmapro.es */}
+      <Route path="/radiografia-google" element={
+        <ProtectedRoute>
+          <RadiografiaGoogle />
         </ProtectedRoute>
       } />
       

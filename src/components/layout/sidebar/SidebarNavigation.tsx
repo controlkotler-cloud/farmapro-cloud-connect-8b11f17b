@@ -11,6 +11,7 @@ import {
   Calendar,
   Tag,
   Bot,
+  MapPin,
   Store,
   Archive,
   Sparkles,
@@ -69,6 +70,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { name: 'Recursos', icon: FileText, path: '/recursos' },
       { name: 'IAFarma', icon: Bot, path: '/asistente-creativo' },
+      { name: 'Radiografía de tu Google', icon: MapPin, path: '/radiografia-google' },
       { name: 'Empleo', icon: Briefcase, path: '/empleo' },
       { name: 'Farmacias', icon: Building, path: '/farmacias' },
       { name: 'Promociones', icon: Tag, path: '/promociones' },

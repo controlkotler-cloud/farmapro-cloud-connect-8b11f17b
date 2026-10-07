@@ -1880,6 +1880,36 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_radiografias: {
+        Row: {
+          cid: string
+          created_at: string
+          id: string
+          payload: Json
+          score: number | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          cid: string
+          created_at?: string
+          id?: string
+          payload: Json
+          score?: number | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          cid?: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          score?: number | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       portal_trial_notice_log: {
         Row: {
           attempts: number
