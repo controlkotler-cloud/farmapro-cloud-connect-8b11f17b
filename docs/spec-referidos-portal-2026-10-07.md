@@ -1,6 +1,6 @@
 # Referidos del portal: especificación (07-10-2026)
 
-Estado: **redactada, sin construir.** Se construye cuando Francesc decida F10 (19-10) o antes si lo pide.
+Estado (07-10-2026): **SQL aplicado en producción** (commit `3b76b91`) y **frontend en `main`** (`a4a25fb`, sin publicar). Falta la edge `stripe-webhook` (petición en `docs/peticion-lovable-referidos-webhook.md`), publicar y la prueba E2E.
 Origen: decisión del 29-09 («invitas a otra farmacia → 1 mes gratis para las dos») y propuesta 1 de
 `impulso/00-estrategia/captacion-2026-10/F10-canal-externo.md`. Verificado el 07-10 que no existe nada:
 ni tabla en la BD ni código en el repo (solo las invitaciones de equipo, `/invitation` y `manage-team`).
@@ -76,7 +76,7 @@ En `invoice.paid`, si `amount_paid > 0` y es la primera factura pagada de esa cu
 3. Premia a quien invita:
    - **Si tiene una suscripción activa en Stripe:** aplica a su suscripción el cupón `REFERIDO-1MES` (100 %, `duration: once`) con `stripe.subscriptions.update(sub, { discounts: [{ coupon }] })`. Si ya tiene un descuento puesto, el premio no se pierde: queda en `pendiente` para la siguiente factura.
    - **Si sigue en prueba:** suma 30 días a `trial_ends_at`.
-   - **Si no tiene suscripción ni prueba vigente:** queda `pendiente`. Se aplica en su `checkout.session.completed` como `subscription_data.trial_end` + 30 días.
+   - **Si no tiene suscripción ni prueba vigente:** queda `pendiente` con `paid_at` puesto. Se cobra en el siguiente `invoice.paid` de quien invita (cambio del 07-10: no se toca `create-checkout`, y sirve también para el caso «ya tenía descuento»).
 4. Registra `reward_kind`, `reward_ref` y `reward_status='aplicado'`.
 5. Respeta la idempotencia que ya da `stripe_events`.
 
