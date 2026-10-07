@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Crown, User, CreditCard, Bell, Shield, Award } from 'lucide-react';
+import { Crown, User, CreditCard, Bell, Shield, Award, Gift } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PersonalInfoTab } from '@/components/profile/PersonalInfoTab';
 import { PlanTab } from '@/components/profile/PlanTab';
@@ -12,6 +12,7 @@ import { BillingTab } from '@/components/profile/BillingTab';
 import { SecurityTab } from '@/components/profile/SecurityTab';
 import { NotificationsTab } from '@/components/profile/NotificationsTab';
 import { BadgesTab } from '@/components/profile/BadgesTab';
+import { InvitaTab } from '@/components/profile/InvitaTab';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,7 +24,7 @@ export default function Perfil() {
   const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
-  const VALID_TABS = ['personal', 'plan', 'badges', 'billing', 'security', 'notifications'];
+  const VALID_TABS = ['personal', 'plan', 'badges', 'billing', 'security', 'notifications', 'invita'];
   const tabFromUrl = searchParams.get('tab') ?? '';
   const [selectedTab, setSelectedTab] = useState(
     VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'personal',
@@ -91,6 +92,7 @@ export default function Perfil() {
     ...(hideBilling ? [] : [{ value: 'billing', label: 'Facturación', icon: CreditCard }]),
     { value: 'security', label: 'Seguridad', icon: Shield },
     { value: 'notifications', label: 'Notificaciones', icon: Bell },
+    { value: 'invita', label: 'Invita', icon: Gift },
   ];
 
   return (
@@ -182,6 +184,10 @@ export default function Perfil() {
 
           <TabsContent value="notifications" className="space-y-6">
             <NotificationsTab />
+          </TabsContent>
+
+          <TabsContent value="invita" className="space-y-6">
+            <InvitaTab code={profile?.referral_code ?? null} />
           </TabsContent>
         </Tabs>
 

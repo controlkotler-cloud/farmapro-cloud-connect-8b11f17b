@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { AuthHeader } from './AuthHeader';
 import { AuthForm } from './AuthForm';
+import { captureReferralFromParams, getReferralCode } from '@/lib/analytics';
 
 export const LoginForm = () => {
   // Entrada directa en modo registro con email preseleccionado (usado por la
@@ -22,6 +23,10 @@ export const LoginForm = () => {
     params.get('modo') === 'registro' || vieneDeEnlace,
   );
   const initialEmail = params.get('e') && params.get('e')!.includes('@') ? params.get('e')! : undefined;
+
+  // Captura aquí también por si CookieManager aún no ha corrido.
+  captureReferralFromParams(params);
+  const hasReferral = !!getReferralCode();
 
   const toggleMode = () => {
     setIsRegistering(!isRegistering);
@@ -46,6 +51,13 @@ export const LoginForm = () => {
                 </p>
                 <p className="mt-1 text-muted-foreground [text-wrap:pretty]">
                   Al terminar el registro te llevamos directo a lo que buscabas.
+                </p>
+              </div>
+            )}
+            {isRegistering && hasReferral && (
+              <div className="mb-5 rounded-md border border-border bg-brand-soft px-4 py-3 text-sm text-foreground">
+                <p className="font-semibold [text-wrap:balance]">
+                  Te ha invitado una compañera: tienes 60 días de prueba en lugar de 30.
                 </p>
               </div>
             )}

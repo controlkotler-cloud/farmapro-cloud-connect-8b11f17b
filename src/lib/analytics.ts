@@ -144,6 +144,37 @@ export const applyConsent = (prefs?: ConsentPrefs) => {
   }
 };
 
+const REFERRAL_KEY = 'fp_inv';
+const REFERRAL_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** Guarda el código de invitación si la URL trae ?inv=XXX (4-12 alfanuméricos). */
+export const captureReferralFromParams = (params: URLSearchParams) => {
+  try {
+    const inv = params.get('inv')?.trim();
+    if (inv && /^[A-Za-z0-9]{4,12}$/.test(inv)) {
+      localStorage.setItem(
+        REFERRAL_KEY,
+        JSON.stringify({ code: inv.toUpperCase(), ts: Date.now() }),
+      );
+    }
+  } catch {
+    /* almacenamiento no disponible: se ignora */
+  }
+};
+
+/** Código de invitación vigente (menos de 30 días) o null. */
+export const getReferralCode = (): string | null => {
+  try {
+    const raw = localStorage.getItem(REFERRAL_KEY);
+    if (!raw) return null;
+    const { code, ts } = JSON.parse(raw) as { code?: string; ts?: number };
+    if (!code || typeof ts !== 'number' || Date.now() - ts > REFERRAL_TTL_MS) return null;
+    return code;
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Captura los UTM y los identificadores de clic (gclid, fbclid, ttclid) de la
  * URL actual. Primera visita → farmapro_utm_first (no se sobreescribe:
@@ -174,6 +205,8 @@ export const captureUtms = () => {
       if (!utms.utm_medium) utms.utm_medium = ref;
       hasAny = true;
     }
+    // Invitación de otra farmacia (?inv=CODIGO): gana la última, caduca a los 30 días.
+    captureReferralFromParams(params);
     if (!hasAny) return;
     utms.landing_page = window.location.pathname;
     utms.captured_at = new Date().toISOString();
@@ -251,6 +284,7 @@ export const trackRegistration = (method = 'email') => {
     first_utm_term: cap(u?.utm_term),
     first_utm_content: cap(u?.utm_content),
     first_landing_page: cap(u?.landing_page),
+    ...(getReferralCode() ? { referral: 1 } : {}),
   });
   if (pixelLoaded && window.fbq) {
     window.fbq('track', 'CompleteRegistration');

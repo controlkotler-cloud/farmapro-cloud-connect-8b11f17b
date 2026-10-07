@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { validateFiscalId } from '@/lib/cif';
-import { getStoredUtms } from '@/lib/analytics';
+import { getStoredUtms, getReferralCode } from '@/lib/analytics';
 
 interface AuthContextType {
   user: User | null;
@@ -132,6 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const cifNormalized = cif ? validateFiscalId(cif).normalized : undefined;
       // Atribución: qué canal trajo este registro (UTMs capturados al aterrizar).
       const utms = getStoredUtms();
+      const referralCode = getReferralCode();
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -146,6 +147,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             pharmacy_name: pharmacyName,
             position: position,
             cif: cifNormalized,
+            ...(referralCode ? { referral_code: referralCode } : {}),
             // Consentimientos RGPD (KPI nº 1 del lanzamiento): el trigger
             // handle_new_user los vuelca a consent_ledger con la versión
             // literal del texto aceptado (prueba art. 7.1 RGPD).

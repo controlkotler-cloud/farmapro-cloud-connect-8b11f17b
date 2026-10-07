@@ -1986,6 +1986,7 @@ export type Database = {
           plan_comp_until: string | null
           points: number
           position: string | null
+          referral_code: string | null
           role: Database["public"]["Enums"]["user_role"]
           specialty_areas: string[] | null
           streak_days: number
@@ -2032,6 +2033,7 @@ export type Database = {
           plan_comp_until?: string | null
           points?: number
           position?: string | null
+          referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           specialty_areas?: string[] | null
           streak_days?: number
@@ -2078,6 +2080,7 @@ export type Database = {
           plan_comp_until?: string | null
           points?: number
           position?: string | null
+          referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           specialty_areas?: string[] | null
           streak_days?: number
@@ -3848,6 +3851,7 @@ export type Database = {
         }
         Returns: number
       }
+      my_referrals: { Args: never; Returns: Json }
       next_promotion_reference: { Args: never; Returns: string }
       notify_trial_ending: {
         Args: never
