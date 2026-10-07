@@ -1910,6 +1910,94 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_referrals: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          motivo_descarte: string | null
+          paid_at: string | null
+          referred_id: string
+          referrer_id: string
+          reward_kind: string | null
+          reward_ref: string | null
+          reward_status: string
+          rewarded_at: string | null
+          trial_extended_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          motivo_descarte?: string | null
+          paid_at?: string | null
+          referred_id: string
+          referrer_id: string
+          reward_kind?: string | null
+          reward_ref?: string | null
+          reward_status?: string
+          rewarded_at?: string | null
+          trial_extended_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          motivo_descarte?: string | null
+          paid_at?: string | null
+          referred_id?: string
+          referrer_id?: string
+          reward_kind?: string | null
+          reward_ref?: string | null
+          reward_status?: string
+          rewarded_at?: string | null
+          trial_extended_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "v_cohorte_portal"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portal_trial_notice_log: {
         Row: {
           attempts: number
@@ -3860,6 +3948,11 @@ export type Database = {
           kind: string
           user_id: string
         }[]
+      }
+      portal_gen_referral_code: { Args: never; Returns: string }
+      portal_referral_quota_left: {
+        Args: { p_referrer: string }
+        Returns: number
       }
       portal_sync_trial_end: { Args: { p_user: string }; Returns: string }
       read_email_batch: {
