@@ -12,15 +12,15 @@ import {
 } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useEntitlements } from '@/hooks/useEntitlements';
-import { FREE_LIMITS } from '@/lib/plans';
+import { getTrialEnd } from '@/lib/plans';
 
 const SEEN_KEY = 'farmapro:trial-locked-notice-seen';
 
-/** Fecha (texto) en la que terminó la prueba: alta + 30 días. */
+/** Fecha (texto) en la que terminó la prueba: alta + 30 días, o el fin de la concesión. */
 const useTrialEndLabel = () => {
   const { profile } = useAuth();
-  if (!profile?.created_at) return null;
-  const end = new Date(new Date(profile.created_at).getTime() + FREE_LIMITS.trialDays * 86_400_000);
+  const end = getTrialEnd(profile?.created_at, profile?.trial_ends_at);
+  if (!end) return null;
   return end.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 };
 

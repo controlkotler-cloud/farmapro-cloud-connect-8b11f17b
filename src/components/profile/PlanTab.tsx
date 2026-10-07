@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Star, ExternalLink, ShieldCheck, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { PLANS, FREE_LIMITS, ROLE_LABELS, getAccessState, getLaunchStatus } from '@/lib/plans';
+import { PLANS, ROLE_LABELS, getAccessState, getTrialDaysLeft, getLaunchStatus } from '@/lib/plans';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { ImageCreditsCard } from '@/components/profile/ImageCreditsCard';
 
@@ -20,7 +20,7 @@ interface PlanTabProps {
  */
 export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
   const role: string | null = isAdmin ? 'admin' : (profile?.subscription_role ?? null);
-  const access = isAdmin ? 'paid' : getAccessState(role, profile?.created_at ?? null);
+  const access = isAdmin ? 'paid' : getAccessState(role, profile?.created_at ?? null, profile?.trial_ends_at ?? null);
   const launch = getLaunchStatus();
   const { isTeamOwner, isTeamMember, memberTeamName } = useTeamManagement();
   // Miembro de un equipo (no titular): la plaza la gestiona el titular, no hay CTA de precios.
@@ -30,11 +30,8 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
   const planName = ROLE_LABELS[role ?? 'freemium'] ?? 'Gratis';
 
   // Días restantes de la prueba gratis (solo informativo).
-  const trialDaysLeft = (() => {
-    if (access !== 'free_trial' || !profile?.created_at) return null;
-    const used = (Date.now() - new Date(profile.created_at).getTime()) / 86_400_000;
-    return Math.max(0, Math.ceil(FREE_LIMITS.trialDays - used));
-  })();
+  const trialDaysLeft =
+    access === 'free_trial' ? getTrialDaysLeft(profile?.created_at, profile?.trial_ends_at) : null;
 
   const freePlan = PLANS.find((p) => p.id === 'gratis');
   const isPaid = access === 'paid';

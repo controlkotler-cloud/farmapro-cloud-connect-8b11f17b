@@ -45,7 +45,7 @@ export const CreativeWorkspace = () => {
     textsRemaining,
   } = useCreativeChat({ onGenerated: handleGenerated, onQuotaExceeded: textQuota.refresh });
 
-  const isFree = !isAdmin && getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null) !== 'paid';
+  const isFree = !isAdmin && getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null, profile?.trial_ends_at ?? null) !== 'paid';
   const textsExhausted = textQuota.status ? !textQuota.status.allowed : textsRemaining === 0;
   // Lo que queda según la RPC al entrar; la cabecera de la última generación manda si ya hubo una.
   const remainingForUi = textsRemaining ?? (isFree && textQuota.status ? textQuota.status.monthlyLeft : null);

@@ -76,12 +76,13 @@ export const AppRoutes = () => {
     );
   }
 
-  // Expiración del gratis: fuente ÚNICA = getAccessState (created_at + 30 días).
+  // Expiración del gratis: fuente ÚNICA = getAccessState (created_at + 30 días, o
+  // trial_ends_at si una concesión la alarga).
   // (Antes se miraba trial_ends_at/student_valid_until, columnas que nadie escribe.)
   // Solo redirigimos a /precios cuando validation_mode='active' y el acceso está
   // bloqueado; los roles de pago nunca entran aquí (getAccessState devuelve 'paid').
   const accessState = user
-    ? getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null)
+    ? getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null, profile?.trial_ends_at ?? null)
     : null;
   const shouldRedirectToPrecios = validationMode === 'active' && accessState === 'free_locked';
 

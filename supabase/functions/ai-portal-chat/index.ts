@@ -93,7 +93,7 @@ serve(async (req) => {
     // Gating por plan
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('subscription_role, created_at')
+      .select('subscription_role, created_at, trial_ends_at')
       .eq('id', user.id)
       .single();
 
@@ -104,8 +104,13 @@ serve(async (req) => {
     } else if (!profile?.created_at) {
       access = 'free_trial';
     } else {
-      const days = (Date.now() - new Date(profile.created_at).getTime()) / 86_400_000;
-      access = days <= TRIAL_DAYS ? 'free_trial' : 'free_locked';
+      // Fin de prueba = el mayor entre alta + 30 días y trial_ends_at (concesión o
+      // ampliación a mano). Mismo criterio que getTrialEnd en src/lib/plans.ts.
+      const end = Math.max(
+        new Date(profile.created_at).getTime() + TRIAL_DAYS * 86_400_000,
+        profile.trial_ends_at ? new Date(profile.trial_ends_at).getTime() : 0,
+      );
+      access = Date.now() <= end ? 'free_trial' : 'free_locked';
     }
     if (access === 'free_locked') {
       return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir usando el asistente.' }, 403);

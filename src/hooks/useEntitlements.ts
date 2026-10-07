@@ -12,8 +12,8 @@ import {
  *
  * Derivado del perfil cargado por `useAuth`:
  *  - `subscription_role` decide si es de pago/admin.
- *  - `created_at` decide si el plan gratis sigue en periodo de prueba (≤30 días)
- *    o ya está bloqueado (>30 días).
+ *  - `created_at` (+30 días) y `trial_ends_at` (concesión o ampliación) deciden
+ *    si el plan gratis sigue en periodo de prueba o ya está bloqueado.
  *
  * Devuelve el estado calculado por `getAccessState` y banderas cómodas, además
  * de la ruta de la página de Precios (`pricingPath`) para las llamadas a la
@@ -43,15 +43,15 @@ export const useEntitlements = (): Entitlements => {
   const { profile } = useAuth();
 
   return useMemo(() => {
-    const state = getAccessState(profile?.subscription_role, profile?.created_at);
+    const state = getAccessState(profile?.subscription_role, profile?.created_at, profile?.trial_ends_at);
     return {
       state,
       isPaid: state === 'paid',
       isTrial: state === 'free_trial',
       isLocked: state === 'free_locked',
-      trialDaysLeft: state === 'free_trial' ? getTrialDaysLeft(profile?.created_at) : null,
+      trialDaysLeft: state === 'free_trial' ? getTrialDaysLeft(profile?.created_at, profile?.trial_ends_at) : null,
       limits: FREE_LIMITS,
       pricingPath: PRICING_PATH,
     };
-  }, [profile?.subscription_role, profile?.created_at]);
+  }, [profile?.subscription_role, profile?.created_at, profile?.trial_ends_at]);
 };

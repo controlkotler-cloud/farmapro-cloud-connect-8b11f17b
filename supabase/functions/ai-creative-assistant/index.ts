@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profileError } = await admin
       .from('profiles')
-      .select('subscription_role, created_at, full_name, pharmacy_name, pharmacy_city, iafarma_tone')
+      .select('subscription_role, created_at, trial_ends_at, full_name, pharmacy_name, pharmacy_city, iafarma_tone')
       .eq('id', user.id)
       .single();
     if (profileError || !profile) return json({ error: 'Error al verificar el perfil' }, 500);
@@ -95,8 +95,13 @@ Deno.serve(async (req) => {
     } else if (!profile.created_at) {
       access = 'free_trial';
     } else {
-      const days = (Date.now() - new Date(profile.created_at).getTime()) / 86_400_000;
-      access = days <= TRIAL_DAYS ? 'free_trial' : 'free_locked';
+      // Fin de prueba = el mayor entre alta + 30 días y trial_ends_at (concesión o
+      // ampliación a mano). Mismo criterio que getTrialEnd en src/lib/plans.ts.
+      const end = Math.max(
+        new Date(profile.created_at).getTime() + TRIAL_DAYS * 86_400_000,
+        profile.trial_ends_at ? new Date(profile.trial_ends_at).getTime() : 0,
+      );
+      access = Date.now() <= end ? 'free_trial' : 'free_locked';
     }
 
     if (access === 'free_locked') {

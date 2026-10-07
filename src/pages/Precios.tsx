@@ -84,7 +84,7 @@ export default function Precios() {
   // Vuelta al portal para quien ya tiene cuenta. El gratis caducado no la ve:
   // la app lo reenvía a /precios y el enlace solo haría un bucle.
   const accessState = user
-    ? getAccessState(role ?? null, profile?.created_at ?? null)
+    ? getAccessState(role ?? null, profile?.created_at ?? null, profile?.trial_ends_at ?? null)
     : null;
   const showBackToPortal = Boolean(user) && accessState !== "free_locked";
   // Estado del lanzamiento con el recuento REAL de plazas (vista founder_count).

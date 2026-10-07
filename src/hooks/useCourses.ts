@@ -65,7 +65,7 @@ export const useCourses = () => {
   };
 
   // Estado de acceso del plan (de pago / prueba gratis / gratis caducado).
-  const accessState = getAccessState(profile?.subscription_role, profile?.created_at);
+  const accessState = getAccessState(profile?.subscription_role, profile?.created_at, profile?.trial_ends_at);
 
   const enrollInCourse = async (courseSlug: string) => {
     if (!profile?.id) return;

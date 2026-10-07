@@ -217,19 +217,37 @@ export const LEGACY_ROLES = new Set(['premium', 'profesional', 'estudiante']);
 export type AccessState = 'paid' | 'free_trial' | 'free_locked';
 
 /**
+ * Fin de la prueba gratis: el mayor entre alta + 30 días y `profiles.trial_ends_at`.
+ * `trial_ends_at` lo rellena una concesión (portal_grants) hasta su último día, o
+ * una ampliación a mano; solo alarga, nunca acorta. Mismo criterio en BD
+ * (get_course_modules, rebotica_open_cajon, notify_trial_ending) y en las edge
+ * functions de IA. `null` si no hay fecha de alta.
+ */
+export function getTrialEnd(
+  createdAt: string | null | undefined,
+  trialEndsAt?: string | null,
+): Date | null {
+  if (!createdAt) return null;
+  const base = new Date(createdAt).getTime() + FREE_LIMITS.trialDays * 86_400_000;
+  const extra = trialEndsAt ? new Date(trialEndsAt).getTime() : NaN;
+  return new Date(Number.isNaN(extra) ? base : Math.max(base, extra));
+}
+
+/**
  * Estado de acceso del usuario:
  *  - 'paid'        → plan de pago o admin: acceso total.
- *  - 'free_trial'  → gratis dentro de los primeros 30 días: acceso con límites.
- *  - 'free_locked' → gratis pasados 30 días: lo ve todo pero bloqueado.
+ *  - 'free_trial'  → gratis dentro de la prueba: acceso con límites.
+ *  - 'free_locked' → gratis con la prueba terminada: lo ve todo pero bloqueado.
  */
 export function getAccessState(
   role: string | null | undefined,
   createdAt: string | null | undefined,
+  trialEndsAt?: string | null,
 ): AccessState {
   if (role && PAID_ROLES.includes(role)) return 'paid';
-  if (!createdAt) return 'free_trial';
-  const days = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
-  return days <= FREE_LIMITS.trialDays ? 'free_trial' : 'free_locked';
+  const end = getTrialEnd(createdAt, trialEndsAt);
+  if (!end) return 'free_trial';
+  return Date.now() <= end.getTime() ? 'free_trial' : 'free_locked';
 }
 
 /**
@@ -237,8 +255,11 @@ export function getAccessState(
  * nunca negativo). `null` si no hay fecha de alta. Para los roles de pago usa
  * `getAccessState`; esto solo mide el calendario.
  */
-export function getTrialDaysLeft(createdAt: string | null | undefined): number | null {
-  if (!createdAt) return null;
-  const days = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
-  return Math.max(0, Math.ceil(FREE_LIMITS.trialDays - days));
+export function getTrialDaysLeft(
+  createdAt: string | null | undefined,
+  trialEndsAt?: string | null,
+): number | null {
+  const end = getTrialEnd(createdAt, trialEndsAt);
+  if (!end) return null;
+  return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86_400_000));
 }
