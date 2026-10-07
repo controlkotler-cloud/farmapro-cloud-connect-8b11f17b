@@ -60,7 +60,7 @@ export const InvitaTab = ({ code: profileCode }: { code: string | null }) => {
   const whatsapp = () => {
     if (!link) return;
     const texto =
-      `Hola, te paso el portal de farmapro, donde estoy formándome y compartiendo con otras compañeras de farmacia. ` +
+      `Hola, te paso el enlace del portal farmapro, estoy dado de alta y hay un montón de contenido interesante y de valor. ` +
       `Si te das de alta con mi enlace tienes 60 días de prueba gratis en lugar de 30: ${link}`;
     trackEvent('referral_share', { method: 'whatsapp' });
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank', 'noopener,noreferrer');
