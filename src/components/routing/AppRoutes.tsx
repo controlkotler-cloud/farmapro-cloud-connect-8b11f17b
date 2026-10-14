@@ -9,6 +9,7 @@ import NotFound from "@/pages/NotFound";
 import { Formacion } from "@/pages/Formacion";
 import { Recursos } from "@/pages/Recursos";
 import { VaultMasterclass } from "@/pages/VaultMasterclass";
+import { VaultMasterclassProtocolo } from "@/pages/VaultMasterclassProtocolo";
 import { getAccessState } from "@/lib/plans";
 import Comunidad from "@/pages/Comunidad";
 import { Retos } from "@/pages/Retos";
@@ -186,6 +187,11 @@ export const AppRoutes = () => {
       <Route path="/vault/masterclass-5-palancas" element={
         <ProtectedRoute>
           <VaultMasterclass />
+        </ProtectedRoute>
+      } />
+      <Route path="/vault/masterclass-protocolo-mostrador" element={
+        <ProtectedRoute>
+          <VaultMasterclassProtocolo />
         </ProtectedRoute>
       } />
       <Route path="/comunidad" element={

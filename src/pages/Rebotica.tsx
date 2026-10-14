@@ -56,7 +56,12 @@ const fmtFecha = (iso: string | null) =>
 const rewardAction = (r: ReboticaReward): { to: string; label: string; external?: boolean } | null => {
   const t = r.titulo.toLowerCase();
   if (r.tipo === 'credito_ia') return { to: '/asistente-creativo', label: 'Usar mis créditos en IAFarma' };
-  if (t.startsWith('masterclass')) return { to: '/vault/masterclass-5-palancas', label: 'Ver la masterclass' };
+  if (t.startsWith('masterclass')) {
+    // Cada cajón puede traer una masterclass distinta: la ruta va en la
+    // descripción del premio en BD. Sin ruta, la 1 (premios de sept. y oct.).
+    const ruta = r.descripcion?.match(/\/vault\/[a-z0-9-]+/)?.[0];
+    return { to: ruta ?? '/vault/masterclass-5-palancas', label: 'Ver la masterclass' };
+  }
   // `external` = fichero de Storage, se firma al pulsar. NO es un enlace
   // directo: el fichero vive en un bucket privado desde el 15-09-2026 y antes
   // se bajaba sin cuenta con solo saber la URL (el sufijo aleatorio del nombre
@@ -150,7 +155,7 @@ const PRIZES = [
     rar: 'muy frecuente',
     ico: 'M',
     title: 'Masterclass del vault',
-    desc: 'Una sesión grabada de unos 25 minutos que no está en el catálogo: solo sale de los cajones.',
+    desc: 'Una sesión grabada de Alejandro que no está en el catálogo: solo sale de los cajones.',
   },
   {
     rar: 'frecuente',
