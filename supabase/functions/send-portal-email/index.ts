@@ -19,7 +19,7 @@
 // =====================================================================
 
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import {
   renderPortalTemplate,
   type PortalTemplateName,
@@ -169,8 +169,7 @@ serve(async (req) => {
   // `send-transactional-email` de direct. Ambas cosas comprobadas con envíos reales
   // el 27-08-2026 — no tocar sin volver a probar de punta a punta.
   const messageId = crypto.randomUUID();
-  const idempotencyKey =
-    (body as Record<string, unknown>)?.idempotency_key as string | undefined ?? messageId;
+  const idempotencyKey = body?.idempotency_key ?? messageId;
 
   // La API tambien EXIGE `unsubscribe_token` en los correos con purpose 'transactional'
   // (400 missing_unsubscribe si falta). Un token por direccion, reutilizable mientras no
@@ -245,7 +244,7 @@ serve(async (req) => {
 // hay, crea uno. El upsert con ignoreDuplicates absorbe las carreras entre dos envios
 // simultaneos al mismo destinatario (la tabla tiene unique en `email`).
 async function obtenerUnsubscribeToken(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   email: string,
 ): Promise<string | null> {
   const { data: existente } = await supabase
@@ -278,7 +277,7 @@ async function obtenerUnsubscribeToken(
 }
 
 async function logResult(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   row: {
     template: string;
     recipient: string;
