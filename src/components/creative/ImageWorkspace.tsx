@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { IAFarmaDefaults, brandPaletteOf } from '@/hooks/useIAFarmaDefaults';
 import { useImageGeneration } from '@/hooks/useImageGeneration';
-import { cropBlobToFormat, overlayLogo, downloadBlob, fileDate } from './imageUtils';
+import { cropBlobToFormat, overlayLogo, downloadBlob, fileDate, fileToProductDataUrl } from './imageUtils';
 import { IMAGE_ADDONS, PACKS_CHECKOUT_READY, PAID_ROLES } from '@/lib/plans';
 import {
   FormatId,
@@ -47,6 +47,9 @@ const PIECE_ICONS: Record<PieceTypeId, typeof ImageIcon> = {
   post: LayoutGrid,
   story: Smartphone,
 };
+
+// Igual que MAX_PRODUCT_IMAGES de ai-generate-image.
+const MAX_PRODUCT_PHOTOS = 3;
 
 const formatPrice = (price: number): string => `${price.toFixed(2).replace('.', ',')} €`;
 
@@ -91,6 +94,8 @@ export const ImageWorkspace = ({ defaults, seed, onGenerated }: ImageWorkspacePr
 
   // Semilla desde "Crear esta imagen": brief + publicación de origen + pieza.
   const [sourceText, setSourceText] = useState('');
+  // Fotos de producto que sube la farmacia: el modelo copia el envase real.
+  const [productPhotos, setProductPhotos] = useState<string[]>([]);
   useEffect(() => {
     if (seed) {
       setBrief(seed.brief.slice(0, 200));
@@ -128,7 +133,19 @@ export const ImageWorkspace = ({ defaults, seed, onGenerated }: ImageWorkspacePr
       ...(sourceText ? { sourceText } : {}),
       ...(brandPalette ? { brandPalette } : {}),
       ...(withLogo ? { logoCorner: true } : {}),
+      ...(productPhotos.length ? { productImages: productPhotos } : {}),
     });
+  };
+
+  const handleProductPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).slice(0, MAX_PRODUCT_PHOTOS - productPhotos.length);
+    e.target.value = '';
+    try {
+      const urls = await Promise.all(files.map((f) => fileToProductDataUrl(f)));
+      setProductPhotos((prev) => [...prev, ...urls].slice(0, MAX_PRODUCT_PHOTOS));
+    } catch {
+      toast({ title: 'No se pudo leer la foto', description: 'Prueba con un JPG o PNG.', variant: 'destructive' });
+    }
   };
 
   const handleReset = () => {
@@ -137,6 +154,7 @@ export const ImageWorkspace = ({ defaults, seed, onGenerated }: ImageWorkspacePr
     setBrief('');
     setHeadline('');
     setSourceText('');
+    setProductPhotos([]);
     setGeneratedFormat(null);
     setPrompt(pieceInfo.buildPrompt(defaults));
   };
@@ -352,6 +370,40 @@ export const ImageWorkspace = ({ defaults, seed, onGenerated }: ImageWorkspacePr
                 <img src={defaults.logoUrl} alt="" aria-hidden className="h-5 max-w-[70px] object-contain" />
               </label>
             )}
+
+            <div>
+              <p className="text-sm font-medium text-foreground mb-1">Fotos de tus productos (opcional)</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Sube hasta {MAX_PRODUCT_PHOTOS} fotos y saldrán en la imagen tal cual son: mismo envase, marca y texto.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {productPhotos.map((src, i) => (
+                  <div key={i} className="relative">
+                    <img src={src} alt={`Producto ${i + 1}`} className="h-16 w-16 rounded-md border border-border object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setProductPhotos((prev) => prev.filter((_, j) => j !== i))}
+                      aria-label={`Quitar producto ${i + 1}`}
+                      className="absolute -right-2 -top-2 h-5 w-5 rounded-full border border-border bg-background text-xs leading-none text-muted-foreground hover:text-ciruela"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {productPhotos.length < MAX_PRODUCT_PHOTOS && (
+                  <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground hover:border-ciruela hover:text-ciruela">
+                    + Foto
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="sr-only"
+                      onChange={handleProductPhotos}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
 
             <div>
               <button

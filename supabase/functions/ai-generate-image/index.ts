@@ -20,6 +20,10 @@ const BUCKET = 'iafarma-images';
 // Modelo de generación. Cambia a 'google/gemini-3.1-flash-image' para alternar.
 const IMAGE_MODEL = 'openai/gpt-image-2';
 const IMAGE_QUALITY = 'medium';
+// Fotos de producto como referencia (las sube la farmacia, reducidas en el
+// cliente a ~1024 px): con ellas el modelo reproduce el envase real.
+const MAX_PRODUCT_IMAGES = 3;
+const MAX_PRODUCT_IMAGE_BYTES = 2_500_000;
 
 // GPT Image only accepts 1024x1024, 1024x1536, 1536x1024. Map client size to nearest supported.
 function mapSizeForGptImage(size: string): string {
@@ -329,6 +333,27 @@ serve(async (req) => {
       return json({ error: 'Prompt demasiado largo (máx. 1000 caracteres)' }, 400);
     }
 
+    // Se validan antes de gastar el crédito: una foto mala no cuesta nada.
+    const productImagesRaw: unknown[] = Array.isArray(body?.productImages) ? body.productImages : [];
+    if (productImagesRaw.length > MAX_PRODUCT_IMAGES) {
+      return json({ error: `Máximo ${MAX_PRODUCT_IMAGES} fotos de producto` }, 400);
+    }
+    const productImages: { mime: string; b64: string; bytes: Uint8Array }[] = [];
+    for (const raw of productImagesRaw) {
+      const m = typeof raw === 'string'
+        ? raw.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/)
+        : null;
+      if (!m) return json({ error: 'Foto de producto no válida (usa JPG, PNG o WebP)' }, 400);
+      const bin = atob(m[2]);
+      if (bin.length > MAX_PRODUCT_IMAGE_BYTES) {
+        return json({ error: 'Foto de producto demasiado grande' }, 400);
+      }
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      productImages.push({ mime: m[1], b64: m[2], bytes });
+    }
+    const hasProductPhotos = productImages.length > 0;
+
     // Consumir crédito atómico. v2: gasta primero la imagen mensual del plan y
     // después el saldo de packs (que NO caduca); devuelve de dónde salió para
     // poder devolverlo a esa misma fuente si algo falla.
@@ -394,11 +419,18 @@ serve(async (req) => {
     if (copy) copy.art = effectiveArt;
 
     // Prompt de marketing retail de farmacia + guardrails.
+    // Con fotos de producto, esos envases (marca y texto impresos incluidos)
+    // se reproducen fieles; sin ellas, nada de envases ni marcas reales.
+    const productBlock = hasProductPhotos
+      ? ` PRODUCT REFERENCE PHOTOS: the ${productImages.length === 1 ? 'attached image shows the real product' : `${productImages.length} attached images show the real products`} this pharmacy sells. Feature ${productImages.length === 1 ? 'it' : 'them'} as the hero of the piece, reproducing each product FAITHFULLY: same packaging shape, colors, brand name and printed text as in the photo — do not redesign, rename or relabel any of them. Place the products naturally in the composition (you may change angle, lighting and background, never the product itself). Do not add any other branded product.`
+      : '';
     const guardrails =
-      'Guardrails: no real medication packaging or medical brand logos; ' +
+      (hasProductPhotos
+        ? 'Guardrails: the brand names and logos printed on the referenced products are allowed exactly as they appear in the photos; '
+        : 'Guardrails: no real medication packaging or medical brand logos; ') +
       'no health claims or therapeutic promises; no recognizable people or faces. ' +
       'Generic product categories are fine (sun care, skincare/dermocosmetics, vitamins, baby care, oral care). ' +
-      'STRICTLY FORBIDDEN: do NOT invent, draw, imagine or render any logo, brand mark, wordmark, isotype, symbol, URL, website address, domain, "www.", ".com", ".es", email address, phone number, QR code, social media handle (@...), Instagram/Facebook/TikTok/Twitter/X icons, or any social media username. No fictional pharmacy logo. If a signature is provided below, render ONLY that exact text — nothing else.';
+      `STRICTLY FORBIDDEN: do NOT invent, draw, imagine or render any logo, brand mark, wordmark, isotype, symbol, URL, website address, domain, "www.", ".com", ".es", email address, phone number, QR code, social media handle (@...), Instagram/Facebook/TikTok/Twitter/X icons, or any social media username. No fictional pharmacy logo. If a signature is provided below, render ONLY that exact text — nothing else.${hasProductPhotos ? ' (Only exception: the brand names, logos and printed text on the referenced products, kept exactly as in the photos.)' : ''}`;
 
     // Proporción pedida vs generada: gpt-image-2 solo produce 1:1, 2:3 y 3:2.
     // Cuando difieren, el cliente recorta al centro; el prompt define un ÁREA
@@ -466,41 +498,59 @@ serve(async (req) => {
       `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}.${briefBlock} ` +
       `Commercial, bright, professional aesthetic; suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${artBlock}${brandBlock}${richnessBlock}${textBlock}${signatureBlock}${logoBlock}${cropBlock} ${guardrails}`;
+      `${productBlock}${artBlock}${brandBlock}${richnessBlock}${textBlock}${signatureBlock}${logoBlock}${cropBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)
+    //    o /v1/images/edits (multipart, image[]) si hay fotos de producto
     //  - google/gemini-*-image -> /v1/chat/completions con modalities=['image','text']
     const isGemini = IMAGE_MODEL.startsWith('google/');
     let endpoint: string;
-    let requestBody: Record<string, unknown>;
+    let fetchBody: BodyInit;
+    const headers: Record<string, string> = { Authorization: `Bearer ${lovableKey}` };
     if (isGemini) {
       endpoint = 'https://ai.gateway.lovable.dev/v1/chat/completions';
-      requestBody = {
+      const content = hasProductPhotos
+        ? [
+            { type: 'text', text: enhancedPrompt },
+            ...productImages.map((img) => ({
+              type: 'image_url',
+              image_url: { url: `data:${img.mime};base64,${img.b64}` },
+            })),
+          ]
+        : enhancedPrompt;
+      headers['Content-Type'] = 'application/json';
+      fetchBody = JSON.stringify({
         model: IMAGE_MODEL,
-        messages: [{ role: 'user', content: enhancedPrompt }],
+        messages: [{ role: 'user', content }],
         modalities: ['image', 'text'],
-      };
+      });
+    } else if (hasProductPhotos) {
+      endpoint = 'https://ai.gateway.lovable.dev/v1/images/edits';
+      const form = new FormData();
+      form.append('model', IMAGE_MODEL);
+      form.append('prompt', enhancedPrompt);
+      form.append('n', '1');
+      form.append('size', generatedSize);
+      form.append('quality', IMAGE_QUALITY);
+      productImages.forEach((img, i) => {
+        const ext = img.mime.split('/')[1];
+        form.append('image[]', new Blob([img.bytes.buffer as ArrayBuffer], { type: img.mime }), `producto-${i + 1}.${ext}`);
+      });
+      fetchBody = form; // sin Content-Type: fetch pone el boundary del multipart
     } else {
       endpoint = 'https://ai.gateway.lovable.dev/v1/images/generations';
-      requestBody = {
+      headers['Content-Type'] = 'application/json';
+      fetchBody = JSON.stringify({
         model: IMAGE_MODEL,
         prompt: enhancedPrompt,
         n: 1,
         size: generatedSize,
         quality: IMAGE_QUALITY,
-      };
+      });
     }
 
-
-    const aiRes = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    const aiRes = await fetch(endpoint, { method: 'POST', headers, body: fetchBody });
 
     if (!aiRes.ok) {
       const errText = await aiRes.text();

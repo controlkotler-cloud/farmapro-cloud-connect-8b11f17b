@@ -48,6 +48,8 @@ export interface ImageGenerationOptions {
   brandPalette?: string;
   /** Deja limpia la esquina inferior derecha para superponer el logo real. */
   logoCorner?: boolean;
+  /** Fotos de producto (data URL JPEG, máx. 3): el envase real sale tal cual. */
+  productImages?: string[];
 }
 
 /** Copy generado por el backend (titular + líneas) e incluido en la imagen. */
@@ -201,6 +203,7 @@ export const useImageGeneration = () => {
             ...(opts?.artOverride ? { artOverride: opts.artOverride } : {}),
             ...(opts?.brandPalette ? { brandPalette: opts.brandPalette } : {}),
             ...(opts?.logoCorner ? { logoCorner: true } : {}),
+            ...(opts?.productImages?.length ? { productImages: opts.productImages } : {}),
           },
         });
 
