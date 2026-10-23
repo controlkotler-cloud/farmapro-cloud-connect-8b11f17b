@@ -4026,7 +4026,11 @@ export type Database = {
         Returns: string
       }
       send_weekly_digest: {
-        Args: { p_dry_run?: boolean; p_solo_email?: string }
+        Args: {
+          p_dry_run?: boolean
+          p_reintentar?: boolean
+          p_solo_email?: string
+        }
         Returns: Json
       }
       send_welcome_email: {
