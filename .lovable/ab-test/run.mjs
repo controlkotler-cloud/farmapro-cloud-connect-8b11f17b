@@ -11,7 +11,12 @@ const MODELS = [
   { slug: "gemini-flash", id: "google/gemini-3.1-flash-image", kind: "gemini", rate: 0.00024 },
   { slug: "gemini-pro", id: "google/gemini-3-pro-image", kind: "gemini", rate: 0.00048 },
   { slug: "gpt-sunburst", id: "openai/gpt-image-2.5-sunburst", kind: "openai", rate: 0.00012 },
+  { slug: "gpt-image-2", id: "openai/gpt-image-2", kind: "openai", rate: 0.00012 }, // tarifa de salida del catálogo
 ];
+// AB_MODELS=slug1,slug2 filtra modelos; AB_OUT cambia el fichero de resultados.
+const ONLY = process.env.AB_MODELS?.split(",").map((x) => x.trim()).filter(Boolean);
+const ACTIVE = ONLY?.length ? MODELS.filter((m) => ONLY.includes(m.slug)) : MODELS.filter((m) => m.slug !== "gpt-image-2");
+const RESULTS_FILE = process.env.AB_OUT || "results.json";
 
 const SIGN = "Farmacia Rocío Tobajas";
 const SCENARIOS = [
@@ -76,7 +81,7 @@ async function callOpenAI(m, s) {
 const outTokens = (u) => u?.output_tokens ?? u?.completion_tokens ?? null;
 
 const results = [];
-const jobs = SCENARIOS.flatMap((s) => MODELS.map((m) => ({ s, m })));
+const jobs = SCENARIOS.flatMap((s) => ACTIVE.map((m) => ({ s, m })));
 await Promise.all(jobs.map(async ({ s, m }) => {
   const r = { scenario: s.id, model: m.id, file: `out/${s.id}-${m.slug}.png`, attempts: 0 };
   for (let a = 1; a <= 2; a++) {
@@ -100,4 +105,4 @@ await Promise.all(jobs.map(async ({ s, m }) => {
   console.log(r.scenario, m.slug, r.error ? "ERROR " + r.error.slice(0, 150) : "ok", r.latency_ms, r.output_tokens, r.estimated_credits);
 }));
 results.sort((a, b) => (a.scenario + a.model).localeCompare(b.scenario + b.model));
-fs.writeFileSync(path.join(DIR, "results.json"), JSON.stringify(results, null, 2));
+fs.writeFileSync(path.join(DIR, RESULTS_FILE), JSON.stringify(results, null, 2));
