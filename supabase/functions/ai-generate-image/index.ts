@@ -25,12 +25,17 @@ const IMAGE_QUALITY = 'medium';
 const MAX_PRODUCT_IMAGES = 3;
 const MAX_PRODUCT_IMAGE_BYTES = 2_500_000;
 
-// GPT Image only accepts 1024x1024, 1024x1536, 1536x1024. Map client size to nearest supported.
+// gpt-image-2 acepta tamaños libres (lados múltiplos de 16): cada formato de
+// IAFarma se genera ya en su proporción y el cliente solo redimensiona, sin
+// recortar (probado en el gateway el 24-10-2026: 1024x1280 y 1152x2048).
 function mapSizeForGptImage(size: string): string {
   const s = (size || '').toLowerCase().trim();
   if (s === '1024x1024') return '1024x1024';
-  if (s === '1024x1536' || s === '1080x1350' || s === '1080x1920' || s === '1200x1800') return '1024x1536';
-  if (s === '1536x1024' || s === '1920x1080') return '1536x1024';
+  if (s === '1080x1350') return '1024x1280';
+  if (s === '1080x1920') return '1152x2048';
+  if (s === '1920x1080') return '2048x1152';
+  if (s === '1024x1536' || s === '1200x1800') return '1024x1536';
+  if (s === '1536x1024') return '1536x1024';
   // Fallback: parse and decide by aspect ratio
   const m = /^(\d+)x(\d+)$/.exec(s);
   if (m) {
@@ -422,7 +427,7 @@ serve(async (req) => {
     // Con fotos de producto, esos envases (marca y texto impresos incluidos)
     // se reproducen fieles; sin ellas, nada de envases ni marcas reales.
     const productBlock = hasProductPhotos
-      ? ` PRODUCT REFERENCE PHOTOS: the ${productImages.length === 1 ? 'attached image shows the real product' : `${productImages.length} attached images show the real products`} this pharmacy sells. Feature ${productImages.length === 1 ? 'it' : 'them'} as the hero of the piece, reproducing each product FAITHFULLY: same packaging shape, colors, brand name and printed text as in the photo — do not redesign, rename or relabel any of them. Place the products naturally in the composition (you may change angle, lighting and background, never the product itself). Do not add any other branded product.`
+      ? ` PRODUCT REFERENCE PHOTOS: the ${productImages.length === 1 ? 'attached image shows the real product' : `${productImages.length} attached images show the real products`} this pharmacy sells. Feature ${productImages.length === 1 ? 'it' : 'them'} as the hero of the piece, reproducing each product FAITHFULLY: same packaging shape, colors, brand name and printed text as in the photo — do not redesign, rename or relabel any of them. Place the products naturally in the composition (you may change angle, lighting and background, never the product itself). Show each product only once — never duplicate, multiply or stack copies of the same package. Do not add any other branded product.`
       : '';
     const guardrails =
       (hasProductPhotos
