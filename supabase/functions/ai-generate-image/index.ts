@@ -98,10 +98,10 @@ function pieceGuidance(pieceType: string | null): string {
     case 'cartel':
       return 'Format: in-store service poster (vertical A3-like framing), calm iconic composition, clear focal area for a headline.';
     case 'story':
-      return 'Format: vertical 9:16 Instagram/story frame, mobile-first, headline zone at the top third, one clear focal subject.';
+      return 'Format: Instagram/story frame, mobile-first, headline zone at the top third, one clear focal subject.';
     case 'post':
     default:
-      return 'Format: square social media post, balanced composition with headroom for a headline.';
+      return 'Format: social media feed post, balanced composition with headroom for a headline.';
   }
 }
 
