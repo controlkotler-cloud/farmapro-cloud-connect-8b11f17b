@@ -52,6 +52,7 @@ const VALID_TEMPLATES: PortalTemplateName[] = [
   'fin-prueba',
   'prueba-dia20',
   'prueba-bloqueada',
+  'oferta-mes-plus',
   'past-due',
   'equipo-invitacion',
   'equipo-plaza-activada',

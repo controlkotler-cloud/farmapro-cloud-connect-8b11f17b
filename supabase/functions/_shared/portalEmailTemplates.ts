@@ -16,6 +16,7 @@ export type PortalTemplateName =
   | 'fin-prueba'
   | 'prueba-dia20'
   | 'prueba-bloqueada'
+  | 'oferta-mes-plus'
   | 'past-due'
   | 'equipo-invitacion'
   | 'equipo-plaza-activada'
@@ -39,6 +40,8 @@ export interface PortalTemplateData {
   lanzamientoActivo?: boolean;
   // prueba-dia20 personalizado (trial_dia20_payload en BD)
   fechaBloqueo?: string;            // YYYY-MM-DD
+  // oferta-mes-plus (F11): último día para activar la oferta.
+  validaHasta?: string;             // YYYY-MM-DD
   usoDescargas?: string[];
   usoDescargasTotal?: number;
   usoCursos?: string[];
@@ -472,6 +475,38 @@ export function renderPortalTemplate(
         `,
       });
       const text = `${saludo}\n\nTu periodo de prueba de 30 días en el portal farmapro ha terminado. Tu cuenta y tu perfil siguen existiendo, no se te ha cobrado nada y no se te va a cobrar nada.\n\nLo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas un plan, lo recuperas tal cual y el acceso es inmediato.\n\nElegir un plan: ${APP_URL}/precios\n\nSi no quieres seguir, no tienes que hacer nada. Y si algo no te ha encajado, respóndenos a este correo: nos sirve para mejorar el portal.\n\n${nota}${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'oferta-mes-plus': {
+      // COMERCIAL (F11, 26-10-2026): un mes más de Plus a 0 € dejando tarjeta en Stripe.
+      // Lo dispara notify_oferta_mes_plus() solo con consentimiento comercial y fila en
+      // portal_ofertas. No se nombra la tarjeta ni se avisa del cobro (decisión de Francesc).
+      // Firma Alejandro con su contacto (regla 21-10-2026).
+      const pila = nombrePila(data.nombre);
+      const hola = pila ? `Hola ${escapeHtml(pila)},` : 'Hola,';
+      const holaText = pila ? `Hola ${pila},` : 'Hola,';
+      const hasta = fechaCorta(data.validaHasta);
+      const plazo = hasta ? `La propuesta está abierta hasta el ${hasta}.` : 'La propuesta está abierta solo unos días.';
+      const subject = 'Un mes más de Plus, gratis';
+      const nota = 'Recibes este correo porque al crear tu cuenta activaste las comunicaciones del sector. Si prefieres no recibirlas, respóndenos a este correo y lo cambiamos.';
+      const html = layout({
+        previewText: 'Y con él, tu precio de fundador guardado.',
+        firma: 'Alejandro Tellería<br/>Fundador de farmapro<br/>605 87 57 01 · alejandro@mkpro.es',
+        bodyHtml: `
+          <p style="margin:0 0 12px 0;">${hola}</p>
+          <p style="margin:0 0 12px 0;">Tu mes de prueba en el portal terminó hace unos días. Lo entiendo: un mes en una farmacia pasa volando y casi nunca da tiempo a sacarle partido.</p>
+          <p style="margin:0 0 12px 0;">Por eso te propongo algo sencillo: <strong>otro mes de Plus completo, gratis</strong>. Todo abierto: los cursos y los recursos sin límite, IAFarma sin tope de textos, la comunidad con sus retos y los eventos.</p>
+          <p style="margin:0 0 12px 0;">Y si después decides quedarte, lo haces con el <strong>precio de fundador: 19,90 € al mes en lugar de 39 €</strong>, y lo conservas mientras mantengas la suscripción.</p>
+          <p style="margin:0 0 12px 0;"><strong>Lo que no tiene fecha, pero se acaba.</strong> El precio de fundador es solo para las 100 primeras suscripciones. No hay contador ni lo habrá: cuando se cubran, se acaba y no vuelve, y quien entre después paga 39 €. Hoy todavía quedan.</p>
+          ${ctaButton(`${APP_URL}/continuar`, 'Quiero mi mes de Plus')}
+          <p style="margin:0 0 12px 0;">Son dos minutos: entras con tu cuenta de siempre y tienes el portal entero abierto al momento.</p>
+          <p style="margin:0 0 12px 0;">${plazo}</p>
+          <p style="margin:0 0 12px 0;">Si algo te frenó durante la prueba, contéstame con una línea y lo miro yo.</p>
+          <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
+        `,
+      });
+      const text = `${holaText}\n\nTu mes de prueba en el portal terminó hace unos días. Lo entiendo: un mes en una farmacia pasa volando y casi nunca da tiempo a sacarle partido.\n\nPor eso te propongo algo sencillo: otro mes de Plus completo, gratis. Todo abierto: los cursos y los recursos sin límite, IAFarma sin tope de textos, la comunidad con sus retos y los eventos.\n\nY si después decides quedarte, lo haces con el precio de fundador: 19,90 € al mes en lugar de 39 €, y lo conservas mientras mantengas la suscripción.\n\nLo que no tiene fecha, pero se acaba. El precio de fundador es solo para las 100 primeras suscripciones. No hay contador ni lo habrá: cuando se cubran, se acaba y no vuelve, y quien entre después paga 39 €. Hoy todavía quedan.\n\nQuiero mi mes de Plus: ${APP_URL}/continuar\n\nSon dos minutos: entras con tu cuenta de siempre y tienes el portal entero abierto al momento.\n\n${plazo}\n\nSi algo te frenó durante la prueba, contéstame con una línea y lo miro yo.\n\nUn saludo,\nAlejandro Tellería\nFundador de farmapro\n605 87 57 01 · alejandro@mkpro.es\n\n${nota}\n\n--\nEste correo te llega porque tienes una cuenta en el portal farmapro (${APP_URL}). Responsable del tratamiento: Mkpro Kotler SL. Contacto: somos@farmapro.es. Más información: ${APP_URL}/legal`;
       return { subject, html, text };
     }
 

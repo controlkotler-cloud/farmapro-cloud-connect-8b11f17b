@@ -276,9 +276,10 @@ serve(async (req) => {
     if (isOferta) trialEnd = Math.floor(Date.now() / 1000) + 30 * 86400;
 
     // Reserva personal del precio fundador: si ya venció, precio regular.
+    // La oferta F11 promete 19,90 €: mientras queden plazas, no mira la reserva.
     let founderReservaHasta: string | null = null;
     let effectiveFounderSpotsLeft = founderSpotsLeft;
-    try {
+    if (!isOferta) try {
       const { data: reserva, error: reservaErr } = await admin.rpc('founder_reserva_hasta', { p_uid: user.id });
       if (reservaErr) {
         log('founder_reserva_hasta failed', { err: reservaErr.message });
