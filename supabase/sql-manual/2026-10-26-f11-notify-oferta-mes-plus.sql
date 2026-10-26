@@ -9,13 +9,18 @@
 --      Así entran también las 49 cargadas a mano el 26-10.
 --   Si ya no quedan plazas de fundador no hace nada: el correo promete 19,90 €.
 --   p_enviar = false (por defecto) solo devuelve la lista, sin escribir ni enviar.
+--   p_limite (5 por defecto): envíos por llamada. pg_net lanza las peticiones al confirmar la
+--   transacción, todas a la vez; el 26-10 una pasada de 48 saturó send-portal-email y 18 fallaron
+--   con «statement timeout». Por eso el cron hace tres pasadas cortas en vez de una larga.
 -- Apagar: select cron.unschedule('portal-oferta-mes-plus');
 
 alter table public.portal_trial_notice_log drop constraint if exists portal_trial_notice_log_kind_check;
 alter table public.portal_trial_notice_log add constraint portal_trial_notice_log_kind_check
   check (kind = any (array['dia20','dia23','dia28','dia31','oferta_mes_plus']));
 
-create or replace function public.notify_oferta_mes_plus(p_enviar boolean default false)
+drop function if exists public.notify_oferta_mes_plus(boolean);
+
+create or replace function public.notify_oferta_mes_plus(p_enviar boolean default false, p_limite integer default 5)
 returns table(o_user_id uuid, o_email text, o_valida_hasta date, o_accion text)
 language plpgsql
 security definer
@@ -67,7 +72,7 @@ begin
     o_user_id := r.uid; o_email := r.email; o_valida_hasta := v_hoy + 10; o_accion := 'alta'; return next;
   end loop;
 
-  -- 2. Envío de las ofertas vigentes sin correo (tope 50 por pasada: la API admite 100/hora).
+  -- 2. Envío de las ofertas vigentes sin correo (p_limite por pasada).
   for r in
     select u.id as uid, u.email, p.full_name, o.valida_hasta as hasta
     from public.portal_ofertas o
@@ -82,7 +87,7 @@ begin
       and not exists (select 1 from public.portal_trial_notice_log t
                        where t.user_id = u.id and t.kind = 'oferta_mes_plus' and t.sent_at is not null)
     order by o.created_at
-    limit 50
+    limit p_limite
   loop
     if p_enviar then
       begin
@@ -106,7 +111,6 @@ begin
             'meta', jsonb_build_object('trigger','notify_trial_ending','kind','oferta_mes_plus','user_id',r.uid)
           )
         );
-        perform pg_sleep(0.3);
       end if;
     end if;
     o_user_id := r.uid; o_email := r.email; o_valida_hasta := r.hasta; o_accion := 'envio'; return next;
@@ -115,7 +119,7 @@ begin
 end;
 $function$;
 
-revoke all on function public.notify_oferta_mes_plus(boolean) from public, anon, authenticated;
+revoke all on function public.notify_oferta_mes_plus(boolean, integer) from public, anon, authenticated;
 
 -- Adoración (a_villarroya@hotmail.com) ya lo recibió a mano el 26-10 a las 15:41 UTC desde Gmail.
 insert into public.portal_trial_notice_log (user_id, kind, sent_at, attempts)
@@ -123,5 +127,5 @@ select u.id, 'oferta_mes_plus', timestamptz '2026-10-26 15:41:00+00', 1
   from auth.users u where lower(u.email) = 'a_villarroya@hotmail.com'
 on conflict (user_id, kind) do nothing;
 
--- Cron (solo con el sí de Francesc): todos los días a las 09:40 UTC.
--- select cron.schedule('portal-oferta-mes-plus', '40 9 * * *', $$select public.notify_oferta_mes_plus(true);$$);
+-- Cron (sí de Francesc del 26-10): todos los días a las 09:40, 10:40 y 11:40 UTC, 5 envíos por pasada.
+select cron.schedule('portal-oferta-mes-plus', '40 9,10,11 * * *', $$select public.notify_oferta_mes_plus(true);$$);
