@@ -344,7 +344,6 @@ serve(async (req) => {
           founder: String(founder),
           ...(grant?.lote ? { grant_lote: grant.lote } : {}),
           ...(isOferta ? { oferta: 'mes-plus-tarjeta' } : {}),
-        ...(isOferta ? { oferta: 'mes-plus-tarjeta' } : {}),
         },
       },
     });
