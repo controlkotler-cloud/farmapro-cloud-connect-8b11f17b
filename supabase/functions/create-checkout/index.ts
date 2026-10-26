@@ -30,10 +30,12 @@ serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({} as any));
     const pack = body.pack as number | undefined;
-    const plan = body.plan as PlanId;
-    const cycle = (body.cycle ?? 'monthly') as Cycle;
+    let plan = body.plan as PlanId;
+    let cycle = (body.cycle ?? 'monthly') as Cycle;
 
     const isPack = typeof pack === 'number';
+    const isOferta = !isPack && body.oferta === 'mes-plus-tarjeta';
+    if (isOferta) { plan = 'plus'; cycle = 'monthly'; }
     if (!isPack) {
       if (!['plus', 'equipo'].includes(plan)) {
         return json({ error: 'Invalid plan (expected plus|equipo)' }, 400);
@@ -62,6 +64,29 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
+
+    // Oferta "un mes más de Plus a 0 €": elegibilidad en servidor.
+    if (isOferta) {
+      const hoyMadridOferta = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(new Date());
+      const { data: ofertas, error: ofErr } = await admin
+        .from('portal_ofertas')
+        .select('email')
+        .eq('oferta', 'mes-plus-tarjeta')
+        .ilike('email', user.email!.replace(/[\\%_]/g, (c) => '\\' + c))
+        .gte('valida_hasta', hoyMadridOferta)
+        .limit(1);
+      const { count: subCount, error: subErr } = await admin
+        .from('subscriptions')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      if (ofErr || subErr || !ofertas || ofertas.length === 0 || (subCount ?? 0) > 0) {
+        log('oferta no disponible', { userId: user.id, ofErr: ofErr?.message, subErr: subErr?.message, subCount });
+        return json({ error: 'oferta_no_disponible' }, 403);
+      }
+      log('oferta elegible', { userId: user.id });
+    }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
 
@@ -228,7 +253,7 @@ serve(async (req) => {
     // CONCESIÓN: periodo de prueba hasta concedido_hasta
     // ============================================================
     let trialEnd: number | undefined;
-    const { data: grant } = await admin
+    const { data: grant } = isOferta ? { data: null as { lote: string; concedido_hasta: string } | null } : await admin
       .from('portal_grants')
       .select('lote, concedido_hasta')
       .ilike('email', user.email)
@@ -247,6 +272,8 @@ serve(async (req) => {
         log('grant too close to expire, skipping trial', { lote: grant.lote, trialTs, minTrialEnd });
       }
     }
+
+    if (isOferta) trialEnd = Math.floor(Date.now() / 1000) + 30 * 86400;
 
     // Reserva personal del precio fundador: si ya venció, precio regular.
     let founderReservaHasta: string | null = null;
@@ -287,12 +314,14 @@ serve(async (req) => {
         payment_method_collection: 'always' as const,
         custom_text: {
           submit: {
-            message: `Es cortesía de Mkpro: hoy no se te cobra nada. El primer cobro, si decides continuar, será el ${firstChargeLabelFromTrialEnd(trialEnd)}.`,
+            message: isOferta
+              ? 'Hoy no pagas nada. Tu precio de fundador, 19,90 €/mes, queda guardado mientras mantengas la suscripción.'
+              : `Es cortesía de Mkpro: hoy no se te cobra nada. El primer cobro, si decides continuar, será el ${firstChargeLabelFromTrialEnd(trialEnd)}.`,
           },
         },
       } : {}),
       success_url: `${origin}/perfil?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${origin}/precios?checkout=cancelled`,
+      cancel_url:  isOferta ? `${origin}/continuar?checkout=cancelled` : `${origin}/precios?checkout=cancelled`,
       metadata: {
         origen: 'portal',
         user_id: user.id,
@@ -300,6 +329,7 @@ serve(async (req) => {
         cycle,
         founder: String(founder),
         ...(grant?.lote ? { grant_lote: grant.lote } : {}),
+        ...(isOferta ? { oferta: 'mes-plus-tarjeta' } : {}),
       },
       subscription_data: {
         ...(trialEnd ? {
@@ -313,6 +343,7 @@ serve(async (req) => {
           cycle,
           founder: String(founder),
           ...(grant?.lote ? { grant_lote: grant.lote } : {}),
+          ...(isOferta ? { oferta: 'mes-plus-tarjeta' } : {}),
         },
       },
     });

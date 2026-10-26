@@ -1880,6 +1880,30 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_ofertas: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          oferta: string
+          valida_hasta: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          oferta: string
+          valida_hasta: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          oferta?: string
+          valida_hasta?: string
+        }
+        Relationships: []
+      }
       portal_radiografias: {
         Row: {
           cid: string
@@ -3931,6 +3955,7 @@ export type Database = {
         Returns: undefined
       }
       mi_concesion: { Args: never; Returns: Json }
+      mi_oferta_mes_plus: { Args: never; Returns: Json }
       move_to_dlq: {
         Args: {
           dlq_name: string
