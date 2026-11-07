@@ -52,6 +52,7 @@ const VALID_TEMPLATES: PortalTemplateName[] = [
   'fin-prueba',
   'prueba-dia20',
   'prueba-bloqueada',
+  'cuenta-gratis-vuelve',
   'oferta-mes-plus',
   'past-due',
   'equipo-invitacion',
@@ -185,7 +186,12 @@ serve(async (req) => {
     return json({ error: 'Could not resolve unsubscribe token' }, 500);
   }
 
-  const { error: enqueueError } = await supabase.rpc('enqueue_email', {
+  // Reintento ante statement timeout (rol authenticator, 8 s): los 31 errores de
+  // 09-10/2026 eran digest y oferta cuando la cola iba cargada. El envío se
+  // aborta entero (no queda a medias), así que repetir con el mismo
+  // message_id/idempotency_key es seguro. Solo se reintenta el timeout;
+  // cualquier otro error se registra tal cual, sin cambiar destinatarios.
+  const enqueuePayload = {
     queue_name: QUEUE_NAME,
     payload: {
       message_id: messageId,
@@ -202,13 +208,22 @@ serve(async (req) => {
       label: template,
       queued_at: new Date().toISOString(),
     },
-  });
+  };
+
+  let enqueueError: { message: string } | null = null;
+  for (let intento = 1; intento <= 3; intento++) {
+    const { error } = await supabase.rpc('enqueue_email', enqueuePayload);
+    enqueueError = error;
+    if (!error || !/statement timeout|canceling statement/i.test(error.message)) break;
+    log('enqueue timeout, reintentando', { template, to, intento });
+    await new Promise((r) => setTimeout(r, 400 * intento));
+  }
 
   const ok = !enqueueError;
   if (ok) {
     log('queued', { template, to, messageId });
   } else {
-    log('enqueue failed', { template, to, err: enqueueError.message });
+    log('enqueue failed', { template, to, err: enqueueError?.message });
   }
 
   await logResult(supabase, {
@@ -217,7 +232,7 @@ serve(async (req) => {
     subject: rendered.subject,
     status: ok ? 'ok' : 'error',
     messageId: ok ? messageId : null,
-    error: ok ? null : enqueueError.message,
+    error: ok ? null : enqueueError?.message,
     attempts: 1,
     meta,
   });
@@ -236,7 +251,7 @@ serve(async (req) => {
   return json(
     ok
       ? { ok: true, queued: true, message_id: messageId }
-      : { ok: false, error: enqueueError.message },
+      : { ok: false, error: enqueueError?.message },
     ok ? 200 : 502,
   );
 });
