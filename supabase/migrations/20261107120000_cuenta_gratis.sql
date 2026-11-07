@@ -207,3 +207,10 @@ GRANT EXECUTE ON FUNCTION public.consume_image_pack_credit() TO authenticated, s
 
 -- get_course_modules, mi_oferta_mes_plus, notify_*: revisadas, SIN cambios. get_course_modules
 -- ya devuelve '[]' al no-pagador sin prueba (los cursos quedan con candado, coherente con D1).
+
+-- 4) La policy de SELECT de usuarios solo dejaba leer subscription.validation_mode:
+--    sin esto el front y ai-portal-chat (cliente con JWT del usuario) leerian
+--    siempre 'muro'. ALTER POLICY es idempotente.
+ALTER POLICY "Ajustes no sensibles legibles por usuarios" ON public.system_settings
+  USING ((category = ANY (ARRAY['section_visibility'::text, 'general'::text, 'regional'::text]))
+         OR ((category = 'subscription'::text) AND (key = ANY (ARRAY['validation_mode'::text, 'modo_gratis'::text]))));

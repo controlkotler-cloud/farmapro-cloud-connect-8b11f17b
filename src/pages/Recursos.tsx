@@ -322,7 +322,9 @@ export const Recursos = () => {
     // Cuenta gratis permanente: solo se abre la herramienta de Impulso de la
     // quincena en curso (D4: pasada su ventana, pasa a Plus aunque ya se
     // descargara) y lo desbloqueado por un premio de la Rebotica.
-    if (isGratis && !unlockedByReward && !esHerramientaDeLaQuincena(resource, resources)) {
+    // Un premio «Recurso premium» pendiente (tier gratis) se puede elegir.
+    if (isGratis && !unlockedByReward && !esHerramientaDeLaQuincena(resource, resources)
+        && !(resource.is_premium && pendingPick)) {
       toast({
         title: GRATIS_CANDADO.titulo,
         description: GRATIS_CANDADO.recurso,

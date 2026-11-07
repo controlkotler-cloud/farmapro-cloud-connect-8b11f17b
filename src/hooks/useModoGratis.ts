@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { parseModoGratis, type ModoGratis } from '@/lib/plans';
 
 /**
@@ -11,8 +12,12 @@ import { parseModoGratis, type ModoGratis } from '@/lib/plans';
  * Se comparte caché con react-query: una sola consulta para toda la app.
  */
 export const useModoGratis = (): { modo: ModoGratis; isLoading: boolean } => {
+  // La policy de SELECT es solo para 'authenticated': sin sesión la fila no se
+  // ve y sale 'muro'. La clave lleva el usuario para que, tras iniciar sesión,
+  // no se reutilice ese 'muro' cacheado (redirigiría a /precios en 'permanente').
+  const { user } = useAuth();
   const { data, isLoading } = useQuery({
-    queryKey: ['system-settings', 'modo_gratis'],
+    queryKey: ['system-settings', 'modo_gratis', user?.id ?? null],
     staleTime: 60_000,
     queryFn: async (): Promise<ModoGratis> => {
       const { data: row, error } = await supabase
