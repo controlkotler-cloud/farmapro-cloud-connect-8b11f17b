@@ -16,6 +16,7 @@ export type PortalTemplateName =
   | 'fin-prueba'
   | 'prueba-dia20'
   | 'prueba-bloqueada'
+  | 'cuenta-gratis-vuelve'
   | 'oferta-mes-plus'
   | 'past-due'
   | 'equipo-invitacion'
@@ -476,6 +477,35 @@ export function renderPortalTemplate(
         `,
       });
       const text = `${saludo}\n\nTu periodo de prueba de 30 días en el portal farmapro ha terminado. Tu cuenta y tu perfil siguen existiendo, no se te ha cobrado nada y no se te va a cobrar nada.\n\nCon la cuenta gratis tienes la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. El resto (cursos, IAFarma, biblioteca de recursos, retos, comunidad y eventos) va con Plus.\n\nLo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas Plus, lo recuperas tal cual y el acceso es inmediato.\n\nElegir un plan: ${APP_URL}/precios\n\nSi no quieres seguir, no tienes que hacer nada. Y si algo no te ha encajado, respóndenos a este correo: nos sirve para mejorar el portal.\n\n${nota}${textFooter()}`;
+      return { subject, html, text };
+    }
+
+    case 'cuenta-gratis-vuelve': {
+      // COMERCIAL (relanzamiento 07-14/01/2027): para las cuentas que quedaron
+      // bloqueadas al acabar la prueba, sin pago. Su cuenta sigue y ahora es gratis
+      // para siempre. NO está conectada a ningún envío ni cron: se lanza a mano con
+      // el segmento de docs/relanzamiento-2027-01-checklist.md. Sin cifra de plazas
+      // de fundador. Firma Alejandro con su contacto (regla 21-10-2026).
+      const pila = nombrePila(data.nombre);
+      const hola = pila ? `Hola ${escapeHtml(pila)},` : 'Hola,';
+      const holaText = pila ? `Hola ${pila},` : 'Hola,';
+      const subject = 'Tu cuenta del portal farmapro sigue ahí, y ahora es gratis';
+      const nota = 'Recibes este correo porque tienes una cuenta en el portal farmapro y activaste las comunicaciones del sector. Si prefieres no recibirlas, respóndenos a este correo y lo cambiamos.';
+      const html = layout({
+        previewText: 'Gratis para siempre, con la herramienta de Impulso y el cajón de la Rebotica.',
+        firma: 'Alejandro Tellería<br/>Fundador de farmapro<br/>605 87 57 01 · alejandro@mkpro.es',
+        bodyHtml: `
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu cuenta sigue ahí, y ahora es gratis para siempre</h1>
+          <p style="margin:0 0 12px 0;">${hola}</p>
+          <p style="margin:0 0 12px 0;">Hace un tiempo creaste tu cuenta en el portal farmapro y, al terminar la prueba, quedó en pausa. Te escribo para decirte que no se ha perdido nada y que hemos cambiado cómo funciona.</p>
+          <p style="margin:0 0 12px 0;">Ahora la cuenta gratis no caduca. Entras cuando quieras y tienes, sin pagar nada, <strong>la herramienta de Impulso de cada quincena</strong> y <strong>el cajón de la Rebotica del mes</strong>. Tu perfil, tu progreso y tus puntos siguen donde los dejaste.</p>
+          <p style="margin:0 0 12px 0;">El resto del portal (cursos, IAFarma, biblioteca de recursos, retos, comunidad y eventos) sigue siendo de Plus, por si algún día te interesa. Sin prisa y sin compromiso.</p>
+          ${ctaButton(`${APP_URL}/`, 'Entrar en mi cuenta')}
+          <p style="margin:0 0 12px 0;">Si algo te echó atrás durante la prueba, contéstame con una línea y lo miro yo.</p>
+          <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
+        `,
+      });
+      const text = `${holaText}\n\nHace un tiempo creaste tu cuenta en el portal farmapro y, al terminar la prueba, quedó en pausa. Te escribo para decirte que no se ha perdido nada y que hemos cambiado cómo funciona.\n\nAhora la cuenta gratis no caduca. Entras cuando quieras y tienes, sin pagar nada, la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. Tu perfil, tu progreso y tus puntos siguen donde los dejaste.\n\nEl resto del portal (cursos, IAFarma, biblioteca de recursos, retos, comunidad y eventos) sigue siendo de Plus, por si algún día te interesa. Sin prisa y sin compromiso.\n\nEntrar en mi cuenta: ${APP_URL}/\n\nSi algo te echó atrás durante la prueba, contéstame con una línea y lo miro yo.\n\nUn saludo,\nAlejandro Tellería\nFundador de farmapro\n605 87 57 01 · alejandro@mkpro.es\n\n${nota}\n\n--\nEste correo te llega porque tienes una cuenta en el portal farmapro (${APP_URL}). Responsable del tratamiento: Mkpro Kotler SL. Contacto: somos@farmapro.es. Más información: ${APP_URL}/legal`;
       return { subject, html, text };
     }
 
