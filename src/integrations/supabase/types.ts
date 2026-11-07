@@ -3814,6 +3814,7 @@ export type Database = {
       cif_disponible: { Args: { p_cif: string }; Returns: boolean }
       consume_image_credit: { Args: { p_limit: number }; Returns: number }
       consume_image_credit_v2: { Args: { p_limit: number }; Returns: Json }
+      consume_image_pack_credit: { Args: never; Returns: Json }
       consume_text_credit: { Args: { p_limit: number }; Returns: number }
       create_notification_for_user: {
         Args: {
@@ -3967,6 +3968,15 @@ export type Database = {
       }
       my_referrals: { Args: never; Returns: Json }
       next_promotion_reference: { Args: never; Returns: string }
+      notify_oferta_mes_plus: {
+        Args: { p_enviar?: boolean; p_limite?: number }
+        Returns: {
+          o_accion: string
+          o_email: string
+          o_user_id: string
+          o_valida_hasta: string
+        }[]
+      }
       notify_trial_ending: {
         Args: never
         Returns: {
