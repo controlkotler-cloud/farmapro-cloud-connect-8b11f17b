@@ -3,9 +3,18 @@ import { AccessLockedCard } from '@/components/access/AccessLockedCard';
 import { GRATIS_CANDADO } from '@/lib/cuentaGratis';
 import { CreativeHeader } from '@/components/creative/CreativeHeader';
 import { CreativeWorkspace } from '@/components/creative/CreativeWorkspace';
+import { ImageWorkspace } from '@/components/creative/ImageWorkspace';
+import { useImageCredits } from '@/hooks/useImageCredits';
+import { useIAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 
 export default function AsistenteCreativo() {
   const { isLocked, isGratis } = useEntitlements();
+  // Saldo de packs (RPC image_credit_status, el mismo que alimenta QuotaBar).
+  // Solo se consulta en la cuenta gratis: los 3 créditos del premio de la
+  // Rebotica funcionan aunque la IA de texto esté cerrada (decisión D3).
+  const credits = useImageCredits(isGratis);
+  const { defaults } = useIAFarmaDefaults();
+  const packBalance = credits.status?.packBalance ?? 0;
 
   // Control de acceso del plan gratis: solo se bloquea cuando el periodo de
   // prueba ha caducado (free_locked). La prueba en vigor y los planes de pago
@@ -15,6 +24,14 @@ export default function AsistenteCreativo() {
     return (
       <div className="space-y-8">
         <CreativeHeader />
+        {packBalance > 0 && (
+          <section className="space-y-4">
+            <p className="text-sm font-medium text-foreground">
+              Te {packBalance === 1 ? 'queda 1 imagen' : `quedan ${packBalance} imágenes`} de tu premio.
+            </p>
+            <ImageWorkspace defaults={defaults} onGenerated={() => { void credits.refresh(); }} />
+          </section>
+        )}
         <AccessLockedCard
           title={GRATIS_CANDADO.titulo}
           description={GRATIS_CANDADO.ia}
