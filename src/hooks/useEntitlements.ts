@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useModoGratis } from '@/hooks/useModoGratis';
 import {
   getAccessState,
   getTrialDaysLeft,
   FREE_LIMITS,
   type AccessState,
+  type ModoGratis,
 } from '@/lib/plans';
 
 /**
@@ -21,14 +23,20 @@ import {
  * navegar por sí mismo).
  */
 export interface Entitlements {
-  /** Estado bruto: 'paid' | 'free_trial' | 'free_locked'. */
+  /** Estado bruto: 'paid' | 'free_trial' | 'gratis' | 'free_locked'. */
   state: AccessState;
   /** Plan de pago o admin: acceso total. */
   isPaid: boolean;
   /** Plan gratis dentro de los primeros 30 días: acceso con límites. */
   isTrial: boolean;
-  /** Plan gratis pasados 30 días: lo ve todo pero bloqueado. */
+  /** Prueba terminada con modo 'muro' (el de siempre): bloqueado. */
   isLocked: boolean;
+  /** Cuenta gratis permanente (prueba terminada con modo 'permanente'). */
+  isGratis: boolean;
+  /** Prueba terminada, sea cual sea el modo (muro o gratis permanente). */
+  isRestricted: boolean;
+  /** Modo del interruptor `subscription.modo_gratis`. */
+  modo: ModoGratis;
   /** Días de prueba que quedan (solo en 'free_trial'; null en el resto). */
   trialDaysLeft: number | null;
   /** Límites del plan gratis (cursos, recursos, IA…). */
@@ -41,17 +49,21 @@ const PRICING_PATH = '/precios';
 
 export const useEntitlements = (): Entitlements => {
   const { profile } = useAuth();
+  const { modo } = useModoGratis();
 
   return useMemo(() => {
-    const state = getAccessState(profile?.subscription_role, profile?.created_at, profile?.trial_ends_at);
+    const state = getAccessState(profile?.subscription_role, profile?.created_at, profile?.trial_ends_at, modo);
     return {
       state,
       isPaid: state === 'paid',
       isTrial: state === 'free_trial',
       isLocked: state === 'free_locked',
+      isGratis: state === 'gratis',
+      isRestricted: state === 'free_locked' || state === 'gratis',
+      modo,
       trialDaysLeft: state === 'free_trial' ? getTrialDaysLeft(profile?.created_at, profile?.trial_ends_at) : null,
       limits: FREE_LIMITS,
       pricingPath: PRICING_PATH,
     };
-  }, [profile?.subscription_role, profile?.created_at, profile?.trial_ends_at]);
+  }, [profile?.subscription_role, profile?.created_at, profile?.trial_ends_at, modo]);
 };

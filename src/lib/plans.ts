@@ -214,7 +214,27 @@ export const ROLE_LABELS: Record<string, string> = {
 /** Roles antiguos que ya no se asignan a nadie nuevo (ver PAID_ROLES/ROLE_LABELS). */
 export const LEGACY_ROLES = new Set(['premium', 'profesional', 'estudiante']);
 
-export type AccessState = 'paid' | 'free_trial' | 'free_locked';
+/**
+ * Interruptor `system_settings` (category 'subscription', key 'modo_gratis').
+ *  - 'permanente': al terminar la prueba la cuenta pasa a "gratis" (no caduca).
+ *  - 'muro': todo como antes (prueba terminada = bloqueo y /precios).
+ * Si la clave no existe o vale cualquier otra cosa, es 'muro': el despliegue es
+ * inocuo hasta que se encienda a propósito.
+ */
+export type ModoGratis = 'permanente' | 'muro';
+
+export function parseModoGratis(value: unknown): ModoGratis {
+  if (typeof value !== 'string') return 'muro';
+  // jsonb de texto puede llegar con comillas ("\"permanente\"").
+  const v = value.replace(/^"+|"+$/g, '');
+  return v === 'permanente' ? 'permanente' : 'muro';
+}
+
+/**
+ * 'paid' · 'free_trial' · 'gratis' (prueba terminada con modo permanente) ·
+ * 'free_locked' (prueba terminada con modo muro: el estado de siempre).
+ */
+export type AccessState = 'paid' | 'free_trial' | 'gratis' | 'free_locked';
 
 /**
  * Fin de la prueba gratis: el mayor entre alta + 30 días y `profiles.trial_ends_at`.
@@ -237,17 +257,21 @@ export function getTrialEnd(
  * Estado de acceso del usuario:
  *  - 'paid'        → plan de pago o admin: acceso total.
  *  - 'free_trial'  → gratis dentro de la prueba: acceso con límites.
- *  - 'free_locked' → gratis con la prueba terminada: lo ve todo pero bloqueado.
+ *  - 'gratis'      → prueba terminada y modo 'permanente': cuenta gratis que no
+ *                    caduca (herramienta de la quincena + cajón del mes).
+ *  - 'free_locked' → prueba terminada y modo 'muro' (por defecto): bloqueado.
  */
 export function getAccessState(
   role: string | null | undefined,
   createdAt: string | null | undefined,
   trialEndsAt?: string | null,
+  modo: ModoGratis = 'muro',
 ): AccessState {
   if (role && PAID_ROLES.includes(role)) return 'paid';
   const end = getTrialEnd(createdAt, trialEndsAt);
   if (!end) return 'free_trial';
-  return Date.now() <= end.getTime() ? 'free_trial' : 'free_locked';
+  if (Date.now() <= end.getTime()) return 'free_trial';
+  return modo === 'permanente' ? 'gratis' : 'free_locked';
 }
 
 /**
