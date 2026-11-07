@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { readModoGratis, MSG_IA_EN_PLUS } from '../_shared/modoGratis.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -298,8 +299,15 @@ serve(async (req) => {
       );
       access = Date.now() <= end ? 'free_trial' : 'free_locked';
     }
+    // Cuenta gratis permanente (D3): sin cuota mensual, pero los créditos de imagen
+    // ganados como premio de la Rebotica (saldo de pack) siguen sirviendo.
+    let gratisPermanente = false;
     if (access === 'free_locked') {
-      return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir generando imágenes.' }, 403);
+      if ((await readModoGratis(admin)) === 'permanente') {
+        gratisPermanente = true;
+      } else {
+        return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir generando imágenes.' }, 403);
+      }
     }
 
     const body = await req.json().catch(() => ({}));
@@ -366,11 +374,15 @@ serve(async (req) => {
     let remaining: number | null = null;
     let creditSource: 'monthly' | 'pack' | null = null;
     if (role !== 'admin') {
-      const { data: consumeData, error: creditError } = await userClient.rpc('consume_image_credit_v2', {
-        p_limit: IMAGES_PER_MONTH,
-      });
+      // La cuenta gratis solo gasta saldo de pack: nunca toca la cuota mensual.
+      const { data: consumeData, error: creditError } = gratisPermanente
+        ? await userClient.rpc('consume_image_pack_credit')
+        : await userClient.rpc('consume_image_credit_v2', { p_limit: IMAGES_PER_MONTH });
       if (creditError) {
         const msg = (creditError.message || '').toLowerCase();
+        if (gratisPermanente && msg.includes('quota')) {
+          return json({ error: MSG_IA_EN_PLUS }, 403);
+        }
         // Tope diario y cuota mensual son cosas distintas: el diario se levanta
         // solo mañana y no significa quedarse sin créditos (fix 07-09-2026).
         if (msg.includes('daily')) {

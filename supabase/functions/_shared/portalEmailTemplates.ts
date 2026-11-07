@@ -333,14 +333,14 @@ export function renderPortalTemplate(
           <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">${esUltimo ? 'Tu prueba termina en breve' : 'Tu prueba entra en la última semana'}</h1>
           <p style="margin:0 0 12px 0;">${saludo}</p>
           <p style="margin:0 0 12px 0;">Te avisamos de que tu periodo de prueba en el portal farmapro termina en <strong>${diasTxt}</strong>.</p>
-          <p style="margin:0 0 12px 0;">A partir de esa fecha tu cuenta sigue existiendo y podrás entrar y ver el catálogo, pero el contenido quedará bloqueado hasta que actives un plan. No se te cobra nada de forma automática.</p>
+          <p style="margin:0 0 12px 0;">A partir de esa fecha pasas a la cuenta gratis: seguirás teniendo la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. El resto (cursos, IAFarma, biblioteca de recursos, retos, comunidad y eventos) va con Plus. No se te cobra nada de forma automática.</p>
           <p style="margin:0 0 12px 0;">Puedes consultar los planes disponibles y activar el que quieras desde tu cuenta.</p>
           ${ctaButton(`${APP_URL}/precios`, 'Ver los planes')}
           <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si no quieres hacer nada, no tienes que hacer nada.</p>
           <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
         `,
       });
-      const text = `${saludo}\n\nTe avisamos de que tu periodo de prueba en el portal farmapro termina en ${diasTxt}.\n\nA partir de esa fecha tu cuenta sigue existiendo y podrás entrar y ver el catálogo, pero el contenido quedará bloqueado hasta que actives un plan. No se te cobra nada de forma automática.\n\nPuedes consultar los planes disponibles y activar el que quieras desde tu cuenta: ${APP_URL}/precios\n\nSi no quieres hacer nada, no tienes que hacer nada.\n\n${nota}${textFooter()}`;
+      const text = `${saludo}\n\nTe avisamos de que tu periodo de prueba en el portal farmapro termina en ${diasTxt}.\n\nA partir de esa fecha pasas a la cuenta gratis: seguirás teniendo la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. El resto (cursos, IAFarma, biblioteca de recursos, retos, comunidad y eventos) va con Plus. No se te cobra nada de forma automática.\n\nPuedes consultar los planes disponibles y activar el que quieras desde tu cuenta: ${APP_URL}/precios\n\nSi no quieres hacer nada, no tienes que hacer nada.\n\n${nota}${textFooter()}`;
       return { subject, html, text };
     }
 
@@ -364,8 +364,8 @@ export function renderPortalTemplate(
       const pila = nombrePila(data.nombre);
 
       const subject = haUsado
-        ? `${pila ? `${pila}, esto` : 'Esto'} es lo que pierdes el ${fecha}`
-        : `${pila ? `${pila}, el` : 'El'} ${fecha} se cierra tu portal`;
+        ? `${pila ? `${pila}, esto` : 'Esto'} es lo que pasa a Plus el ${fecha}`
+        : `${pila ? `${pila}, el` : 'El'} ${fecha} termina tu prueba del portal`;
 
       // Lo que ha usado (títulos reales de la cuenta).
       const usoLineas: string[] = [];
@@ -380,15 +380,15 @@ export function renderPortalTemplate(
             <p style="margin:0 0 8px 0;font-size:13px;color:#6b6f68;text-transform:uppercase;letter-spacing:0.04em;">Lo que has usado estos días</p>
             <ul style="margin:0;padding-left:18px;">${usoLineas.map((l) => `<li style="margin:0 0 4px 0;">${escapeHtml(l)}</li>`).join('')}</ul>
           </div>
-          <p style="margin:0 0 12px 0;">El <strong>${escapeHtml(fecha)}</strong> termina tu prueba y todo eso queda bloqueado: los cursos, los recursos y IAFarma. Tu progreso se guarda, pero no podrás volver a entrar sin un plan.</p>`
-        : `<p style="margin:0 0 12px 0;">El <strong>${escapeHtml(fecha)}</strong> termina tu prueba y todavía no le has sacado partido al portal. Te quedan ${dias} días para hacerlo gratis.</p>
+          <p style="margin:0 0 12px 0;">El <strong>${escapeHtml(fecha)}</strong> termina tu prueba y pasas a la cuenta gratis, con la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. Los cursos, IAFarma, la biblioteca de recursos, los retos, la comunidad y los eventos van con Plus. Tu progreso se guarda.</p>`
+        : `<p style="margin:0 0 12px 0;">El <strong>${escapeHtml(fecha)}</strong> termina tu prueba y todavía no le has sacado partido al portal. Te quedan ${dias} días para hacerlo con todo abierto.</p>
           ${populares.length ? `<div style="margin:0 0 16px 0;padding:14px 16px;background:#f6f4ec;border:1px solid #ecebe6;border-radius:8px;">
             <p style="margin:0 0 8px 0;font-size:13px;color:#6b6f68;text-transform:uppercase;letter-spacing:0.04em;">Lo que más están descargando otras farmacias</p>
             <ul style="margin:0;padding-left:18px;">${populares.map((t) => `<li style="margin:0 0 4px 0;">${escapeHtml(t)}</li>`).join('')}</ul>
           </div>` : ''}`;
       const usoText = haUsado
-        ? `Lo que has usado estos días:\n${usoLineas.map((l) => `- ${l}`).join('\n')}\n\nEl ${fecha} termina tu prueba y todo eso queda bloqueado: los cursos, los recursos y IAFarma. Tu progreso se guarda, pero no podrás volver a entrar sin un plan.`
-        : `El ${fecha} termina tu prueba y todavía no le has sacado partido al portal. Te quedan ${dias} días para hacerlo gratis.${populares.length ? `\n\nLo que más están descargando otras farmacias:\n${populares.map((t) => `- ${t}`).join('\n')}` : ''}`;
+        ? `Lo que has usado estos días:\n${usoLineas.map((l) => `- ${l}`).join('\n')}\n\nEl ${fecha} termina tu prueba y pasas a la cuenta gratis, con la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. Los cursos, IAFarma, la biblioteca de recursos, los retos, la comunidad y los eventos van con Plus. Tu progreso se guarda.`
+        : `El ${fecha} termina tu prueba y todavía no le has sacado partido al portal. Te quedan ${dias} días para hacerlo con todo abierto.${populares.length ? `\n\nLo que más están descargando otras farmacias:\n${populares.map((t) => `- ${t}`).join('\n')}` : ''}`;
 
       // Por qué ese plan, con el dato de la propia cuenta.
       const personas: Record<string, string> = { '4_6': 'entre 4 y 6', '7_10': 'entre 7 y 10', 'mas_10': 'más de 10' };
@@ -438,7 +438,7 @@ export function renderPortalTemplate(
       const html = layout({
         previewText: `Lo que has usado, el plan que encaja con tu farmacia y el precio de fundador que tienes reservado.`,
         bodyHtml: `
-          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu prueba se cierra el ${escapeHtml(fecha)}</h1>
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu prueba termina el ${escapeHtml(fecha)}</h1>
           <p style="margin:0 0 12px 0;">${saludo}</p>
           ${usoHtml}
           <div style="margin:0 0 16px 0;padding:16px;border:2px solid #5F8F20;border-radius:10px;">
@@ -463,18 +463,19 @@ export function renderPortalTemplate(
       const subject = 'Tu prueba del portal farmapro ha terminado';
       const nota = 'Este es un aviso sobre el estado de tu cuenta en el portal, no una comunicación comercial: lo recibes con independencia de si tienes activadas las comunicaciones del sector.';
       const html = layout({
-        previewText: 'Tu cuenta sigue ahí; el contenido queda bloqueado hasta que actives un plan.',
+        previewText: 'Tu cuenta sigue ahí y pasa a ser una cuenta gratis.',
         bodyHtml: `
-          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu cuenta sigue ahí, el contenido queda bloqueado</h1>
+          <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Tu cuenta sigue ahí y pasa a ser una cuenta gratis</h1>
           <p style="margin:0 0 12px 0;">${saludo}</p>
           <p style="margin:0 0 12px 0;">Tu periodo de prueba de 30 días en el portal farmapro ha terminado. Tu cuenta y tu perfil siguen existiendo, no se te ha cobrado nada y no se te va a cobrar nada.</p>
-          <p style="margin:0 0 12px 0;">Lo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas un plan, lo recuperas tal cual y el acceso es inmediato.</p>
+          <p style="margin:0 0 12px 0;">Con la cuenta gratis tienes la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. El resto (cursos, IAFarma, biblioteca de recursos, retos, comunidad y eventos) va con Plus.</p>
+          <p style="margin:0 0 12px 0;">Lo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas Plus, lo recuperas tal cual y el acceso es inmediato.</p>
           ${ctaButton(`${APP_URL}/precios`, 'Elegir un plan')}
           <p style="margin:16px 0 0 0;font-size:13px;color:#6b6f68;">Si no quieres seguir, no tienes que hacer nada. Y si algo no te ha encajado, respóndenos a este correo: nos sirve para mejorar el portal.</p>
           <p style="margin:16px 0 0 0;font-size:12px;color:#6b6f68;">${nota}</p>
         `,
       });
-      const text = `${saludo}\n\nTu periodo de prueba de 30 días en el portal farmapro ha terminado. Tu cuenta y tu perfil siguen existiendo, no se te ha cobrado nada y no se te va a cobrar nada.\n\nLo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas un plan, lo recuperas tal cual y el acceso es inmediato.\n\nElegir un plan: ${APP_URL}/precios\n\nSi no quieres seguir, no tienes que hacer nada. Y si algo no te ha encajado, respóndenos a este correo: nos sirve para mejorar el portal.\n\n${nota}${textFooter()}`;
+      const text = `${saludo}\n\nTu periodo de prueba de 30 días en el portal farmapro ha terminado. Tu cuenta y tu perfil siguen existiendo, no se te ha cobrado nada y no se te va a cobrar nada.\n\nCon la cuenta gratis tienes la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. El resto (cursos, IAFarma, biblioteca de recursos, retos, comunidad y eventos) va con Plus.\n\nLo que has hecho hasta ahora (progreso en cursos, puntos, cajones de la Rebotica) se conserva. Si activas Plus, lo recuperas tal cual y el acceso es inmediato.\n\nElegir un plan: ${APP_URL}/precios\n\nSi no quieres seguir, no tienes que hacer nada. Y si algo no te ha encajado, respóndenos a este correo: nos sirve para mejorar el portal.\n\n${nota}${textFooter()}`;
       return { subject, html, text };
     }
 

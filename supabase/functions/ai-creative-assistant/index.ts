@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { readModoGratis, MSG_IA_EN_PLUS } from '../_shared/modoGratis.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -105,6 +106,9 @@ Deno.serve(async (req) => {
     }
 
     if (access === 'free_locked') {
+      if ((await readModoGratis(admin)) === 'permanente') {
+        return json({ error: MSG_IA_EN_PLUS }, 403);
+      }
       return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir generando contenido con IAFarma.' }, 403);
     }
 

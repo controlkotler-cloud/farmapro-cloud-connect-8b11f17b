@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { readModoGratis, MSG_IA_EN_PLUS } from '../_shared/modoGratis.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,6 +114,10 @@ serve(async (req) => {
       access = Date.now() <= end ? 'free_trial' : 'free_locked';
     }
     if (access === 'free_locked') {
+      // Cuenta gratis permanente: la IA de chat queda en Plus. En modo muro, el texto de siempre.
+      if ((await readModoGratis(supabaseClient)) === 'permanente') {
+        return json({ error: MSG_IA_EN_PLUS }, 403);
+      }
       return json({ error: 'Tu periodo de prueba ha terminado. Mira los planes para seguir usando el asistente.' }, 403);
     }
 
