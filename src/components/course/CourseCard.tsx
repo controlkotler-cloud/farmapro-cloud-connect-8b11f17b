@@ -39,7 +39,7 @@ const getDifficulty = (difficulty?: string) => {
 
 export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnroll }: CourseCardProps) => {
   const navigate = useNavigate();
-  const { isLocked } = useEntitlements();
+  const { isRestricted } = useEntitlements();
   const [imgError, setImgError] = useState(false);
   const isEnrolled = enrollments.some(enrollment => enrollment.course_id === course.id);
   const isCompleted = enrollments.some(enrollment =>
@@ -48,7 +48,7 @@ export const CourseCard = ({ course, index, enrollments, canAccessCourse, onEnro
   const canAccess = canAccessCourse(course);
   // Si no puede acceder por estar bloqueado/limitado (no por ser premium con
   // plan distinto), ofrecemos un CTA hacia Precios en vez de un botón muerto.
-  const showPlanCta = !canAccess && (isLocked || !course.is_premium);
+  const showPlanCta = !canAccess && (isRestricted || !course.is_premium);
   const difficulty = getDifficulty(course.difficulty);
 
   // Nº de lecciones: usa total_lessons real si está; si no, cuenta módulos.

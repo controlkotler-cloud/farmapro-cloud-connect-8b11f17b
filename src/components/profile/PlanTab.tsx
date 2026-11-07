@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Star, ExternalLink, ShieldCheck, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useModoGratis } from '@/hooks/useModoGratis';
 import { PLANS, ROLE_LABELS, getAccessState, getTrialDaysLeft, getLaunchStatus } from '@/lib/plans';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { ImageCreditsCard } from '@/components/profile/ImageCreditsCard';
@@ -20,7 +21,8 @@ interface PlanTabProps {
  */
 export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
   const role: string | null = isAdmin ? 'admin' : (profile?.subscription_role ?? null);
-  const access = isAdmin ? 'paid' : getAccessState(role, profile?.created_at ?? null, profile?.trial_ends_at ?? null);
+  const { modo } = useModoGratis();
+  const access = isAdmin ? 'paid' : getAccessState(role, profile?.created_at ?? null, profile?.trial_ends_at ?? null, modo);
   const launch = getLaunchStatus();
   const { isTeamOwner, isTeamMember, memberTeamName } = useTeamManagement();
   // Miembro de un equipo (no titular): la plaza la gestiona el titular, no hay CTA de precios.
@@ -65,6 +67,7 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                     </Badge>
                   )}
                   {access === 'free_locked' && <Badge variant="destructive">Prueba finalizada</Badge>}
+                  {access === 'gratis' && <Badge variant="secondary">Gratis</Badge>}
                 </div>
               </div>
             </div>
@@ -126,6 +129,8 @@ export const PlanTab = ({ profile, isAdmin }: PlanTabProps) => {
                     ? 'Amplía a Equipo y suma a tu plantilla'
                     : access === 'free_locked'
                     ? 'Recupera tu acceso con el plan Plus'
+                    : access === 'gratis'
+                    ? 'Pasa a Plus y desbloquea todo el portal'
                     : '¿Listo para dar el siguiente paso?'}
                 </h3>
                 <p className="text-sm text-muted-foreground">

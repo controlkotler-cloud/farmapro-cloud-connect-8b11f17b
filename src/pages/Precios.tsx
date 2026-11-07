@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { useLaunchStatus } from "@/hooks/useLaunchStatus";
+import { useModoGratis } from "@/hooks/useModoGratis";
+import { GRATIS_PLAN_FEATURES, GRATIS_PLAN_TAGLINE } from "@/lib/cuentaGratis";
 import { trackBeginCheckout } from "@/lib/analytics";
 import {
   PLANS,
@@ -72,7 +74,16 @@ export default function Precios() {
     };
   }, [user, hasPaidPlan]);
   // Quien ya paga no ve la tarjeta del plan gratis ni su explicación.
-  const visiblePlans = hasPaidPlan ? PLANS.filter((p) => p.id !== "gratis") : PLANS;
+  const { modo } = useModoGratis();
+  const permanente = modo === "permanente";
+  // Con la cuenta gratis permanente la tarjeta Gratis cuenta lo que se queda
+  // para siempre; en modo muro se mantiene el texto de siempre.
+  const plansView = permanente
+    ? PLANS.map((p) =>
+        p.id === "gratis" ? { ...p, tagline: GRATIS_PLAN_TAGLINE, features: GRATIS_PLAN_FEATURES } : p,
+      )
+    : PLANS;
+  const visiblePlans = hasPaidPlan ? plansView.filter((p) => p.id !== "gratis") : plansView;
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   // Plan cuyo checkout está en curso (deshabilita su botón e ignora dobles clics).
   const [checkoutLoading, setCheckoutLoading] = useState<PlanId | null>(null);
@@ -81,10 +92,11 @@ export default function Precios() {
   // Los packs se cobran sobre un plan de pago (create-checkout lo exige por rol):
   // titular Plus/Equipo o miembro de un equipo.
   const canBuyPacks = currentPlan !== null || (isTeamMember && !teamLoading);
-  // Vuelta al portal para quien ya tiene cuenta. El gratis caducado no la ve:
-  // la app lo reenvía a /precios y el enlace solo haría un bucle.
+  // Vuelta al portal para quien ya tiene cuenta. El gratis caducado en modo muro
+  // no la ve: la app lo reenvía a /precios y el enlace solo haría un bucle. La
+  // cuenta gratis permanente sí (no se la reenvía a ningún sitio).
   const accessState = user
-    ? getAccessState(role ?? null, profile?.created_at ?? null, profile?.trial_ends_at ?? null)
+    ? getAccessState(role ?? null, profile?.created_at ?? null, profile?.trial_ends_at ?? null, modo)
     : null;
   const showBackToPortal = Boolean(user) && accessState !== "free_locked";
   // Estado del lanzamiento con el recuento REAL de plazas (vista founder_count).
@@ -362,13 +374,22 @@ export default function Precios() {
           <Card className="bg-muted/40 border-dashed">
             <CardContent className="p-6 text-center">
               <h3 className="font-semibold mb-2">Cómo funciona el plan gratis</h3>
-              <p className="text-sm text-muted-foreground">
-                Durante los primeros {FREE_LIMITS.trialDays} días disfrutas de un acceso
-                limitado: unos cuantos cursos y recursos, la comunidad en modo lectura y
-                unas primeras pruebas de IAFarma. Pasados los {FREE_LIMITS.trialDays} días
-                tu cuenta queda en modo solo-ver: lo sigues viendo todo, pero para usarlo
-                necesitas un plan de pago.
-              </p>
+              {permanente ? (
+                <p className="text-sm text-muted-foreground">
+                  Los primeros {FREE_LIMITS.trialDays} días pruebas el portal completo, con algunos
+                  límites. Después tu cuenta sigue siendo gratis para siempre: te quedas con la
+                  herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. Todo
+                  lo demás, con Plus.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Durante los primeros {FREE_LIMITS.trialDays} días disfrutas de un acceso
+                  limitado: unos cuantos cursos y recursos, la comunidad en modo lectura y
+                  unas primeras pruebas de IAFarma. Pasados los {FREE_LIMITS.trialDays} días
+                  tu cuenta queda en modo solo-ver: lo sigues viendo todo, pero para usarlo
+                  necesitas un plan de pago.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

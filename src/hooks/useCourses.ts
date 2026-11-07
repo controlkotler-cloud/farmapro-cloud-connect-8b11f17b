@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getAccessState, FREE_LIMITS } from '@/lib/plans';
+import { useModoGratis } from '@/hooks/useModoGratis';
+import { GRATIS_CANDADO } from '@/lib/cuentaGratis';
 import type { Course, CourseEnrollment, CourseModule } from '@/types/course';
 
 export const useCourses = () => {
@@ -65,7 +67,8 @@ export const useCourses = () => {
   };
 
   // Estado de acceso del plan (de pago / prueba gratis / gratis caducado).
-  const accessState = getAccessState(profile?.subscription_role, profile?.created_at, profile?.trial_ends_at);
+  const { modo } = useModoGratis();
+  const accessState = getAccessState(profile?.subscription_role, profile?.created_at, profile?.trial_ends_at, modo);
 
   const enrollInCourse = async (courseSlug: string) => {
     if (!profile?.id) return;
@@ -85,6 +88,15 @@ export const useCourses = () => {
 
     // Inscripción NUEVA → aplicar control de acceso del plan gratis.
     // Gratis caducado: no puede inscribirse a nada.
+    if (accessState === 'gratis') {
+      toast({
+        title: GRATIS_CANDADO.titulo,
+        description: GRATIS_CANDADO.formacion,
+        variant: 'destructive',
+      });
+      navigate('/precios');
+      return;
+    }
     if (accessState === 'free_locked') {
       toast({
         title: 'Tu acceso gratuito ha caducado',
@@ -137,7 +149,7 @@ export const useCourses = () => {
     if (accessState === 'paid') return true;
 
     // Gratis caducado: no abre el contenido de ningún curso (sí ve el catálogo).
-    if (accessState === 'free_locked') return false;
+    if (accessState === 'free_locked' || accessState === 'gratis') return false;
 
     // A partir de aquí, periodo de prueba gratis.
     // Mantenemos la lógica premium: los cursos premium siguen siendo de pago.

@@ -32,8 +32,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { useEntitlements } from '@/hooks/useEntitlements';
 
-// Secciones que se cierran al terminar la prueba gratis (free_locked).
+// Secciones que se cierran al terminar la prueba gratis en modo muro (free_locked).
 const LOCKED_PATHS = new Set(['/formacion', '/recursos', '/asistente-creativo']);
+// Cuenta gratis permanente: Recursos NO está aquí (se abre recurso a recurso, la
+// herramienta de la quincena), y se cierran además Retos, Comunidad y Eventos.
+const GRATIS_LOCKED_PATHS = new Set(['/formacion', '/asistente-creativo', '/retos', '/comunidad', '/eventos']);
 
 interface MenuItem {
   name: string;
@@ -85,7 +88,7 @@ export const SidebarNavigation = () => {
   const { isEmpleoVisible, isFarmaciasVisible } = useSectionVisibility();
   const { isAdmin } = useAuth();
   const { isTeamOwner, isTeamMember, loading: teamLoading } = useTeamManagement();
-  const { isLocked } = useEntitlements();
+  const { isLocked, isGratis } = useEntitlements();
 
   const handleNavClick = () => {
     if (isMobile) {
@@ -148,6 +151,9 @@ export const SidebarNavigation = () => {
                         <span className="flex-1 truncate">{item.name}</span>
                         {isLocked && LOCKED_PATHS.has(item.path) && (
                           <Lock className="h-3.5 w-3.5 flex-none text-ciruela" aria-label="Cerrado: tu prueba ha terminado" />
+                        )}
+                        {isGratis && GRATIS_LOCKED_PATHS.has(item.path) && (
+                          <Lock className="h-3.5 w-3.5 flex-none text-ciruela" aria-label="Incluido en Plus" />
                         )}
                       </Link>
                     </SidebarMenuButton>

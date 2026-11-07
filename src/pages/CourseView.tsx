@@ -10,6 +10,7 @@ import { useQuiz } from '@/hooks/useQuiz';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { AccessLockedCard } from '@/components/access/AccessLockedCard';
+import { GRATIS_CANDADO } from '@/lib/cuentaGratis';
 import { CourseHeader } from '@/components/course/CourseHeader';
 import { ModuleContent } from '@/components/course/ModuleContent';
 import { CourseViewLoading } from '@/components/course/CourseViewLoading';
@@ -21,11 +22,11 @@ const CourseView = () => {
   const { courseSlug } = useParams();
   const navigate = useNavigate();
   const moduleContentRef = useRef<HTMLDivElement>(null);
-  const { isLocked } = useEntitlements();
+  const { isLocked, isGratis, isRestricted } = useEntitlements();
 
   // Inscripción al vuelo si se entra por enlace directo (panel, buscador). Si el
   // acceso gratis ha caducado no se inscribe: abajo se muestra el muro.
-  const { course, enrollment, loading: courseLoading, hasQuiz } = useCourseData(courseSlug, { autoEnroll: !isLocked });
+  const { course, enrollment, loading: courseLoading, hasQuiz } = useCourseData(courseSlug, { autoEnroll: !isRestricted });
 
   const {
     isModuleCompleted,
@@ -75,7 +76,7 @@ const CourseView = () => {
   // (free_locked), el usuario puede ver la ficha/catálogo pero NO el contenido
   // del curso. Mostramos bloqueo + CTA a Precios. Los planes de pago y la
   // prueba en vigor pasan de largo (su tope se controla al inscribirse).
-  if (isLocked) {
+  if (isRestricted) {
     return (
       <div className="space-y-6">
         <Button
@@ -86,10 +87,18 @@ const CourseView = () => {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver a Formación
         </Button>
-        <AccessLockedCard
-          title="Tu acceso gratuito ha caducado"
-          description="Ya puedes ver todo el catálogo, pero para entrar en los cursos necesitas el plan Plus. Desbloquéalo y sigue formándote sin límites."
-        />
+        {isGratis ? (
+          <AccessLockedCard
+            title={GRATIS_CANDADO.titulo}
+            description={GRATIS_CANDADO.curso}
+            ctaLabel={GRATIS_CANDADO.cta}
+          />
+        ) : (
+          <AccessLockedCard
+            title="Tu acceso gratuito ha caducado"
+            description="Ya puedes ver todo el catálogo, pero para entrar en los cursos necesitas el plan Plus. Desbloquéalo y sigue formándote sin límites."
+          />
+        )}
       </div>
     );
   }

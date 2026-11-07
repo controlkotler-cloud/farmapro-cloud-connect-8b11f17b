@@ -13,8 +13,10 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { getTrialEnd } from '@/lib/plans';
+import { GRATIS_EN_PLUS, GRATIS_INCLUYE } from '@/lib/cuentaGratis';
 
 const SEEN_KEY = 'farmapro:trial-locked-notice-seen';
+const SEEN_KEY_GRATIS = 'farmapro:cuenta-gratis-notice-seen';
 
 /** Fecha (texto) en la que terminó la prueba: alta + 30 días, o el fin de la concesión. */
 const useTrialEndLabel = () => {
@@ -33,8 +35,29 @@ const useTrialEndLabel = () => {
  * puede cerrar. La Rebotica, que tiene layout propio, la pinta también.
  */
 export const TrialLockedBanner = () => {
-  const { isLocked, pricingPath } = useEntitlements();
+  const { isLocked, isGratis, pricingPath } = useEntitlements();
   const endLabel = useTrialEndLabel();
+
+  if (isGratis) {
+    return (
+      <div
+        role="status"
+        className="flex flex-none flex-col gap-2 border-b border-ciruela/30 bg-ciruela-soft px-4 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between md:px-6"
+      >
+        <div className="flex items-start gap-2.5">
+          <Lock className="mt-0.5 h-4 w-4 flex-none text-ciruela" aria-hidden="true" />
+          <p className="text-foreground text-pretty">
+            <span className="font-semibold">Tu cuenta gratis.</span>{' '}
+            Incluye la herramienta de Impulso de cada quincena y el cajón de la Rebotica del mes. El resto está en Plus.
+          </p>
+        </div>
+        <Button asChild size="sm" className="shrink-0">
+          <Link to={pricingPath}>Ver Plus</Link>
+        </Button>
+      </div>
+    );
+  }
+
   if (!isLocked) return null;
 
   return (
@@ -63,29 +86,77 @@ export const TrialLockedBanner = () => {
  * es un fallo y qué queda cerrado.
  */
 export const TrialLockedDialog = () => {
-  const { isLocked, pricingPath } = useEntitlements();
+  const { isLocked, isGratis, pricingPath } = useEntitlements();
   const endLabel = useTrialEndLabel();
   const [open, setOpen] = useState(false);
+  const seenKey = isGratis ? SEEN_KEY_GRATIS : SEEN_KEY;
 
   useEffect(() => {
-    if (!isLocked) return;
+    if (!isLocked && !isGratis) return;
     let seen = false;
     try {
-      seen = sessionStorage.getItem(SEEN_KEY) === '1';
+      seen = sessionStorage.getItem(seenKey) === '1';
     } catch {
       // Sin sessionStorage (modo privado estricto): se enseña igual.
     }
     if (!seen) setOpen(true);
-  }, [isLocked]);
+  }, [isLocked, isGratis, seenKey]);
 
   const close = () => {
     try {
-      sessionStorage.setItem(SEEN_KEY, '1');
+      sessionStorage.setItem(seenKey, '1');
     } catch {
       // Sin almacenamiento: volverá a salir en la próxima carga, no pasa nada.
     }
     setOpen(false);
   };
+
+  if (isGratis) {
+    return (
+      <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-lg bg-ciruela text-primary-foreground">
+              <Lock className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <DialogTitle>Tu cuenta gratis</DialogTitle>
+            <DialogDescription className="text-pretty">
+              {endLabel ? `Tu prueba completa terminó el ${endLabel}.` : 'Tu prueba completa ha terminado.'} Tu
+              cuenta sigue activa y no has perdido nada: tu perfil, tus puntos y tu progreso siguen ahí.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 text-sm sm:grid-cols-2">
+            <div>
+              <p className="mb-1.5 font-semibold text-foreground">Tienes</p>
+              <ul className="space-y-1 text-muted-foreground">
+                {GRATIS_INCLUYE.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="mb-1.5 font-semibold text-foreground">Con Plus</p>
+              <ul className="space-y-1 text-muted-foreground">
+                {GRATIS_EN_PLUS.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={close}>
+              Seguir mirando
+            </Button>
+            <Button asChild onClick={close}>
+              <Link to={pricingPath}>Ver Plus</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (!isLocked) return null;
 

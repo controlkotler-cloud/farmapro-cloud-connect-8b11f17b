@@ -18,6 +18,10 @@ export interface Resource {
       3 descargas del plan Gratis (decisión Francesc 15-09-2026, se prometió
       gratis desde N1). Ver src/pages/Recursos.tsx handleDownload. */
   is_newsletter: boolean;
+  /** Referencia de la newsletter (p. ej. N31) y fin de su quincena: la cuenta
+      gratis solo abre la herramienta de la quincena en curso (src/lib/quincena.ts). */
+  newsletter_ref: string | null;
+  open_until: string | null;
   created_at: string;
 }
 
@@ -38,7 +42,7 @@ export const useResources = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from('resources')
-      .select('id, slug, title, description, category, type, file_url, format, is_premium, is_newsletter, created_at')
+      .select('id, slug, title, description, category, type, file_url, format, is_premium, is_newsletter, newsletter_ref, open_until, created_at')
       .eq('is_published', true)
       .order('created_at', { ascending: false });
 
@@ -57,6 +61,8 @@ export const useResources = () => {
         format: resource.format || 'pdf',
         is_premium: resource.is_premium,
         is_newsletter: resource.is_newsletter ?? false,
+        newsletter_ref: resource.newsletter_ref ?? null,
+        open_until: resource.open_until ?? null,
         created_at: resource.created_at,
       }));
       setResources(transformedData);

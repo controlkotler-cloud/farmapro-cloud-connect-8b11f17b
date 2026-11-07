@@ -7,10 +7,13 @@ import { AdminProtectedRoute } from "./AdminProtectedRoute";
 import { Dashboard } from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 import { Formacion } from "@/pages/Formacion";
+import { GratisGate } from "@/components/access/GratisGate";
+import { GRATIS_CANDADO } from "@/lib/cuentaGratis";
 import { Recursos } from "@/pages/Recursos";
 import { VaultMasterclass } from "@/pages/VaultMasterclass";
 import { VaultMasterclassProtocolo } from "@/pages/VaultMasterclassProtocolo";
 import { getAccessState } from "@/lib/plans";
+import { useModoGratis } from "@/hooks/useModoGratis";
 import Comunidad from "@/pages/Comunidad";
 import { Retos } from "@/pages/Retos";
 import Empleo from "@/pages/Empleo";
@@ -57,6 +60,8 @@ import { PageMeta } from "@/components/seo/PageMeta";
 export const AppRoutes = () => {
   const { user, profile, loading } = useAuth();
   const { getSettingsByCategory, isLoading: settingsLoading } = useSystemSettings();
+  // Cuenta gratis permanente: con 'permanente' la prueba terminada ya no redirige a /precios.
+  const { modo, isLoading: modoLoading } = useModoGratis();
 
   // A1: validation_mode vive en la categoría 'subscription', NO en 'system'
   // (no existe ninguna fila con category='system'). Leerla mal dejaba
@@ -67,7 +72,7 @@ export const AppRoutes = () => {
   const subscriptionSettings = getSettingsByCategory('subscription');
   const validationMode = subscriptionSettings?.validation_mode || 'beta';
 
-  if (loading || settingsLoading) {
+  if (loading || settingsLoading || modoLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
@@ -84,7 +89,7 @@ export const AppRoutes = () => {
   // Solo redirigimos a /precios cuando validation_mode='active' y el acceso está
   // bloqueado; los roles de pago nunca entran aquí (getAccessState devuelve 'paid').
   const accessState = user
-    ? getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null, profile?.trial_ends_at ?? null)
+    ? getAccessState(profile?.subscription_role ?? null, profile?.created_at ?? null, profile?.trial_ends_at ?? null, modo)
     : null;
   const shouldRedirectToPrecios = validationMode === 'active' && accessState === 'free_locked';
 
@@ -198,12 +203,16 @@ export const AppRoutes = () => {
       } />
       <Route path="/comunidad" element={
         <ProtectedRoute>
-          <Comunidad />
+          <GratisGate description={GRATIS_CANDADO.comunidad}>
+            <Comunidad />
+          </GratisGate>
         </ProtectedRoute>
       } />
       <Route path="/retos" element={
         <ProtectedRoute>
-          <Retos />
+          <GratisGate description={GRATIS_CANDADO.retos}>
+            <Retos />
+          </GratisGate>
         </ProtectedRoute>
       } />
       <Route path="/empleo" element={
@@ -218,7 +227,9 @@ export const AppRoutes = () => {
       } />
       <Route path="/eventos" element={
         <ProtectedRoute>
-          <Eventos />
+          <GratisGate description={GRATIS_CANDADO.eventos}>
+            <Eventos />
+          </GratisGate>
         </ProtectedRoute>
       } />
       <Route path="/promociones" element={

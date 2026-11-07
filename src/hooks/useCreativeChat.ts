@@ -69,7 +69,7 @@ export interface CreativeContext {
 const FALLBACK_BY_STATUS: Record<number, string> = {
   401: 'Sesión expirada. Por favor, vuelve a iniciar sesión.',
   402: 'Has usado los 2 textos al mes de tu plan Gratis. Mira los planes para seguir generando.',
-  403: 'Tu periodo de prueba ha terminado. Mira los planes para seguir creando contenido con IAFarma.',
+  403: 'La IA de farmapro está en Plus. Mira los planes para seguir creando contenido con IAFarma.',
   429: 'Has alcanzado el tope de uso de hoy. Inténtalo de nuevo mañana.',
 };
 

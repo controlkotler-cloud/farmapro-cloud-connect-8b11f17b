@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
  *  - Respuesta OK: { imageUrl, revisedPrompt?, remaining? }
  *  - Errores por código HTTP:
  *      402 → créditos de imagen agotados
- *      403 → sin acceso (free_locked)
+ *      403 → sin acceso (prueba terminada: free_locked / gratis)
  *      401 → sesión expirada
  */
 
@@ -137,7 +137,7 @@ const messageForStatus = (
     case 403:
       return {
         code: 'forbidden',
-        message: fallback || 'Tu periodo de prueba ha terminado. Mira los planes para seguir generando imágenes.',
+        message: fallback || 'La IA de farmapro está en Plus. Mira los planes para seguir generando imágenes.',
       };
     case 401:
       return { code: 'unauthorized', message: 'Sesión expirada. Por favor, vuelve a iniciar sesión.' };

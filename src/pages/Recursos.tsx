@@ -9,6 +9,8 @@ import { lanzarDescarga, urlFirmada } from '@/lib/descargas';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useResources, type Resource } from '@/hooks/useResources';
+import { esHerramientaDeLaQuincena } from '@/lib/quincena';
+import { GRATIS_CANDADO } from '@/lib/cuentaGratis';
 import { RESOURCE_CATEGORIES } from '@/lib/resourceCategory';
 import { RESOURCE_NEEDS } from '@/lib/resourceNeeds';
 import { ResourcesHeader } from '@/components/resources/ResourcesHeader';
@@ -37,7 +39,7 @@ import {
 export const Recursos = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const { isPaid, isTrial, isLocked, limits } = useEntitlements();
+  const { isPaid, isTrial, isLocked, isGratis, limits } = useEntitlements();
   const { toast } = useToast();
   const { resources, loading } = useResources();
 
@@ -311,8 +313,28 @@ export const Recursos = () => {
     // 15-09-2026, ventana-descargables-impulso).
     const isNewsletterFree = resource.is_newsletter;
 
-    // Gratis caducado: nada de descargas, salvo lo prometido en Impulso.
-    if (isLocked && !isNewsletterFree) {
+    // Premio de la Rebotica: recurso premium ya desbloqueado → pasa todos los
+    // gates (la política de Storage lo firma aunque el plan sea Gratis).
+    // Se evalúa ANTES del bloqueo: un premio ganado debe abrirse también con
+    // la prueba caducada.
+    const unlockedByReward = resource.is_premium && unlockedIds.has(resource.id);
+
+    // Cuenta gratis permanente: solo se abre la herramienta de Impulso de la
+    // quincena en curso (D4: pasada su ventana, pasa a Plus aunque ya se
+    // descargara) y lo desbloqueado por un premio de la Rebotica.
+    if (isGratis && !unlockedByReward && !esHerramientaDeLaQuincena(resource, resources)) {
+      toast({
+        title: GRATIS_CANDADO.titulo,
+        description: GRATIS_CANDADO.recurso,
+        variant: 'destructive',
+        action: pricingCta,
+      });
+      return;
+    }
+
+    // Gratis caducado (modo muro): nada de descargas, salvo lo prometido en
+    // Impulso y lo ganado en un premio.
+    if (isLocked && !isNewsletterFree && !unlockedByReward) {
       toast({
         title: 'Tu acceso gratuito ha caducado',
         description: 'Hazte Plus para descargar este y todos los recursos.',
@@ -321,10 +343,6 @@ export const Recursos = () => {
       });
       return;
     }
-
-    // Premio de la Rebotica: recurso premium ya desbloqueado → pasa todos los
-    // gates (la política de Storage lo firma aunque el plan sea Gratis).
-    const unlockedByReward = resource.is_premium && unlockedIds.has(resource.id);
 
     // Premio "Recurso premium" pendiente de elegir: este clic ES la elección.
     // Se confirma en un diálogo porque es irreversible (un recurso por premio).
