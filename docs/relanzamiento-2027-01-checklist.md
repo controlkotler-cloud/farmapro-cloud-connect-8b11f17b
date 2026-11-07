@@ -8,7 +8,7 @@ Estado a 07-11-2026. Nada de esto se ejecuta solo: la migración y las edge func
 2. Push, y pedir a Lovable el despliegue de `send-portal-email` (reintento ante timeout y plantilla nueva).
 3. `deploy_project` del frontend y comprobar en vivo que `track_resource_download` y `track_resource_view` responden (ver 1).
 4. Antes del 01-12, revisar los premios de la Rebotica (ver 2).
-5. Antes del 07-01, cargar la herramienta N35 (ver 3) y decidir el envío de "vuelve" (ver 4).
+5. Antes del 07-01, cargar la herramienta N35 (ver 3). El aviso "vuelve" ya está enviado (ver 4).
 
 ## 1. Contadores de recursos
 
@@ -59,7 +59,9 @@ ON CONFLICT (slug) DO NOTHING;
 
 Notas: `category` es el enum `resource_category` (valor `impulso`), `format` el enum `resource_format` (`xls`, `pdf`...) y `type` es `herramienta` o `guia`. Si `slug` no tiene restricción única en producción, sustituir `ON CONFLICT` por un `WHERE NOT EXISTS`. Para publicarla: `update resources set is_published = true where slug = 'fp-imp-n35-<slug>'`.
 
-## 4. Aviso "vuelve" (NO enviado)
+## 4. Aviso "vuelve" (ENVIADO el 07-11-2026)
+
+**Enviado el 07-11-2026 a las 11:27 UTC** con el sí de Francesc: 55 cuentas (las 56 de abajo menos una de pruebas; se excluyen los correos locales `nuriafrancis`, `fantafrenchie` y `mkproalaitz`, como en `notify_oferta_mes_plus`). `portal_email_log`: 55 `ok`, 55 destinatarios distintos, todos con `message_id`; cola vacía. `meta.trigger = manual_relanzamiento`. Las llamadas de pg_net dan timeout a los 5 s pero la función termina: manda `portal_email_log`. No reenviar; si hiciera falta, excluir a quien ya tenga fila `template = 'cuenta-gratis-vuelve'`.
 
 Plantilla `cuenta-gratis-vuelve` añadida a `supabase/functions/_shared/portalEmailTemplates.ts` y registrada en `send-portal-email`. No está conectada a ningún envío ni cron. Es comercial: firma Alejandro y lleva la nota de consentimiento.
 
