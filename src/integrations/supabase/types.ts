@@ -3774,8 +3774,6 @@ export type Database = {
       }
     }
     Functions: {
-      track_resource_download: { Args: { p_resource_id: string }; Returns: undefined }
-      track_resource_view: { Args: { p_resource_id: string }; Returns: undefined }
       activate_weekly_challenge: { Args: never; Returns: string }
       add_image_credits: {
         Args: { p_credits: number; p_user: string }
@@ -4113,6 +4111,14 @@ export type Database = {
           day_limit: number
           month_limit: number
         }[]
+      }
+      track_resource_download: {
+        Args: { p_resource_id: string }
+        Returns: undefined
+      }
+      track_resource_view: {
+        Args: { p_resource_id: string }
+        Returns: undefined
       }
       trial_dia20_payload: { Args: { p_uid: string }; Returns: Json }
       unsubscribe_weekly_digest: { Args: { p_token: string }; Returns: Json }
