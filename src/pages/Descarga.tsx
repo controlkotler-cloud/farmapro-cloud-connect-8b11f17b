@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Clock, Download, FileText, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { lanzarDescarga, urlAbierta } from '@/lib/descargas';
+import { contarDescarga, contarVista, lanzarDescarga, urlAbierta } from '@/lib/descargas';
 import { useToast } from '@/hooks/use-toast';
 
 // ---------------------------------------------------------------------------
@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 // ---------------------------------------------------------------------------
 
 interface RecursoPublico {
+  id: string;
   title: string;
   description: string | null;
   format: string | null;
@@ -42,6 +43,7 @@ interface RecursoPublico {
 // enlace a su ficha del portal. Sin esta ficha aparte, el segundo material de
 // la quincena quedaba huérfano: el botón del email solo apunta al primero.
 interface RecursoAcompanante {
+  id: string;
   title: string;
   description: string | null;
   format: string | null;
@@ -103,11 +105,12 @@ const Descarga = () => {
   // `descarga-abierta` una URL firmada de 60 s, y es ella quien comprueba en
   // servidor que la ventana de la quincena sigue abierta. El fichero vive en un
   // bucket privado, así que no hay URL que publicar (ver src/lib/descargas.ts).
-  const descargar = async (slugRecurso: string) => {
+  const descargar = async (slugRecurso: string, idRecurso?: string) => {
     setBajando(slugRecurso);
     const win = window.open('', '_blank');
     const ok = await lanzarDescarga(() => urlAbierta(slugRecurso), win);
     setBajando(null);
+    if (ok) contarDescarga(idRecurso);
     if (!ok) {
       toast({
         title: 'No se ha podido preparar la descarga',
@@ -137,7 +140,7 @@ const Descarga = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('resources')
-        .select('title, description, format, file_url, open_until, newsletter_ref')
+        .select('id, title, description, format, file_url, open_until, newsletter_ref')
         .eq('slug', slug)
         .eq('is_published', true)
         .eq('is_premium', false)
@@ -149,6 +152,7 @@ const Descarga = () => {
         return;
       }
       setRecurso(data as RecursoPublico);
+      contarVista(data.id);
       const abierta = !!data.open_until && new Date(data.open_until).getTime() > Date.now();
       setEstado(abierta ? 'abierta' : 'cerrada');
 
@@ -160,7 +164,7 @@ const Descarga = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: extra, error: errorExtra } = await (supabase as any)
           .from('resources')
-          .select('title, description, format, file_url, slug, open_until')
+          .select('id, title, description, format, file_url, slug, open_until')
           .eq('newsletter_ref', data.newsletter_ref)
           .eq('is_published', true)
           .eq('is_premium', false)
@@ -269,7 +273,7 @@ const Descarga = () => {
               size="lg"
               className="rounded-full"
               disabled={!slug || bajando === slug}
-              onClick={() => slug && descargar(slug)}
+              onClick={() => slug && descargar(slug, recurso?.id)}
             >
               <Download className="mr-2 h-4 w-4" />
               {bajando === slug ? 'Preparando...' : 'Descargar gratis'}
@@ -307,7 +311,7 @@ const Descarga = () => {
                     size="sm"
                     className="shrink-0 rounded-full"
                     disabled={bajando === extra.slug}
-                    onClick={() => descargar(extra.slug)}
+                    onClick={() => descargar(extra.slug, extra.id)}
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />
                     {bajando === extra.slug ? 'Preparando...' : 'Descargar'}

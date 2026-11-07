@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { supabase } from '@/integrations/supabase/client';
-import { lanzarDescarga, urlFirmada } from '@/lib/descargas';
+import { contarDescarga, contarVista, lanzarDescarga, urlFirmada } from '@/lib/descargas';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useResources, type Resource } from '@/hooks/useResources';
@@ -124,6 +124,14 @@ export const Recursos = () => {
   // premium y el registro de descarga.
   const [searchParams, setSearchParams] = useSearchParams();
   const focusSlug = searchParams.get('r');
+
+  // Vista de la ficha: solo cuando se llega por enlace profundo ?r=<slug> y el
+  // recurso existe. Una vez por recurso y sesión (lo garantiza contarVista).
+  useEffect(() => {
+    if (!focusSlug) return;
+    const ficha = resources.find(r => r.slug === focusSlug);
+    if (ficha) contarVista(ficha.id);
+  }, [focusSlug, resources]);
 
   // Elegir una necesidad reemplaza la navegación por categoría/tipo (son dos
   // formas alternativas de entrar al mismo catálogo, no se combinan).
@@ -254,6 +262,7 @@ export const Recursos = () => {
   // creada, aunque sea gratuita). Ver src/lib/descargas.ts.
   const openSignedDownload = (resource: Resource, win: Window | null) =>
     lanzarDescarga(() => urlFirmada(resource.file_url), win).then((ok) => {
+      if (ok) contarDescarga(resource.id);
       if (!ok) {
         toast({
           title: 'Error',

@@ -6,7 +6,7 @@ import { Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { lanzarDescarga, urlFirmada } from '@/lib/descargas';
+import { contarDescarga, lanzarDescarga, urlFirmada } from '@/lib/descargas';
 import type { DownloadableResource } from '@/types/course';
 
 interface ModuleResourcesSectionProps {
@@ -51,6 +51,7 @@ export const ModuleResourcesSection = ({ resources }: ModuleResourcesSectionProp
     const ok = await lanzarDescarga(() => urlFirmada(resource.url), win);
     setBajando(null);
     if (ok) {
+      contarDescarga(resource.resource_id);
       registerDownload(resource);
     } else {
       toast({

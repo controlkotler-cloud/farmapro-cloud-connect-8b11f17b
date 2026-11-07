@@ -102,3 +102,37 @@ export const lanzarDescarga = async (
   else window.location.href = url;
   return true;
 };
+
+// ---------------------------------------------------------------------------
+// Contadores (resources.download_count / view_count). Fire-and-forget: un fallo
+// del contador NUNCA debe romper la descarga ni la ficha.
+// ---------------------------------------------------------------------------
+
+const VISTAS_KEY = 'recursos_vistos';
+
+/** Suma una descarga al recurso. No espera ni lanza. */
+export const contarDescarga = (resourceId?: string | null): void => {
+  if (!resourceId) return;
+  try {
+    void Promise.resolve(supabase.rpc('track_resource_download', { p_resource_id: resourceId })).catch(() => {});
+  } catch {
+    /* el contador no puede romper la descarga */
+  }
+};
+
+/** Suma una vista de la ficha, como máximo una vez por recurso y sesión. */
+export const contarVista = (resourceId?: string | null): void => {
+  if (!resourceId) return;
+  try {
+    const vistos: string[] = JSON.parse(sessionStorage.getItem(VISTAS_KEY) ?? '[]');
+    if (vistos.includes(resourceId)) return;
+    sessionStorage.setItem(VISTAS_KEY, JSON.stringify([...vistos, resourceId]));
+  } catch {
+    /* sessionStorage no disponible: se cuenta igualmente */
+  }
+  try {
+    void Promise.resolve(supabase.rpc('track_resource_view', { p_resource_id: resourceId })).catch(() => {});
+  } catch {
+    /* idem */
+  }
+};

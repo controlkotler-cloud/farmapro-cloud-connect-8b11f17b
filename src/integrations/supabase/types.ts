@@ -3036,6 +3036,7 @@ export type Database = {
           title: string
           type: Database["public"]["Enums"]["resource_type"]
           updated_at: string
+          view_count: number
         }
         Insert: {
           category?: Database["public"]["Enums"]["resource_category"]
@@ -3056,6 +3057,7 @@ export type Database = {
           title: string
           type?: Database["public"]["Enums"]["resource_type"]
           updated_at?: string
+          view_count?: number
         }
         Update: {
           category?: Database["public"]["Enums"]["resource_category"]
@@ -3076,6 +3078,7 @@ export type Database = {
           title?: string
           type?: Database["public"]["Enums"]["resource_type"]
           updated_at?: string
+          view_count?: number
         }
         Relationships: []
       }
@@ -3771,6 +3774,8 @@ export type Database = {
       }
     }
     Functions: {
+      track_resource_download: { Args: { p_resource_id: string }; Returns: undefined }
+      track_resource_view: { Args: { p_resource_id: string }; Returns: undefined }
       activate_weekly_challenge: { Args: never; Returns: string }
       add_image_credits: {
         Args: { p_credits: number; p_user: string }
