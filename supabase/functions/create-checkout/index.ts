@@ -275,24 +275,11 @@ serve(async (req) => {
 
     if (isOferta) trialEnd = Math.floor(Date.now() / 1000) + 30 * 86400;
 
-    // Reserva personal del precio fundador: si ya venció, precio regular.
-    // La oferta F11 promete 19,90 €: mientras queden plazas, no mira la reserva.
-    let founderReservaHasta: string | null = null;
-    let effectiveFounderSpotsLeft = founderSpotsLeft;
-    if (!isOferta) try {
-      const { data: reserva, error: reservaErr } = await admin.rpc('founder_reserva_hasta', { p_uid: user.id });
-      if (reservaErr) {
-        log('founder_reserva_hasta failed', { err: reservaErr.message });
-      } else if (typeof reserva === 'string' && reserva) {
-        founderReservaHasta = reserva.slice(0, 10);
-        const hoyMadrid = new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
-        }).format(new Date());
-        if (founderReservaHasta < hoyMadrid) effectiveFounderSpotsLeft = 0;
-      }
-    } catch (e) {
-      log('founder_reserva_hasta threw', { err: (e as Error).message });
-    }
+    // Precio fundador para todo el que se suscriba mientras queden plazas
+    // (decisión de Francesc del 10-11-2026). Antes se aplicaba una reserva
+    // personal (alta + 37 días, founder_reserva_hasta) y quien la tenía vencida
+    // veía 19,90 € en /precios pero pagaba 39 € y el anual daba error.
+    const effectiveFounderSpotsLeft = founderSpotsLeft;
 
     let priceId: string; let founder: boolean;
     try {
@@ -350,8 +337,8 @@ serve(async (req) => {
     });
 
 
-    log('session created', { id: session.id, priceId, founder, founderReservaHasta });
-    return json({ url: session.url, founder, founderSpotsLeft, founderReservaHasta });
+    log('session created', { id: session.id, priceId, founder });
+    return json({ url: session.url, founder, founderSpotsLeft });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     log('ERROR', { msg });
