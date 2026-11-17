@@ -232,7 +232,7 @@ serve(async (req) => {
     subject: rendered.subject,
     status: ok ? 'ok' : 'error',
     messageId: ok ? messageId : null,
-    error: ok ? null : enqueueError?.message,
+    error: ok ? null : (enqueueError?.message ?? null),
     attempts: 1,
     meta,
   });
