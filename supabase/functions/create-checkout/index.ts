@@ -25,7 +25,7 @@ const FOUNDER_TOTAL = 100;
 // precio anual normal: 390 € (39 €/mes con dos meses gratis, la misma regla
 // que el anual de lanzamiento). Solo altas nuevas y solo en esta ventana,
 // fechas de Madrid, ambas incluidas.
-const BF_DESDE = '2026-11-24';
+const BF_DESDE = '2026-11-18';
 const BF_HASTA = '2026-12-01';
 const BF_PRECIO_REGULAR_CENTS = 39000;
 const BF_DESCUENTO_CENTS = 21000;

@@ -10,14 +10,14 @@ import { trackBeginCheckout } from '@/lib/analytics';
 // ---------------------------------------------------------------------------
 // Black Friday 2026 (decisión de Francesc del 17-11-2026): Plus anual a 180 €
 // el primer año. No gasta plaza de fundador y renueva al anual normal (390 €).
-// Solo altas nuevas, del 24-11 al 01-12 (Madrid), ambos incluidos.
+// Solo altas nuevas, del 18-11 al 01-12 (Madrid; adelantado del 24-11 el 17-11-2026 para los anuncios de Meta), ambos incluidos.
 //
 // La que manda es `create-checkout` (oferta 'black-friday'): comprueba la
 // ventana, rechaza a quien ya paga y pone el cupón. Esta página solo pinta y
 // adelanta los mismos mensajes para no mandar a nadie a un error.
 // ---------------------------------------------------------------------------
 
-const DESDE = '2026-11-24';
+const DESDE = '2026-11-18';
 const HASTA = '2026-12-01';
 const PRECIO = 180;
 
@@ -124,8 +124,8 @@ const BlackFriday = () => {
     if (ventana === 'antes') {
       return (
         <Aviso
-          titulo="El Black Friday empieza el 24 de noviembre"
-          texto="Un año completo de Plus por 180 €, del 24 de noviembre al 1 de diciembre. Vuelve ese día."
+          titulo="El Black Friday empieza el 18 de noviembre"
+          texto="Un año completo de Plus por 180 €, del 18 de noviembre al 1 de diciembre. Vuelve ese día."
         />
       );
     }
@@ -134,7 +134,7 @@ const BlackFriday = () => {
       return (
         <Aviso
           titulo="El Black Friday ha terminado"
-          texto="La oferta estuvo abierta del 24 de noviembre al 1 de diciembre."
+          texto="La oferta estuvo abierta del 18 de noviembre al 1 de diciembre."
         />
       );
     }
