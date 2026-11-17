@@ -12,6 +12,7 @@ import { GRATIS_CANDADO } from "@/lib/cuentaGratis";
 import { Recursos } from "@/pages/Recursos";
 import { VaultMasterclass } from "@/pages/VaultMasterclass";
 import { VaultMasterclassProtocolo } from "@/pages/VaultMasterclassProtocolo";
+import { VaultMasterclassWhatsapp } from "@/pages/VaultMasterclassWhatsapp";
 import { getAccessState } from "@/lib/plans";
 import { useModoGratis } from "@/hooks/useModoGratis";
 import Comunidad from "@/pages/Comunidad";
@@ -199,6 +200,11 @@ export const AppRoutes = () => {
       <Route path="/vault/masterclass-protocolo-mostrador" element={
         <ProtectedRoute>
           <VaultMasterclassProtocolo />
+        </ProtectedRoute>
+      } />
+      <Route path="/vault/masterclass-whatsapp-mostrador" element={
+        <ProtectedRoute>
+          <VaultMasterclassWhatsapp />
         </ProtectedRoute>
       } />
       <Route path="/comunidad" element={
