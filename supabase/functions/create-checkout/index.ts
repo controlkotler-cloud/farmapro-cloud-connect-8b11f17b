@@ -1,6 +1,6 @@
 // =====================================================================
 // create-checkout: genera una Stripe Checkout Session para Plus o Equipo.
-// Body: { plan: 'plus'|'equipo', cycle: 'monthly'|'yearly' }.
+// Body: { plan, cycle, pack?, oferta?: 'mes-plus-tarjeta'|'black-friday' }.
 // Elige el Price de lanzamiento si quedan plazas fundador (recuento REAL
 // en public.founder_count), si no cae al Price regular. IVA incluido.
 // Con suscripción ya viva: mismo plan → { mode:'current' }; otro plan →
@@ -10,7 +10,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { pickSubscriptionPrice, lookupPrice, IMAGE_PACK_PRICES, type PlanId, type Cycle } from "../_shared/stripePrices.ts";
+import { pickSubscriptionPrice, lookupPrice, IMAGE_PACK_PRICES, STRIPE_PRICES, type PlanId, type Cycle } from "../_shared/stripePrices.ts";
 import { getPortalConfigurationId, lastPortalConfigError, tierForPrice } from "../_shared/stripePortal.ts";
 
 const corsHeaders = {
@@ -19,6 +19,18 @@ const corsHeaders = {
 };
 
 const FOUNDER_TOTAL = 100;
+
+// Black Friday 2026 (decisión de Francesc del 17-11-2026): Plus anual a 180 €
+// el primer año. NO gasta plaza de fundador (founder=false) y renueva al
+// precio anual normal: 390 € (39 €/mes con dos meses gratis, la misma regla
+// que el anual de lanzamiento). Solo altas nuevas y solo en esta ventana,
+// fechas de Madrid, ambas incluidas.
+const BF_DESDE = '2026-11-24';
+const BF_HASTA = '2026-12-01';
+const BF_PRECIO_REGULAR_CENTS = 39000;
+const BF_DESCUENTO_CENTS = 21000;
+const BF_COUPON_ID = 'BLACKFRIDAY2026';
+const PLUS_YEARLY_REGULAR_LOOKUP = 'plus_yearly_regular';
 
 const log = (step: string, details?: unknown) => {
   console.log(`[create-checkout] ${step}${details ? ' - ' + JSON.stringify(details) : ''}`);
@@ -36,6 +48,15 @@ serve(async (req) => {
     const isPack = typeof pack === 'number';
     const isOferta = !isPack && body.oferta === 'mes-plus-tarjeta';
     if (isOferta) { plan = 'plus'; cycle = 'monthly'; }
+    const isBlackFriday = !isPack && body.oferta === 'black-friday';
+    if (isBlackFriday) {
+      plan = 'plus'; cycle = 'yearly';
+      const hoy = hoyMadrid();
+      if (hoy < BF_DESDE || hoy > BF_HASTA) {
+        log('black friday fuera de plazo', { hoy });
+        return json({ error: 'oferta_fuera_de_plazo' }, 403);
+      }
+    }
     if (!isPack) {
       if (!['plus', 'equipo'].includes(plan)) {
         return json({ error: 'Invalid plan (expected plus|equipo)' }, 400);
@@ -185,6 +206,11 @@ serve(async (req) => {
       const live = subs.data.filter(
         (s) => ['active', 'trialing', 'past_due'].includes(s.status) && s.metadata?.origen === 'portal',
       );
+      if (live.length > 0 && isBlackFriday) {
+        // La oferta es para altas nuevas: quien ya paga no cambia de precio aquí.
+        log('black friday con suscripción viva', { customer: existingCustomerId });
+        return json({ error: 'ya_suscrito' }, 409);
+      }
       if (live.length > 0) {
         const current = live[0];
         const item = current.items.data[0];
@@ -253,7 +279,7 @@ serve(async (req) => {
     // CONCESIÓN: periodo de prueba hasta concedido_hasta
     // ============================================================
     let trialEnd: number | undefined;
-    const { data: grant } = isOferta ? { data: null as { lote: string; concedido_hasta: string } | null } : await admin
+    const { data: grant } = (isOferta || isBlackFriday) ? { data: null as { lote: string; concedido_hasta: string } | null } : await admin
       .from('portal_grants')
       .select('lote, concedido_hasta')
       .ilike('email', user.email)
@@ -282,10 +308,25 @@ serve(async (req) => {
     const effectiveFounderSpotsLeft = founderSpotsLeft;
 
     let priceId: string; let founder: boolean;
-    try {
-      ({ priceId, founder } = pickSubscriptionPrice(plan, cycle, effectiveFounderSpotsLeft));
-    } catch (e) {
-      return json({ error: (e as Error).message }, 400);
+    let bfCoupon: string | null = null;
+    if (isBlackFriday) {
+      // Black Friday: precio anual regular (390 €) con un cupón de 210 € solo
+      // en la primera factura. Se cobra hoy, sin periodo de cortesía.
+      try {
+        const regular = await ensurePlusYearlyRegular(stripe);
+        priceId = regular.priceId;
+        bfCoupon = await ensureBlackFridayCoupon(stripe, regular.productId);
+        founder = false;
+      } catch (e) {
+        log('black friday setup failed', { err: (e as Error).message });
+        return json({ error: `No se ha podido preparar la oferta: ${(e as Error).message}` }, 500);
+      }
+    } else {
+      try {
+        ({ priceId, founder } = pickSubscriptionPrice(plan, cycle, effectiveFounderSpotsLeft));
+      } catch (e) {
+        return json({ error: (e as Error).message }, 400);
+      }
     }
     if (priceId.startsWith('TODO_')) {
       return json({ error: `Stripe Price ID no configurado (${priceId}).` }, 500);
@@ -296,8 +337,16 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      allow_promotion_codes: true,
+      // Stripe no deja combinar un cupón fijo con códigos promocionales.
+      ...(bfCoupon ? { discounts: [{ coupon: bfCoupon }] } : { allow_promotion_codes: true }),
       ...billingFields,
+      ...(isBlackFriday ? {
+        custom_text: {
+          submit: {
+            message: 'Hoy pagas 180 € por un año completo de Plus. Dentro de un año se renueva al precio anual normal, 390 €, y puedes cancelarlo antes desde tu perfil.',
+          },
+        },
+      } : {}),
       ...(trialEnd ? {
         payment_method_collection: 'always' as const,
         custom_text: {
@@ -309,7 +358,9 @@ serve(async (req) => {
         },
       } : {}),
       success_url: `${origin}/perfil?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  isOferta ? `${origin}/continuar?checkout=cancelled` : `${origin}/precios?checkout=cancelled`,
+      cancel_url:  isOferta ? `${origin}/continuar?checkout=cancelled`
+        : isBlackFriday ? `${origin}/black-friday?checkout=cancelled`
+        : `${origin}/precios?checkout=cancelled`,
       metadata: {
         origen: 'portal',
         user_id: user.id,
@@ -318,6 +369,7 @@ serve(async (req) => {
         founder: String(founder),
         ...(grant?.lote ? { grant_lote: grant.lote } : {}),
         ...(isOferta ? { oferta: 'mes-plus-tarjeta' } : {}),
+        ...(isBlackFriday ? { oferta: 'black-friday' } : {}),
       },
       subscription_data: {
         ...(trialEnd ? {
@@ -332,6 +384,7 @@ serve(async (req) => {
           founder: String(founder),
           ...(grant?.lote ? { grant_lote: grant.lote } : {}),
           ...(isOferta ? { oferta: 'mes-plus-tarjeta' } : {}),
+          ...(isBlackFriday ? { oferta: 'black-friday' } : {}),
         },
       },
     });
@@ -345,6 +398,80 @@ serve(async (req) => {
     return json({ error: msg }, 500);
   }
 });
+
+function hoyMadrid(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date());
+}
+
+/**
+ * Plus anual regular (390 €). Si existe STRIPE_PRICE_PLUS_YEARLY se usa ese;
+ * si no, se busca por lookup_key y, la primera vez, se crea en el mismo
+ * producto y con el mismo tratamiento de IVA que el anual de lanzamiento.
+ */
+async function ensurePlusYearlyRegular(stripe: Stripe): Promise<{ priceId: string; productId: string }> {
+  const launch = await stripe.prices.retrieve(STRIPE_PRICES.plus.yearly_launch);
+  const productId = typeof launch.product === 'string' ? launch.product : launch.product.id;
+  if (STRIPE_PRICES.plus.yearly) return { priceId: STRIPE_PRICES.plus.yearly, productId };
+
+  const buscar = async () => {
+    const found = await stripe.prices.list({ lookup_keys: [PLUS_YEARLY_REGULAR_LOOKUP], active: true, limit: 1 });
+    return found.data[0]?.id ?? null;
+  };
+  const existing = await buscar();
+  if (existing) return { priceId: existing, productId };
+  try {
+    const created = await stripe.prices.create({
+      product: productId,
+      currency: 'eur',
+      unit_amount: BF_PRECIO_REGULAR_CENTS,
+      recurring: { interval: 'year' },
+      tax_behavior: (launch.tax_behavior ?? 'inclusive') as Stripe.PriceCreateParams.TaxBehavior,
+      lookup_key: PLUS_YEARLY_REGULAR_LOOKUP,
+      nickname: 'Plus anual (regular)',
+      metadata: { origen: 'portal', plan: 'plus', cycle: 'yearly', founder: 'false' },
+    });
+    log('plus yearly regular created', { id: created.id });
+    return { priceId: created.id, productId };
+  } catch (e) {
+    // Dos altas a la vez: la otra ya lo ha creado.
+    const again = await buscar();
+    if (again) return { priceId: again, productId };
+    throw e;
+  }
+}
+
+/** Cupón de Black Friday: 210 € menos en la primera factura (390 → 180). */
+async function ensureBlackFridayCoupon(stripe: Stripe, productId: string): Promise<string> {
+  try {
+    const c = await stripe.coupons.retrieve(BF_COUPON_ID);
+    if (c.valid) return c.id;
+    throw new Error('El cupón de Black Friday ya no es válido.');
+  } catch (e) {
+    const code = (e as { code?: string }).code;
+    if (code !== 'resource_missing') throw e;
+  }
+  try {
+    const created = await stripe.coupons.create({
+      id: BF_COUPON_ID,
+      name: 'Black Friday 2026',
+      amount_off: BF_DESCUENTO_CENTS,
+      currency: 'eur',
+      duration: 'once',
+      applies_to: { products: [productId] },
+      // Margen de un día sobre la ventana: la sesión de Checkout dura 24 h.
+      redeem_by: Math.floor(Date.UTC(2026, 11, 3, 0, 0, 0) / 1000),
+      metadata: { origen: 'portal', oferta: 'black-friday' },
+    });
+    log('black friday coupon created', { id: created.id });
+    return created.id;
+  } catch (e) {
+    const again = await stripe.coupons.retrieve(BF_COUPON_ID).catch(() => null);
+    if (again?.valid) return again.id;
+    throw e;
+  }
+}
 
 function json(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {

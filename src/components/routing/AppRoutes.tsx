@@ -41,6 +41,7 @@ import { AvisoLegal, PoliticaPrivacidad, PoliticaCookies, ContactoSoporte } from
 import Baja from "@/pages/Baja";
 import Activar from "@/pages/Activar";
 import Continuar from "@/pages/Continuar";
+import BlackFriday from "@/pages/BlackFriday";
 import Perfil from "@/pages/Perfil";
 import MiFarmacia from "@/pages/MiFarmacia";
 import CourseView from "@/pages/CourseView";
@@ -121,6 +122,8 @@ export const AppRoutes = () => {
           porque el primer clic llega sin cuenta; dentro pide login o registro. */}
       <Route path="/activar" element={<Activar />} />
       <Route path="/continuar" element={<Continuar />} />
+      {/* Black Friday 2026: Plus anual a 180 € el primer año (24-11 a 01-12). Pública. */}
+      <Route path="/black-friday" element={<BlackFriday />} />
       {/* Team invitation acceptance (public — inner logic requires auth) */}
       <Route path="/invitation" element={<Invitation />} />
       {/* Password recovery link target (public — Supabase establece sesión temporal vía URL) */}

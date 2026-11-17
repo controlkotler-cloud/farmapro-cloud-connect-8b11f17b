@@ -356,8 +356,10 @@ export const trackBeginCheckout = (opts: {
   cycle: CheckoutCycle;
   founder: boolean;
   trial?: boolean;
+  /** Importe real cuando no es el de la tarifa (p. ej. Black Friday: 180 €). */
+  value?: number;
 }) => {
-  const value = planValue(opts.plan, opts.cycle, opts.founder);
+  const value = opts.value ?? planValue(opts.plan, opts.cycle, opts.founder);
   const pending: PendingCheckout = {
     plan: opts.plan,
     cycle: opts.cycle,
