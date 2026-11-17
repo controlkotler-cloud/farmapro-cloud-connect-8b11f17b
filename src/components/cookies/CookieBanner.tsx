@@ -144,7 +144,7 @@ export const CookieBanner = () => {
                     <div>
                       <h4 className="font-medium">Cookies de Marketing</h4>
                       <p className="text-sm text-muted-foreground">
-                        Utilizadas para mostrar anuncios relevantes y medir su efectividad.
+                        Píxel de Meta: mide qué altas llegan desde nuestros anuncios en Facebook e Instagram.
                       </p>
                     </div>
                   </div>

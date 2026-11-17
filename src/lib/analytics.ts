@@ -14,7 +14,7 @@ import { PLANS, type PlanId } from '@/lib/plans';
 
 export const ANALYTICS_CONFIG = {
   /** ID del píxel de Meta (Events Manager → Orígenes de datos). Ej: '123456789012345'. */
-  metaPixelId: '',
+  metaPixelId: '745446487885583',
   /** ID de medición de GA4 (Administrar → Flujos de datos). Ej: 'G-XXXXXXXXXX'. */
   ga4MeasurementId: 'G-968HG3ZZC0',
 };
@@ -105,12 +105,15 @@ const loadGa4 = () => {
 const loadMetaPixel = () => {
   if (pixelLoaded || !ANALYTICS_CONFIG.metaPixelId) return;
   pixelLoaded = true;
-  // Stub estándar de fbq (equivalente al snippet oficial, sin eval).
-  const fbq: any = function (...args: unknown[]) {
+  // Stub del snippet oficial de Meta, sin eval. Igual que con gtag: se
+  // encola el objeto `arguments`, como hace el snippet, no un array propio.
+  const fbq: any = function () {
     if (fbq.callMethod) {
-      fbq.callMethod(...args);
+      // eslint-disable-next-line prefer-rest-params
+      fbq.callMethod.apply(fbq, arguments);
     } else {
-      fbq.queue.push(args);
+      // eslint-disable-next-line prefer-rest-params
+      fbq.queue.push(arguments);
     }
   };
   fbq.push = fbq;
@@ -138,6 +141,7 @@ export const applyConsent = (prefs?: ConsentPrefs) => {
     window.gtag('consent', 'update', { analytics_storage: 'denied' });
   }
   if (consent.marketing) {
+    if (pixelLoaded && window.fbq) window.fbq('consent', 'grant');
     loadMetaPixel();
   } else if (pixelLoaded && window.fbq) {
     window.fbq('consent', 'revoke');
@@ -245,6 +249,23 @@ export const getStoredUtms = (): StoredUtms | null => {
   }
 };
 
+/**
+ * Evento estándar del píxel de Meta. Sin consentimiento de marketing no se
+ * envía nada; si lo hay pero el píxel aún no ha arrancado, se arranca aquí
+ * (loadMetaPixel es idempotente y fbq encola). `eventID` sirve para
+ * deduplicar el día que se añada la API de conversiones.
+ */
+const pixelTrack = (name: string, params?: Record<string, unknown>, eventID?: string) => {
+  if (!ANALYTICS_CONFIG.metaPixelId) return;
+  if (!pixelLoaded) {
+    if (!readConsent().marketing) return;
+    loadMetaPixel();
+  }
+  if (!window.fbq) return;
+  if (eventID) window.fbq('track', name, params ?? {}, { eventID });
+  else window.fbq('track', name, params ?? {});
+};
+
 /** Página vista en navegación SPA (GA4 + Meta). */
 export const trackPageView = (path: string) => {
   if (ga4Loaded && window.gtag && ANALYTICS_CONFIG.ga4MeasurementId) {
@@ -286,9 +307,7 @@ export const trackRegistration = (method = 'email') => {
     first_landing_page: cap(u?.landing_page),
     ...(getReferralCode() ? { referral: 1 } : {}),
   });
-  if (pixelLoaded && window.fbq) {
-    window.fbq('track', 'CompleteRegistration');
-  }
+  pixelTrack('CompleteRegistration', { status: true, currency: 'EUR', value: 0 });
 };
 
 // ---------------------------------------------------------------------
@@ -359,6 +378,13 @@ export const trackBeginCheckout = (opts: {
     // El navegador va a salir hacia Stripe justo después: sendBeacon.
     transport_type: 'beacon',
   });
+  pixelTrack('InitiateCheckout', {
+    currency: 'EUR',
+    value,
+    content_ids: [`${opts.plan}_${opts.cycle}`],
+    content_type: 'product',
+    num_items: 1,
+  });
 };
 
 /**
@@ -392,6 +418,7 @@ export const trackPurchaseReturn = (sessionId: string | null) => {
     // Sin contexto (almacenamiento borrado, otro navegador): se cuenta la
     // conversión sin plan ni importe.
     trackEvent('purchase', base);
+    pixelTrack('Subscribe', { currency: 'EUR' }, sessionId);
     return;
   }
   trackEvent(pending.trial ? 'start_trial' : 'purchase', {
@@ -399,4 +426,11 @@ export const trackPurchaseReturn = (sessionId: string | null) => {
     value: pending.value,
     items: [planItem(pending.plan, pending.cycle, pending.value)],
   });
+  const content = { content_ids: [`${pending.plan}_${pending.cycle}`], content_type: 'product' };
+  if (pending.trial) {
+    // Acceso concedido: hoy no se cobra. Meta recibe el valor previsto, no ingresos.
+    pixelTrack('StartTrial', { currency: 'EUR', value: 0, predicted_ltv: pending.value, ...content }, sessionId);
+  } else {
+    pixelTrack('Purchase', { currency: 'EUR', value: pending.value, ...content }, sessionId);
+  }
 };
