@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Check, Loader2, Tag } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -90,34 +90,38 @@ const BlackFriday = () => {
     window.location.href = data.url;
   };
 
+  // Estilo Black Friday: fondo negro y verde lima de farmapro encendido.
+  const botonLima =
+    'h-14 w-full rounded-full bg-[#A6E04A] px-8 text-base font-black uppercase tracking-wide text-[#0B0B0B] hover:bg-[#B8EA6A] sm:w-auto';
+
   const Aviso = ({ titulo, texto }: { titulo: string; texto: string }) => (
-    <>
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-100">
-        <AlertCircle className="h-5 w-5 text-amber-700" />
+    <div className="text-center">
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
+        <AlertCircle className="h-5 w-5 text-[#A6E04A]" />
       </div>
-      <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{titulo}</h1>
-      <p className="mt-4 text-muted-foreground">{texto}</p>
-      <Button size="lg" className="mt-7 w-full sm:w-auto" asChild>
+      <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-white">{titulo}</h1>
+      <p className="mt-4 text-neutral-400">{texto}</p>
+      <Button size="lg" className={`mt-7 ${botonLima}`} asChild>
         <Link to="/precios">Ver los planes</Link>
       </Button>
-    </>
+    </div>
   );
 
   const cuerpo = () => {
     if (yaSuscrito) {
       return (
-        <>
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft">
-            <Check className="h-5 w-5 text-brand" />
+        <div className="text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
+            <Check className="h-5 w-5 text-[#A6E04A]" />
           </div>
-          <h1 className="mt-5 text-2xl font-extrabold tracking-tight">Ya tienes una suscripción</h1>
-          <p className="mt-4 text-muted-foreground">
+          <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-white">Ya tienes una suscripción</h1>
+          <p className="mt-4 text-neutral-400">
             Esta oferta es para quien se suscribe por primera vez. Tu plan sigue igual.
           </p>
-          <Button size="lg" className="mt-7 w-full sm:w-auto" asChild>
+          <Button size="lg" className={`mt-7 ${botonLima}`} asChild>
             <Link to="/dashboard">Entrar en el portal</Link>
           </Button>
-        </>
+        </div>
       );
     }
 
@@ -140,39 +144,35 @@ const BlackFriday = () => {
     }
 
     return (
-      <>
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft">
-          <Tag className="h-5 w-5 text-brand" />
-        </div>
-        <p className="mt-5 text-sm font-semibold uppercase tracking-wide text-brand">
-          Black Friday · hasta el 1 de diciembre
+      <div className="text-center">
+        <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-[#A6E04A] sm:text-sm">
+          Portal <em className="italic">farmapro</em> · Plus anual
         </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight">
-          Un año completo de Plus por 180 €
+        <h1 className="mt-3 text-5xl font-black uppercase tracking-tight text-white sm:text-7xl">
+          Black Friday
         </h1>
-        <p className="mt-4 text-muted-foreground">
-          <strong className="text-foreground">15 € al mes</strong> por todo el portal durante doce
-          meses. El precio normal del año es 390 €.
-        </p>
 
-        <div className="mt-7 rounded-lg border bg-white p-5">
-          <ul className="space-y-2.5 text-sm text-muted-foreground">
-            {INCLUYE.map((linea) => (
-              <li key={linea} className="flex gap-2.5">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                <span>{linea}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <s className="whitespace-nowrap text-3xl font-bold text-neutral-500 decoration-2">390&nbsp;€</s>
+          <span className="whitespace-nowrap rounded-full bg-[#A6E04A] px-3 py-1.5 text-base font-black leading-none text-[#0B0B0B]">
+            −54&nbsp;%
+          </span>
         </div>
+        <p className="mt-2 whitespace-nowrap text-8xl font-black leading-none tracking-tight text-[#A6E04A] sm:text-9xl">
+          180&nbsp;€
+        </p>
+        <p className="mt-4 text-lg font-bold text-white">Un año completo de Plus</p>
+        <p className="mt-1 text-neutral-400">
+          Sale a 15&nbsp;€ al mes. Te ahorras 210&nbsp;€.
+        </p>
 
         {cancelado ? (
-          <p className="mt-5 text-sm text-muted-foreground">
+          <p className="mt-6 text-sm text-neutral-300">
             No se ha cobrado nada. Cuando quieras, vuelve a pulsar el botón.
           </p>
         ) : null}
 
-        <Button size="lg" className="mt-6 w-full sm:w-auto" onClick={contratar} disabled={enviando}>
+        <Button size="lg" className={`mt-8 ${botonLima}`} onClick={contratar} disabled={enviando}>
           {enviando ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -184,30 +184,45 @@ const BlackFriday = () => {
             'Crear mi cuenta y pagar 180 €'
           )}
         </Button>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Pago único hoy. Dentro de un año se renueva a 390 €/año y puedes cancelarlo antes desde
-          tu perfil.
+        <p className="mt-4 text-sm font-semibold tracking-wide text-neutral-300">
+          Solo hasta el martes 1 de diciembre
         </p>
-        <p className="mt-1 text-xs text-muted-foreground/80">
-          Para suscripciones nuevas. IVA incluido.
+
+        <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
+          <p className="text-sm font-extrabold uppercase tracking-wide text-white">Qué tienes con Plus</p>
+          <ul className="mt-4 space-y-3 text-neutral-300">
+            {INCLUYE.map((linea) => (
+              <li key={linea} className="flex gap-3">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#A6E04A]" />
+                <span>{linea}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="mt-6 text-sm text-neutral-400">
+          Pago único hoy. Dentro de un año se renueva a{' '}
+          <span className="whitespace-nowrap">390&nbsp;€/año</span> y puedes cancelarlo antes desde tu
+          perfil.
         </p>
-      </>
+        <p className="mt-1 text-xs text-neutral-500">Para suscripciones nuevas. IVA incluido.</p>
+      </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-white/70 backdrop-blur">
+    <div className="min-h-screen bg-[#0B0B0B]">
+      <header className="border-b border-white/10">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/" className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-white">
             <ArrowLeft className="h-4 w-4" />
             Volver al inicio
           </Link>
-          <img src="/logo-farmapro.svg" alt="farmapro" className="h-6" />
+          <img src="/logo-farmapro.svg" alt="farmapro" className="h-6 brightness-0 invert" />
         </div>
       </header>
 
-      <div className="container mx-auto max-w-xl px-4 py-16">
+      <div className="container mx-auto max-w-xl px-4 py-14 sm:py-20">
         {cuerpo()}
       </div>
     </div>
