@@ -1,12 +1,13 @@
 
 import { useLocation } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { PortalChatbot } from '@/components/ai/PortalChatbot';
+// El chatbot (con su lector de Markdown) se descarga aparte para no pesar en la primera carga.
+const PortalChatbot = lazy(() => import('@/components/ai/PortalChatbot').then((m) => ({ default: m.PortalChatbot })));
 import { TrialCountdownBanner } from '@/components/plan/TrialCountdownBanner';
 import { TrialLockedBanner, TrialLockedDialog } from '@/components/plan/TrialLockedNotice';
 
@@ -49,7 +50,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </main>
           {!isLegalPage && <Footer />}
         </SidebarInset>
-        <PortalChatbot />
+        <Suspense fallback={null}><PortalChatbot /></Suspense>
         <TrialLockedDialog />
       </div>
     </SidebarProvider>

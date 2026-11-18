@@ -1,30 +1,64 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense, type ComponentType } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
-import { LoginForm } from "@/components/auth/LoginForm";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AdminProtectedRoute } from "./AdminProtectedRoute";
-import { Dashboard } from "@/pages/Dashboard";
-import NotFound from "@/pages/NotFound";
-import { Formacion } from "@/pages/Formacion";
 import { GratisGate } from "@/components/access/GratisGate";
 import { GRATIS_CANDADO } from "@/lib/cuentaGratis";
-import { Recursos } from "@/pages/Recursos";
-import { VaultMasterclass } from "@/pages/VaultMasterclass";
-import { VaultMasterclassProtocolo } from "@/pages/VaultMasterclassProtocolo";
-import { VaultMasterclassWhatsapp } from "@/pages/VaultMasterclassWhatsapp";
 import { getAccessState } from "@/lib/plans";
 import { useModoGratis } from "@/hooks/useModoGratis";
-import Comunidad from "@/pages/Comunidad";
-import { Retos } from "@/pages/Retos";
-import Empleo from "@/pages/Empleo";
-import Farmacias from "@/pages/Farmacias";
-import Eventos from "@/pages/Eventos";
-import Promociones from "@/pages/Promociones";
 
-import Precios from "@/pages/Precios";
-import Rebotica from "@/pages/Rebotica";
-import Descarga from "@/pages/Descarga";
+// Cada pantalla se descarga solo cuando se abre (18-11-2026). Antes todo el
+// portal iba en un único archivo de 477 KiB y una landing de anuncios como
+// /black-friday tardaba 4-6 s en pintarse en móvil.
+const named = <K extends string>(loader: () => Promise<Record<K, ComponentType>>, name: K) =>
+  lazy(() => loader().then((m) => ({ default: m[name] })));
+
+const LoginForm = named(() => import("@/components/auth/LoginForm"), "LoginForm");
+const Dashboard = named(() => import("@/pages/Dashboard"), "Dashboard");
+const Formacion = named(() => import("@/pages/Formacion"), "Formacion");
+const Recursos = named(() => import("@/pages/Recursos"), "Recursos");
+const VaultMasterclass = lazy(() => import("@/pages/VaultMasterclass"));
+const VaultMasterclassProtocolo = lazy(() => import("@/pages/VaultMasterclassProtocolo"));
+const VaultMasterclassWhatsapp = lazy(() => import("@/pages/VaultMasterclassWhatsapp"));
+const ResetPassword = named(() => import("@/pages/ResetPassword"), "ResetPassword");
+const AvisoLegal = named(() => import("@/pages/Legal"), "AvisoLegal");
+const PoliticaPrivacidad = named(() => import("@/pages/Legal"), "PoliticaPrivacidad");
+const PoliticaCookies = named(() => import("@/pages/Legal"), "PoliticaCookies");
+const ContactoSoporte = named(() => import("@/pages/Legal"), "ContactoSoporte");
+const Retos = named(() => import("@/pages/Retos"), "Retos");
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Comunidad = lazy(() => import("@/pages/Comunidad"));
+const Empleo = lazy(() => import("@/pages/Empleo"));
+const Farmacias = lazy(() => import("@/pages/Farmacias"));
+const Eventos = lazy(() => import("@/pages/Eventos"));
+const Promociones = lazy(() => import("@/pages/Promociones"));
+const Precios = lazy(() => import("@/pages/Precios"));
+const Rebotica = lazy(() => import("@/pages/Rebotica"));
+const Descarga = lazy(() => import("@/pages/Descarga"));
+const ReboticaBasesLegales = lazy(() => import("@/pages/ReboticaBasesLegales"));
+const Baja = lazy(() => import("@/pages/Baja"));
+const Activar = lazy(() => import("@/pages/Activar"));
+const Continuar = lazy(() => import("@/pages/Continuar"));
+const BlackFriday = lazy(() => import("@/pages/BlackFriday"));
+const Perfil = lazy(() => import("@/pages/Perfil"));
+const MiFarmacia = lazy(() => import("@/pages/MiFarmacia"));
+const CourseView = lazy(() => import("@/pages/CourseView"));
+const CourseQuizView = lazy(() => import("@/pages/CourseQuizView"));
+const AsistenteCreativo = lazy(() => import("@/pages/AsistenteCreativo"));
+const RadiografiaGoogle = lazy(() => import("@/pages/RadiografiaGoogle"));
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminUsuarios = lazy(() => import("@/pages/admin/AdminUsuarios"));
+const AdminPromociones = lazy(() => import("@/pages/admin/AdminPromociones"));
+const AdminComunidad = lazy(() => import("@/pages/admin/AdminComunidad"));
+const AdminRetos = lazy(() => import("@/pages/admin/AdminRetos"));
+const AdminConfiguracion = lazy(() => import("@/pages/admin/AdminConfiguracion"));
+const Invitation = lazy(() => import("@/pages/Invitation"));
+
+// Landings de anuncios: se pintan sin esperar a la sesión ni a system_settings,
+// que solo sirven para redirigir rutas privadas. La página gestiona su sesión.
+const SIN_ESPERA = new Set(["/black-friday"]);
 
 /**
  * Destino post-login preservado en ?next= (lo usa el consentimiento OAuth de MCP).
@@ -36,26 +70,7 @@ const safeNext = (): string | null => {
   if (!raw.startsWith("/") || raw.startsWith("//")) return null;
   return raw;
 };
-import ReboticaBasesLegales from "@/pages/ReboticaBasesLegales";
-import { AvisoLegal, PoliticaPrivacidad, PoliticaCookies, ContactoSoporte } from "@/pages/Legal";
-import Baja from "@/pages/Baja";
-import Activar from "@/pages/Activar";
-import Continuar from "@/pages/Continuar";
-import BlackFriday from "@/pages/BlackFriday";
-import Perfil from "@/pages/Perfil";
-import MiFarmacia from "@/pages/MiFarmacia";
-import CourseView from "@/pages/CourseView";
-import CourseQuizView from "@/pages/CourseQuizView";
-import AsistenteCreativo from "@/pages/AsistenteCreativo";
-import RadiografiaGoogle from "@/pages/RadiografiaGoogle";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminUsuarios from "@/pages/admin/AdminUsuarios";
-import AdminPromociones from "@/pages/admin/AdminPromociones";
-import AdminComunidad from "@/pages/admin/AdminComunidad";
-import AdminRetos from "@/pages/admin/AdminRetos";
-import AdminConfiguracion from "@/pages/admin/AdminConfiguracion";
-import Invitation from "@/pages/Invitation";
-import { ResetPassword } from "@/pages/ResetPassword";
+
 import { PageMeta } from "@/components/seo/PageMeta";
 
 
@@ -64,6 +79,7 @@ export const AppRoutes = () => {
   const { getSettingsByCategory, isLoading: settingsLoading } = useSystemSettings();
   // Cuenta gratis permanente: con 'permanente' la prueba terminada ya no redirige a /precios.
   const { modo, isLoading: modoLoading } = useModoGratis();
+  const { pathname } = useLocation();
 
   // A1: validation_mode vive en la categoría 'subscription', NO en 'system'
   // (no existe ninguna fila con category='system'). Leerla mal dejaba
@@ -74,7 +90,7 @@ export const AppRoutes = () => {
   const subscriptionSettings = getSettingsByCategory('subscription');
   const validationMode = subscriptionSettings?.validation_mode || 'beta';
 
-  if (loading || settingsLoading || modoLoading) {
+  if ((loading || settingsLoading || modoLoading) && !SIN_ESPERA.has(pathname)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
@@ -98,6 +114,7 @@ export const AppRoutes = () => {
   return (
     <>
     <PageMeta />
+    <Suspense fallback={<div className="min-h-screen" />}>
     <Routes>
       {/* Public pricing page */}
       <Route path="/precios" element={<Precios />} />
@@ -292,6 +309,7 @@ export const AppRoutes = () => {
       
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
     </>
   );
 };
