@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Loader2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,22 +10,48 @@ import { trackBeginCheckout } from '@/lib/analytics';
 // ---------------------------------------------------------------------------
 // Black Friday 2026 (decisión de Francesc del 17-11-2026): Plus anual a 180 €
 // el primer año. No gasta plaza de fundador y renueva al anual normal (390 €).
-// Solo altas nuevas, del 18-11 al 01-12 (Madrid; adelantado del 24-11 el 17-11-2026 para los anuncios de Meta), ambos incluidos.
+// Solo altas nuevas, del 18-11 al 01-12 a las 23:59 (Madrid), ambos incluidos.
 //
 // La que manda es `create-checkout` (oferta 'black-friday'): comprueba la
 // ventana, rechaza a quien ya paga y pone el cupón. Esta página solo pinta y
 // adelanta los mismos mensajes para no mandar a nadie a un error.
+//
+// Urgencia (18-11-2026, «tienes que generar FOMO, última hora»): la cuenta
+// atrás es real, contra el cierre de la oferta. No hay plazas inventadas ni
+// relojes que se reinician.
+//
+// Embudo: quien no tiene sesión va al registro con next=/black-friday?comprar=1;
+// al volver con sesión, el pago se abre solo, sin pulsar otra vez.
 // ---------------------------------------------------------------------------
 
 const DESDE = '2026-11-18';
 const HASTA = '2026-12-01';
+// 01-12 a las 23:59:59 en Madrid (en diciembre, UTC+1).
+const FIN_MS = Date.parse('2026-12-01T23:59:59+01:00');
 const PRECIO = 180;
+const VOLVER_A_PAGAR = '/black-friday?comprar=1';
 
 const INCLUYE = [
-  'Cursos y recursos sin límite',
-  'IAFarma: texto ilimitado y 12 imágenes al mes',
-  'Comunidad completa, con retos y ranking',
+  'Todos los cursos y recursos del portal, sin límite',
+  'IAFarma ilimitado para tus textos y 12 imágenes al mes',
+  'La comunidad completa, con un reto cada semana y ranking',
   'Eventos exclusivos farmapro',
+  'Todo lo que se publique durante el año, sin pagar más',
+];
+
+const PREGUNTAS = [
+  {
+    p: '¿Cuándo termina?',
+    r: 'El martes 1 de diciembre a las 23:59. A partir de ese minuto, el Plus anual vuelve a costar 390\u00a0€.',
+  },
+  {
+    p: '¿Qué pasa dentro de un año?',
+    r: 'Se renueva a 390\u00a0€/año. Puedes cancelar la renovación cuando quieras desde tu perfil.',
+  },
+  {
+    p: 'Ya tengo cuenta gratis en el portal, ¿me vale?',
+    r: 'Sí. La oferta es para quien todavía no paga ninguna suscripción. Entra con tu cuenta y pulsa el botón.',
+  },
 ];
 
 const hoyMadrid = () =>
@@ -38,38 +64,75 @@ type Estado = 'antes' | 'abierta' | 'terminada';
 const estadoVentana = (): Estado => {
   const hoy = hoyMadrid();
   if (hoy < DESDE) return 'antes';
-  if (hoy > HASTA) return 'terminada';
+  if (hoy > HASTA || Date.now() > FIN_MS) return 'terminada';
   return 'abierta';
 };
+
+const useRestante = () => {
+  const [ms, setMs] = useState(() => Math.max(0, FIN_MS - Date.now()));
+  useEffect(() => {
+    const id = window.setInterval(() => setMs(Math.max(0, FIN_MS - Date.now())), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const s = Math.floor(ms / 1000);
+  return {
+    ms,
+    dias: Math.floor(s / 86400),
+    horas: Math.floor((s % 86400) / 3600),
+    min: Math.floor((s % 3600) / 60),
+    seg: s % 60,
+  };
+};
+
+const dos = (n: number) => String(n).padStart(2, '0');
+
+const Casilla = ({ n, etiqueta }: { n: string; etiqueta: string }) => (
+  <div className="flex-1 rounded-xl border border-white/15 bg-white/[0.06] px-1 py-3">
+    <p className="text-4xl font-black tabular-nums leading-none text-white sm:text-5xl">{n}</p>
+    <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">{etiqueta}</p>
+  </div>
+);
+
 
 const BlackFriday = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const cancelado = params.get('checkout') === 'cancelled';
+  const comprarAlVolver = params.get('comprar') === '1';
   const { user } = useAuth();
   const { toast } = useToast();
   const [ventana, setVentana] = useState<Estado>(estadoVentana);
   const [enviando, setEnviando] = useState(false);
   const [yaSuscrito, setYaSuscrito] = useState(false);
+  const autoLanzado = useRef(false);
+  const r = useRestante();
+
+  const ultimoDia = hoyMadrid() === HASTA;
+  const ultimas48 = r.ms <= 48 * 3600 * 1000;
 
   useEffect(() => {
-    document.title = 'Black Friday: un año de Plus por 180 € · portal farmapro';
+    document.title = 'Black Friday: un año de Plus por 180 € (antes 390 €) · portal farmapro';
   }, []);
 
-  const contratar = async () => {
+  // Al llegar a cero, la página cierra la oferta sin recargar.
+  useEffect(() => {
+    if (r.ms === 0 && ventana === 'abierta') setVentana('terminada');
+  }, [r.ms, ventana]);
+
+  const contratar = useCallback(async () => {
     // Sin sesión, al registro (es para altas nuevas); quien ya tiene cuenta
-    // pasa a «entrar» desde el propio formulario.
+    // pasa a «entrar» desde el propio formulario. Al volver, el pago se abre solo.
     if (!user) {
-      navigate('/login?next=/black-friday');
+      navigate(`/login?next=${encodeURIComponent(VOLVER_A_PAGAR)}`);
       return;
     }
     setEnviando(true);
     const { data, error } = await supabase.functions.invoke('create-checkout', {
       body: { plan: 'plus', cycle: 'yearly', oferta: 'black-friday' },
     });
-    setEnviando(false);
 
     if (error || !data?.url) {
+      setEnviando(false);
       const status = (error as { context?: { status?: number } } | null)?.context?.status;
       if (status === 409) {
         setYaSuscrito(true);
@@ -88,24 +151,57 @@ const BlackFriday = () => {
     }
     trackBeginCheckout({ plan: 'plus', cycle: 'yearly', founder: false, value: PRECIO });
     window.location.href = data.url;
-  };
+  }, [user, navigate, toast]);
 
-  // Estilo Black Friday: fondo negro y verde lima de farmapro encendido.
-  const botonLima =
-    'h-14 w-full rounded-full bg-[#A6E04A] px-8 text-base font-black uppercase tracking-wide text-[#0B0B0B] hover:bg-[#B8EA6A] sm:w-auto';
+  // Vuelta del registro o del login con ?comprar=1: se abre el pago una vez.
+  useEffect(() => {
+    if (!comprarAlVolver || !user || autoLanzado.current || ventana !== 'abierta' || cancelado) return;
+    autoLanzado.current = true;
+    void contratar();
+  }, [comprarAlVolver, user, ventana, cancelado, contratar]);
 
-  const Aviso = ({ titulo, texto }: { titulo: string; texto: string }) => (
+  const botonComprar = () => (
+    <Button
+      size="lg"
+      onClick={contratar}
+      disabled={enviando}
+      className={`h-16 w-full rounded-full bg-[#A6E04A] px-8 text-lg font-black uppercase tracking-wide text-[#0B0B0B] shadow-[0_0_40px_rgba(166,224,74,0.35)] hover:bg-[#B8EA6A]`}
+    >
+      {enviando ? (
+        <>
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          Abriendo el pago...
+        </>
+      ) : (
+        'Lo quiero por 180 €'
+      )}
+    </Button>
+  );
+
+  const aviso = (titulo: string, texto: string) => (
     <div className="text-center">
       <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
         <AlertCircle className="h-5 w-5 text-[#A6E04A]" />
       </div>
       <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-white">{titulo}</h1>
       <p className="mt-4 text-neutral-400">{texto}</p>
-      <Button size="lg" className={`mt-7 ${botonLima}`} asChild>
+      <Button
+        size="lg"
+        className="mt-7 h-14 w-full rounded-full bg-[#A6E04A] px-8 text-base font-black uppercase tracking-wide text-[#0B0B0B] hover:bg-[#B8EA6A] sm:w-auto"
+        asChild
+      >
         <Link to="/precios">Ver los planes</Link>
       </Button>
     </div>
   );
+
+  const etiquetaUrgencia = ultimoDia
+    ? 'Hoy es el último día · termina a las 23:59'
+    : ultimas48
+      ? 'Últimas 48 horas · después vuelve a 390 €'
+      : 'El precio vuelve a 390 € en';
+
+  const abierta = ventana === 'abierta' && !yaSuscrito;
 
   const cuerpo = () => {
     if (yaSuscrito) {
@@ -118,7 +214,11 @@ const BlackFriday = () => {
           <p className="mt-4 text-neutral-400">
             Esta oferta es para quien se suscribe por primera vez. Tu plan sigue igual.
           </p>
-          <Button size="lg" className={`mt-7 ${botonLima}`} asChild>
+          <Button
+            size="lg"
+            className="mt-7 h-14 w-full rounded-full bg-[#A6E04A] px-8 text-base font-black uppercase tracking-wide text-[#0B0B0B] hover:bg-[#B8EA6A] sm:w-auto"
+            asChild
+          >
             <Link to="/dashboard">Entrar en el portal</Link>
           </Button>
         </div>
@@ -127,19 +227,19 @@ const BlackFriday = () => {
 
     if (ventana === 'antes') {
       return (
-        <Aviso
-          titulo="El Black Friday empieza el 18 de noviembre"
-          texto="Un año completo de Plus por 180 €, del 18 de noviembre al 1 de diciembre. Vuelve ese día."
-        />
+        aviso(
+          'El Black Friday empieza el 18 de noviembre',
+          'Un año completo de Plus por 180 €, del 18 de noviembre al 1 de diciembre. Vuelve ese día.',
+        )
       );
     }
 
     if (ventana === 'terminada') {
       return (
-        <Aviso
-          titulo="El Black Friday ha terminado"
-          texto="La oferta estuvo abierta del 18 de noviembre al 1 de diciembre."
-        />
+        aviso(
+          'El Black Friday ha terminado',
+          'La oferta estuvo abierta del 18 de noviembre al 1 de diciembre a las 23:59.',
+        )
       );
     }
 
@@ -148,49 +248,68 @@ const BlackFriday = () => {
         <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-[#A6E04A] sm:text-sm">
           Portal <em className="italic">farmapro</em> · Plus anual
         </p>
-        <h1 className="mt-3 text-5xl font-black uppercase tracking-tight text-white sm:text-7xl">
-          Black Friday
+        <h1 className="mt-3 text-6xl font-black uppercase leading-[0.9] tracking-tight text-white sm:text-8xl">
+          Black
+          <br />
+          Friday
         </h1>
 
-        <div className="mt-8 flex items-center justify-center gap-3">
-          <s className="whitespace-nowrap text-3xl font-bold text-neutral-500 decoration-2">390&nbsp;€</s>
-          <span className="whitespace-nowrap rounded-full bg-[#A6E04A] px-3 py-1.5 text-base font-black leading-none text-[#0B0B0B]">
+        <div className="mt-9 flex items-center justify-center gap-3">
+          <s className="whitespace-nowrap text-3xl font-bold text-neutral-500 decoration-[#FF4D4D] decoration-[3px]">
+            390&nbsp;€
+          </s>
+          <span className="whitespace-nowrap rounded-full bg-[#FF4D4D] px-3 py-1.5 text-base font-black leading-none text-white">
             −54&nbsp;%
           </span>
         </div>
-        <p className="mt-2 whitespace-nowrap text-8xl font-black leading-none tracking-tight text-[#A6E04A] sm:text-9xl">
+        <p className="mt-2 whitespace-nowrap text-[7rem] font-black leading-none tracking-tighter text-[#A6E04A] sm:text-[9rem]">
           180&nbsp;€
         </p>
-        <p className="mt-4 text-lg font-bold text-white">Un año completo de Plus</p>
-        <p className="mt-1 text-neutral-400">
-          Sale a 15&nbsp;€ al mes. Te ahorras 210&nbsp;€.
+        <p className="mt-3 text-xl font-extrabold text-white">Un año entero de Plus</p>
+        <p className="mt-1 text-neutral-300">
+          Son 15&nbsp;€ al mes. Te ahorras <strong className="text-white">210&nbsp;€</strong>.
         </p>
+
+        {/* Cuenta atrás real hasta el cierre de la oferta */}
+        <div
+          className={`mt-9 rounded-2xl border p-4 sm:p-5 ${
+            ultimas48 ? 'border-[#FF4D4D]/60 bg-[#FF4D4D]/10' : 'border-white/10 bg-white/[0.03]'
+          }`}
+        >
+          <p
+            className={`text-xs font-extrabold uppercase tracking-[0.2em] sm:text-sm ${
+              ultimas48 ? 'animate-pulse text-[#FF6B6B]' : 'text-neutral-300'
+            }`}
+          >
+            {etiquetaUrgencia}
+          </p>
+          <div className="mt-3 flex gap-2 sm:gap-3">
+            <Casilla n={String(r.dias)} etiqueta={r.dias === 1 ? 'día' : 'días'} />
+            <Casilla n={dos(r.horas)} etiqueta="horas" />
+            <Casilla n={dos(r.min)} etiqueta="min" />
+            <Casilla n={dos(r.seg)} etiqueta="seg" />
+          </div>
+        </div>
 
         {cancelado ? (
           <p className="mt-6 text-sm text-neutral-300">
-            No se ha cobrado nada. Cuando quieras, vuelve a pulsar el botón.
+            No se ha cobrado nada. El precio de 180&nbsp;€ sigue aquí hasta que el reloj llegue a cero.
           </p>
         ) : null}
 
-        <Button size="lg" className={`mt-8 ${botonLima}`} onClick={contratar} disabled={enviando}>
-          {enviando ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Abriendo el pago...
-            </>
-          ) : user ? (
-            'Quiero mi año de Plus por 180 €'
-          ) : (
-            'Crear mi cuenta y pagar 180 €'
-          )}
-        </Button>
-        <p className="mt-4 text-sm font-semibold tracking-wide text-neutral-300">
-          Solo hasta el martes 1 de diciembre
+        <div className="mt-7">
+          {botonComprar()}
+        </div>
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-neutral-400">
+          <Lock className="h-3.5 w-3.5" />
+          {user
+            ? 'Pago seguro con Stripe · IVA incluido'
+            : 'Creas tu cuenta en un minuto y pagas con Stripe · IVA incluido'}
         </p>
 
-        <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
-          <p className="text-sm font-extrabold uppercase tracking-wide text-white">Qué tienes con Plus</p>
-          <ul className="mt-4 space-y-3 text-neutral-300">
+        <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
+          <p className="text-sm font-extrabold uppercase tracking-wide text-white">Lo que entra en tus 180&nbsp;€</p>
+          <ul className="mt-4 space-y-3 text-neutral-200">
             {INCLUYE.map((linea) => (
               <li key={linea} className="flex gap-3">
                 <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#A6E04A]" />
@@ -200,18 +319,51 @@ const BlackFriday = () => {
           </ul>
         </div>
 
-        <p className="mt-6 text-sm text-neutral-400">
-          Pago único hoy. Dentro de un año se renueva a{' '}
-          <span className="whitespace-nowrap">390&nbsp;€/año</span> y puedes cancelarlo antes desde tu
-          perfil.
+        <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+          <div className="rounded-2xl border border-white/10 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">Precio normal</p>
+            <p className="mt-1 text-2xl font-black text-neutral-500 line-through decoration-[#FF4D4D]">390&nbsp;€/año</p>
+          </div>
+          <div className="rounded-2xl border border-[#A6E04A]/50 bg-[#A6E04A]/10 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#A6E04A]">Hasta el 1 de diciembre</p>
+            <p className="mt-1 text-2xl font-black text-white">180&nbsp;€/año</p>
+          </div>
+        </div>
+
+        <div className="mt-12 space-y-5 text-left">
+          {PREGUNTAS.map(({ p, r: resp }) => (
+            <div key={p}>
+              <p className="font-bold text-white">{p}</p>
+              <p className="mt-1 text-neutral-400">{resp}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12">
+          {botonComprar()}
+          <p className="mt-3 text-sm font-semibold text-neutral-300">
+            Cuando el reloj llegue a cero, vuelve a costar 390&nbsp;€.
+          </p>
+        </div>
+        <p className="mt-6 text-xs text-neutral-500">
+          Para suscripciones nuevas. Pago único hoy; dentro de un año se renueva a 390&nbsp;€/año salvo que lo
+          canceles antes desde tu perfil.
         </p>
-        <p className="mt-1 text-xs text-neutral-500">Para suscripciones nuevas. IVA incluido.</p>
       </div>
     );
   };
 
   return (
     <div className="min-h-screen bg-[#0B0B0B]">
+      {abierta && (
+        <div className="sticky top-0 z-30 bg-[#A6E04A] px-4 py-2 text-center text-xs font-black uppercase tracking-wide text-[#0B0B0B] sm:text-sm">
+          Black Friday −54&nbsp;% · termina en{' '}
+          <span className="tabular-nums">
+            {r.dias > 0 ? `${r.dias} ${r.dias === 1 ? 'día' : 'días'} · ` : ''}
+            {dos(r.horas)}:{dos(r.min)}:{dos(r.seg)}
+          </span>
+        </div>
+      )}
       <header className="border-b border-white/10">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-white">
@@ -222,9 +374,28 @@ const BlackFriday = () => {
         </div>
       </header>
 
-      <div className="container mx-auto max-w-xl px-4 py-14 sm:py-20">
+      <div className={`container mx-auto max-w-xl px-4 py-12 sm:py-16 ${abierta ? 'pb-32 sm:pb-16' : ''}`}>
         {cuerpo()}
       </div>
+
+      {/* Botón fijo en móvil: la compra siempre a un toque */}
+      {abierta && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#0B0B0B]/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:hidden">
+          <div className="flex items-center gap-3">
+            <div className="shrink-0 leading-tight">
+              <p className="text-xs text-neutral-500 line-through">390&nbsp;€</p>
+              <p className="text-xl font-black text-[#A6E04A]">180&nbsp;€</p>
+            </div>
+            <Button
+              onClick={contratar}
+              disabled={enviando}
+              className="h-12 flex-1 rounded-full bg-[#A6E04A] text-sm font-black uppercase tracking-wide text-[#0B0B0B] hover:bg-[#B8EA6A]"
+            >
+              {enviando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lo quiero'}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

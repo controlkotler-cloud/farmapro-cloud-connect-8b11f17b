@@ -44,7 +44,17 @@ export const LoginForm = () => {
             <AuthHeader isRegistering={isRegistering} />
           </CardHeader>
           <CardContent>
-            {vieneDeEnlace && (
+            {vieneDeEnlace && next!.startsWith('/black-friday') ? (
+              <div className="mb-5 rounded-md bg-[#0B0B0B] px-4 py-3 text-sm text-white">
+                <p className="font-extrabold uppercase tracking-wide [text-wrap:balance]">
+                  Black Friday: <s className="text-neutral-400 decoration-[#FF4D4D]">390&nbsp;€</s>{' '}
+                  <span className="text-[#A6E04A]">180&nbsp;€</span> el primer año
+                </p>
+                <p className="mt-1 text-neutral-300 [text-wrap:pretty]">
+                  Crea tu cuenta y te llevamos directo al pago. Si ya tienes cuenta, entra abajo.
+                </p>
+              </div>
+            ) : vieneDeEnlace && (
               <div className="mb-5 rounded-md border border-border bg-brand-soft px-4 py-3 text-sm text-foreground">
                 <p className="font-semibold [text-wrap:balance]">
                   Para verlo necesitas una cuenta del portal, y es gratis.
