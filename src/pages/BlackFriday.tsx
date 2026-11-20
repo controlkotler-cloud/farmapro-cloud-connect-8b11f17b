@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { trackBeginCheckout } from '@/lib/analytics';
+import { trackBeginCheckout, trackPurchaseReturn } from '@/lib/analytics';
 
 // ---------------------------------------------------------------------------
 // Black Friday 2026 (decisión de Francesc del 17-11-2026): Plus anual a 180 €
@@ -20,8 +20,13 @@ import { trackBeginCheckout } from '@/lib/analytics';
 // atrás es real, contra el cierre de la oferta. No hay plazas inventadas ni
 // relojes que se reinician.
 //
-// Embudo: quien no tiene sesión va al registro con next=/black-friday?comprar=1;
-// al volver con sesión, el pago se abre solo, sin pulsar otra vez.
+// Embudo (20-11-2026, «que el que llegue pague lo más rápido y directo
+// posible»): sin cuenta previa. El botón abre Stripe al momento; la cuenta del
+// portal nace con el correo que pone en el pago y, al volver
+// (?checkout=success&session_id=...), `create-checkout` (accion
+// 'acceso-compra') le devuelve un enlace de acceso y entra sin contraseña.
+// Si ese correo ya tenía cuenta, el Plus se activa en ella y entra con su
+// contraseña. Quien ya tiene sesión paga igual que antes.
 // ---------------------------------------------------------------------------
 
 const DESDE = '2026-11-18';
@@ -29,7 +34,6 @@ const HASTA = '2026-12-01';
 // 01-12 a las 23:59:59 en Madrid (en diciembre, UTC+1).
 const FIN_MS = Date.parse('2026-12-01T23:59:59+01:00');
 const PRECIO = 180;
-const VOLVER_A_PAGAR = '/black-friday?comprar=1';
 
 const INCLUYE = [
   'Todos los cursos y recursos del portal, sin límite',
@@ -50,7 +54,7 @@ const PREGUNTAS = [
   },
   {
     p: 'Ya tengo cuenta gratis en el portal, ¿me vale?',
-    r: 'Sí. La oferta es para quien todavía no paga ninguna suscripción. Entra con tu cuenta y pulsa el botón.',
+    r: 'Sí. La oferta es para quien todavía no paga ninguna suscripción. Paga con el mismo correo de tu cuenta y el Plus se activa en ella.',
   },
 ];
 
@@ -98,6 +102,8 @@ const BlackFriday = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const cancelado = params.get('checkout') === 'cancelled';
+  const pagado = params.get('checkout') === 'success';
+  const sessionId = params.get('session_id');
   const comprarAlVolver = params.get('comprar') === '1';
   const { user } = useAuth();
   const { toast } = useToast();
@@ -105,6 +111,11 @@ const BlackFriday = () => {
   const [enviando, setEnviando] = useState(false);
   const [yaSuscrito, setYaSuscrito] = useState(false);
   const autoLanzado = useRef(false);
+  const accesoPedido = useRef(false);
+  const [acceso, setAcceso] = useState<'entrando' | 'ya_tenia' | 'revisa_correo' | null>(
+    pagado ? 'entrando' : null,
+  );
+  const [correoCompra, setCorreoCompra] = useState<string | null>(null);
   const r = useRestante();
 
   const ultimoDia = hoyMadrid() === HASTA;
@@ -120,15 +131,11 @@ const BlackFriday = () => {
   }, [r.ms, ventana]);
 
   const contratar = useCallback(async () => {
-    // Sin sesión, al registro (es para altas nuevas); quien ya tiene cuenta
-    // pasa a «entrar» desde el propio formulario. Al volver, el pago se abre solo.
-    if (!user) {
-      navigate(`/login?next=${encodeURIComponent(VOLVER_A_PAGAR)}`);
-      return;
-    }
+    // Sin sesión se paga directamente: la cuenta se crea con el correo del
+    // pago. Si en realidad hay sesión, la función la detecta y la usa.
     setEnviando(true);
     const { data, error } = await supabase.functions.invoke('create-checkout', {
-      body: { plan: 'plus', cycle: 'yearly', oferta: 'black-friday' },
+      body: { plan: 'plus', cycle: 'yearly', oferta: 'black-friday', ...(user ? {} : { invitado: true }) },
     });
 
     if (error || !data?.url) {
@@ -151,7 +158,7 @@ const BlackFriday = () => {
     }
     trackBeginCheckout({ plan: 'plus', cycle: 'yearly', founder: false, value: PRECIO });
     window.location.href = data.url;
-  }, [user, navigate, toast]);
+  }, [user, toast]);
 
   // Vuelta del registro o del login con ?comprar=1: se abre el pago una vez.
   useEffect(() => {
@@ -159,6 +166,37 @@ const BlackFriday = () => {
     autoLanzado.current = true;
     void contratar();
   }, [comprarAlVolver, user, ventana, cancelado, contratar]);
+
+  // Vuelta de Stripe con el pago hecho: se mide la compra y, si la cuenta
+  // nació de este pago, se entra al portal sin contraseña.
+  useEffect(() => {
+    if (!pagado || !sessionId || accesoPedido.current) return;
+    accesoPedido.current = true;
+    trackPurchaseReturn(sessionId);
+    if (user) {
+      navigate('/perfil?bienvenida=black-friday', { replace: true });
+      return;
+    }
+    void (async () => {
+      // El pago puede tardar unos segundos en constar como completado.
+      for (let intento = 0; intento < 4; intento++) {
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+          body: { accion: 'acceso-compra', session_id: sessionId },
+        });
+        if (!error && data?.action_link) {
+          window.location.href = data.action_link;
+          return;
+        }
+        if (!error && data?.ya_tenia_cuenta) {
+          setCorreoCompra(data.email ?? null);
+          setAcceso('ya_tenia');
+          return;
+        }
+        await new Promise((res) => window.setTimeout(res, 2000));
+      }
+      setAcceso('revisa_correo');
+    })();
+  }, [pagado, sessionId, user, navigate]);
 
   const botonComprar = () => (
     <Button
@@ -201,9 +239,48 @@ const BlackFriday = () => {
       ? 'Últimas 48 horas · después vuelve a 390 €'
       : 'El precio vuelve a 390 € en';
 
-  const abierta = ventana === 'abierta' && !yaSuscrito;
+  const abierta = ventana === 'abierta' && !yaSuscrito && !acceso;
 
   const cuerpo = () => {
+    if (acceso) {
+      const entrando = acceso === 'entrando';
+      return (
+        <div className="text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#A6E04A]/15">
+            {entrando ? (
+              <Loader2 className="h-5 w-5 animate-spin text-[#A6E04A]" />
+            ) : (
+              <Check className="h-5 w-5 text-[#A6E04A]" />
+            )}
+          </div>
+          <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-white">
+            {entrando ? 'Pago hecho. Entrando en el portal...' : 'Pago hecho: ya tienes tu año de Plus'}
+          </h1>
+          {acceso === 'ya_tenia' && (
+            <p className="mt-4 text-neutral-400">
+              El Plus se ha activado en tu cuenta{correoCompra ? ` (${correoCompra})` : ''}. Entra con tu
+              contraseña de siempre.
+            </p>
+          )}
+          {acceso === 'revisa_correo' && (
+            <p className="mt-4 text-neutral-400">
+              Tu cuenta es el correo que pusiste en el pago. Para entrar, pulsa «¿Olvidaste tu contraseña?»
+              con ese correo y crea la tuya en un minuto.
+            </p>
+          )}
+          {!entrando && (
+            <Button
+              size="lg"
+              className="mt-7 h-14 w-full rounded-full bg-[#A6E04A] px-8 text-base font-black uppercase tracking-wide text-[#0B0B0B] hover:bg-[#B8EA6A] sm:w-auto"
+              asChild
+            >
+              <Link to="/login?next=/perfil">Entrar en el portal</Link>
+            </Button>
+          )}
+        </div>
+      );
+    }
+
     if (yaSuscrito) {
       return (
         <div className="text-center">
@@ -304,7 +381,7 @@ const BlackFriday = () => {
           <Lock className="h-3.5 w-3.5" />
           {user
             ? 'Pago seguro con Stripe · IVA incluido'
-            : 'Creas tu cuenta en un minuto y pagas con Stripe · IVA incluido'}
+            : 'Pagas con Stripe en un minuto y entras al momento · IVA incluido'}
         </p>
 
         <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 text-left">

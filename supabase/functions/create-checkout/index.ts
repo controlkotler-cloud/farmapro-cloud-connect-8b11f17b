@@ -12,6 +12,7 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { pickSubscriptionPrice, lookupPrice, IMAGE_PACK_PRICES, STRIPE_PRICES, type PlanId, type Cycle } from "../_shared/stripePrices.ts";
 import { getPortalConfigurationId, lastPortalConfigError, tierForPrice } from "../_shared/stripePortal.ts";
+import { asegurarUsuarioCompra, nacioDeEstaCompra } from "../_shared/compraInvitado.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,6 +42,10 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({} as any));
+
+    // Vuelta de Stripe tras una compra sin cuenta: deja dentro al comprador.
+    if (body.accion === 'acceso-compra') return await accesoTrasCompra(req, body.session_id);
+
     const pack = body.pack as number | undefined;
     let plan = body.plan as PlanId;
     let cycle = (body.cycle ?? 'monthly') as Cycle;
@@ -66,6 +71,49 @@ serve(async (req) => {
       }
     } else if (!IMAGE_PACK_PRICES[pack]) {
       return json({ error: 'Invalid pack (expected 20|50|100)' }, 400);
+    }
+
+    // Black Friday sin cuenta (20-11-2026, «que el que llegue pague lo más
+    // rápido y directo posible»): quien llega del anuncio va directo a Stripe.
+    // La cuenta se crea con el correo del pago (stripe-webhook y la acción
+    // 'acceso-compra'). Si ya tiene sesión abierta, sigue el camino normal.
+    let sinSesion = false;
+    if (isBlackFriday && body.invitado === true) {
+      const h = req.headers.get("Authorization") ?? '';
+      if (!h.startsWith('Bearer ')) sinSesion = true;
+      else {
+        const anon = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "");
+        const { data: u } = await anon.auth.getUser(h.replace('Bearer ', ''));
+        sinSesion = !u?.user?.email;
+      }
+    }
+    if (sinSesion) {
+      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
+      const regular = await ensurePlusYearlyRegular(stripe);
+      const coupon = await ensureBlackFridayCoupon(stripe, regular.productId);
+      const origin = req.headers.get('origin') ?? Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
+      const meta = {
+        origen: 'portal', plan: 'plus', cycle: 'yearly', founder: 'false',
+        oferta: 'black-friday', invitado: 'true',
+      };
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{ price: regular.priceId, quantity: 1 }],
+        mode: 'subscription',
+        discounts: [{ coupon }],
+        billing_address_collection: 'required',
+        tax_id_collection: { enabled: true },
+        custom_text: {
+          submit: {
+            message: 'Hoy pagas 180 € por un año completo de Plus. Entras al portal con este correo nada más pagar. Dentro de un año se renueva a 390 € y puedes cancelarlo antes desde tu perfil.',
+          },
+        },
+        success_url: `${origin}/black-friday?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/black-friday?checkout=cancelled`,
+        metadata: meta,
+        subscription_data: { metadata: meta },
+      });
+      log('guest session created', { id: session.id });
+      return json({ url: session.url, founder: false });
     }
 
     // Auth
@@ -398,6 +446,55 @@ serve(async (req) => {
     return json({ error: msg }, 500);
   }
 });
+
+/**
+ * Vuelta de Stripe de una compra sin cuenta. Comprueba que el pago es real,
+ * reciente y de Black Friday sin cuenta; asegura la cuenta (por si el webhook
+ * aún no ha llegado) y, solo si la cuenta nació de ESTE pago, devuelve un
+ * enlace de acceso de un solo uso. Si el correo ya tenía cuenta, no se abre
+ * nada sin contraseña: el frontend le manda a entrar.
+ */
+async function accesoTrasCompra(req: Request, sessionId: unknown): Promise<Response> {
+  if (typeof sessionId !== 'string' || !sessionId.startsWith('cs_')) {
+    return json({ error: 'session_id no válido' }, 400);
+  }
+  const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
+  const s = await stripe.checkout.sessions.retrieve(sessionId);
+  const edadSeg = Math.floor(Date.now() / 1000) - s.created;
+  if (s.status !== 'complete' || s.metadata?.invitado !== 'true' || s.metadata?.oferta !== 'black-friday') {
+    return json({ error: 'compra_no_valida', status: s.status }, 409);
+  }
+  if (edadSeg > 6 * 3600) return json({ error: 'enlace_caducado' }, 410);
+  const email = s.customer_details?.email;
+  if (!email) return json({ error: 'sin_email' }, 409);
+
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+  );
+  const { userId } = await asegurarUsuarioCompra(admin, {
+    email,
+    nombre: s.customer_details?.name ?? null,
+    cif: s.customer_details?.tax_ids?.[0]?.value ?? null,
+    sessionId,
+  });
+  if (!(await nacioDeEstaCompra(admin, userId, sessionId))) {
+    log('acceso compra: ya tenía cuenta', { sessionId });
+    return json({ ya_tenia_cuenta: true, email });
+  }
+  const origin = req.headers.get('origin') ?? Deno.env.get('APP_URL') ?? 'https://portal.farmapro.es';
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: `${origin}/perfil?bienvenida=black-friday` },
+  });
+  if (error || !data?.properties?.action_link) {
+    log('acceso compra: generateLink falló', { err: error?.message });
+    return json({ error: 'no_se_pudo_entrar', email }, 500);
+  }
+  log('acceso compra ok', { sessionId, userId });
+  return json({ action_link: data.properties.action_link, email });
+}
 
 function hoyMadrid(): string {
   return new Intl.DateTimeFormat('en-CA', {

@@ -18,6 +18,7 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { lookupPrice, PROTECTED_ROLES } from "../_shared/stripePrices.ts";
 import { createHoldedInvoice } from "../_shared/holded.ts";
+import { asegurarUsuarioCompra } from "../_shared/compraInvitado.ts";
 
 // Stripe address (snake_case) → HoldedAddress. Sirve igual para
 // session.customer_details.address y para invoice.customer_address.
@@ -240,16 +241,35 @@ async function handleCheckoutCompleted(
     return;
   }
 
-  const userId = session.metadata?.user_id;
+  let userId = session.metadata?.user_id;
   const plan   = session.metadata?.plan;
   const cycle  = session.metadata?.cycle ?? 'monthly';
   const founder = session.metadata?.founder === 'true';
+  const subscriptionId = session.subscription as string;
+
+  // Compra sin cuenta (Black Friday, 20-11-2026): la cuenta se crea aquí con
+  // el correo del pago, y la suscripción de Stripe se queda con su user_id
+  // para que facturas y renovaciones encuentren al dueño.
+  if (!userId && session.metadata?.invitado === 'true' && session.customer_details?.email) {
+    const r = await asegurarUsuarioCompra(supabase, {
+      email: session.customer_details.email,
+      nombre: session.customer_details.name ?? null,
+      cif: session.customer_details.tax_ids?.[0]?.value ?? null,
+      sessionId: session.id,
+    });
+    userId = r.userId;
+    log('guest checkout: user resolved', { sessionId: session.id, userId, creado: r.creado });
+    try {
+      const s0 = await stripe.subscriptions.retrieve(subscriptionId);
+      await stripe.subscriptions.update(subscriptionId, { metadata: { ...s0.metadata, user_id: userId } });
+    } catch (e) { log('guest checkout: sub metadata update failed', { err: (e as Error).message }); }
+  }
+
   if (!userId || !plan) {
     log('checkout without user_id/plan metadata', { sessionId: session.id });
     return;
   }
 
-  const subscriptionId = session.subscription as string;
   const customerId = session.customer as string;
 
   // Recuperar la subscripción para current_period_start/end.
