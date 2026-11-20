@@ -58,18 +58,40 @@ const PREGUNTAS = [
   },
 ];
 
-const hoyMadrid = () =>
-  new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(new Date());
+// Fecha de Madrid como 'AAAA-MM-DD' montada pieza a pieza. No se usa .format()
+// de 'en-CA': algunos navegadores (WebView de Instagram/Facebook en ciertos
+// iOS) la devuelven como '11/20/2026', y comparada con '2026-11-18' daba
+// 'antes' y mandaba a /precios a quien venía del anuncio (20-11-2026).
+const hoyMadrid = (): string | null => {
+  try {
+    const partes = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(new Date());
+    const v = (t: string) => partes.find((p) => p.type === t)?.value ?? '';
+    const iso = `${v('year')}-${v('month').padStart(2, '0')}-${v('day').padStart(2, '0')}`;
+    return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
+  } catch {
+    return null;
+  }
+};
 
 type Estado = 'antes' | 'abierta' | 'terminada';
 
+// Las horas límite van en milisegundos absolutos, que no dependen del
+// navegador. La fecha de Madrid solo afina; si no se puede leer, manda el
+// reloj y, ante la duda, la página vende (el servidor vuelve a comprobarlo).
+const INICIO_MS = Date.parse(`${DESDE}T00:00:00+01:00`);
+
 const estadoVentana = (): Estado => {
+  const ahora = Date.now();
+  if (ahora > FIN_MS) return 'terminada';
   const hoy = hoyMadrid();
-  if (hoy < DESDE) return 'antes';
-  if (hoy > HASTA || Date.now() > FIN_MS) return 'terminada';
-  return 'abierta';
+  if (hoy) {
+    if (hoy < DESDE) return 'antes';
+    if (hoy > HASTA) return 'terminada';
+    return 'abierta';
+  }
+  return ahora < INICIO_MS ? 'antes' : 'abierta';
 };
 
 const useRestante = () => {
