@@ -49,6 +49,9 @@ export interface PieceType {
   defaultFormat: FormatId;
   /** Ejemplo de titular para el placeholder del campo. */
   headlineExample: string;
+  /** Ayuda que se enseña bajo la descripción. Nunca va dentro del prompt:
+   *  lo que va en el prompt el modelo lo pinta en la imagen. */
+  promptHelp?: string;
   /** Descripción inicial de la imagen a partir de los datos de la farmacia. */
   buildPrompt: (defaults: IAFarmaDefaults) => string;
 }
@@ -92,10 +95,11 @@ export const PIECE_TYPES: PieceType[] = [
     hint: 'Instagram o Facebook',
     defaultFormat: 'feed',
     get headlineExample() { return S().headlines.post; },
+    promptHelp: 'Si escribes aquí tus consejos, saldrán tal cual en la imagen.',
     buildPrompt: (d) =>
       `Post tipo infografía: el titular grande arriba y debajo una lista de 3 a 5 consejos cortos, cada uno ` +
-      `con su icono ilustrado (${S().iconos}). Escribe aquí los consejos si quieres que ` +
-      `salgan literales. ${S().paleta.charAt(0).toUpperCase() + S().paleta.slice(1)}, ${tonoDe(d)}`,
+      `con su icono ilustrado (${S().iconos}). ` +
+      `${S().paleta.charAt(0).toUpperCase() + S().paleta.slice(1)}, ${tonoDe(d)}`,
   },
   {
     id: 'story',

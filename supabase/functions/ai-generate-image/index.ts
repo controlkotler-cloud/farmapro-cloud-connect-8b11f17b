@@ -427,9 +427,9 @@ serve(async (req) => {
     }
 
     // El headline efectivo: el del copy si se generó, o el que envió el cliente.
-    // Máximo 4 líneas de apoyo: con 5 el layout crece hasta el borde y el
-    // recorte a 4:5/9:16 se come la última (visto en pruebas reales).
-    if (copy) copy.lines = copy.lines.slice(0, 4);
+    // Máximo 5 líneas de apoyo: titular aparte, subtítulo y 4 consejos.
+    // Desde el 24-10 se pide tamaño nativo y no hay recorte.
+    if (copy) copy.lines = copy.lines.slice(0, 5);
     const effectiveHeadline = copy?.headline ?? headline;
     const effectiveLines = copy?.lines ?? [];
     const effectiveArt = artOverride || copy?.art || pickFallbackArt(paletteText);

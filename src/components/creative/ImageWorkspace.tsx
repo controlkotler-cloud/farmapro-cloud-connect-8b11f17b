@@ -429,6 +429,9 @@ export const ImageWorkspace = ({ defaults, seed, onGenerated }: ImageWorkspacePr
                     Describe la PIEZA (composición, elementos, colores), no tu farmacia. Los textos
                     que deban salir escritos ponlos literales.
                   </p>
+                  {pieceInfo.promptHelp && (
+                    <p className="text-xs text-muted-foreground mt-1">{pieceInfo.promptHelp}</p>
+                  )}
                 </div>
               )}
             </div>
