@@ -67,7 +67,7 @@ function Etiquetas({
     <div className="space-y-2">
       <Label>{titulo}</Label>
       <div className="flex flex-wrap gap-2">
-        {valores.length === 0 && <p className="text-sm text-muted-foreground">Ninguno todavía.</p>}
+        {valores.length === 0 && <p className="text-sm text-muted-foreground">Nada todavía.</p>}
         {valores.map((v) => {
           const f = origen[`${prefijo}:${v}`];
           return (

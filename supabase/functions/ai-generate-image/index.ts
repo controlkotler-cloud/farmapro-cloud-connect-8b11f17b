@@ -227,7 +227,9 @@ async function generateCopy(
         response_format: { type: 'json_object' },
         // El copy va rotulado sobre la imagen: conviene corto y poco disperso.
         temperature: 0.6,
-        max_tokens: 400,
+        // gemini-3.6-flash razona antes de responder y gasta tokens en ello:
+        // con 400 el JSON llegaba vacío o cortado y la pieza salía sin texto.
+        max_tokens: 2000,
       }),
     });
     if (!res.ok) {
@@ -235,12 +237,16 @@ async function generateCopy(
       return null;
     }
     const data = await res.json();
-    const content: string = data?.choices?.[0]?.message?.content ?? '';
-    if (!content) return null;
+    const choice = data?.choices?.[0];
+    const content: string = choice?.message?.content ?? '';
+    if (!content) {
+      console.error('Copy gen vacío, finish_reason:', choice?.finish_reason, 'usage:', JSON.stringify(data?.usage ?? {}));
+      return null;
+    }
     try {
       return normalizeCopy(JSON.parse(stripJsonFences(content)), forcedHeadline);
     } catch (e) {
-      console.error('Copy parse error:', e, 'content:', content.slice(0, 400));
+      console.error('Copy parse error:', e, 'finish_reason:', choice?.finish_reason, 'content:', content.slice(0, 400));
       return null;
     }
   };
@@ -249,10 +255,28 @@ async function generateCopy(
   if (first) return first;
   const retry = await call();
   if (retry) return retry;
-  // Fallback: solo headline (si venía forzado o si el brief se puede usar como titular corto).
+  // Fallback: solo headline. Si no venía forzado, el propio brief recortado:
+  // mejor una pieza con el tema rotulado que una sin texto.
   if (forcedHeadline) return { headline: forcedHeadline, lines: [] };
+  const fromBrief = headlineFromBrief(brief);
+  if (fromBrief) return { headline: fromBrief, lines: [] };
   return null;
 }
+
+// Titular de emergencia a partir del brief: primera frase, hasta 60 caracteres
+// cortando por palabra, sin punto final.
+function headlineFromBrief(brief: string): string {
+  const first = brief.trim().split(/[.!?\n]/)[0].trim();
+  if (!first) return '';
+  if (first.length <= 60) return first;
+  const cut = first.slice(0, 60);
+  const lastSpace = cut.lastIndexOf(' ');
+  let words = (lastSpace > 20 ? cut.slice(0, lastSpace) : cut).replace(/[,;:\s]+$/, '').split(' ');
+  // Que no acabe en «de las», «para», «y»…
+  while (words.length > 3 && COLGANTES.has(words[words.length - 1].toLowerCase())) words = words.slice(0, -1);
+  return words.join(' ').replace(/[,;:]+$/, '');
+}
+const COLGANTES = new Set(['a', 'al', 'ante', 'antes', 'con', 'de', 'del', 'el', 'en', 'la', 'las', 'lo', 'los', 'para', 'por', 'que', 'su', 'sus', 'un', 'una', 'y', 'o', 'e']);
 
 // Lista de servicios o marcas que manda el cliente: hasta 8, 40 caracteres cada
 // uno, sin los robots vetados (el blíster Celia sí).
@@ -529,7 +553,12 @@ serve(async (req) => {
       ? ` MANDATORY corporate palette: use ${brandPalette} as the dominant colors of the piece (neutrals allowed as support only).`
       : '';
 
-    const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
+    // El tema manda sobre la descripción base: la de cada tipo de pieza trae
+    // iconos de temporada (en noviembre, labios y guantes) que no pegan con
+    // cualquier brief.
+    const briefBlock = brief
+      ? ` Topic of the piece (in Spanish): "${brief}". THE TOPIC RULES: every icon, illustration, product and object in the image must depict this topic and the text lines below; ignore any seasonal icon list in the base description that does not fit the topic.`
+      : '';
     const contextParts = [
       services.length ? `the pharmacy offers ${services.join(', ')}` : '',
       brands.length ? `it works with brands ${brands.join(', ')}` : '',
