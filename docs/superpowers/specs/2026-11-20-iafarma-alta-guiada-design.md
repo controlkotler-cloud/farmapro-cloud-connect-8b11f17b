@@ -10,7 +10,7 @@ La generación de imágenes es la única queja que ha tenido el portal. La compa
 - el texto de ejemplo «Escribe aquí los consejos…» que se envía tal cual al modelo (`src/components/creative/pieceTypes.ts:95-98`);
 - y, sobre todo, lo que señaló Francesc: **si la farmacia no configura IAFarma bien, el resultado no es el esperado.** Hoy la configuración es un formulario opcional (nombre, localidad, tono, dos colores y logo). En la base, 2 de 93 perfiles tienen logo y 4 tienen color.
 
-Por eso, antes de generar, IAFarma busca la información de la farmacia (web, Instagram y ficha de Google), recoge logo, colores, nombre comercial, tono, servicios y marcas, se lo enseña a la farmacia y deja que lo edite o lo valide.
+Por eso, antes de generar, IAFarma busca la información de la farmacia en su web y su Instagram (si no tiene ninguno, se la pregunta), recoge logo, colores, nombre comercial, tono, servicios y marcas, se lo enseña a la farmacia y deja que lo edite o lo valide.
 
 Éxito = las farmacias dejan de quejarse de las imágenes y las que generan vuelven a generar.
 
@@ -31,7 +31,7 @@ Por eso, antes de generar, IAFarma busca la información de la farmacia (web, In
 
 ## 4. Anti-objetivos (fracaso aunque funcione)
 
-- Que una farmacia vea datos, logo o fotos de **otra** farmacia (homónimas en la ficha de Google, cuenta de Instagram equivocada).
+- Que una farmacia vea datos, logo o fotos de **otra** farmacia (cuenta de Instagram equivocada, web de otra farmacia).
 - Que el alta sea una barrera: si no se encuentra nada, la farmacia tiene que poder rellenarla a mano en un minuto.
 - Que la búsqueda se cuelgue: la farmacia nunca espera más de 45 s.
 
@@ -39,7 +39,8 @@ Por eso, antes de generar, IAFarma busca la información de la farmacia (web, In
 
 - Portal: Lovable + Supabase (`jeysistgdajopfruqpbc`). Frontend por repo + push + `deploy_project` + comprobación en vivo; edge functions con una petición cerrada al chat de Lovable (`send_message`) y comprobación de que corre la versión nueva. Migraciones por `query_database`, idempotentes.
 - Las edge functions de Supabase no tienen Pillow ni fuentes y tienen límite de tiempo.
-- Secrets que ya tiene el portal: `LOVABLE_API_KEY` (pasarela de Lovable, `google/gemini-3.6-flash`), `OPENAI_API_KEY`, los de Supabase. **No tiene** los de DataForSEO ni un token de Instagram.
+- Secrets que ya tiene el portal: `LOVABLE_API_KEY` (pasarela de Lovable, `google/gemini-3.6-flash`), `OPENAI_API_KEY`, los de Supabase. **No tiene** token de Instagram.
+- Sin ficha de Google (decisión de Francesc del 20-11-2026, «si la web y su instagram son las mejores bases si no tiene se tendra que preguntar a la farmacia»): para un post de una farmacia, la ficha solo identificaba la farmacia y daba la web; con ninguna web ni Instagram, se pregunta a la farmacia.
 - Encender algo que ven las farmacias necesita el sí de Francesc.
 - Secrets: nunca en el repo ni en el chat.
 
@@ -47,9 +48,9 @@ Por eso, antes de generar, IAFarma busca la información de la farmacia (web, In
 
 | Enfoque | Qué supone | Por qué no / sí |
 |---|---|---|
-| A. Búsqueda en el VPS de ops (raspador, DataForSEO, Sonnet y Pillow ya están allí) | Publicar un endpoint del VPS con dominio, Caddy y token | Es justo la infraestructura que se ahorra al dejar fuera el motor. Descartado. |
-| B. Llamar a `analizar-ficha` de farmapro-direct desde el portal | Cero secrets nuevos | Su acción `buscar` solo devuelve nombre, dirección y coordenadas (sin web, teléfono ni foto) y ata IAFarma a una función pública de otro proyecto. Descartado. |
-| **C. Edge function propia del portal, `iafarma-perfil`** | Copia la lógica de búsqueda en Google de `analizar-ficha`; paleta en el navegador | **Elegido** (decisión mía). Todo vive en el portal, sin VPS. |
+| A. Búsqueda en el VPS de ops (raspador, Sonnet y Pillow ya están allí) | Publicar un endpoint del VPS con dominio, Caddy y token | Es justo la infraestructura que se ahorra al dejar fuera el motor. Descartado. |
+| B. Añadir la ficha de Google (DataForSEO) como tercera fuente | Dos secrets más, elegir entre homónimas | Para un post solo aportaba identificar la farmacia y su web. Descartado por Francesc el 20-11. |
+| **C. Edge function propia del portal, `iafarma-perfil`, con web e Instagram** | Paleta en el navegador | **Elegido** (decisión mía). Todo vive en el portal, sin VPS. |
 
 ## 7. Diseño
 
@@ -59,26 +60,25 @@ Antes de la primera generación, obligatoria. Las farmacias que ya usan IAFarma 
 
 ### 7.2 Paso 1, lo que escribe la farmacia
 
-Nombre de la farmacia y localidad (obligatorios); web y usuario de Instagram (opcionales, «si los tienes, acertaremos más»).
+Nombre de la farmacia y localidad (obligatorios); web y usuario de Instagram, destacados como lo que hace que acierte («con tu web o tu Instagram lo rellenamos por ti»). Si no escribe ninguno de los dos, no hay búsqueda: pasa directo a la ficha vacía para rellenarla a mano.
 
 ### 7.3 Paso 2, la búsqueda (edge function `iafarma-perfil`, 15–40 s)
 
-Requiere sesión (JWT). Las tres fuentes se piden en paralelo cuando se puede; cada una tiene su tiempo máximo y, si falla, se sigue sin ella.
+Requiere sesión (JWT). Web e Instagram se piden en paralelo cuando se puede; cada una tiene su tiempo máximo y, si falla, se sigue sin ella.
 
-1. **Ficha de Google.** DataForSEO `serp/google/maps/live/advanced` con nombre + localidad, geocodificación y filtro a farmacias copiados de `farmapro-direct/supabase/functions/analizar-ficha/index.ts` (`dfsMapsSerp`, `geocodeCity`, `esFarmacia`, `simplifyName`, `nameSim`). Si hay un resultado claro (nombre casi idéntico y único), se usa. Si hay varios, la farmacia elige el suyo en una lista (nombre, dirección, foto) y la búsqueda sigue con ese. Si no hay ninguno, se sigue sin ficha. Datos: nombre, dirección, teléfono, web, categoría, foto principal. Sin los secrets de DataForSEO, este paso se salta.
-2. **Web.** La que escribió la farmacia o, si no, la de la ficha. Guarda SSRF: solo `http(s)`, sin IP literal privada, sin puertos raros, se resuelve el DNS y se rechaza si apunta a red privada, como mucho 3 redirecciones comprobadas, 1,5 MB y 8 s (mismo criterio que `_url_publica` de `mkpro-ops/backend/app/perfil_captura.py`). Se extraen: logo (`<link rel=icon>` grande, `og:image`, `<img>` con «logo» en clase, id, alt o src), colores del CSS (`theme-color`, variables y hex del HTML y de la primera hoja de estilos propia), el primer `instagram.com/<usuario>` y el texto visible (limitado a 12.000 caracteres).
-3. **Instagram.** El usuario que escribió la farmacia o el de su web. `business_discovery` de la Graph API: nombre, biografía, web, foto de perfil y los 6 últimos pies de foto. Solo cuentas de empresa o creador; si es personal o no existe (error 110), se sigue sin Instagram y se le dice en una línea. Sin token, este paso se salta.
-4. **Logo.** Prioridad: logo de la web → foto de perfil de Instagram → foto de la ficha. Se descarga (con la misma guarda, solo imágenes, 2 MB) y se sube al bucket `iafarma-logos` en una ruta provisional; pasa a ser el logo de la farmacia solo al validar.
-5. **Lectura del texto.** Con el texto de la web, la biografía y los pies de foto, `google/gemini-3.6-flash` por la pasarela de Lovable devuelve en JSON nombre comercial, tono (uno de los que ya tiene IAFarma), servicios y marcas, **cada dato con su cita literal y su fuente**. La función comprueba que cada cita aparece de verdad en el texto de esa fuente (normalizando espacios, mayúsculas y acentos); lo que no pasa se descarta. Mismo esquema que `perfil_contenido.py` de ops. Las marcas de la lista de veto (robots Julia y Celia) se quitan.
-6. **Respuesta.** Una propuesta con cada campo, su fuente y su cita, la lista de candidatos de Google si hace falta elegir, y qué fuentes fallaron. No escribe en `profiles`.
+1. **Web.** La que escribió la farmacia. Guarda SSRF: solo `http(s)`, sin IP literal privada, sin puertos raros, se resuelve el DNS y se rechaza si apunta a red privada, como mucho 3 redirecciones comprobadas, 1,5 MB y 8 s (mismo criterio que `_url_publica` de `mkpro-ops/backend/app/perfil_captura.py`). Se extraen: logo (`<link rel=icon>` grande, `og:image`, `<img>` con «logo» en clase, id, alt o src), colores del CSS (`theme-color`, variables y hex del HTML y de la primera hoja de estilos propia), el primer `instagram.com/<usuario>` y el texto visible (limitado a 12.000 caracteres).
+2. **Instagram.** El usuario que escribió la farmacia o el de su web. `business_discovery` de la Graph API: nombre, biografía, web, foto de perfil y los 6 últimos pies de foto. Solo cuentas de empresa o creador; si es personal o no existe (error 110), se sigue sin Instagram y se le dice en una línea. Sin token, este paso se salta.
+3. **Logo.** Prioridad: logo de la web → foto de perfil de Instagram. Se descarga (con la misma guarda, solo imágenes, 2 MB) y se sube al bucket `iafarma-logos` en una ruta provisional; pasa a ser el logo de la farmacia solo al validar.
+4. **Lectura del texto.** Con el texto de la web, la biografía y los pies de foto, `google/gemini-3.6-flash` por la pasarela de Lovable devuelve en JSON nombre comercial, tono (uno de los que ya tiene IAFarma), servicios y marcas, **cada dato con su cita literal y su fuente**. La función comprueba que cada cita aparece de verdad en el texto de esa fuente (normalizando espacios, mayúsculas y acentos); lo que no pasa se descarta. Mismo esquema que `perfil_contenido.py` de ops. Las marcas de la lista de veto (robots Julia y Celia) se quitan.
+5. **Respuesta.** Una propuesta con cada campo, su fuente y su cita, y qué fuentes fallaron. No escribe en `profiles`.
 
 **Paleta.** La saca el navegador del logo con un canvas (cuantizar a 6 colores, descartar casi blancos y casi negros) y la contrasta con los colores del CSS que devuelve la función. Si coinciden, se proponen esos; si no hay logo, los del CSS. *Decisión mía:* en Deno no hay Pillow y el navegador ya tiene el logo.
 
-**Límites.** 3 búsquedas por farmacia y día (tabla `iafarma_perfil_busquedas`: farmacia, fecha, fuentes usadas, coste estimado). Coste por alta: unos 0,003 $ de DataForSEO y unos céntimos de la pasarela.
+**Límites.** 3 búsquedas por farmacia y día (tabla `iafarma_perfil_busquedas`: farmacia, fecha, fuentes usadas, coste estimado). Coste por alta: unos céntimos de la pasarela; Instagram es gratis.
 
 ### 7.4 Paso 3, la ficha
 
-Una tarjeta con logo, colores (muestras editables), nombre comercial, localidad, tono, servicios y marcas (etiquetas que se quitan o añaden) y, al lado de cada dato, de dónde salió («de tu web», «de tu Instagram», «de tu ficha de Google»). Botones: «Está bien así» y editar cada campo. Si no se encontró nada, la misma tarjeta vacía para rellenar a mano, con el mismo botón. Debajo, una muestra hecha en el navegador (canvas con su paleta, su nombre comercial y su logo, sin gastar gpt-image) para que vea el efecto de lo que valida. Diseño dentro de la base visual del portal (`DESIGN.md`).
+Una tarjeta con logo, colores (muestras editables), nombre comercial, localidad, tono, servicios y marcas (etiquetas que se quitan o añaden) y, al lado de cada dato, de dónde salió («de tu web», «de tu Instagram»). Botones: «Está bien así» y editar cada campo. Si no se encontró nada, la misma tarjeta vacía para rellenar a mano, con el mismo botón. Debajo, una muestra hecha en el navegador (canvas con su paleta, su nombre comercial y su logo, sin gastar gpt-image) para que vea el efecto de lo que valida. Diseño dentro de la base visual del portal (`DESIGN.md`).
 
 ### 7.5 Paso 4, guardar
 
@@ -95,7 +95,7 @@ Al validar se guarda en `profiles` y se marca `iafarma_perfil_validado_at`. Desd
 | `iafarma_web` | text |
 | `iafarma_instagram` | text |
 | `iafarma_perfil_validado_at` | timestamptz |
-| `iafarma_perfil_fuentes` | jsonb (fuente y cita de cada dato, id de la ficha de Google elegida) |
+| `iafarma_perfil_fuentes` | jsonb (fuente y cita de cada dato) |
 
 Ya existen y se rellenan desde el alta: `iafarma_tone`, `iafarma_brand_primary`, `iafarma_brand_secondary`, `iafarma_logo_url`. El `localStorage` (`farmapro_iafarma_defaults`) pasa a ser solo caché.
 
@@ -112,16 +112,14 @@ Ya existen y se rellenan desde el alta: `iafarma_tone`, `iafarma_brand_primary`,
 
 ## 8. Lo que necesita a Francesc
 
-- Meter los secrets `DATAFORSEO_LOGIN` y `DATAFORSEO_PASSWORD` en el portal por el formulario seguro de Lovable (los mismos que ya usa farmapro-direct). Sin ellos, el alta funciona con web e Instagram y sin ficha de Google.
 - Token de Instagram de larga duración (usuario del sistema de Business Manager), como secret `IG_GRAPH_TOKEN`. Sin él, el alta funciona sin Instagram.
 - El sí para encender `iafarma_alta_guiada_activa`.
 
 ## 9. Queda en manos de quien lo construya
 
 - Estructura del código de la edge function y de las pantallas.
-- Umbral de «resultado claro» en la ficha de Google.
 - Textos de la pantalla del alta.
-- Tests: el alta con las cinco farmacias reales del 20-11, una homónima en Google, una sin web ni Instagram y una web que apunta a red privada.
+- Tests: el alta con las farmacias reales del 20-11, un Instagram que no es de la farmacia, una sin web ni Instagram y una web que apunta a red privada.
 
 ## 10. Resultado de la comparación (20-11-2026)
 
