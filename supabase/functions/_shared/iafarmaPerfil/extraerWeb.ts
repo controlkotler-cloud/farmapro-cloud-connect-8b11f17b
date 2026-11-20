@@ -98,7 +98,7 @@ export function coloresDeCss(css: string): string[] {
 
 // ---------------------------------------------------------------- instagram
 
-const RESERVADAS_IG = new Set([
+export const RESERVADAS_IG = new Set([
   'p', 'reel', 'reels', 'explore', 'stories', 'tv', 'accounts', 'direct', 'about', 'legal',
   'developer', 'web', 'share', 'sharer',
 ]);

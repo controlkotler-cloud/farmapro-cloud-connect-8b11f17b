@@ -27,7 +27,7 @@ export interface FichaValidada {
 }
 
 const EXT_POR_TIPO: Record<string, string> = {
-  'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg',
+  'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif',
 };
 
 const limpiar = (xs: string[]) => [...new Set(xs.map((x) => x.trim()).filter(Boolean))];
@@ -72,7 +72,9 @@ export const useAltaGuiada = () => {
         const res = await fetch(ficha.logoUrl);
         if (!res.ok) throw new Error('No se pudo copiar el logo');
         const blob = await res.blob();
-        logoUrl = await fijarLogo(user.id, blob, blob.type || 'image/png');
+        // Solo imágenes rasterizadas: un SVG en un bucket público puede llevar scripts.
+        if (EXT_POR_TIPO[blob.type]) logoUrl = await fijarLogo(user.id, blob, blob.type);
+        else logoUrl = null;
       }
 
       const nombreComercial = ficha.nombreComercial.trim() || ficha.nombre.trim();

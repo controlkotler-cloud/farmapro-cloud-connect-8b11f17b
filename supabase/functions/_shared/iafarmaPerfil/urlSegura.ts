@@ -20,6 +20,8 @@ function ipv4Privada([a, b]: number[]): boolean {
     (a === 172 && b >= 16 && b <= 31) || // 172.16/12
     (a === 192 && b === 168) || // 192.168/16
     (a === 100 && b >= 64 && b <= 127) || // 100.64/10 (CGNAT)
+    (a === 192 && b === 0) || // 192.0.0.0/24 y 192.0.2.0/24 (IETF y documentación)
+    (a === 198 && (b === 18 || b === 19)) || // 198.18/15 (pruebas de red)
     a >= 224 // multicast, reservadas y broadcast
   );
 }

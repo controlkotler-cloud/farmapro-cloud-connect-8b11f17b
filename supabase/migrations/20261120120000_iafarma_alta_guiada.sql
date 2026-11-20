@@ -32,3 +32,8 @@ insert into public.system_settings (category, key, value, description)
 values ('iafarma', 'alta_guiada_activa', 'false'::jsonb,
         'Alta guiada de IAFarma: obliga a validar la ficha de la farmacia antes de generar')
 on conflict (key) do nothing;
+
+-- 4. Desde audit_hardening, profiles exige GRANT UPDATE por columna.
+grant update (iafarma_nombre_comercial, iafarma_servicios, iafarma_marcas, iafarma_web,
+              iafarma_instagram, iafarma_perfil_validado_at, iafarma_perfil_fuentes)
+  on public.profiles to authenticated;

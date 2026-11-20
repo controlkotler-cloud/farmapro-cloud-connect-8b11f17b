@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
@@ -75,7 +75,12 @@ export const CreativeWorkspace = () => {
   // pedir dos veces el mismo dato. Si ya hay algo guardado aquí (editado a
   // mano en IAFarma), no lo tocamos. El tono también viene del perfil
   // (profiles.iafarma_tone) desde que sincroniza entre dispositivos.
+  // Solo una vez por carga del perfil: si la farmacia vacía un campo a mano,
+  // no se lo volvemos a rellenar.
+  const rellenadoDesdePerfil = useRef(false);
   useEffect(() => {
+    if (!profile || rellenadoDesdePerfil.current) return;
+    rellenadoDesdePerfil.current = true;
     if (!defaults.farmacia && profile?.pharmacy_name) {
       updateDefault('farmacia', profile.pharmacy_name);
     }

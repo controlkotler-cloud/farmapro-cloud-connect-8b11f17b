@@ -10,7 +10,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { comprobarUrl } from '../_shared/iafarmaPerfil/urlSegura.ts';
-import { coloresDeCss, extraerDeHtml } from '../_shared/iafarmaPerfil/extraerWeb.ts';
+import { coloresDeCss, extraerDeHtml, RESERVADAS_IG } from '../_shared/iafarmaPerfil/extraerWeb.ts';
 import { filtrarConCita, quitarVetadas } from '../_shared/iafarmaPerfil/citas.ts';
 import type { Dato, Fuente, PropuestaPerfil, RespuestaPerfil } from '../_shared/iafarmaPerfil/tipos.ts';
 
@@ -152,7 +152,7 @@ function normalizarInstagram(ig: string): string | null {
   const s = ig.trim().replace(/^@/, '');
   const m = /instagram\.com\/([A-Za-z0-9._]+)/i.exec(s);
   const u = (m ? m[1] : s).toLowerCase().replace(/\/+$/, '').replace(/\.+$/, '');
-  return /^[a-z0-9._]{1,30}$/.test(u) ? u : null;
+  return /^[a-z0-9._]{1,30}$/.test(u) && !RESERVADAS_IG.has(u) ? u : null;
 }
 
 // ------------------------------------------------------------------ fuentes
@@ -386,7 +386,17 @@ serve(async (req) => {
     if (!nombre || !localidad) return json({ error: 'Faltan el nombre o la localidad' }, 400);
     if (!web && !igBruto) return json({ error: 'Indica tu web o tu Instagram' }, 400);
 
-    // Límite diario.
+    // Límite diario. Se reserva la fila ANTES de buscar y se cuenta con ella:
+    // así ni las peticiones en paralelo ni un error a mitad dejan buscar gratis.
+    const { data: reserva, error: reservaError } = await admin
+      .from('iafarma_perfil_busquedas')
+      .insert({ user_id: user.id })
+      .select('id')
+      .single();
+    if (reservaError || !reserva) {
+      console.error('reserva:', reservaError?.message);
+      return json({ error: 'No hemos podido comprobar tu límite de búsquedas' }, 500);
+    }
     const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const { count, error: countError } = await admin
       .from('iafarma_perfil_busquedas')
@@ -397,7 +407,8 @@ serve(async (req) => {
       console.error('limite:', countError.message);
       return json({ error: 'No hemos podido comprobar tu límite de búsquedas' }, 500);
     }
-    if ((count ?? 0) >= LIMITE_DIARIO) {
+    if ((count ?? 0) > LIMITE_DIARIO) {
+      await admin.from('iafarma_perfil_busquedas').delete().eq('id', reserva.id);
       return json({ estado: 'limite', mensaje: MSG_LIMITE } satisfies RespuestaPerfil);
     }
 
@@ -494,11 +505,10 @@ serve(async (req) => {
     }
 
     const fuentes = (Object.keys(textos) as Fuente[]);
-    const { error: logError } = await admin.from('iafarma_perfil_busquedas').insert({
-      user_id: user.id,
-      fuentes,
-      coste_estimado: fuentes.length ? COSTE_MODELO : 0,
-    });
+    const { error: logError } = await admin
+      .from('iafarma_perfil_busquedas')
+      .update({ fuentes, coste_estimado: fuentes.length ? COSTE_MODELO : 0 })
+      .eq('id', reserva.id);
     if (logError) console.error('registro búsqueda:', logError.message);
 
     return json({ estado: 'ok', propuesta } satisfies RespuestaPerfil);

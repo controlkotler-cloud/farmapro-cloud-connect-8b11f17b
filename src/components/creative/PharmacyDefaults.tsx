@@ -28,10 +28,10 @@ export const PharmacyDefaults = ({ defaults, onChange, onBuscarDeNuevo }: Pharma
   // Sube el logo al bucket público iafarma-logos y lo fija en el perfil.
   const handleLogoUpload = async (file: File) => {
     if (!user) return;
-    if (!['image/png', 'image/webp', 'image/svg+xml'].includes(file.type)) {
+    if (!['image/png', 'image/webp'].includes(file.type)) {
       toast({
         title: 'Formato no válido',
-        description: 'Sube el logo en PNG (ideal), WebP o SVG, con fondo transparente.',
+        description: 'Sube el logo en PNG (ideal) o WebP, con fondo transparente.',
         variant: 'destructive',
       });
       return;
@@ -42,7 +42,7 @@ export const PharmacyDefaults = ({ defaults, onChange, onBuscarDeNuevo }: Pharma
     }
     setUploadingLogo(true);
     try {
-      const ext = file.type === 'image/svg+xml' ? 'svg' : file.type === 'image/webp' ? 'webp' : 'png';
+      const ext = file.type === 'image/webp' ? 'webp' : 'png';
       const path = `${user.id}/logo.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('iafarma-logos')
@@ -267,7 +267,7 @@ export const PharmacyDefaults = ({ defaults, onChange, onBuscarDeNuevo }: Pharma
             <input
               ref={fileRef}
               type="file"
-              accept="image/png,image/webp,image/svg+xml"
+              accept="image/png,image/webp"
               className="hidden"
               onChange={e => {
                 const f = e.target.files?.[0];

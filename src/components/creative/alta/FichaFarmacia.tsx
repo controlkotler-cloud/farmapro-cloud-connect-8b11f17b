@@ -11,7 +11,7 @@ import type { Fuente } from '@/types/iafarmaPerfil';
 import { MuestraCanvas } from './MuestraCanvas';
 
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
-const LOGO_TIPOS = ['image/png', 'image/webp', 'image/svg+xml'];
+const LOGO_TIPOS = ['image/png', 'image/webp'];
 const MAX_ETIQUETAS = 12;
 
 const ETIQUETA_FUENTE: Record<Fuente, string> = {
@@ -117,19 +117,21 @@ export function FichaFarmacia({ ficha, onChange, origen, fuentesFallidas, onLogo
 
   const subirLogo = (file: File) => {
     if (!LOGO_TIPOS.includes(file.type)) {
-      toast({ title: 'Formato no admitido', description: 'Sube el logo en PNG, WebP o SVG.', variant: 'destructive' });
+      toast({ title: 'Formato no admitido', description: 'Sube el logo en PNG o WebP.', variant: 'destructive' });
       return;
     }
     if (file.size > LOGO_MAX_BYTES) {
       toast({ title: 'Logo demasiado grande', description: 'El máximo es 2 MB.', variant: 'destructive' });
       return;
     }
+    if (ficha.logoUrl?.startsWith('blob:')) URL.revokeObjectURL(ficha.logoUrl);
     const url = URL.createObjectURL(file);
     onChange({ ...ficha, logoFile: file, logoUrl: url, logoPath: undefined });
     onLogoCambiado(url);
   };
 
   const quitarLogo = () => {
+    if (ficha.logoUrl?.startsWith('blob:')) URL.revokeObjectURL(ficha.logoUrl);
     onChange({ ...ficha, logoFile: undefined, logoUrl: undefined, logoPath: undefined });
     onLogoCambiado(undefined);
   };
@@ -162,7 +164,7 @@ export function FichaFarmacia({ ficha, onChange, origen, fuentesFallidas, onLogo
               <input
                 ref={fileRef}
                 type="file"
-                accept=".png,.webp,.svg,image/png,image/webp,image/svg+xml"
+                accept=".png,.webp,image/png,image/webp"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
