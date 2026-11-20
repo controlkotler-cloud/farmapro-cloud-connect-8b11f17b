@@ -2083,6 +2083,13 @@ export type Database = {
           iafarma_brand_primary: string | null
           iafarma_brand_secondary: string | null
           iafarma_logo_url: string | null
+          iafarma_instagram: string | null
+          iafarma_marcas: string[] | null
+          iafarma_nombre_comercial: string | null
+          iafarma_perfil_fuentes: Json | null
+          iafarma_perfil_validado_at: string | null
+          iafarma_servicios: string[] | null
+          iafarma_web: string | null
           iafarma_tone: string | null
           id: string
           is_seed: boolean
@@ -2130,6 +2137,13 @@ export type Database = {
           iafarma_brand_primary?: string | null
           iafarma_brand_secondary?: string | null
           iafarma_logo_url?: string | null
+          iafarma_instagram?: string | null
+          iafarma_marcas?: string[] | null
+          iafarma_nombre_comercial?: string | null
+          iafarma_perfil_fuentes?: Json | null
+          iafarma_perfil_validado_at?: string | null
+          iafarma_servicios?: string[] | null
+          iafarma_web?: string | null
           iafarma_tone?: string | null
           id: string
           is_seed?: boolean
@@ -2177,6 +2191,13 @@ export type Database = {
           iafarma_brand_primary?: string | null
           iafarma_brand_secondary?: string | null
           iafarma_logo_url?: string | null
+          iafarma_instagram?: string | null
+          iafarma_marcas?: string[] | null
+          iafarma_nombre_comercial?: string | null
+          iafarma_perfil_fuentes?: Json | null
+          iafarma_perfil_validado_at?: string | null
+          iafarma_servicios?: string[] | null
+          iafarma_web?: string | null
           iafarma_tone?: string | null
           id?: string
           is_seed?: boolean

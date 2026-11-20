@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { TONE_OPTIONS } from '@/lib/iafarmaTonos';
 import { Check, Store, Upload, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 
-const TONE_OPTIONS = ['Cercano y profesional', 'Divertido', 'Serio/científico'];
 const LOGO_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 
 interface PharmacyDefaultsProps {
