@@ -543,9 +543,11 @@ serve(async (req) => {
       ' The composition must feel finished and full: treat the entire background (color field, texture, pattern or scene) and balance the layout so there are no large empty dead zones.';
 
     // Esquina reservada para el logo real (se superpone en el cliente).
-    // Con números: el rectángulo exacto que ocupará el logo debe ser solo fondo.
+    // Con números: el rectángulo que ocupará el logo debe quedar tranquilo, pero
+    // como parte de la escena. Con «plain background» el modelo pintaba una caja
+    // lisa de bordes duros (el «pegote» que vio Francesc el 20-11).
     const logoBlock = logoCorner
-      ? ' LOGO RESERVE (mandatory): the rectangle covering the RIGHT 26% of the width and the BOTTOM 15% of the height of the visible design area must contain ONLY plain background — no text, no list items, no icons, no products there. The pharmacy\'s real logo will be overlaid exactly in that corner afterwards. Do not draw any logo or placeholder yourself.'
+      ? ' LOGO SPACE (mandatory): keep the area covering the RIGHT 26% of the width and the BOTTOM 15% of the height of the visible design area visually quiet — no text, no list items, no icons, no products, no busy detail there. That area must be the SAME background as its surroundings, continuing seamlessly (same color field, texture, gradient or scene, just calm). Do NOT draw any box, panel, card, block, frame, label, badge, color patch or shape with hard edges to hold the logo, and do not change the background color in that corner. The pharmacy\'s real logo will be overlaid there afterwards. Do not draw any logo or placeholder yourself.'
       : '';
 
     // Paleta corporativa también en el prompt de imagen (no solo en el copy).
