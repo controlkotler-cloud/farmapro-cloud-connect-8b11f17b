@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { RespuestaPerfil } from '@/types/iafarmaPerfil';
+import type { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 
 const BUCKET = 'iafarma-logos';
-const STORAGE_KEY = 'farmapro_iafarma_defaults';
 
 export interface FichaValidada {
   nombre: string;
@@ -61,7 +61,7 @@ export const useAltaGuiada = () => {
   }, []);
 
   const guardar = useCallback(
-    async (ficha: FichaValidada): Promise<void> => {
+    async (ficha: FichaValidada): Promise<IAFarmaDefaults> => {
       if (!user) throw new Error('Sin sesión');
 
       let logoUrl: string | null = ficha.logoUrl || null;
@@ -96,23 +96,20 @@ export const useAltaGuiada = () => {
         .eq('id', user.id);
       if (error) throw error;
 
-      // Caché local de useIAFarmaDefaults: el generador la lee al montarse.
-      try {
-        window.localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            farmacia: ficha.nombre.trim(),
-            localidad: ficha.localidad.trim(),
-            tono: ficha.tono,
-            colorPrimario: ficha.colorPrimario || '',
-            colorSecundario: ficha.colorPrimario ? ficha.colorSecundario || '' : '',
-            logoUrl: logoUrl || '',
-          }),
-        );
-      } catch {
-        /* almacenamiento no disponible */
-      }
       await reloadProfile();
+
+      // Lo que el generador usa desde ya (el que llama lo guarda con saveDefaults).
+      return {
+        farmacia: ficha.nombre.trim(),
+        localidad: ficha.localidad.trim(),
+        tono: ficha.tono,
+        colorPrimario: ficha.colorPrimario || '',
+        colorSecundario: ficha.colorPrimario ? ficha.colorSecundario || '' : '',
+        logoUrl: logoUrl || '',
+        nombreComercial,
+        servicios: limpiar(ficha.servicios).join(', '),
+        marcas: limpiar(ficha.marcas).join(', '),
+      };
     },
     [user, reloadProfile, fijarLogo],
   );

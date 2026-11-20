@@ -1,22 +1,24 @@
 import { useRef, useState } from 'react';
 import { TONE_OPTIONS } from '@/lib/iafarmaTonos';
-import { Check, Store, Upload, X } from 'lucide-react';
+import { Check, RefreshCw, Store, Upload, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
+import { listaDe, type IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 
 const LOGO_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 
 interface PharmacyDefaultsProps {
   defaults: IAFarmaDefaults;
   onChange: (key: keyof IAFarmaDefaults, value: string) => void;
+  /** Vuelve a abrir el alta guiada (buscar en la web y el Instagram). */
+  onBuscarDeNuevo?: () => void;
 }
 
-export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) => {
+export const PharmacyDefaults = ({ defaults, onChange, onBuscarDeNuevo }: PharmacyDefaultsProps) => {
   const { toast } = useToast();
   const { user, reloadProfile } = useAuth();
   const [saving, setSaving] = useState(false);
@@ -91,6 +93,9 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
           iafarma_tone: defaults.tono || null,
           iafarma_brand_primary: defaults.colorPrimario || null,
           iafarma_brand_secondary: defaults.colorSecundario || null,
+          iafarma_nombre_comercial: defaults.nombreComercial.trim() || null,
+          iafarma_servicios: listaDe(defaults.servicios),
+          iafarma_marcas: listaDe(defaults.marcas),
         })
         .eq('id', user.id);
       if (error) throw error;
@@ -153,6 +158,38 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
               ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Nombre en tus piezas</label>
+          <Input
+            value={defaults.nombreComercial}
+            onChange={e => onChange('nombreComercial', e.target.value)}
+            placeholder={defaults.farmacia || 'Como te conocen tus clientes'}
+            maxLength={60}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Servicios <span className="font-normal">(separados por comas)</span>
+          </label>
+          <Input
+            value={defaults.servicios}
+            onChange={e => onChange('servicios', e.target.value)}
+            placeholder="Dermocosmética, nutrición, SPD..."
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Marcas <span className="font-normal">(separadas por comas)</span>
+          </label>
+          <Input
+            value={defaults.marcas}
+            onChange={e => onChange('marcas', e.target.value)}
+            placeholder="Las que trabajas a diario"
+          />
         </div>
       </div>
 
@@ -245,7 +282,19 @@ export const PharmacyDefaults = ({ defaults, onChange }: PharmacyDefaultsProps) 
         </div>
       </div>
 
-      <div className="flex justify-end mt-3">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between mt-3">
+        {onBuscarDeNuevo ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onBuscarDeNuevo}
+            className="text-muted-foreground"
+          >
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+            Buscar de nuevo mis datos
+          </Button>
+        ) : <span />}
         <Button
           type="button"
           variant="ghost"

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreativeChat, CreativeContext, type ContentType } from '@/hooks/useCreativeChat';
-import { useIAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
+import { listaDe, useIAFarmaDefaults, type IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
+import { useAltaGuiadaActiva } from '@/hooks/useAltaGuiadaActiva';
+import { AltaGuiada } from './alta/AltaGuiada';
 import { useTextQuota } from '@/hooks/useTextQuota';
 import { useImageCredits } from '@/hooks/useImageCredits';
 import { useIAFarmaHistory } from '@/hooks/useIAFarmaHistory';
@@ -21,7 +23,21 @@ import { CONTENT_TYPES } from '@/hooks/useCreativeChat';
 
 export const CreativeWorkspace = () => {
   const { profile, isAdmin } = useAuth();
-  const { defaults, updateDefault } = useIAFarmaDefaults();
+  const { defaults, updateDefault, saveDefaults } = useIAFarmaDefaults();
+
+  // Alta guiada: antes de generar, la farmacia valida sus datos (web e Instagram).
+  // Interruptor en system_settings; ?altaGuiada=1 la fuerza para probarla.
+  const [searchParams] = useSearchParams();
+  const { activa: altaActiva } = useAltaGuiadaActiva();
+  const [altaReabierta, setAltaReabierta] = useState(false);
+  const altaForzada = searchParams.get('altaGuiada') === '1';
+  const mostrarAlta = !!profile && (
+    altaReabierta || ((altaActiva || altaForzada) && !profile.iafarma_perfil_validado_at)
+  );
+  const terminarAlta = useCallback((datos: IAFarmaDefaults) => {
+    saveDefaults(datos);
+    setAltaReabierta(false);
+  }, [saveDefaults]);
 
   // Contador de cupo (textos e imágenes) e historial: visibles desde que se
   // entra, no solo tras generar (petición de Francesc 08-09-2026).
@@ -78,7 +94,16 @@ export const CreativeWorkspace = () => {
     if (!defaults.logoUrl && profile?.iafarma_logo_url) {
       updateDefault('logoUrl', profile.iafarma_logo_url);
     }
-  }, [defaults.farmacia, defaults.localidad, defaults.tono, defaults.colorPrimario, defaults.colorSecundario, defaults.logoUrl, profile?.pharmacy_name, profile?.pharmacy_city, profile?.iafarma_tone, profile?.iafarma_brand_primary, profile?.iafarma_brand_secondary, profile?.iafarma_logo_url, updateDefault]);
+    if (!defaults.nombreComercial && profile?.iafarma_nombre_comercial) {
+      updateDefault('nombreComercial', profile.iafarma_nombre_comercial);
+    }
+    if (!defaults.servicios && profile?.iafarma_servicios?.length) {
+      updateDefault('servicios', profile.iafarma_servicios.join(', '));
+    }
+    if (!defaults.marcas && profile?.iafarma_marcas?.length) {
+      updateDefault('marcas', profile.iafarma_marcas.join(', '));
+    }
+  }, [defaults.farmacia, defaults.localidad, defaults.tono, defaults.colorPrimario, defaults.colorSecundario, defaults.logoUrl, defaults.nombreComercial, defaults.servicios, defaults.marcas, profile?.pharmacy_name, profile?.pharmacy_city, profile?.iafarma_tone, profile?.iafarma_brand_primary, profile?.iafarma_brand_secondary, profile?.iafarma_logo_url, profile?.iafarma_nombre_comercial, profile?.iafarma_servicios, profile?.iafarma_marcas, updateDefault]);
 
   const selectedInfo = CONTENT_TYPES.find(t => t.id === contentType);
 
@@ -98,11 +123,32 @@ export const CreativeWorkspace = () => {
     setContentType('imagen');
   };
 
+  if (mostrarAlta) {
+    return (
+      <AltaGuiada
+        inicial={{
+          nombre: defaults.farmacia,
+          localidad: defaults.localidad,
+          nombreComercial: defaults.nombreComercial,
+          tono: defaults.tono,
+          colorPrimario: defaults.colorPrimario || undefined,
+          colorSecundario: defaults.colorSecundario || undefined,
+          logoUrl: defaults.logoUrl || undefined,
+          servicios: listaDe(defaults.servicios),
+          marcas: listaDe(defaults.marcas),
+          web: profile?.iafarma_web ?? undefined,
+          instagram: profile?.iafarma_instagram ?? undefined,
+        }}
+        onTerminar={terminarAlta}
+      />
+    );
+  }
+
   return (
     <div className="space-y-8">
       <QuotaBar text={textQuota.status} image={imageCredits.status} isFree={isFree} />
 
-      <PharmacyDefaults defaults={defaults} onChange={updateDefault} />
+      <PharmacyDefaults defaults={defaults} onChange={updateDefault} onBuscarDeNuevo={() => setAltaReabierta(true)} />
 
       <section>
         <h2 className="text-lg font-semibold text-foreground mb-4">¿Qué quieres crear?</h2>

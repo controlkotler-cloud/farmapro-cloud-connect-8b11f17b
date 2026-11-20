@@ -4,7 +4,7 @@ import { Download, GalleryHorizontalEnd, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { IAFarmaDefaults, brandPaletteOf } from '@/hooks/useIAFarmaDefaults';
+import { IAFarmaDefaults, brandPaletteOf, listaDe, nombreEnPiezas } from '@/hooks/useIAFarmaDefaults';
 import { getStyle } from './pieceTypes';
 import { cropBlobToFormat, overlayLogo, downloadBlob, fileDate } from './imageUtils';
 
@@ -132,8 +132,10 @@ export const CarouselImages = ({ content, defaults }: CarouselImagesProps) => {
             artOverride: seriesArt,
             ...(brandPalette ? { brandPalette } : {}),
             ...(withLogo ? { logoCorner: true } : {}),
-            ...(defaults.farmacia ? { pharmacyName: defaults.farmacia } : {}),
+            ...(nombreEnPiezas(defaults) ? { pharmacyName: nombreEnPiezas(defaults) } : {}),
             ...(defaults.localidad ? { locality: defaults.localidad } : {}),
+            ...(listaDe(defaults.servicios).length ? { services: listaDe(defaults.servicios) } : {}),
+            ...(listaDe(defaults.marcas).length ? { brands: listaDe(defaults.marcas) } : {}),
           },
         });
 

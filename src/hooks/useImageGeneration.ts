@@ -34,6 +34,10 @@ export interface ImageGenerationOptions {
   pharmacyName?: string;
   /** Localidad para la firma al pie de la imagen. */
   locality?: string;
+  /** Servicios de la farmacia (alta guiada): contexto, nunca se rotulan. */
+  services?: string[];
+  /** Marcas con las que trabaja (alta guiada): contexto, nunca se rotulan. */
+  brands?: string[];
   /**
    * Texto de la publicación de origen (máx. 1500 chars): cuando la imagen se
    * crea desde "Crear esta imagen" del asistente de texto, el copy de la pieza
@@ -198,6 +202,8 @@ export const useImageGeneration = () => {
             ...(brief ? { brief } : {}),
             ...(pharmacyName ? { pharmacyName } : {}),
             ...(locality ? { locality } : {}),
+            ...(opts?.services?.length ? { services: opts.services } : {}),
+            ...(opts?.brands?.length ? { brands: opts.brands } : {}),
             ...(sourceText ? { sourceText } : {}),
             ...(opts?.lines?.length ? { lines: opts.lines } : {}),
             ...(opts?.artOverride ? { artOverride: opts.artOverride } : {}),

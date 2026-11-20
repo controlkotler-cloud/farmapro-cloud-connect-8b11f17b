@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAltaGuiada, type FichaValidada } from '@/hooks/useAltaGuiada';
+import type { IAFarmaDefaults } from '@/hooks/useIAFarmaDefaults';
 import { TONE_OPTIONS } from '@/lib/iafarmaTonos';
 import { combinarPaleta, paletaDeUrl } from '@/lib/paleta';
 import type { Fuente, PropuestaPerfil } from '@/types/iafarmaPerfil';
@@ -14,7 +15,7 @@ type Paso = 'datos' | 'buscando' | 'ficha';
 
 interface Props {
   inicial?: Partial<FichaValidada>;
-  onTerminar: () => void;
+  onTerminar: (datos: IAFarmaDefaults) => void;
 }
 
 const SECCION = 'rounded-lg bg-ciruela-soft/60 ring-1 ring-ciruela/20 p-5';
@@ -161,8 +162,8 @@ export function AltaGuiada({ inicial, onTerminar }: Props) {
     }
     setGuardando(true);
     try {
-      await guardar({ ...ficha, nombre, fuentes: { ...ficha.fuentes, origen } });
-      onTerminar();
+      const datos = await guardar({ ...ficha, nombre, fuentes: { ...ficha.fuentes, origen } });
+      onTerminar(datos);
     } catch {
       toast({ title: 'No se ha podido guardar', description: 'Inténtalo de nuevo en un momento.', variant: 'destructive' });
     } finally {

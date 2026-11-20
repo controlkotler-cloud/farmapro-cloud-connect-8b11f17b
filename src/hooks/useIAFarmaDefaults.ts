@@ -12,6 +12,12 @@ export interface IAFarmaDefaults {
   colorSecundario: string;
   /** URL pública del logo subido (bucket iafarma-logos). */
   logoUrl: string;
+  /** Nombre con el que la farmacia firma sus piezas (vacío = el nombre de la farmacia). */
+  nombreComercial: string;
+  /** Servicios validados, separados por comas. */
+  servicios: string;
+  /** Marcas validadas, separadas por comas. */
+  marcas: string;
 }
 
 const EMPTY_DEFAULTS: IAFarmaDefaults = {
@@ -21,6 +27,9 @@ const EMPTY_DEFAULTS: IAFarmaDefaults = {
   colorPrimario: '',
   colorSecundario: '',
   logoUrl: '',
+  nombreComercial: '',
+  servicios: '',
+  marcas: '',
 };
 
 const readFromStorage = (): IAFarmaDefaults => {
@@ -36,6 +45,9 @@ const readFromStorage = (): IAFarmaDefaults => {
       colorPrimario: typeof parsed.colorPrimario === 'string' ? parsed.colorPrimario : '',
       colorSecundario: typeof parsed.colorSecundario === 'string' ? parsed.colorSecundario : '',
       logoUrl: typeof parsed.logoUrl === 'string' ? parsed.logoUrl : '',
+      nombreComercial: typeof parsed.nombreComercial === 'string' ? parsed.nombreComercial : '',
+      servicios: typeof parsed.servicios === 'string' ? parsed.servicios : '',
+      marcas: typeof parsed.marcas === 'string' ? parsed.marcas : '',
     };
   } catch {
     return { ...EMPTY_DEFAULTS };
@@ -81,3 +93,11 @@ export const brandPaletteOf = (d: IAFarmaDefaults): string => {
     ? `primary ${d.colorPrimario}, secondary ${d.colorSecundario}`
     : `primary ${d.colorPrimario}`;
 };
+
+/** Lista separada por comas → array limpio, sin vacíos ni repetidos. */
+export const listaDe = (s: string): string[] =>
+  [...new Set(s.split(',').map((x) => x.trim()).filter(Boolean))];
+
+/** Nombre que firma las piezas: el comercial si lo hay; si no, el de la farmacia. */
+export const nombreEnPiezas = (d: IAFarmaDefaults): string =>
+  d.nombreComercial.trim() || d.farmacia.trim();

@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { IAFarmaDefaults, brandPaletteOf } from '@/hooks/useIAFarmaDefaults';
+import { IAFarmaDefaults, brandPaletteOf, listaDe, nombreEnPiezas } from '@/hooks/useIAFarmaDefaults';
 import { useImageGeneration } from '@/hooks/useImageGeneration';
 import { cropBlobToFormat, overlayLogo, downloadBlob, fileDate, fileToProductDataUrl } from './imageUtils';
 import { IMAGE_ADDONS, PACKS_CHECKOUT_READY, PAID_ROLES } from '@/lib/plans';
@@ -128,8 +128,10 @@ export const ImageWorkspace = ({ defaults, seed, onGenerated }: ImageWorkspacePr
       headline,
       pieceType: piece,
       brief,
-      pharmacyName: defaults.farmacia,
+      pharmacyName: nombreEnPiezas(defaults),
       locality: defaults.localidad,
+      services: listaDe(defaults.servicios),
+      brands: listaDe(defaults.marcas),
       ...(sourceText ? { sourceText } : {}),
       ...(brandPalette ? { brandPalette } : {}),
       ...(withLogo ? { logoCorner: true } : {}),

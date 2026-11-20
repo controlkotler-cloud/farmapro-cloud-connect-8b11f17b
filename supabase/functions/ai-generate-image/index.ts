@@ -254,6 +254,24 @@ async function generateCopy(
   return null;
 }
 
+// Lista de servicios o marcas que manda el cliente: hasta 8, 40 caracteres cada
+// uno, sin los robots vetados (el blíster Celia sí).
+function listaContexto(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const x of v) {
+    if (typeof x !== 'string') continue;
+    const t = x.trim().replace(/["\n\r]/g, ' ').slice(0, 40).trim();
+    if (!t) continue;
+    const n = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (/\brobot (julia|celia)\b/.test(n)) continue;
+    if (!/\bblister celia\b/.test(n) && /\b(julia|celia)\b/.test(n)) continue;
+    if (!out.includes(t)) out.push(t);
+    if (out.length === 8) break;
+  }
+  return out;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -318,6 +336,9 @@ serve(async (req) => {
     const brief = briefRaw ? briefRaw.slice(0, 200) : '';
     const pharmacyName = typeof body?.pharmacyName === 'string' ? body.pharmacyName.trim().slice(0, 60) : '';
     const locality = typeof body?.locality === 'string' ? body.locality.trim().slice(0, 60) : '';
+    // Servicios y marcas validados en el alta: solo contexto, nunca texto pintado.
+    const services = listaContexto(body?.services);
+    const brands = listaContexto(body?.brands);
     // Texto de la publicación de origen (botón "Crear esta imagen" del
     // asistente de texto): el copy de la pieza se escribe coherente con él.
     const sourceText = typeof body?.sourceText === 'string' ? body.sourceText.trim().slice(0, 1500) : '';
@@ -509,13 +530,20 @@ serve(async (req) => {
       : '';
 
     const briefBlock = brief ? ` Topic of the piece (in Spanish): "${brief}".` : '';
+    const contextParts = [
+      services.length ? `the pharmacy offers ${services.join(', ')}` : '',
+      brands.length ? `it works with brands ${brands.join(', ')}` : '',
+    ].filter(Boolean);
+    const contextBlock = contextParts.length
+      ? ` Context only (do not render as text, no brand logos): ${contextParts.join('; ')}. Use this only to keep imagery coherent with the pharmacy.`
+      : '';
     const artBlock = ` Art direction: ${effectiveArt}`;
 
     const enhancedPrompt =
       `Marketing image for a Spanish retail pharmacy (parafarmacia): ${prompt}.${briefBlock} ` +
       `Commercial, bright, professional aesthetic; suitable for social media or in-store poster. ${pieceGuidance(pieceType)} ` +
       `Style hint: ${style}. Target size: ${size}.` +
-      `${productBlock}${artBlock}${brandBlock}${richnessBlock}${textBlock}${signatureBlock}${logoBlock}${cropBlock} ${guardrails}`;
+      `${productBlock}${artBlock}${brandBlock}${contextBlock}${richnessBlock}${textBlock}${signatureBlock}${logoBlock}${cropBlock} ${guardrails}`;
 
     // Routing por familia de modelo:
     //  - openai/gpt-image-* -> /v1/images/generations (payload OpenAI-style, b64_json)
